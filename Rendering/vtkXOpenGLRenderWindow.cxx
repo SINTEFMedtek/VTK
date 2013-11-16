@@ -56,6 +56,9 @@
 #include <X11/Xutil.h>
 #include <X11/cursorfont.h>
 
+// CustusX modification: define a shared gl context for all render windows
+static GLXContext cx_shared_context = 0;
+
 class vtkXOpenGLRenderWindow;
 class vtkRenderWindow;
 class vtkXOpenGLRenderWindowInternal
@@ -443,6 +446,10 @@ vtkXOpenGLRenderWindow::~vtkXOpenGLRenderWindow()
   // close-down all system-specific drawing resources
   this->Finalize();
 
+  // CustusX modification: clear the shared gl context
+  if (this->Internal->ContextId == cx_shared_context)
+    cx_shared_context = 0;
+
   vtkRenderer *ren;
   vtkCollectionSimpleIterator rit;
   this->Renderers->InitTraversal(rit);
@@ -620,8 +627,16 @@ void vtkXOpenGLRenderWindow::CreateAWindow()
 
   if (!this->Internal->ContextId)
     {
-    this->Internal->ContextId = 
-      glXCreateContext(this->DisplayId, v, 0, GL_TRUE);
+//    this->Internal->ContextId =
+//      glXCreateContext(this->DisplayId, v, 0, GL_TRUE);
+
+      // CustusX modification: glXCreateContext with share list.
+      // Select the first created context as the shared one.
+      this->Internal->ContextId = glXCreateContext(this->DisplayId, v, cx_shared_context, GL_TRUE);
+      if(!cx_shared_context)
+      {
+        cx_shared_context = this->Internal->ContextId;
+      }
     }
 
   if(!this->Internal->ContextId)

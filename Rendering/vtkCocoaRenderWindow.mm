@@ -25,6 +25,8 @@ PURPOSE.  See the above copyright notice for more information.
 
 #import <vtksys/ios/sstream>
 
+static NSOpenGLContext* cx_shared_context = nil;
+
 vtkStandardNewMacro(vtkCocoaRenderWindow);
 
 //----------------------------------------------------------------------------
@@ -74,6 +76,12 @@ vtkCocoaRenderWindow::~vtkCocoaRenderWindow()
     this->ShowCursor();
     }
   this->Finalize();
+
+/* Should do something like this, but my obj-C skills fail here (2013-11-17 CA)
+ if (this->Internal->ContextId == cx_shared_context)
+    {
+    cx_shared_context = nil;
+    }*/
 
   vtkRenderer *ren;
   vtkCollectionSimpleIterator rit;
@@ -727,6 +735,7 @@ void vtkCocoaRenderWindow::CreateAWindow()
 }
 
 //----------------------------------------------------------------------------
+
 void vtkCocoaRenderWindow::CreateGLContext()
 {
   NSOpenGLPixelFormatAttribute attribs[] =
@@ -742,10 +751,17 @@ void vtkCocoaRenderWindow::CreateGLContext()
 
   NSOpenGLPixelFormat* pixelFormat = [[[NSOpenGLPixelFormat alloc]
                                       initWithAttributes:attribs] autorelease];
+//    NSOpenGLContext* context = [[[NSOpenGLContext alloc]
+//                                 initWithFormat:pixelFormat
+//                                 shareContext:nil] autorelease];
   NSOpenGLContext* context = [[[NSOpenGLContext alloc]
                               initWithFormat:pixelFormat
-                              shareContext:nil] autorelease];
-  
+                              shareContext:cx_shared_context] autorelease];
+  if (cx_shared_context==nil)
+    {
+        cx_shared_context = context;
+    }
+
   // This syncs the OpenGL context to the VBL to prevent tearing
   GLint one = 1;
   [context setValues:&one forParameter:NSOpenGLCPSwapInterval];
