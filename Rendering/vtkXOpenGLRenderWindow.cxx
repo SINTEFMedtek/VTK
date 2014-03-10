@@ -447,7 +447,7 @@ vtkXOpenGLRenderWindow::~vtkXOpenGLRenderWindow()
   this->Finalize();
 
   // CustusX modification: clear the shared gl context
-  if (this->Internal->ContextId == cx_shared_context)
+  //if (this->Internal->ContextId == cx_shared_context) // this line causes a segfault for multiple unit tests in same process
     cx_shared_context = 0;
 
   vtkRenderer *ren;
