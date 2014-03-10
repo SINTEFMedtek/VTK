@@ -77,11 +77,7 @@ vtkCocoaRenderWindow::~vtkCocoaRenderWindow()
     }
   this->Finalize();
 
-/* Should do something like this, but my obj-C skills fail here (2013-11-17 CA)
- if (this->Internal->ContextId == cx_shared_context)
-    {
-    cx_shared_context = nil;
-    }*/
+  cx_shared_context = nil;
 
   vtkRenderer *ren;
   vtkCollectionSimpleIterator rit;
