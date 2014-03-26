@@ -25,6 +25,8 @@ PURPOSE.  See the above copyright notice for more information.
 
 #import <vtksys/ios/sstream>
 
+static NSOpenGLContext* cx_shared_context = nil;
+
 vtkStandardNewMacro(vtkCocoaRenderWindow);
 
 //----------------------------------------------------------------------------
@@ -67,6 +69,8 @@ vtkCocoaRenderWindow::vtkCocoaRenderWindow()
 //----------------------------------------------------------------------------
 vtkCocoaRenderWindow::~vtkCocoaRenderWindow()
 {
+	cx_shared_context = nil;
+
   if (this->CursorHidden)
     {
     this->ShowCursor();
@@ -779,9 +783,17 @@ void vtkCocoaRenderWindow::CreateGLContext()
       }
     }
 
+  //NSOpenGLContext* context = [[[NSOpenGLContext alloc]
+  //                            initWithFormat:pixelFormat
+  //                              shareContext:nil] autorelease];
+
   NSOpenGLContext* context = [[[NSOpenGLContext alloc]
-                              initWithFormat:pixelFormat
-                                shareContext:nil] autorelease];
+								initWithFormat:pixelFormat
+								shareContext:cx_shared_context] autorelease];
+  if (cx_shared_context==nil)
+  {
+	cx_shared_context = context;
+  }
 
   // This syncs the OpenGL context to the VBL to prevent tearing
   GLint one = 1;
