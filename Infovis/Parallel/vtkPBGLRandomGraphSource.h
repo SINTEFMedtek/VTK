@@ -28,9 +28,10 @@
 // connectivity). This is the distributed-graph version of
 // vtkRandomGraphSource.
 //
+// @deprecated Not maintained as of VTK 6.2 and will be removed eventually.
 
-#ifndef __vtkPBGLRandomGraphSource_h
-#define __vtkPBGLRandomGraphSource_h
+#ifndef vtkPBGLRandomGraphSource_h
+#define vtkPBGLRandomGraphSource_h
 
 #include "vtkInfovisParallelModule.h" // For export macro
 #include "vtkGraphAlgorithm.h"
@@ -38,6 +39,7 @@
 class vtkGraph;
 class vtkPVXMLElement;
 
+#if !defined(VTK_LEGACY_REMOVE)
 class VTKINFOVISPARALLEL_EXPORT vtkPBGLRandomGraphSource : public vtkGraphAlgorithm
 {
 public:
@@ -174,5 +176,6 @@ private:
   void operator=(const vtkPBGLRandomGraphSource&);   // Not implemented
 };
 
+#endif //VTK_LEGACY_REMOVE
 #endif
 

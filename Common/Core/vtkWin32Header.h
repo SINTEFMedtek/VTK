@@ -17,8 +17,8 @@
 // The vtkWin32Header captures some system differences between Unix and
 // Windows operating systems.
 
-#ifndef __vtkWIN32Header_h
-#define __vtkWIN32Header_h
+#ifndef vtkWIN32Header_h
+#define vtkWIN32Header_h
 
 #ifndef __VTK_SYSTEM_INCLUDES__INSIDE
 Do_not_include_vtkWin32Header_directly__vtkSystemIncludes_includes_it;
@@ -90,26 +90,13 @@ Do_not_include_vtkWin32Header_directly__vtkSystemIncludes_includes_it;
 #if defined(_MSC_VER) // Visual studio
 #pragma warning ( disable : 4311 )
 #pragma warning ( disable : 4312 )
-#  define vtkGetWindowLong GetWindowLongPtr
-#  define vtkSetWindowLong SetWindowLongPtr
-#  define vtkLONG LONG_PTR
-#  define vtkGWL_WNDPROC GWLP_WNDPROC
-#  define vtkGWL_HINSTANCE GWLP_HINSTANCE
-#  define vtkGWL_USERDATA GWLP_USERDATA
-#else // non-Visual studio
-#  define vtkGetWindowLong GetWindowLong
-#  define vtkSetWindowLong SetWindowLong
-#  define vtkLONG LONG
-#  ifdef _WIN64
-#    define vtkGWL_WNDPROC GWLP_WNDPROC
-#    define vtkGWL_HINSTANCE GWLP_HINSTANCE
-#    define vtkGWL_USERDATA GWLP_USERDATA
-#  else
-#  define vtkGWL_WNDPROC GWL_WNDPROC
-#  define vtkGWL_HINSTANCE GWL_HINSTANCE
-#  define vtkGWL_USERDATA GWL_USERDATA
-#  endif
 #endif //
+#define vtkGetWindowLong GetWindowLongPtr
+#define vtkSetWindowLong SetWindowLongPtr
+#define vtkLONG LONG_PTR
+#define vtkGWL_WNDPROC GWLP_WNDPROC
+#define vtkGWL_HINSTANCE GWLP_HINSTANCE
+#define vtkGWL_USERDATA GWLP_USERDATA
 
 #endif
 

@@ -23,12 +23,16 @@
 // vertices; and point ids 4-9 are the midedge nodes between (0,1), (1,2),
 // (2,0), (0,3), (1,3), and (2,3).
 //
+// Note that this class uses an internal linear tesselation for some internal operations
+// (e.g., clipping and contouring). This means that some artifacts may appear trying to
+// represent a non-linear interpolation function with linear tets.
+//
 // .SECTION See Also
 // vtkQuadraticEdge vtkQuadraticTriangle vtkQuadraticWedge
 // vtkQuadraticQuad vtkQuadraticHexahedron vtkQuadraticPyramid
 
-#ifndef __vtkQuadraticTetra_h
-#define __vtkQuadraticTetra_h
+#ifndef vtkQuadraticTetra_h
+#define vtkQuadraticTetra_h
 
 #include "vtkCommonDataModelModule.h" // For export macro
 #include "vtkNonLinearCell.h"

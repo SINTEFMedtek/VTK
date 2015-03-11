@@ -45,8 +45,8 @@
 // old Limit values in NonLogUnscaled{Min,Max}Limit so that behavior is
 // consistent when LogScale is changed from false to true and back again.
 
-#ifndef __vtkAxis_h
-#define __vtkAxis_h
+#ifndef vtkAxis_h
+#define vtkAxis_h
 
 #include "vtkChartsCoreModule.h" // For export macro
 #include "vtkContextItem.h"
@@ -71,7 +71,7 @@ public:
   // Description:
   // Enumeration of the axis locations in a conventional XY chart. Other
   // layouts are possible.
-  enum {
+  enum Location {
     LEFT = 0,
     BOTTOM,
     RIGHT,
@@ -276,6 +276,11 @@ public:
   // Get/set whether the tick marks should be visible.
   vtkSetMacro(TicksVisible, bool);
   vtkGetMacro(TicksVisible, bool);
+
+  // Description:
+  // Get/set whether the axis line should be visible.
+  vtkSetMacro(AxisVisible, bool);
+  vtkGetMacro(AxisVisible, bool);
 
   // Description:
   // Get/set the numerical precision to use, default is 2.
@@ -506,6 +511,7 @@ protected:
   bool GridVisible;    // Whether the grid for the axis should be drawn
   bool LabelsVisible;  // Should the axis labels be visible
   bool TicksVisible;   // Should the tick marks be visible.
+  bool AxisVisible;    // Should the axis line be visible.
   int Precision;       // Numerical precision to use, defaults to 2.
   int Notation;        // The notation to use (standard, scientific, mixed)
   int Behavior;        // The behaviour of the axis (auto, fixed, custom).
@@ -575,4 +581,4 @@ private:
 //ETX
 };
 
-#endif //__vtkAxis_h
+#endif //vtkAxis_h

@@ -27,8 +27,8 @@
 // the basic structure and if you're lucky it might even work!
 // but frankly I doubt it
 
-#ifndef __vtkXRenderWindowInteractor_h
-#define __vtkXRenderWindowInteractor_h
+#ifndef vtkXRenderWindowInteractor_h
+#define vtkXRenderWindowInteractor_h
 
 //===========================================================
 // now we define the C++ class
@@ -90,12 +90,6 @@ public:
   // when their data is not displayed.
   virtual void Enable();
   virtual void Disable();
-
-  // Description:
-  // This will start up the X event loop and never return. If you
-  // call this method it will loop processing X events until the
-  // application is exited.
-  virtual void Start();
 
   // Description:
   // Update the Size data member and set the associated RenderWindow's
@@ -179,6 +173,12 @@ protected:
   Widget TopLevelShell;
   int TimerId;
   vtkXRenderWindowInteractorInternals* Internal;
+
+  // Description:
+  // This will start up the X event loop and never return. If you
+  // call this method it will loop processing X events until the
+  // application is exited.
+  virtual void StartEventLoop();
 
   // Description:
   // X-specific internal timer methods. See the superclass for detailed

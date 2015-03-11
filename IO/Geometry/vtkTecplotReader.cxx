@@ -498,11 +498,7 @@ vtkTecplotReader::~vtkTecplotReader()
 {
   this->Init();
 
-  if ( this->FileName )
-    {
-    delete [] this->FileName;
-    this->FileName = NULL;
-    }
+  delete [] this->FileName;
 
   delete this->Internal;
   this->Internal = NULL;
@@ -540,12 +536,7 @@ void vtkTecplotReader::SetFileName( const char * fileName )
        && ( ( this->FileName == NULL ) || strcmp( fileName, this->FileName ) )
      )
     {
-    if ( this->FileName )
-      {
-      delete [] this->FileName;
-      this->FileName = NULL;
-      }
-
+    delete [] this->FileName;
     this->FileName = new char[  strlen( fileName ) + 1  ];
     strcpy( this->FileName, fileName );
     this->FileName[ strlen( fileName ) ] = '\0';
@@ -581,9 +572,6 @@ int vtkTecplotReader::RequestInformation( vtkInformation * request,
     {
     return 0;
     }
-
-  vtkInformation * info = outputVector->GetInformationObject( 0 );
-  info->Set( vtkStreamingDemandDrivenPipeline::MAXIMUM_NUMBER_OF_PIECES(), -1 );
 
   this->GetDataArraysList();
 

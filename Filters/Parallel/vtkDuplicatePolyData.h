@@ -20,8 +20,8 @@
 // display.
 
 
-#ifndef __vtkDuplicatePolyData_h
-#define __vtkDuplicatePolyData_h
+#ifndef vtkDuplicatePolyData_h
+#define vtkDuplicatePolyData_h
 
 #include "vtkFiltersParallelModule.h" // For export macro
 #include "vtkPolyDataAlgorithm.h"
@@ -76,7 +76,6 @@ protected:
   virtual int RequestUpdateExtent(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
   virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
   void ClientExecute(vtkPolyData *output);
-  virtual int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 
   vtkMultiProcessController *Controller;
   int Synchronous;

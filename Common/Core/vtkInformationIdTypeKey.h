@@ -17,8 +17,8 @@
 // vtkInformationIdTypeKey is used to represent keys for vtkIdType values
 // in vtkInformation.
 
-#ifndef __vtkInformationIdTypeKey_h
-#define __vtkInformationIdTypeKey_h
+#ifndef vtkInformationIdTypeKey_h
+#define vtkInformationIdTypeKey_h
 
 #include "vtkCommonCoreModule.h" // For export macro
 #include "vtkInformationKey.h"
@@ -33,6 +33,15 @@ public:
 
   vtkInformationIdTypeKey(const char* name, const char* location);
   ~vtkInformationIdTypeKey();
+
+  // Description:
+  // This method simply returns a new vtkInformationIdTypeKey, given a
+  // name and a location. This method is provided for wrappers. Use the
+  // constructor directly from C++ instead.
+  static vtkInformationIdTypeKey* MakeKey(const char* name, const char* location)
+    {
+    return new vtkInformationIdTypeKey(name, location);
+    }
 
   // Description:
   // Get/Set the value associated with this key in the given

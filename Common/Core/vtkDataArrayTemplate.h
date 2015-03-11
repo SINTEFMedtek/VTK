@@ -18,8 +18,8 @@
 // VTK.  This template is used to implement all the subclasses in the
 // same way while avoiding code duplication.
 
-#ifndef __vtkDataArrayTemplate_h
-#define __vtkDataArrayTemplate_h
+#ifndef vtkDataArrayTemplate_h
+#define vtkDataArrayTemplate_h
 
 #include "vtkCommonCoreModule.h" // For export macro
 #include "vtkTypedDataArray.h"
@@ -36,6 +36,8 @@ class VTKCOMMONCORE_EXPORT vtkDataArrayTemplate:
 public:
   typedef vtkTypedDataArray<T> Superclass;
   typedef typename Superclass::ValueType ValueType;
+  friend class vtkDataArrayTemplateHelper;
+
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:
@@ -101,6 +103,13 @@ public:
   // Note that memory allocation is performed as necessary to hold the data.
   virtual void InsertTuples(vtkIdList *destIds, vtkIdList *srcIds,
                             vtkAbstractArray *source);
+
+  // Description:
+  // Copy n consecutive tuples starting at srcStart from the source array to
+  // this array, starting at the dstStart location.
+  // Note that memory allocation is performed as necessary to hold the data.
+  virtual void InsertTuples(vtkIdType dstStart, vtkIdType n, vtkIdType srcStart,
+                            vtkAbstractArray* source);
 
   // Description:
   // Insert the jth tuple in the source array, at the end in this array.
@@ -342,8 +351,8 @@ protected:
   int SaveUserArray;
   int DeleteMethod;
 
-  virtual void ComputeScalarRange(double range[2], int comp);
-  virtual void ComputeVectorRange(double range[2]);
+  virtual bool ComputeScalarRange(double* ranges);
+  virtual bool ComputeVectorRange(double range[2]);
 private:
   vtkDataArrayTemplate(const vtkDataArrayTemplate&);  // Not implemented.
   void operator=(const vtkDataArrayTemplate&);  // Not implemented.
@@ -392,12 +401,12 @@ private:
   void SetArray(T* array, vtkIdType size, int save); \
   void SetArray(T* array, vtkIdType size, int save, int deleteMethod) */
 
-#endif // !defined(__vtkDataArrayTemplate_h)
+#endif // !defined(vtkDataArrayTemplate_h)
 
 // This portion must be OUTSIDE the include blockers.  Each
 // vtkDataArray subclass uses this to give its instantiation of this
 // template a DLL interface.
-#if defined(VTK_DATA_ARRAY_TEMPLATE_TYPE)
+#if defined(VTK_DATA_ARRAY_TEMPLATE_TYPE) && !defined(VTK_NO_EXPLICIT_TEMPLATE_INSTANTIATION)
 # if defined(VTK_BUILD_SHARED_LIBS) && defined(_MSC_VER)
 #  pragma warning (push)
 #  pragma warning (disable: 4091) // warning C4091: 'extern ' :

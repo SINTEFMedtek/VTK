@@ -37,11 +37,13 @@
 // Note that this class is abstract -- link to the vtkRenderingFreetype module
 // to get the default implementation.
 
-#ifndef __vtkTextRenderer_h
-#define __vtkTextRenderer_h
+#ifndef vtkTextRenderer_h
+#define vtkTextRenderer_h
 
 #include "vtkRenderingCoreModule.h" // For export macro
 #include "vtkObject.h"
+#include "vtkTuple.h"  // For metrics struct
+#include "vtkVector.h" // For metrics struct
 
 class vtkImageData;
 class vtkPath;
@@ -67,6 +69,31 @@ private:
 class VTKRENDERINGCORE_EXPORT vtkTextRenderer: public vtkObject
 {
 public:
+  struct Metrics
+  {
+    // Description:
+    // Construct a Metrics object with all members initialized to 0.
+    Metrics()
+      : BoundingBox(0),
+        TopLeft(0), TopRight(0), BottomLeft(0), BottomRight(0)
+    {
+    }
+
+    // Description:
+    // The axis-aligned bounding box of the rendered text and background, in
+    // pixels. The origin of the bounding box is the anchor point of the data
+    // when considering justification. Layout is { xMin, xMax, yMin, yMax }.
+    vtkTuple<int, 4> BoundingBox;
+
+    // Description:
+    // The corners of the rendered text (or background, if applicable), in pixels.
+    // Uses the same origin as BoundingBox.
+    vtkVector2i TopLeft;
+    vtkVector2i TopRight;
+    vtkVector2i BottomLeft;
+    vtkVector2i BottomRight;
+  };
+
   vtkTypeMacro(vtkTextRenderer, vtkObject)
   virtual void PrintSelf(ostream &os, vtkIndent indent);
 
@@ -115,13 +142,10 @@ public:
   bool MathTextIsSupported() { return HasMathText; }
 
   // Description:
-  // Given a text property and a string, get the bounding box [xmin, xmax] x
-  // [ymin, ymax]. Note that this is the bounding box of the area
-  // where actual pixels will be written, given a text/pen/baseline location
-  // of (0,0).
-  // For example, if the string starts with a 'space', or depending on the
-  // orientation, you can end up with a [-20, -10] x [5, 10] bbox (the math
-  // to get the real bbox is straightforward).
+  // Given a text property and a string, get the bounding box {xmin, xmax,
+  // ymin, ymax} of the rendered string in pixels. The origin of the bounding
+  // box is the anchor point described by the horizontal and vertical
+  // justification text property variables.
   // Some rendering backends need the DPI of the target. If it is not provided,
   // a DPI of 120 is assumed.
   // Return true on success, false otherwise.
@@ -136,6 +160,24 @@ public:
     return this->GetBoundingBoxInternal(tprop, str, bbox, dpi, backend);
   }
 
+
+  // Description:
+  // Given a text property and a string, get some metrics for the rendered
+  // string.
+  // Some rendering backends need the DPI of the target. If it is not provided,
+  // a DPI of 120 is assumed.
+  // Return true on success, false otherwise.
+  bool GetMetrics(vtkTextProperty *tprop, const vtkStdString &str,
+                  Metrics &metrics, int dpi = 120, int backend = Default)
+  {
+    return this->GetMetricsInternal(tprop, str, metrics, dpi, backend);
+  }
+  bool GetMetrics(vtkTextProperty *tprop, const vtkUnicodeString &str,
+                  Metrics &metrics, int dpi = 120, int backend = Default)
+  {
+    return this->GetMetricsInternal(tprop, str, metrics, dpi, backend);
+  }
+
   // Description:
   // Given a text property and a string, this function initializes the
   // vtkImageData *data and renders it in a vtkImageData.
@@ -146,6 +188,9 @@ public:
   // texture on graphics hardware that requires texture image dimensions to be
   // a power of two; textDims can be used to determine the texture coordinates
   // needed to cleanly fit the text on the target.
+  // The origin of the image's extents is aligned with the anchor point
+  // described by the text property's vertical and horizontal justification
+  // options.
   // Some rendering backends need the DPI of the target. If it is not provided,
   // a DPI of 120 is assumed.
   bool RenderString(vtkTextProperty *tprop, const vtkStdString &str,
@@ -185,7 +230,9 @@ public:
 
   // Description:
   // Given a text property and a string, this function populates the vtkPath
-  // path with the outline of the rendered string.
+  // path with the outline of the rendered string. The origin of the path
+  // coordinates is aligned with the anchor point described by the text
+  // property's horizontal and vertical justification options.
   // Return true on success, false otherwise.
   bool StringToPath(vtkTextProperty *tprop, const vtkStdString &str,
                     vtkPath *path, int backend = Default)
@@ -222,6 +269,12 @@ protected:
   virtual bool GetBoundingBoxInternal(vtkTextProperty *tprop,
                                       const vtkUnicodeString &str,
                                       int bbox[4], int dpi, int backend) = 0;
+  virtual bool GetMetricsInternal(vtkTextProperty *tprop,
+                                  const vtkStdString &str,
+                                  Metrics &metrics, int dpi, int backend) = 0;
+  virtual bool GetMetricsInternal(vtkTextProperty *tprop,
+                                  const vtkUnicodeString &str,
+                                  Metrics &metrics, int dpi, int backend) = 0;
   virtual bool RenderStringInternal(vtkTextProperty *tprop,
                                     const vtkStdString &str,
                                     vtkImageData *data, int textDims[2],
@@ -279,4 +332,4 @@ private:
   void operator=(const vtkTextRenderer &); // Not implemented.
 };
 
-#endif //__vtkTextRenderer_h
+#endif //vtkTextRenderer_h

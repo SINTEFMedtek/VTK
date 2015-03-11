@@ -48,6 +48,7 @@ int vtkWrap_IsCharPointer(ValueInfo *val);
 int vtkWrap_IsPODPointer(ValueInfo *val);
 int vtkWrap_IsVTKObject(ValueInfo *val);
 int vtkWrap_IsSpecialObject(ValueInfo *val);
+int vtkWrap_IsPythonObject(ValueInfo *val);
 int vtkWrap_IsQtObject(ValueInfo *val);
 int vtkWrap_IsQtEnum(ValueInfo *val);
 /*@}*/
@@ -131,6 +132,11 @@ int vtkWrap_IsSpecialType(
  */
 int vtkWrap_IsTypeOf(
   HierarchyInfo *hinfo, const char *classname, const char *superclass);
+
+/**
+ * Check if the type of the value is an enum member of the class.
+ */
+int vtkWrap_IsEnumMember(ClassInfo *data, ValueInfo *arg);
 
 /**
  * Check whether a class is wrapped.  If "hinfo" is NULL,
@@ -232,7 +238,8 @@ int vtkWrap_CountRequiredArguments(FunctionInfo *f);
  * - "const" is removed except for return values with "&" or "*".
  */
 void vtkWrap_DeclareVariable(
-  FILE *fp, ValueInfo *v, const char *name, int idx, int flags);
+  FILE *fp, ClassInfo *data, ValueInfo *v, const char *name,
+  int idx, int flags);
 
 /**
  * Write an "int" size variable for arrays, initialized to
@@ -241,6 +248,12 @@ void vtkWrap_DeclareVariable(
  */
 void vtkWrap_DeclareVariableSize(
   FILE *fp, ValueInfo *v, const char *name, int idx);
+
+/**
+ * Makes a superclass name into a valid identifier. Returns NULL if the given
+ * name is valid as-is.
+ */
+char *vtkWrap_SafeSuperclassName(const char *name);
 
 
 #ifdef __cplusplus

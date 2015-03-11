@@ -23,7 +23,7 @@
 #include "vtkPolyData.h"
 #include "vtkScalarsToColors.h"
 
-#include <stddef.h>
+#include <cstddef>
 
 vtkStandardNewMacro(vtkPLYWriter);
 
@@ -272,7 +272,7 @@ unsigned char *vtkPLYWriter::GetColors(vtkIdType num,
     {
     double *tuple;
     vtkDataArray *da;
-    unsigned char *rgb;
+    const unsigned char *rgb;
     vtkUnsignedCharArray *rgbArray;
 
     if ( !this->ArrayName || (da=dsa->GetArray(this->ArrayName)) == NULL ||

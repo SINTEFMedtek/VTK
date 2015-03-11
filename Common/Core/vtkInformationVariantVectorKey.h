@@ -17,8 +17,8 @@
 // vtkInformationVariantVectorKey is used to represent keys for variant
 // vector values in vtkInformation.h
 
-#ifndef __vtkInformationVariantVectorKey_h
-#define __vtkInformationVariantVectorKey_h
+#ifndef vtkInformationVariantVectorKey_h
+#define vtkInformationVariantVectorKey_h
 
 #include "vtkCommonCoreModule.h" // For export macro
 #include "vtkInformationKey.h"
@@ -36,6 +36,16 @@ public:
   vtkInformationVariantVectorKey(const char* name, const char* location,
                                  int length=-1);
   ~vtkInformationVariantVectorKey();
+
+  // Description:
+  // This method simply returns a new vtkInformationVariantVectorKey, given a
+  // name, a location and a required length. This method is provided for
+  // wrappers. Use the constructor directly from C++ instead.
+  static vtkInformationVariantVectorKey* MakeKey(const char* name, const char* location,
+    int length=-1)
+    {
+    return new vtkInformationVariantVectorKey(name, location, length);
+    }
 
   // Description:
   // Get/Set the value associated with this key in the given

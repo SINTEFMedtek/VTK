@@ -49,8 +49,8 @@
 // "Time Dependent Processing in a Parallel Pipeline Architecture",
 // IEEE Visualization 2007.
 
-#ifndef __vtkTemporalInterpolator_h
-#define __vtkTemporalInterpolator_h
+#ifndef vtkTemporalInterpolator_h
+#define vtkTemporalInterpolator_h
 
 #include "vtkFiltersHybridModule.h" // For export macro
 #include "vtkMultiTimeStepAlgorithm.h"
@@ -84,6 +84,12 @@ public:
   // otherwise the DiscreteTimeStepInterval takes precedence
   vtkSetMacro(ResampleFactor, int);
   vtkGetMacro(ResampleFactor, int);
+
+  // Description:
+  // Controls whether input data is cached to avoid updating input
+  // when multiple interpolations are asked between 2 time steps.
+  vtkSetMacro(CacheData, bool);
+  vtkGetMacro(CacheData, bool);
 
 protected:
   vtkTemporalInterpolator();

@@ -30,8 +30,8 @@
 // vtkPointData vtkCellData vtkPointDataToCellData
 
 
-#ifndef __vtkCellDataToPointData_h
-#define __vtkCellDataToPointData_h
+#ifndef vtkCellDataToPointData_h
+#define vtkCellDataToPointData_h
 
 #include "vtkFiltersCoreModule.h" // For export macro
 #include "vtkDataSetAlgorithm.h"
@@ -64,6 +64,12 @@ protected:
   // Special traversal algorithm for unstructured grid
   int RequestDataForUnstructuredGrid
     (vtkInformation*, vtkInformationVector**, vtkInformationVector*);
+
+  void interpolatePointData(vtkDataSet *input, vtkDataSet *output);
+
+  // Same as above, but with special handling for masked cells in input.
+  void interpolatePointDataWithMask(vtkStructuredGrid *input,
+                                    vtkDataSet *output);
 
   int PassCellData;
 private:

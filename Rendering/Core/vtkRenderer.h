@@ -26,8 +26,8 @@
 // .SECTION See Also
 // vtkRenderWindow vtkActor vtkCamera vtkLight vtkVolume
 
-#ifndef __vtkRenderer_h
-#define __vtkRenderer_h
+#ifndef vtkRenderer_h
+#define vtkRenderer_h
 
 #include "vtkRenderingCoreModule.h" // For export macro
 #include "vtkViewport.h"
@@ -395,7 +395,7 @@ public:
   // the renderers Prop list.
   vtkAssemblyPath* PickProp(double selectionX, double selectionY)
     {
-      return this->PickProp(selectionX, selectionY, selectionX, selectionY);
+    return this->PickProp(selectionX, selectionY, selectionX, selectionY);
     }
   vtkAssemblyPath* PickProp(double selectionX1, double selectionY1,
                             double selectionX2, double selectionY2);
@@ -485,6 +485,9 @@ public:
   vtkGetMacro(TexturedBackground,bool);
   vtkBooleanMacro(TexturedBackground,bool);
 
+  // method to release graphics resources in any derived renderers.
+  virtual void ReleaseGraphicsResources(vtkWindow *) { }
+
 //BTX
 protected:
   vtkRenderer();
@@ -498,9 +501,6 @@ protected:
   // matrix or model view transform matrix based on whether or not deering
   // frustum is used.
   virtual void ExpandBounds(double bounds[6], vtkMatrix4x4 *matrix);
-
-  // Internal method to release graphics resources in any derived renderers.
-  virtual void ReleaseGraphicsResources(vtkWindow *) { }
 
   vtkCamera *ActiveCamera;
   vtkLight  *CreatedLight;

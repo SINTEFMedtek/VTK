@@ -24,8 +24,8 @@
 // .SECTION See Also
 // vtkContourFilter vtkSynchronizedTemplates3D
 
-#ifndef __vtkGridSynchronizedTemplates3D_h
-#define __vtkGridSynchronizedTemplates3D_h
+#ifndef vtkGridSynchronizedTemplates3D_h
+#define vtkGridSynchronizedTemplates3D_h
 
 #include "vtkFiltersCoreModule.h" // For export macro
 #include "vtkPolyDataAlgorithm.h"
@@ -123,9 +123,8 @@ public:
     {this->ContourValues->GenerateValues(numContours, rangeStart, rangeEnd);}
 
   // Description:
-  // Needed by templated functions.
-  int *GetExecuteExtent() {return this->ExecuteExtent;}
-  void ThreadedExecute(int *exExt, int threadId, vtkStructuredGrid *input,
+  // Main execution.
+  void ThreadedExecute(vtkStructuredGrid *input,
                        vtkInformationVector **inVec,
                        vtkInformation *outInfo);
 
@@ -157,7 +156,6 @@ protected:
   vtkContourValues *ContourValues;
 
   int MinimumPieceSize[3];
-  int ExecuteExtent[6];
   int OutputPointsPrecision;
 
 private:

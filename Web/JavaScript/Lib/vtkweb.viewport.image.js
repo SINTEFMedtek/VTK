@@ -136,7 +136,7 @@
                     stat_value: 0 // start
                 });
 
-                session.call("vtk:stillRender", renderCfg).then(function (res) {
+                session.call("viewport.image.render", [renderCfg]).then(function (res) {
                     options.view = Number(res.global_id);
                     lastMTime = res.mtime;
                     if(res.hasOwnProperty("image") && res.image !== null) {
@@ -231,6 +231,13 @@
             }
         }).bind('resetViewId', function(e){
             options.view = -1;
+        }).bind('captureRenderedImage', function(e){
+            if(renderer.hasClass('active')){
+                $(container).parent().trigger({
+                    type: 'captured-screenshot-ready',
+                    imageData: bgImage.src
+                });
+            }
         }).bind('render', function(e){
             if(renderer.hasClass('active')){
                 var opts = e.options,
@@ -290,11 +297,14 @@
                 }
 
                 action_pending = true;
-                session.call("vtk:mouseInteraction", vtkWeb_event).then(function (res) {
+                session.call("viewport.mouse.interaction", [vtkWeb_event]).then(function (res) {
                     if (res) {
                         action_pending = false;
                         render();
                     }
+                }, function(error) {
+                    console.log("Call to viewport.mouse.interaction failed");
+                    console.log(error);
                 });
             }
         }).append(renderer);

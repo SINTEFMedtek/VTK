@@ -30,8 +30,8 @@
 // .SECTION See Also
 // vtkActor2D vtkTextMapper
 
-#ifndef __vtkCornerAnnotation_h
-#define __vtkCornerAnnotation_h
+#ifndef vtkCornerAnnotation_h
+#define vtkCornerAnnotation_h
 
 #include "vtkRenderingAnnotationModule.h" // For export macro
 #include "vtkActor2D.h"
@@ -97,7 +97,19 @@ public:
   virtual void ReleaseGraphicsResources(vtkWindow *);
 
   // Description:
+  // Position used to get or set the corner annotation text.
+  // \sa GetText(), SetText()
+  enum TextPosition
+    {
+    LowerLeft = 0, ///< Uses the lower left corner.
+    LowerRight,    ///< Uses the lower right corner.
+    UpperLeft,     ///< Uses the upper left corner.
+    UpperRight     ///< Uses the upper right corner.
+    };
+
+  // Description:
   // Set/Get the text to be displayed for each corner
+  // \sa TextPosition
   void SetText(int i, const char *text);
   const char* GetText(int i);
   void ClearAllTexts();

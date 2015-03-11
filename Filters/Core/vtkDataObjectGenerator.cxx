@@ -15,29 +15,29 @@
 
 #include "vtkDataObjectGenerator.h"
 
-#include <vtkObjectFactory.h>
-#include <vtkInformation.h>
-#include <vtkInformationVector.h>
+#include "vtkObjectFactory.h"
+#include "vtkInformation.h"
+#include "vtkInformationVector.h"
 
-#include <vtkDataObjectTypes.h>
-#include <vtkImageData.h>
-#include <vtkUniformGrid.h>
-#include <vtkRectilinearGrid.h>
-#include <vtkStructuredGrid.h>
-#include <vtkPolyData.h>
-#include <vtkUnstructuredGrid.h>
+#include "vtkDataObjectTypes.h"
+#include "vtkImageData.h"
+#include "vtkUniformGrid.h"
+#include "vtkRectilinearGrid.h"
+#include "vtkStructuredGrid.h"
+#include "vtkPolyData.h"
+#include "vtkUnstructuredGrid.h"
 
-#include <vtkHierarchicalBoxDataSet.h>
-#include <vtkAMRBox.h>
-#include <vtkMultiBlockDataSet.h>
+#include "vtkHierarchicalBoxDataSet.h"
+#include "vtkAMRBox.h"
+#include "vtkMultiBlockDataSet.h"
 
-#include <vtkDoubleArray.h>
-#include <vtkIdTypeArray.h>
-#include <vtkCell.h>
-#include <vtkCellData.h>
-#include <vtkPointData.h>
+#include "vtkDoubleArray.h"
+#include "vtkIdTypeArray.h"
+#include "vtkCell.h"
+#include "vtkCellData.h"
+#include "vtkPointData.h"
 
-#include <vtkStreamingDemandDrivenPipeline.h>
+#include "vtkStreamingDemandDrivenPipeline.h"
 #include <vector>
 
 
@@ -303,10 +303,7 @@ vtkDataObjectGenerator::vtkDataObjectGenerator()
 vtkDataObjectGenerator::~vtkDataObjectGenerator()
 {
   this->SetProgram(NULL);
-  if (this->Structure != NULL)
-    {
-    delete this->Structure;
-    }
+  delete this->Structure;
 }
 
 //----------------------------------------------------------------------------
@@ -331,10 +328,7 @@ int vtkDataObjectGenerator::RequestDataObject(vtkInformation *,
      return VTK_OK;
      }
 
-  if (this->Structure != NULL)
-    {
-    delete this->Structure;
-    }
+  delete this->Structure;
   this->Structure = vtkDataObjectGeneratorParseStructure(this->Program);
   outData = this->CreateOutputDataObjects(this->Structure);
   if (outData)
@@ -428,8 +422,7 @@ int vtkDataObjectGenerator::RequestInformation(vtkInformation *req,
 
   //Say that this filter can break up its output into any number of pieces
   vtkInformation *outInfo = outV->GetInformationObject(0);
-  outInfo->Set(
-    vtkStreamingDemandDrivenPipeline::MAXIMUM_NUMBER_OF_PIECES(), -1);
+  outInfo->Set(CAN_HANDLE_PIECE_REQUEST(), 1);
 
   //If my output is an atomic structured type, fill in the whole extent info
   vtkInternalStructureCache *top = this->Structure->children.front();

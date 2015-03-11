@@ -19,8 +19,8 @@
 // device-specific poly data mappers, that actually do the mapping to the
 // rendering/graphics hardware/software.
 
-#ifndef __vtkPolyDataMapper_h
-#define __vtkPolyDataMapper_h
+#ifndef vtkPolyDataMapper_h
+#define vtkPolyDataMapper_h
 
 #include "vtkRenderingCoreModule.h" // For export macro
 #include "vtkMapper.h"
@@ -105,6 +105,12 @@ public:
   // Description:
   // Remove all vertex attributes.
   virtual void RemoveAllVertexAttributeMappings();
+
+  // Description:
+  // see vtkAlgorithm for details
+  virtual int ProcessRequest(vtkInformation*,
+                             vtkInformationVector**,
+                             vtkInformationVector*);
 
 protected:
   vtkPolyDataMapper();

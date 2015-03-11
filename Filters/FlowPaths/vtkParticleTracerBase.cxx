@@ -116,7 +116,7 @@ vtkParticleTracerBase::vtkParticleTracerBase()
                                vtkDataSetAttributes::VECTORS);
 
   this->CurrentTimeStep             = 0;
-  this->CurrentTime                 = 0;
+  this->CurrentTimeValue            = 0;
   this->ForceReinjectionEveryNSteps = 0;
   this->ReinjectionCounter          = 0;
   this->AllFixedGeometry            = 1;
@@ -232,10 +232,9 @@ int vtkParticleTracerBase::ProcessRequest(
 int vtkParticleTracerBase::RequestInformation(
   vtkInformation *vtkNotUsed(request),
   vtkInformationVector **inputVector,
-  vtkInformationVector *outputVector)
+  vtkInformationVector *vtkNotUsed(outputVector))
 {
   vtkInformation *inInfo  = inputVector[0]->GetInformationObject(0);
-  vtkInformation *outInfo = outputVector->GetInformationObject(0);
 
   if (inInfo->Has(vtkStreamingDemandDrivenPipeline::TIME_STEPS()) )
     {
@@ -256,11 +255,11 @@ int vtkParticleTracerBase::RequestInformation(
     //clamp the default start time to be within the data time range
     if(this->StartTime < this->InputTimeValues[0])
       {
-      this->SetStartTime(this->InputTimeValues[0]);
+      this->StartTime = this->InputTimeValues[0];
       }
     else if (this->StartTime > this->InputTimeValues.back())
       {
-      this->SetStartTime(this->InputTimeValues.back());
+      this->StartTime = this->InputTimeValues.back();
       }
     }
   else
@@ -268,9 +267,6 @@ int vtkParticleTracerBase::RequestInformation(
     vtkErrorMacro(<<"Input information has no TIME_STEPS set");
     return 0;
     }
-
-  outInfo->Set(
-    vtkStreamingDemandDrivenPipeline::MAXIMUM_NUMBER_OF_PIECES(), -1);
 
   return 1;
 }
@@ -323,7 +319,7 @@ int vtkParticleTracerBase::RequestUpdateExtent(
       {
       double terminationTime = outInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEP());
       PRINT("Pipeline has set termination time: "<< terminationTime);
-      this->SetTerminationTime(terminationTime);
+      this->SetTerminationTimeNoModify(terminationTime);
       }
 
     if(this->TerminationTime> this->InputTimeValues.back())
@@ -364,7 +360,7 @@ int vtkParticleTracerBase::RequestUpdateExtent(
     if(!this->HasCache)
       {
       this->CurrentTimeStep = this->StartTimeStep;
-      this->CurrentTime = -DBL_MAX;
+      this->CurrentTimeValue = -DBL_MAX;
       }
     }
 
@@ -460,7 +456,7 @@ int vtkParticleTracerBase::InitializeInterpolator()
           inp->ComputeBounds();
           inp->GetBounds(&bbox.b[0]);
           this->CachedBounds[T].push_back(bbox);
-          bool static_dataset = this->StaticMesh || inp->GetInformation()->Has(vtkDataObject::DATA_GEOMETRY_UNMODIFIED());
+          bool static_dataset = (this->StaticMesh != 0);
           this->AllFixedGeometry = this->AllFixedGeometry && static_dataset;
           // add the dataset to the interpolator
           this->Interpolator->SetDataSetAtTime(index++, T, this->GetCacheDataTime(T), inp, static_dataset);
@@ -555,10 +551,6 @@ int vtkParticleTracerBase::UpdateDataCache(vtkDataObject *data)
         vtkSmartPointer<vtkDataSet> copy;
         copy.TakeReference(ds->NewInstance());
         copy->ShallowCopy(ds);
-        if (ds->GetInformation()->Has(vtkDataObject::DATA_GEOMETRY_UNMODIFIED()))
-          {
-          copy->GetInformation()->Set(vtkDataObject::DATA_GEOMETRY_UNMODIFIED(),1);
-          }
         this->CachedData[i]->SetBlock(this->CachedData[i]->GetNumberOfBlocks(), copy);
         }
       }
@@ -674,6 +666,7 @@ void vtkParticleTracerBase::AssignSeedsToProcessors(
     info.age                  = 0.0;
     info.speed                = 0.0;
     info.ErrorCode            = 0;
+    info.SimulationTime       = this->GetCurrentTimeValue();
     info.PointId = -1;
     }
   //
@@ -745,7 +738,7 @@ vtkPolyData* vtkParticleTracerBase::Execute(vtkInformationVector** inputVector)
   Assert(this->CurrentTimeStep>=this->StartTimeStep);
 
   double from = this->CurrentTimeStep==this->StartTimeStep? this->StartTime : this->GetCacheDataTime(0);
-  this->CurrentTime =
+  this->CurrentTimeValue =
     this->CurrentTimeStep==this->StartTimeStep? StartTime:
     (this->CurrentTimeStep==this->TerminationTimeStep? this->TerminationTime : this->GetCacheDataTime(1));
 
@@ -801,12 +794,11 @@ vtkPolyData* vtkParticleTracerBase::Execute(vtkInformationVector** inputVector)
     this->ParticleRotation->SetName("Rotation");
     this->ParticleAngularVel->SetName("AngularVelocity");
     }
-
+  this->InitializeExtraPointDataArrays(output->GetPointData());
 
   output->SetPoints(this->OutputCoordinates);
   output->SetVerts(this->ParticleCells);
   vtkDebugMacro(<< "Finished allocating point arrays ");
-
 
 ///
   // How many Seed point sources are connected?
@@ -836,7 +828,7 @@ vtkPolyData* vtkParticleTracerBase::Execute(vtkInformationVector** inputVector)
   //
   // Make sure the Particle Positions are initialized with Seed particles
   //
-  if (this->StartTime==this->CurrentTime)
+  if (this->StartTime==this->CurrentTimeValue)
     {
     Assert(!this->HasCache); //shouldn't have cache if restarting
     int seedPointId=0;
@@ -848,7 +840,7 @@ vtkPolyData* vtkParticleTracerBase::Execute(vtkInformationVector** inputVector)
 
     for (size_t i=0; i<seedSources.size(); i++)
       {
-      this->AssignSeedsToProcessors(this->CurrentTime,seedSources[i], static_cast<int>(i), 0, this->LocalSeeds, seedPointId);
+      this->AssignSeedsToProcessors(this->CurrentTimeValue,seedSources[i], static_cast<int>(i), 0, this->LocalSeeds, seedPointId);
       }
 
     this->ParticleInjectionTime.Modified();
@@ -856,7 +848,7 @@ vtkPolyData* vtkParticleTracerBase::Execute(vtkInformationVector** inputVector)
     // Now update our main list with the ones we are keeping
     vtkDebugMacro(<< "Reinjection about to update candidates (" << this->LocalSeeds.size() << " particles)");
     this->UpdateParticleList(this->LocalSeeds);
-    this->ReinjectionCounter += 1;
+    //this->ReinjectionCounter += this->ForceReinjectionEveryNSteps;
     }
 
   if(this->CurrentTimeStep==this->StartTimeStep) //just add all the particles
@@ -897,7 +889,7 @@ vtkPolyData* vtkParticleTracerBase::Execute(vtkInformationVector** inputVector)
         // or leaves the domain, the 'current' iterator will be deleted.
         it_next = it;
         it_next++;
-        this->IntegrateParticle(it, from, this->CurrentTime, integrator);
+        this->IntegrateParticle(it, from, this->CurrentTimeValue, integrator);
         if (this->GetAbortExecute())
           {
           break;
@@ -932,14 +924,14 @@ vtkPolyData* vtkParticleTracerBase::Execute(vtkInformationVector** inputVector)
     }
 
   bool injectionFlag(false);
-  if (this->CurrentTime!=this->StartTime && this->ForceReinjectionEveryNSteps>0)
+  if (this->CurrentTimeValue!=this->StartTime && this->ForceReinjectionEveryNSteps>0)
     {
     injectionFlag = (this->CurrentTimeStep - this->StartTimeStep)%this->ForceReinjectionEveryNSteps==0;
     }
 
   if(injectionFlag) //reinject again in the last step
     {
-    this->ReinjectionCounter += 1;
+    this->ReinjectionCounter += this->ForceReinjectionEveryNSteps;
 
     ParticleListIterator lastParticle = this->ParticleHistories.end();
     if (!this->ParticleHistories.empty())
@@ -950,7 +942,7 @@ vtkPolyData* vtkParticleTracerBase::Execute(vtkInformationVector** inputVector)
     this->LocalSeeds.clear();
     for (size_t i=0; i<seedSources.size(); i++)
       {
-      this->AssignSeedsToProcessors(this->CurrentTime,seedSources[i], static_cast<int>(i), 0, this->LocalSeeds, seedPointId);
+      this->AssignSeedsToProcessors(this->CurrentTimeValue,seedSources[i], static_cast<int>(i), 0, this->LocalSeeds, seedPointId);
       }
     this->ParticleInjectionTime.Modified();
     this->UpdateParticleList(this->LocalSeeds);
@@ -995,7 +987,7 @@ vtkPolyData* vtkParticleTracerBase::Execute(vtkInformationVector** inputVector)
   // save some locator building, by re-using them as time progresses
   this->Interpolator->AdvanceOneTimeStep();
 
-  output->GetInformation()->Set(vtkDataObject::DATA_TIME_STEP(), this->CurrentTime);
+  output->GetInformation()->Set(vtkDataObject::DATA_TIME_STEP(), this->CurrentTimeValue);
   this->ExecuteTime.Modified();
   this->HasCache = true;
   PRINT("Output "<<output->GetNumberOfPoints()<<" particles, "<<this->ParticleHistories.size()<<" in cache");
@@ -1003,6 +995,8 @@ vtkPolyData* vtkParticleTracerBase::Execute(vtkInformationVector** inputVector)
   //Check post condition
   // To do:  verify here that the particles in ParticleHistories are consistent with CurrentTime
 
+  // These hold reference to the inputs. Release them.
+  this->DataReferenceT[0] = this->DataReferenceT[1] = 0;
   return output;
 }
 
@@ -1021,7 +1015,7 @@ int vtkParticleTracerBase::RequestData(
   vtkInformation *outInfo = outputVector->GetInformationObject(0);
   vtkInformation    *inInfo = inputVector[0]->GetInformationObject(0);
 
-  if(this->HasCache && this->CurrentTime == this->TerminationTime)
+  if(this->HasCache && this->CurrentTimeValue == this->TerminationTime)
     {
     vtkDataObject* out = outInfo->Get(vtkDataObject::DATA_OBJECT());
     out->ShallowCopy(this->Output);
@@ -1173,6 +1167,7 @@ void vtkParticleTracerBase::IntegrateParticle(
         // increment the particle time
         point2[3] = point1[3] + stepTaken;
         info.age += stepTaken;
+        info.SimulationTime += stepTaken;
 
         // Point is valid. Insert it.
         memcpy(&info.CurrentPosition, point2, sizeof(Position));
@@ -1401,11 +1396,11 @@ void vtkParticleTracerBase::ResetCache()
 }
 
 //---------------------------------------------------------------------------
-void vtkParticleTracerBase::SetTerminationTime(double t)
+bool vtkParticleTracerBase::SetTerminationTimeNoModify(double t)
 {
   if(t==this->TerminationTime)
     {
-    return;
+    return false;
     }
 
   if (t < this->TerminationTime)
@@ -1419,8 +1414,18 @@ void vtkParticleTracerBase::SetTerminationTime(double t)
     t = this->StartTime;
     }
 
-  this->Modified();
   this->TerminationTime = t;
+
+  return true;
+}
+
+//---------------------------------------------------------------------------
+void vtkParticleTracerBase::SetTerminationTime(double t)
+{
+  if (this->SetTerminationTimeNoModify(t))
+    {
+    this->Modified();
+    }
 }
 
 //---------------------------------------------------------------------------
@@ -1500,6 +1505,7 @@ bool vtkParticleTracerBase::RetryWithPush(
   info.CurrentPosition.x[3] += delT;
   info.LocationState = this->Interpolator->TestPoint(info.CurrentPosition.x);
   info.age += delT;
+  info.SimulationTime += delT; // = this->GetCurrentTimeValue();
 
   if (info.LocationState!=ID_OUTSIDE_ALL)
     {
@@ -1525,6 +1531,7 @@ void vtkParticleTracerBase::AddParticle(
   this->InjectedStepIds->InsertNextValue(info.InjectedStepId);
   this->ErrorCode->InsertNextValue(info.ErrorCode);
   this->ParticleAge->InsertNextValue(info.age);
+  this->AppendToExtraPointDataArrays(info);
   info.PointId = tempId;
 
   //

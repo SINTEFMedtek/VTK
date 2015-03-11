@@ -18,11 +18,11 @@
 //
 //
 // .SECTION See Also
-// vtkStreaklineFilterBase has the details of the algorithms
+// vtkParticleTracerBase has the details of the algorithms
 
 
-#ifndef __vtkStreaklineFilter_h
-#define __vtkStreaklineFilter_h
+#ifndef vtkStreaklineFilter_h
+#define vtkStreaklineFilter_h
 
 #include "vtkFiltersFlowPathsModule.h" // For export macro
 #include "vtkSmartPointer.h" // For protected ivars.

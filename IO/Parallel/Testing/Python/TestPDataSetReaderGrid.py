@@ -19,9 +19,13 @@ if (catch.catch(globals(),"""channel = open("test.tmp", "w")""") == 0):
     reader.SetXYZFileName("" + str(VTK_DATA_ROOT) + "/Data/combxyz.bin")
     reader.SetQFileName("" + str(VTK_DATA_ROOT) + "/Data/combq.bin")
     reader.Update()
+    contr = vtk.vtkDummyController()
+    extract = vtk.vtkTransmitStructuredDataPiece()
+    extract.SetController(contr)
+    extract.SetInputData(reader.GetOutput().GetBlock(0))
     writer = vtk.vtkPDataSetWriter()
     writer.SetFileName("comb.pvtk")
-    writer.SetInputData(reader.GetOutput().GetBlock(0))
+    writer.SetInputConnection(extract.GetOutputPort())
     writer.SetNumberOfPieces(4)
     writer.Write()
     pReader = vtk.vtkPDataSetReader()
@@ -51,9 +55,12 @@ if (catch.catch(globals(),"""channel = open("test.tmp", "w")""") == 0):
     fractal.SetWholeExtent(0,9,0,9,0,9)
     fractal.SetSampleCX(0.1,0.1,0.1,0.1)
     fractal.SetMaximumNumberOfIterations(10)
+    extract2 = vtk.vtkTransmitStructuredDataPiece()
+    extract2.SetController(contr)
+    extract2.SetInputConnection(fractal.GetOutputPort())
     writer2 = vtk.vtkPDataSetWriter()
     writer.SetFileName("fractal.pvtk")
-    writer.SetInputConnection(fractal.GetOutputPort())
+    writer.SetInputConnection(extract2.GetOutputPort())
     writer.SetNumberOfPieces(4)
     writer.Write()
     pReader2 = vtk.vtkPDataSetReader()
@@ -67,6 +74,8 @@ if (catch.catch(globals(),"""channel = open("test.tmp", "w")""") == 0):
     mapper2.SetPiece(0)
     mapper2.SetGhostLevel(0)
     mapper2.Update()
+    # Strip the ghost cells requested by the contour filter
+    mapper2.GetInput().RemoveGhostCells(1)
     file.delete("-force", "fractal.pvtk")
     file.delete("-force", "fractal.0.vtk")
     file.delete("-force", "fractal.1.vtk")
@@ -107,6 +116,17 @@ if (catch.catch(globals(),"""channel = open("test.tmp", "w")""") == 0):
     # Add the actors to the renderer, set the background and size
     #
     ren1.AddActor(actor3)
+
+    # do some extra checking to make sure we have the proper number of cells
+    if surface.GetOutput().GetNumberOfCells() != 4016:
+        print "surface output should have 4016 cells but has ", surface.GetOutput().GetNumberOfCells()
+        sys.exit(1)
+    if iso.GetOutput().GetNumberOfCells() != 89:
+        print "iso output should have 89 cells but has ", iso.GetOutput().GetNumberOfCells()
+        sys.exit(1)
+    if pReader3.GetOutput().GetNumberOfCells() != 48:
+        print "pReader3 output should have 48 cells but has ", pReader3.GetOutput().GetNumberOfCells()
+        sys.exit(1)
     pass
 ren1.SetBackground(0.1,0.2,0.4)
 renWin.SetSize(300,300)

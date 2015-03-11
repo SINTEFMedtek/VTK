@@ -18,10 +18,15 @@
 // The vtk_polydata struct is important as that is how piston's polygonal
 // results get brought back to the CPU.
 
-#ifndef __vtkPistonDataWrangling_h
-#define __vtkPistonDataWrangling_h
+#ifndef vtkPistonDataWrangling_h
+#define vtkPistonDataWrangling_h
 
-#define SPACE thrust::detail::default_device_space_tag
+#include <thrust/version.h>
+#if THRUST_VERSION >= 100600
+# define SPACE thrust::device_space_tag
+#else
+# define SPACE thrust::detail::default_device_space_tag
+#endif
 
 namespace vtkpiston {
 
@@ -62,5 +67,5 @@ struct float4tofloat3 : thrust::unary_function<float4, float3>
 
 } //namespace
 
-#endif //__vtkPistonDataWrangling_h
+#endif //vtkPistonDataWrangling_h
 // VTK-HeaderTest-Exclude: vtkPistonDataWrangling.h

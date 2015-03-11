@@ -18,11 +18,13 @@
 // Concrete subclasses then traverse the parsed file structure and
 // extract data.
 
-#ifndef __vtkXMLReader_h
-#define __vtkXMLReader_h
+#ifndef vtkXMLReader_h
+#define vtkXMLReader_h
 
 #include "vtkIOXMLModule.h" // For export macro
 #include "vtkAlgorithm.h"
+
+#include <string> // for std::string
 
 class vtkAbstractArray;
 class vtkCallbackCommand;
@@ -37,13 +39,20 @@ class vtkInformation;
 class VTKIOXML_EXPORT vtkXMLReader : public vtkAlgorithm
 {
 public:
-  vtkTypeMacro(vtkXMLReader,vtkAlgorithm);
+  vtkTypeMacro(vtkXMLReader, vtkAlgorithm);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:
   // Get/Set the name of the input file.
   vtkSetStringMacro(FileName);
   vtkGetStringMacro(FileName);
+
+  // Description:
+  // Enable writing to an InputString instead of the default, a file.
+  vtkSetMacro(ReadFromInputString,int);
+  vtkGetMacro(ReadFromInputString,int);
+  vtkBooleanMacro(ReadFromInputString,int);
+  void SetInputString(std::string s) { this->InputString = s; }
 
   // Description:
   // Test whether the file with the given name can be read by this
@@ -130,10 +139,6 @@ protected:
   // Setup the output's information.
   virtual void SetupOutputInformation(vtkInformation *vtkNotUsed(outInfo)) {}
 
-  // Setup the output's information for the update extent
-  virtual void SetupUpdateExtentInformation
-  (vtkInformation *vtkNotUsed(outInfo)) {}
-
   // Setup the output's data with allocation.
   virtual void SetupOutputData();
 
@@ -154,8 +159,12 @@ protected:
   int CreateInformationKey(vtkXMLDataElement *eInfoKey, vtkInformation *info);
 
   // Internal utility methods.
+  virtual int OpenStream();
+  virtual void CloseStream();
   virtual int OpenVTKFile();
   virtual void CloseVTKFile();
+  virtual int OpenVTKString();
+  virtual void CloseVTKString();
   virtual void CreateXMLParser();
   virtual void DestroyXMLParser();
   void SetupCompressor(const char* type);
@@ -217,6 +226,13 @@ protected:
   // The stream used to read the input.
   istream* Stream;
 
+  // Whether this object is reading from a string or a file.
+  // Default is 0: read from file.
+  int ReadFromInputString;
+
+  // The input string.
+  std::string InputString;
+
   // The array selections.
   vtkDataArraySelection* PointDataArraySelection;
   vtkDataArraySelection* CellDataArraySelection;
@@ -248,11 +264,6 @@ protected:
   virtual int RequestInformation(vtkInformation *request,
                                  vtkInformationVector **inputVector,
                                  vtkInformationVector *outputVector);
-  virtual int RequestUpdateExtentInformation
-  (vtkInformation *request,
-   vtkInformationVector **inputVector,
-   vtkInformationVector *outputVector);
-
   vtkTimeStamp ReadMTime;
 
   // Whether there was an error reading the XML.
@@ -288,6 +299,8 @@ protected:
 private:
   // The stream used to read the input if it is in a file.
   ifstream* FileStream;
+  // The stream used to read the input if it is in a string.
+  std::istringstream* StringStream;
   int TimeStepWasReadOnce;
 
   int FileMajorVersion;

@@ -282,7 +282,7 @@ void vtkImageToPolyDataFilter::RunLengthImage(vtkUnsignedCharArray *pixels,
   vtkCellArray *newPolys;
   double x[3], minX, maxX, minY, maxY;
   vtkUnsignedCharArray *polyColors;
-  unsigned char *ptr, *colors=pixels->GetPointer(0), *color;
+  unsigned char *colors=pixels->GetPointer(0), *color;
 
   // Setup data
   newPts = vtkPoints::New();
@@ -324,10 +324,9 @@ void vtkImageToPolyDataFilter::RunLengthImage(vtkUnsignedCharArray *pixels,
         minX = origin[0] + i*spacing[0] - 0.5*spacing[0];
         }
       color = colors + 3*(i+j*dims[0]);
-      ptr = color;
       while ( i < dims[0] )
         {
-        ptr = colors + 3*(i+j*dims[0]);
+        unsigned char *ptr = colors + 3*(i+j*dims[0]);
         if ( ! this->IsSameColor(color,ptr) )
           {
           break;
@@ -459,7 +458,7 @@ vtkUnsignedCharArray *vtkImageToPolyDataFilter::QuantizeImage(
 {
   int numPixels, i, j, idx, id;
   vtkUnsignedCharArray *pixels;
-  unsigned char *ptr, *ptr2, *color, *outPixels;
+  unsigned char *ptr, *ptr2, *outPixels;
   unsigned char *inPixels;
 
   // doing a portion of the image
@@ -497,7 +496,7 @@ vtkUnsignedCharArray *vtkImageToPolyDataFilter::QuantizeImage(
         idx = i + j*dims[0];
         ptr = inPixels + 3*idx;
         ptr2 = outPixels + 3*id;
-        color = this->GetColor(ptr);
+        const unsigned char *color = this->GetColor(ptr);
         ptr2[0] = color[0];
         ptr2[1] = color[1];
         ptr2[2] = color[2];
@@ -521,7 +520,7 @@ vtkUnsignedCharArray *vtkImageToPolyDataFilter::QuantizeImage(
         {
         idx = i + j*dims[0];
         s = inScalars->GetComponent(idx,0);
-        color = this->LookupTable->MapValue(s);
+        const unsigned char *color = this->LookupTable->MapValue(s);
         ptr2 = outPixels + 3*id;
         ptr2[0] = color[0];
         ptr2[1] = color[1];
@@ -1221,8 +1220,8 @@ void vtkImageToPolyDataFilter::BuildPolygons(vtkUnsignedCharArray *vtkNotUsed(po
           polyColors->SetValue(3*cellId+1, ptr[1]);
           polyColors->SetValue(3*cellId+2, ptr[2]);
 
-          p1 = ptId; p2 = -1;
-          while ( 1 )
+          p1 = ptId;
+          while ( true )
             {
             edges->GetCellPoints(edgeId, npts, pts);
             p2 = (pts[0] != p1 ? pts[0] : pts[1]);

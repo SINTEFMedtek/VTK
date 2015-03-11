@@ -30,8 +30,8 @@
 // .SEE ALSO
 // vtkDendrogramItem vtkHeatmapItem vtkTree vtkTable vtkNewickTreeReader
 
-#ifndef __vtkTreeHeatmapItem_h
-#define __vtkTreeHeatmapItem_h
+#ifndef vtkTreeHeatmapItem_h
+#define vtkTreeHeatmapItem_h
 
 #include "vtkViewsInfovisModule.h" // For export macro
 #include "vtkContextItem.h"
@@ -88,13 +88,13 @@ public:
 
   // Description:
   // Get/Set the dendrogram contained by this item.
-  vtkSmartPointer<vtkDendrogramItem> GetDendrogram();
-  void SetDendrogram(vtkSmartPointer<vtkDendrogramItem>);
+  vtkDendrogramItem * GetDendrogram();
+  void SetDendrogram(vtkDendrogramItem *dendrogram);
 
   // Description:
   // Get/Set the heatmap contained by this item.
-  vtkSmartPointer<vtkHeatmapItem> GetHeatmap();
-  void SetHeatmap(vtkSmartPointer<vtkHeatmapItem>);
+  vtkHeatmapItem * GetHeatmap();
+  void SetHeatmap(vtkHeatmapItem *heatmap);
 
   // Description:
   // Reorder the rows in the table so they match the order of the leaf

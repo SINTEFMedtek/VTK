@@ -1,4 +1,10 @@
 cmake_minimum_required(VERSION 2.8.5 FATAL_ERROR)
+if(POLICY CMP0025)
+  cmake_policy(SET CMP0025 NEW) # CMake 3.0
+endif()
+if(POLICY CMP0053)
+  cmake_policy(SET CMP0053 NEW) # CMake 3.1
+endif()
 
 project (VisualizationAlgorithms)
 
@@ -9,7 +15,7 @@ find_package(VTK COMPONENTS
   vtkFiltersModeling
   vtkIOXML
   vtkInteractionStyle
-  vtkRenderingOpenGL
+  vtkRendering${VTK_RENDERING_BACKEND}
   vtkTestingRendering
 )
 include(${VTK_USE_FILE})
@@ -28,11 +34,13 @@ if(BUILD_TESTING)
     set(vtk-example VisualizationAlgorithmsExamples)
     set(TestFilledContours_ARGS "DATA{${VTK_TEST_INPUT_DIR}/filledContours.vtp}" 10)
     set(TestBandedContours_ARGS "DATA{${VTK_TEST_INPUT_DIR}/filledContours.vtp}" 10)
-    vtk_add_test_cxx(
+    vtk_add_test_cxx(${vtk-example}CxxTests tests
       TestTubesWithVaryingRadiusAndColors.cxx
       TestFilledContours.cxx
       TestBandedContours.cxx
       )
-    vtk_test_cxx_executable(${vtk-example}CxxTests RENDERING_FACTORY)
+    vtk_test_cxx_executable(${vtk-example}CxxTests tests
+      RENDERING_FACTORY
+      )
   endif()
 endif()

@@ -31,8 +31,8 @@
 // .SECTION See Also
 // vtkBMPReader vtkPNMReader vtkTIFFReader
 
-#ifndef __vtkDICOMImageReader_h
-#define __vtkDICOMImageReader_h
+#ifndef vtkDICOMImageReader_h
+#define vtkDICOMImageReader_h
 
 #include "vtkIOImageModule.h" // For export macro
 #include "vtkImageReader2.h"
@@ -60,14 +60,8 @@ class VTKIOIMAGE_EXPORT vtkDICOMImageReader : public vtkImageReader2
   // the reader will only read a single file.
   void SetFileName(const char* fn)
   {
-    if (this->DirectoryName)
-      {
-      delete [] this->DirectoryName;
-      }
-    if (this->FileName)
-      {
-      delete [] this->FileName;
-      }
+    delete [] this->DirectoryName;
+    delete [] this->FileName;
     this->DirectoryName = NULL;
     this->FileName = NULL;
     this->vtkImageReader2::SetFileName(fn);

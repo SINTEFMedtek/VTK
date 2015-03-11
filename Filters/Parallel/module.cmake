@@ -9,11 +9,14 @@ vtk_module(vtkFiltersParallel
     vtkFiltersGeometry
   TEST_DEPENDS
     vtkParallelMPI
+    vtkTestingCore
     vtkTestingRendering
     vtkInteractionStyle
-    vtkRenderingOpenGL
+    vtkRendering${VTK_RENDERING_BACKEND}
     vtkRenderingParallel
     vtkFiltersParallelMPI
     vtkFiltersParallelImaging
     vtkIOLegacy
+  KIT
+    vtkParallel
   )

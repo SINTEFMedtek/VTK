@@ -169,15 +169,14 @@ void vtkChartXYZ::RecalculateBounds()
     return;
     }
 
-  vtkVector3f firstPoint = this->Plots[0]->GetPoints()[0];
-  double bounds[] = { firstPoint.GetX(), firstPoint.GetX(),
-                      firstPoint.GetY(), firstPoint.GetY(),
-                      firstPoint.GetZ(), firstPoint.GetZ()};
+  double bounds[] = { VTK_DOUBLE_MAX, VTK_DOUBLE_MIN,
+                      VTK_DOUBLE_MAX, VTK_DOUBLE_MIN,
+                      VTK_DOUBLE_MAX, VTK_DOUBLE_MIN};
 
   // Need to calculate the bounds in three dimensions and set up the axes.
   for (unsigned int i = 0; i < this->Plots.size(); ++i)
     {
-    std::vector<vtkVector3f> points = this->Plots[i]->GetPoints();
+    std::vector<vtkVector3f> const& points = this->Plots[i]->GetPoints();
     for (unsigned int j = 0; j < points.size(); ++j)
       {
       const vtkVector3f &v = points[j];
@@ -187,7 +186,7 @@ void vtkChartXYZ::RecalculateBounds()
           {
           bounds[2 * k] = v[k];
           }
-        else if (v[k] > bounds[2 * k + 1])
+        if (v[k] > bounds[2 * k + 1])
           {
           bounds[2 * k + 1] = v[k];
           }
@@ -637,11 +636,11 @@ void vtkChartXYZ::DrawTickMarks(vtkContext2D *painter)
         tickPositionInPixels[1] += offset[1];
 
         // we store this offset so we know where to draw the axis label later
-        if (abs(offset[0]) > abs(labelOffset[0]))
+        if (fabs(offset[0]) > fabs(labelOffset[0]))
           {
           labelOffset[0] = offset[0];
           }
-        if (abs(offset[1]) > abs(labelOffset[1]))
+        if (fabs(offset[1]) > fabs(labelOffset[1]))
           {
           labelOffset[1] = offset[1];
           }
@@ -721,8 +720,8 @@ void vtkChartXYZ::DetermineWhichAxesToLabel()
           if (midpoint[0] > this->DataBounds[0] &&
               midpoint[0] < this->DataBounds[2])
             {
-            double d1 = abs(midpoint[1] - this->DataBounds[1]);
-            double d2 = abs(midpoint[1] - this->DataBounds[3]);
+            double d1 = fabs(midpoint[1] - this->DataBounds[1]);
+            double d2 = fabs(midpoint[1] - this->DataBounds[3]);
             if (d1 < d2)
               {
               directionToData = 0;  // data is "up" from the axis
@@ -739,8 +738,8 @@ void vtkChartXYZ::DetermineWhichAxesToLabel()
           else if (midpoint[1] > this->DataBounds[1] &&
                    midpoint[1] < this->DataBounds[3])
             {
-            double d1 = abs(midpoint[0] - this->DataBounds[0]);
-            double d2 = abs(midpoint[0] - this->DataBounds[2]);
+            double d1 = fabs(midpoint[0] - this->DataBounds[0]);
+            double d2 = fabs(midpoint[0] - this->DataBounds[2]);
             if (d1 < d2)
               {
               directionToData = 2;  // data is "right" from the axis
@@ -844,17 +843,17 @@ void vtkChartXYZ::DetermineWhichAxesToLabel()
             switch (axis)
               {
               case 0:
-                this->XAxisToLabel[0] = j;
-                this->XAxisToLabel[1] = k;
+                this->XAxisToLabel[0] = static_cast<int>(j);
+                this->XAxisToLabel[1] = static_cast<int>(k);
                 break;
               case 1:
-                this->YAxisToLabel[0] = i;
-                this->YAxisToLabel[1] = k;
+                this->YAxisToLabel[0] = static_cast<int>(i);
+                this->YAxisToLabel[1] = static_cast<int>(k);
                 break;
               case 2:
               default:
-                this->ZAxisToLabel[0] = i;
-                this->ZAxisToLabel[1] = j;
+                this->ZAxisToLabel[0] = static_cast<int>(i);
+                this->ZAxisToLabel[1] = static_cast<int>(j);
                 break;
               }
             }

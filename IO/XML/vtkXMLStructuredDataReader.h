@@ -21,8 +21,8 @@
 // vtkXMLImageDataReader vtkXMLStructuredGridReader
 // vtkXMLRectilinearGridReader
 
-#ifndef __vtkXMLStructuredDataReader_h
-#define __vtkXMLStructuredDataReader_h
+#ifndef vtkXMLStructuredDataReader_h
+#define vtkXMLStructuredDataReader_h
 
 #include "vtkIOXMLModule.h" // For export macro
 #include "vtkXMLDataReader.h"
@@ -64,6 +64,8 @@ protected:
 
   // Pipeline execute data driver.  Called by vtkXMLReader.
   void ReadXMLData();
+
+  void SetupOutputInformation(vtkInformation *outInfo);
 
   // Internal representation of pieces in the file that may have come
   // from a streamed write.

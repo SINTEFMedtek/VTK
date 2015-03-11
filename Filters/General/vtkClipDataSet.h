@@ -54,8 +54,8 @@
 // .SECTION See Also
 // vtkImplicitFunction vtkCutter vtkClipVolume vtkClipPolyData
 
-#ifndef __vtkClipDataSet_h
-#define __vtkClipDataSet_h
+#ifndef vtkClipDataSet_h
+#define vtkClipDataSet_h
 
 #include "vtkFiltersGeneralModule.h" // For export macro
 #include "vtkUnstructuredGridAlgorithm.h"
@@ -162,12 +162,6 @@ public:
 protected:
   vtkClipDataSet(vtkImplicitFunction *cf=NULL);
   ~vtkClipDataSet();
-
-  // Description:
-  // Overridden to process REQUEST_UPDATE_EXTENT_INFORMATION.
-  virtual int ProcessRequest(vtkInformation*,
-                             vtkInformationVector**,
-                             vtkInformationVector*);
 
   virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
   virtual int FillInputPortInformation(int port, vtkInformation *info);

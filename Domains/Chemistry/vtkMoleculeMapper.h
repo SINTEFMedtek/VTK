@@ -18,8 +18,8 @@
 // vtkMoleculeMapper uses glyphs (display lists) to quickly render a
 // molecule.
 
-#ifndef __vtkMoleculeMapper_h
-#define __vtkMoleculeMapper_h
+#ifndef vtkMoleculeMapper_h
+#define vtkMoleculeMapper_h
 
 #include "vtkDomainsChemistryModule.h" // For export macro
 #include "vtkMapper.h"
@@ -241,9 +241,9 @@ protected:
   vtkNew<vtkPolyData> BondGlyphPolyData;
   vtkNew<vtkTrivialProducer> BondGlyphPointOutput;
   bool GlyphDataInitialized;
-  void UpdateGlyphPolyData();
-  void UpdateAtomGlyphPolyData();
-  void UpdateBondGlyphPolyData();
+  virtual void UpdateGlyphPolyData();
+  virtual void UpdateAtomGlyphPolyData();
+  virtual void UpdateBondGlyphPolyData();
 
   // Description:
   // Internal mappers

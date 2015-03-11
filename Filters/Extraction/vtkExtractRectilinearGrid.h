@@ -23,11 +23,14 @@
 // vtkExtractGrid vtkImageClip vtkGeometryFilter vtkExtractGeometry vtkExtractVOI
 // vtkStructuredGridGeometryFilter
 
-#ifndef __vtkExtractRectilinearGrid_h
-#define __vtkExtractRectilinearGrid_h
+#ifndef vtkExtractRectilinearGrid_h
+#define vtkExtractRectilinearGrid_h
 
 #include "vtkFiltersExtractionModule.h" // For export macro
 #include "vtkRectilinearGridAlgorithm.h"
+
+// Forward Declarations
+class vtkExtractStructuredGridHelper;
 
 class VTKFILTERSEXTRACTION_EXPORT vtkExtractRectilinearGrid : public vtkRectilinearGridAlgorithm
 {
@@ -65,16 +68,25 @@ public:
 
 protected:
   vtkExtractRectilinearGrid();
-  ~vtkExtractRectilinearGrid() {}
+  ~vtkExtractRectilinearGrid();
 
   virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
   virtual int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
   virtual int RequestUpdateExtent(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 
+  // Description:
+  // Implementation for RequestData using a specified VOI. This is because the
+  // parallel filter needs to muck around with the VOI to get spacing and
+  // partitioning to play nice.
+  bool RequestDataImpl(int voi[6],
+                       vtkInformationVector **inputVector,
+                       vtkInformationVector *outputVector);
+
   int VOI[6];
   int SampleRate[3];
   int IncludeBoundary;
 
+  vtkExtractStructuredGridHelper* Internal;
 private:
   vtkExtractRectilinearGrid(const vtkExtractRectilinearGrid&);  // Not implemented.
   void operator=(const vtkExtractRectilinearGrid&);  // Not implemented.

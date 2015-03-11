@@ -18,11 +18,11 @@
 // methods for insertion and retrieval of values and will
 // automatically resize itself to hold new data.
 
-#ifndef __vtkShortArray_h
-#define __vtkShortArray_h
+#ifndef vtkShortArray_h
+#define vtkShortArray_h
 
 // Tell the template header how to give our superclass a DLL interface.
-#if !defined(__vtkShortArray_cxx)
+#if !defined(vtkShortArray_cxx)
 # define VTK_DATA_ARRAY_TEMPLATE_TYPE short
 #endif
 
@@ -47,7 +47,7 @@ public:
   // This macro expands to the set of method declarations that
   // make up the interface of vtkDataArrayTemplate, which is ignored
   // by the wrappers.
-#ifdef __WRAP__
+#if defined(__WRAP__) || defined (__WRAP_GCCXML__)
   vtkCreateWrappedArrayInterface(short);
 #endif
 

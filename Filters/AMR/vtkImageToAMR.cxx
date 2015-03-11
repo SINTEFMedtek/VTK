@@ -23,7 +23,6 @@
 #include "vtkObjectFactory.h"
 #include "vtkOverlappingAMR.h"
 #include "vtkSmartPointer.h"
-#include "vtkExtentTranslator.h"
 #include "vtkTuple.h"
 #include "vtkAMRBox.h"
 #include "vtkUniformGrid.h"
@@ -347,7 +346,7 @@ int vtkImageToAMR::RequestData(vtkInformation* vtkNotUsed(request),
       }
     }
 
-  vtkAMRUtilities::BlankCells(amr,NULL);
+  vtkAMRUtilities::BlankCells(amr);
   return 1;
 }
 

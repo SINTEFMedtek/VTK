@@ -22,6 +22,7 @@
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkLine.h"
+#include "vtkNew.h"
 #include "vtkObjectFactory.h"
 #include "vtkPointData.h"
 #include "vtkPointLocator.h"
@@ -338,7 +339,6 @@ vtkCell *vtkPolyData::GetCell(vtkIdType cellId)
         this->EmptyCell = vtkEmptyCell::New();
         }
       cell = this->EmptyCell;
-      numPts = 0;
       return cell;
     }
 
@@ -431,6 +431,7 @@ void vtkPolyData::GetCell(vtkIdType cellId, vtkGenericCell *cell)
     }
 }
 
+//----------------------------------------------------------------------------
 void vtkPolyData::CopyCells(vtkPolyData *pd, vtkIdList *idList,
                             vtkPointLocator *locator)
 {
@@ -1235,7 +1236,7 @@ void vtkPolyData::Allocate(vtkPolyData *inPolyData, vtkIdType numCells,
 // the PolyData::Allocate() function has been called first or that vertex,
 // line, polygon, and triangle strip arrays have been supplied.
 // Note: will also insert VTK_PIXEL, but converts it to VTK_QUAD.
-int vtkPolyData::InsertNextCell(int type, int npts, vtkIdType *pts)
+vtkIdType vtkPolyData::InsertNextCell(int type, int npts, vtkIdType *pts)
 {
   int id;
 
@@ -1299,10 +1300,10 @@ int vtkPolyData::InsertNextCell(int type, int npts, vtkIdType *pts)
 // the PolyData::Allocate() function has been called first or that vertex,
 // line, polygon, and triangle strip arrays have been supplied.
 // Note: will also insert VTK_PIXEL, but converts it to VTK_QUAD.
-int vtkPolyData::InsertNextCell(int type, vtkIdList *pts)
+vtkIdType vtkPolyData::InsertNextCell(int type, vtkIdList *pts)
 {
-  int id;
-  int npts=pts->GetNumberOfIds();
+  vtkIdType id;
+  vtkIdType npts = pts->GetNumberOfIds();
 
   if ( !this->Cells )
     {
@@ -1447,7 +1448,7 @@ void vtkPolyData::ReverseCell(vtkIdType cellId)
 // Add a point to the cell data structure (after cell pointers have been
 // built). This method allocates memory for the links to the cells.  (To
 // use this method, make sure points are available and BuildLinks() has been invoked.)
-int vtkPolyData::InsertNextLinkedPoint(int numLinks)
+vtkIdType vtkPolyData::InsertNextLinkedPoint(int numLinks)
 {
   return this->Links->InsertNextPoint(numLinks);
 }
@@ -1457,7 +1458,7 @@ int vtkPolyData::InsertNextLinkedPoint(int numLinks)
 // built). This method adds the point and then allocates memory for the
 // links to the cells.  (To use this method, make sure points are available
 // and BuildLinks() has been invoked.)
-int vtkPolyData::InsertNextLinkedPoint(double x[3], int numLinks)
+vtkIdType vtkPolyData::InsertNextLinkedPoint(double x[3], int numLinks)
 {
   this->Links->InsertNextPoint(numLinks);
   return this->Points->InsertNextPoint(x);
@@ -1467,9 +1468,9 @@ int vtkPolyData::InsertNextLinkedPoint(double x[3], int numLinks)
 // Add a new cell to the cell data structure (after cell pointers have been
 // built). This method adds the cell and then updates the links from the points
 // to the cells. (Memory is allocated as necessary.)
-int vtkPolyData::InsertNextLinkedCell(int type, int npts, vtkIdType *pts)
+vtkIdType vtkPolyData::InsertNextLinkedCell(int type, int npts, vtkIdType *pts)
 {
-  int i, id;
+  vtkIdType i, id;
 
   id = this->InsertNextCell(type,npts,pts);
 
@@ -1869,116 +1870,131 @@ void vtkPolyData::DeepCopy(vtkDataObject *dataObject)
 
 void vtkPolyData::RemoveGhostCells(int level)
 {
-  vtkCellData *newCellData;
-  vtkCellArray *newVerts;
-  vtkCellArray *newLines;
-  vtkCellArray *newPolys;
-  vtkCellArray *newStrips;
-  vtkIdType inCellId, outCellId;
-  vtkIdType npts=0;
-  vtkIdType *pts=0;
-
   // Get a pointer to the cell ghost level array.
-  vtkDataArray* temp = this->CellData->GetArray("vtkGhostLevels");
+  vtkUnsignedCharArray* temp = vtkUnsignedCharArray::SafeDownCast(
+    this->CellData->GetArray("vtkGhostLevels"));
   if (temp == NULL)
     {
     vtkDebugMacro("Could not find cell ghost level array.");
     return;
     }
-  if ( (temp->GetDataType() != VTK_UNSIGNED_CHAR)
-       || (temp->GetNumberOfComponents() != 1)
-       || (temp->GetNumberOfTuples() < this->GetNumberOfCells()))
+  if (temp->GetNumberOfComponents() != 1 ||
+      temp->GetNumberOfTuples() < this->GetNumberOfCells())
     {
     vtkErrorMacro("Poorly formed ghost level array.");
     return;
     }
-  unsigned char* cellGhostLevels =
-    static_cast<vtkUnsignedCharArray*>(temp)->GetPointer(0);
+  unsigned char* cellGhostLevels = temp->GetPointer(0);
 
-  // We may be able to get away wil just creating a CellData object.
-  newCellData = vtkCellData::New();
-  newCellData->CopyAllocate(this->CellData, this->GetNumberOfCells());
+  vtkIdType numCells = this->GetNumberOfCells();
 
-  inCellId = outCellId = 0;
-  if (this->Verts)
+  vtkIntArray *types = vtkIntArray::New();
+  types->SetNumberOfValues(numCells);
+
+  for (vtkIdType i = 0; i < numCells; i++)
     {
-    newVerts = vtkCellArray::New();
-    newVerts->Allocate(this->Verts->GetSize());
-    for (this->Verts->InitTraversal(); this->Verts->GetNextCell(npts, pts); )
-      {
-      if (int(cellGhostLevels[inCellId]) < level)
-        { // Keep the cell.
-        newVerts->InsertNextCell(npts, pts);
-        newCellData->CopyData(this->CellData, inCellId, outCellId);
-        ++outCellId;
-        } // Keep this cell.
-      ++inCellId;
-      } // for all cells
-    this->SetVerts(newVerts);
-    newVerts->Delete();
-    newVerts = NULL;
+    types->SetValue(i, this->GetCellType(i));
     }
 
-  if (this->Lines)
+  this->DeleteCells();
+
+  // we have to make new copies of Verts, Lines, Polys
+  // and Strips since they may be shared with other polydata
+  vtkSmartPointer<vtkCellArray> verts;
+  if(this->Verts)
     {
-    newLines = vtkCellArray::New();
-    newLines->Allocate(this->Lines->GetSize());
-    for (this->Lines->InitTraversal(); this->Lines->GetNextCell(npts, pts); )
-      {
-      if (int(cellGhostLevels[inCellId]) < level)
-        { // Keep the cell.
-        newLines->InsertNextCell(npts, pts);
-        newCellData->CopyData(this->CellData, inCellId, outCellId);
-        ++outCellId;
-        } // Keep this cell.
-      ++inCellId;
-      } // for all cells
-    this->SetLines(newLines);
-    newLines->Delete();
-    newLines = NULL;
+    verts = this->Verts;
+    verts->InitTraversal();
+    this->Verts->UnRegister(this);
+    this->Verts = vtkCellArray::New();
     }
 
-  if (this->Polys)
+  vtkSmartPointer<vtkCellArray> lines;
+  if(this->Lines)
     {
-    newPolys = vtkCellArray::New();
-    newPolys->Allocate(this->Polys->GetSize());
-    for (this->Polys->InitTraversal(); this->Polys->GetNextCell(npts, pts); )
-      {
-      if (int(cellGhostLevels[inCellId]) < level)
-        { // Keep the cell.
-        newPolys->InsertNextCell(npts, pts);
-        newCellData->CopyData(this->CellData, inCellId, outCellId);
-        ++outCellId;
-        } // Keep this cell.
-      ++inCellId;
-      } // for all cells
-   this->SetPolys(newPolys);
-   newPolys->Delete();
-   newPolys = NULL;
-   }
-
-  if (this->Strips)
-    {
-    newStrips = vtkCellArray::New();
-    newStrips->Allocate(this->Strips->GetSize());
-    for (this->Strips->InitTraversal(); this->Strips->GetNextCell(npts, pts); )
-      {
-      if (int(cellGhostLevels[inCellId]) < level)
-        { // Keep the cell.
-        newStrips->InsertNextCell(npts, pts);
-        newCellData->CopyData(this->CellData, inCellId, outCellId);
-        ++outCellId;
-        } // Keep this cell.
-      ++inCellId;
-      } // for all cells
-    this->SetStrips(newStrips);
-    newStrips->Delete();
-    newStrips = NULL;
+    lines = this->Lines;
+    lines->InitTraversal();
+    this->Lines->UnRegister(this);
+    this->Lines = vtkCellArray::New();
     }
 
-  // Save the results.
+  vtkSmartPointer<vtkCellArray> polys;
+  if(this->Polys)
+    {
+    polys = this->Polys;
+    polys->InitTraversal();
+    this->Polys->UnRegister(this);
+    this->Polys = vtkCellArray::New();
+    }
+
+  vtkSmartPointer<vtkCellArray> strips;
+  if(this->Strips)
+    {
+    strips = this->Strips;
+    strips->InitTraversal();
+    this->Strips->UnRegister(this);
+    this->Strips = vtkCellArray::New();
+    }
+
+  vtkCellData *newCellData = vtkCellData::New();
+  newCellData->CopyAllocate(this->CellData, numCells);
+
+  vtkIdType *pts, n;
+
+  int cellId;
+
+  for (vtkIdType i = 0; i < numCells; i++)
+    {
+    int type = types->GetValue(i);
+
+    if (type == VTK_VERTEX || type == VTK_POLY_VERTEX)
+      {
+      verts->GetNextCell(n, pts);
+
+      if (int(cellGhostLevels[i]) < level)
+        {
+        cellId = this->InsertNextCell(type, n, pts);
+        newCellData->CopyData(this->CellData, i, cellId);
+        }
+      }
+    else if (type == VTK_LINE || type == VTK_POLY_LINE)
+      {
+      lines->GetNextCell(n, pts);
+
+      if (int(cellGhostLevels[i]) < level)
+        {
+        cellId = this->InsertNextCell(type, n, pts);
+        newCellData->CopyData(this->CellData, i, cellId);
+        }
+      }
+    else if (type == VTK_POLYGON || type == VTK_TRIANGLE || type == VTK_QUAD)
+      {
+      polys->GetNextCell(n, pts);
+
+      if (int(cellGhostLevels[i]) < level)
+        {
+        cellId = this->InsertNextCell(type, n, pts);
+        newCellData->CopyData(this->CellData, i, cellId);
+        }
+      }
+    else if (type == VTK_TRIANGLE_STRIP)
+      {
+      strips->GetNextCell(n, pts);
+
+      if (int(cellGhostLevels[i]) < level)
+        {
+        cellId = this->InsertNextCell(type, n, pts);
+        newCellData->CopyData(this->CellData, i, cellId);
+        }
+      }
+    }
+
+  newCellData->Squeeze();
+
   this->CellData->ShallowCopy(newCellData);
   newCellData->Delete();
+
+  types->Delete();
 
   // If there are no more ghost levels, then remove all arrays.
   if (level <= 1)
@@ -1990,102 +2006,59 @@ void vtkPolyData::RemoveGhostCells(int level)
   this->Squeeze();
 }
 //----------------------------------------------------------------------------
-void  vtkPolyData::RemoveDeletedCells()
+void vtkPolyData::RemoveDeletedCells()
 {
-  if (!this->Cells )
+  if (!this->Cells)
     {
       return;
     }
 
-  vtkCellData *newCellData;
-  newCellData = vtkCellData::New();
-  newCellData->CopyAllocate(this->CellData, this->GetNumberOfCells());
-  vtkIdType inCellId=0, outCellId=0;
-  vtkIdType npts=0;
-  vtkIdType *pts=0;
-  vtkIdType c = 0;
+  vtkNew<vtkPolyData> oldData;
+  oldData->ShallowCopy(this);
+  this->DeleteCells();
 
-  if (this->Verts)
+  if(this->Verts)
     {
-    vtkCellArray* newVerts = vtkCellArray::New();
-    newVerts->Allocate(this->Verts->GetSize());
-    for (this->Verts->InitTraversal(); this->Verts->GetNextCell(npts, pts); c++)
-      {
-      if (this->Cells->GetCellType(c)!=VTK_EMPTY_CELL)
-        { // Keep the cell.
-        newVerts->InsertNextCell(npts, pts);
-        newCellData->CopyData(this->CellData, inCellId, outCellId);
-        ++outCellId;
-        } // Keep this cell.
-      ++inCellId;
-      } // for all cells
-    this->SetVerts(newVerts);
-    newVerts->Delete();
+    this->Verts->UnRegister(this);
+    this->Verts = vtkCellArray::New();
     }
-
-  if (this->Lines)
+  if(this->Lines)
     {
-    vtkCellArray* newLines = vtkCellArray::New();
-    newLines->Allocate(this->Lines->GetSize());
-    for (this->Lines->InitTraversal(); this->Lines->GetNextCell(npts, pts); c++)
-      {
-      if (this->Cells->GetCellType(c)!=VTK_EMPTY_CELL)
-        { // Keep the cell.
-        newLines->InsertNextCell(npts, pts);
-        newCellData->CopyData(this->CellData, inCellId, outCellId);
-        ++outCellId;
-        } // Keep this cell.
-      ++inCellId;
-      } // for all cells
-    this->SetLines(newLines);
-    newLines->Delete();
+    this->Lines->UnRegister(this);
+    this->Lines = vtkCellArray::New();
     }
-
-  if (this->Polys)
+  if(this->Polys)
     {
-    vtkCellArray *newPolys;
-    newPolys = vtkCellArray::New();
-    newPolys->Allocate(this->Polys->GetSize());
-    for (this->Polys->InitTraversal(); this->Polys->GetNextCell(npts, pts); c++)
-      {
-      if (this->Cells->GetCellType(c)!=VTK_EMPTY_CELL)
-        { // Keep the cell.
-        newPolys->InsertNextCell(npts, pts);
-        newCellData->CopyData(this->CellData, inCellId, outCellId);
-        ++outCellId;
-        } // Keep this cell.
-      ++inCellId;
-      } // for all cells
-    this->SetPolys(newPolys);
-    newPolys->Delete();
+    this->Polys->UnRegister(this);
+    this->Polys = vtkCellArray::New();
     }
-
-  if (this->Strips)
+  if(this->Strips)
     {
-    vtkCellArray* newStrips = vtkCellArray::New();
-    newStrips->Allocate(this->Strips->GetSize());
-    for (this->Strips->InitTraversal(); this->Strips->GetNextCell(npts, pts); c++)
+    this->Strips->UnRegister(this);
+    this->Strips = vtkCellArray::New();
+    }
+
+  this->CellData->CopyAllocate(oldData->GetCellData());
+
+  const vtkIdType numCells = oldData->GetNumberOfCells();
+  vtkCell *cell;
+  vtkIdType cellId;
+  vtkIdList *pointIds;
+  int type;
+  for (vtkIdType i = 0; i < numCells; i++)
+    {
+    type = oldData->GetCellType(i);
+
+    if (type != VTK_EMPTY_CELL)
       {
-      if (this->Cells->GetCellType(c)!=VTK_EMPTY_CELL)
-        { // Keep the cell.
-        newStrips->InsertNextCell(npts, pts);
-        newCellData->CopyData(this->CellData, inCellId, outCellId);
-        ++outCellId;
-        } // Keep this cell.
-      ++inCellId;
-      } // for all cells
-    this->SetStrips(newStrips);
-    newStrips->Delete();
+      cell = oldData->GetCell(i);
+      pointIds = cell->GetPointIds();
+      cellId = this->InsertNextCell(type, pointIds);
+      this->CellData->CopyData(oldData->GetCellData(), i, cellId);
+      }
     }
 
-
-  // Save the results.
-  if(inCellId != outCellId)
-    { // we have deleted cells so need to update this->Cells
-    this->BuildCells();
-    }
-  this->CellData->ShallowCopy(newCellData);
-  newCellData->Delete();
+  this->CellData->Squeeze();
 }
 //----------------------------------------------------------------------------
 vtkPolyData* vtkPolyData::GetData(vtkInformation* info)

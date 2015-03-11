@@ -64,10 +64,10 @@
 // .SECTION See Also
 // vtkSMPThreadLocal
 
-#ifndef __vtkSMPThreadLocalObject_h
-#define __vtkSMPThreadLocalObject_h
+#ifndef vtkSMPThreadLocalObject_h
+#define vtkSMPThreadLocalObject_h
 
-#include <vtkSMPThreadLocal.h>
+#include "vtkSMPThreadLocal.h"
 
 template <typename T>
 class vtkSMPThreadLocalObject
@@ -83,59 +83,94 @@ class vtkSMPThreadLocalObject
 public:
   // Description:
   // Default constructor.
-  vtkSMPThreadLocalObject() : Internal(0)
-    {
-    }
+  vtkSMPThreadLocalObject() : Internal(0), Exemplar(0)
+  {
+  }
+
+  vtkSMPThreadLocalObject(T* const& exemplar) : Internal(0), Exemplar(exemplar)
+  {
+  }
 
   virtual ~vtkSMPThreadLocalObject()
-    {
-      iterator iter = this->begin();
-      while (iter != this->end())
+  {
+    iterator iter = this->begin();
+    while (iter != this->end())
+      {
+      if (*iter)
         {
-        if (*iter)
-          {
-          (*iter)->Delete();
-          }
-        ++iter;
+        (*iter)->Delete();
         }
-    }
+      ++iter;
+      }
+  }
 
   // Description:
   // Returns an object local to the current thread.
   // This object is allocated with ::New() and will
   // be deleted in the destructor of vtkSMPThreadLocalObject.
   T*& Local()
-    {
-      T*& vtkobject = this->Internal.Local();
-      if (!vtkobject)
+  {
+    T*& vtkobject = this->Internal.Local();
+    if (!vtkobject)
+      {
+      if (this->Exemplar)
         {
-        vtkobject = T::New();
+        vtkobject = this->Exemplar->NewInstance();
         }
-      return vtkobject;
+      else
+        {
+        vtkobject = T::SafeDownCast(T::New());
+        }
+      }
+    return vtkobject;
+  }
+
+  // Description:
+  // Return the number of thread local objects that have been initialized
+  size_t size() const
+    {
+    return this->Internal.size();
     }
 
   // Description:
   // Subset of the standard iterator API.
-  // The most common design patter is to use iterators in a sequential
+  // The most common design pattern is to use iterators in a sequential
   // code block and to use only the thread local objects in parallel
   // code blocks.
   class iterator
   {
   public:
     iterator& operator++()
+    {
+      ++this->Iter;
+      return *this;
+    }
+
+    iterator operator++(int)
       {
+        iterator copy = *this;
         ++this->Iter;
-        return *this;
+        return copy;
+      }
+
+    bool operator==(const iterator& other)
+      {
+      return this->Iter == other.Iter;
       }
 
     bool operator!=(const iterator& other)
-      {
-        return this->Iter != other.Iter;
-      }
+    {
+      return this->Iter != other.Iter;
+    }
 
     T*& operator*()
+    {
+      return *this->Iter;
+    }
+
+    T** operator->()
       {
-        return *this->Iter;
+        return &*this->Iter;
       }
 
   private:
@@ -160,6 +195,7 @@ public:
 
 private:
   TLS Internal;
+  T* Exemplar;
 };
 
 #endif

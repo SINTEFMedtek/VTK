@@ -17,6 +17,10 @@ foreach(module ${VTK_PYTHON_MODULES})
   vtk_add_python_wrapping(${module})
 endforeach()
 
+option(VTK_ENABLE_VTKPYTHON "Enable vtkpython and pvtkpython binaries" ON)
+mark_as_advanced(VTK_ENABLE_VTKPYTHON)
+if(VTK_ENABLE_VTKPYTHON)
+
 # Now to build the vtkPython executable, configure the .py files etc.
 get_property(VTK_PYTHON_MODULES GLOBAL PROPERTY VTK_PYTHON_WRAPPED)
 
@@ -83,14 +87,6 @@ endif()
 # Link against all the kit wrappers.
 list(APPEND VTKPYTHON_LINK_LIBS vtkWrappingPythonCore)
 
-set(vtkpython_pyc_depends
-  vtkCommonPython
-  vtkFilteringPython
-  vtkIOPython
-  vtkGraphicsPython
-  vtkImagingPython
-  )
-
 if(PYTHON_UTIL_LIBRARY)
   list(APPEND VTKPYTHON_LINK_LIBS ${PYTHON_UTIL_LIBRARY})
 endif()
@@ -146,6 +142,8 @@ if(TARGET vtkParallelMPI)
   endif()
 endif()
 
+endif()
+
 # Handle out-of-source builds correctly.
 #
 #  1. Create a list of Python files to be installed/copied.
@@ -162,7 +160,8 @@ if(PYTHON_EXECUTABLE)
     ${CMAKE_CURRENT_BINARY_DIR}/vtk/tk
     ${CMAKE_CURRENT_BINARY_DIR}/vtk/util
     ${CMAKE_CURRENT_BINARY_DIR}/vtk/wx
-    ${CMAKE_CURRENT_BINARY_DIR}/vtk/test)
+    ${CMAKE_CURRENT_BINARY_DIR}/vtk/test
+    ${CMAKE_CURRENT_BINARY_DIR}/vtk/numpy_interface)
 
 # Now create a list of Python files.
 
@@ -186,6 +185,8 @@ if(PYTHON_EXECUTABLE)
     vtk/util/vtkVariant
     vtk/util/colors
     vtk/util/numpy_support
+    vtk/util/vtkAlgorithm
+    vtk/util/keys
     )
 
 # vtk.test package
@@ -227,6 +228,13 @@ if(PYTHON_EXECUTABLE)
     vtk/gtk/GtkGLExtVTKRenderWindowInteractor
     )
 
+# vtk.numpy_interface related files
+  list(APPEND VTK_PYTHON_FILES
+    vtk/numpy_interface/__init__
+    vtk/numpy_interface/algorithms
+    vtk/numpy_interface/dataset_adapter
+    vtk/numpy_interface/internal_algorithms
+    )
 # Done listing of files.
 
 # Now copy these files if necessary.
@@ -261,11 +269,11 @@ if(PYTHON_EXECUTABLE)
   # Create a target on which custom commands can depend.  When this
   # is up-to-date, it is safe to run VTK python code.  Therefore
   # this should also depend on the vtkpython executable.
-  add_custom_target(vtkpython_pyc ALL echo "..."
+  add_custom_target(vtkpython_pyc ALL
     DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/vtk_compile_complete")
   add_dependencies(vtkpython_pyc
     vtkpython
-    ${vtkpython_pyc_depends})
+    )
 
   # If no runtime is to be installed then do not install python modules.
   if(NOT VTK_INSTALL_NO_RUNTIME)
@@ -279,7 +287,6 @@ if(PYTHON_EXECUTABLE)
     if (BUILD_SHARED_LIBS AND NOT VTK_INSTALL_NO_LIBRARIES)
       foreach(module ${VTK_PYTHON_MODULES})
         install(TARGETS ${module}Python
-          EXPORT ${VTK_INSTALL_EXPORT_NAME}
           RUNTIME DESTINATION ${VTK_INSTALL_RUNTIME_DIR} COMPONENT RuntimeLibraries
           LIBRARY DESTINATION ${VTK_INSTALL_PYTHON_MODULE_DIR}/vtk COMPONENT RuntimeLibraries
           ARCHIVE DESTINATION ${VTK_INSTALL_ARCHIVE_DIR} COMPONENT Development
@@ -288,7 +295,7 @@ if(PYTHON_EXECUTABLE)
     endif()
 
     # Install the conveniently configured python interpretters
-    if(NOT VTK_INSTALL_NO_PYTHON_EXES)
+    if(NOT VTK_INSTALL_NO_PYTHON_EXES AND VTK_ENABLE_VTKPYTHON)
       # Install the vtkpython executable
       install(TARGETS vtkpython
         DESTINATION ${VTK_INSTALL_RUNTIME_DIR})

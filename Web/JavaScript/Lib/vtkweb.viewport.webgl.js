@@ -441,8 +441,9 @@
             gl.useProgram(renderingContext.shaderProgram);
             gl.uniform1i(renderingContext.shaderProgram.uIsLine, false);
 
-            var projMatrix = mat4.clone(camera.getCameraMatrices()[0]);
-            var mvMatrix = mat4.clone(camera.getCameraMatrices()[1]);
+            var projMatrix = mat4.create();
+            var mvMatrix = mat4.create();
+            var normalMatrix = mat4.create();
 
             // @note Not sure if this is required
             mat4.translate(mvMatrix, mvMatrix, [0.0, 0.0, -1.0]);
@@ -454,11 +455,6 @@
             gl.bindBuffer(gl.ARRAY_BUFFER, background.cbuff);
             gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, background.cbuff.itemSize, gl.FLOAT, false, 0, 0);
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, background.ibuff);
-
-            var mvMatrixInv = mat4.create(),
-            normalMatrix = mat4.create();
-            mat4.invert(mvMatrixInv, mvMatrix);
-            mat4.transpose(normalMatrix, mvMatrixInv);
 
             renderingContext.gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, projMatrix);
             renderingContext.gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
@@ -976,6 +972,7 @@
         canvas2D = GLOBAL.document.createElement('canvas'),
         canvas3D = GLOBAL.document.createElement('canvas'),
         ctx2d = canvas2D.getContext('2d'),
+        screenImage = null,
         gl = canvas3D.getContext("experimental-webgl") || canvas3D.getContext("webgl"),
         shaderProgram = gl.createProgram(),
         pointShaderProgram = gl.createProgram(),
@@ -1006,7 +1003,7 @@
                 stat_id: 'webgl-fetch-scene',
                 stat_value: 0
             });
-            session.call("vtk:getSceneMetaData", Number(options.view)).then(function(data) {
+            session.call("viewport.webgl.metadata", [Number(options.view)]).then(function(data) {
                 sceneJSON = JSON.parse(data);
                 container.trigger({
                     type: 'stats',
@@ -1029,7 +1026,7 @@
                     stat_id: 'webgl-fetch-object',
                     stat_value: 0
                 });
-                session.call("vtk:getWebGLData", viewId, sceneObject.id, part).then(function(data) {
+                session.call("viewport.webgl.data", [viewId, sceneObject.id, part]).then(function(data) {
                     try {
                         // decode base64
                         data = atob(data);
@@ -1057,7 +1054,7 @@
                         objectHandler.registerObject(newObject);
 
                         // Redraw the scene
-                        drawScene();
+                        drawScene(false);
                     } catch(error) {
                         console.log(error);
                     }
@@ -1069,7 +1066,7 @@
 
         // ------------------------------------------------------------------
 
-        function drawScene() {
+        function drawScene(saveScreenOnRender) {
             try {
                 if (sceneJSON === null || cameraLayerZero === null){
                     return;
@@ -1146,6 +1143,10 @@
                     gl.disable(gl.BLEND);
                 }
 
+                if (saveScreenOnRender === true) {
+                    screenImage = renderingContext.gl.canvas.toDataURL();
+                }
+
                 // Update frame rate
                 container.trigger({
                     type: 'stats',
@@ -1161,6 +1162,7 @@
             } catch(error) {
                 console.log(error);
             }
+            container.trigger('done');
         }
 
         // ------------------------------------------------------------------
@@ -1173,7 +1175,7 @@
                 fp = [fp_[0], fp_[1], fp_[2]],
                 up = [up_[0], up_[1], up_[2]],
                 pos = [pos_[0], pos_[1], pos_[2]];
-                session.call("vtk:updateCamera", Number(options.view), fp, up, pos);
+                session.call("viewport.camera.update", [Number(options.view), fp, up, pos]);
             }
         }
 
@@ -1219,7 +1221,7 @@
                 objectHandler.fetchMissingObjects(fetchObject);
 
                 // Draw scene
-                drawScene();
+                drawScene(false);
             } catch(error) {
                 console.log(error);
             }
@@ -1237,10 +1239,18 @@
             }
         }).bind('render', function(){
             if(renderer.hasClass('active')){
-                drawScene();
+                drawScene(false);
             }
         }).bind('resetViewId', function(e){
             options.view = -1;
+        }).bind('captureRenderedImage', function(e){
+            if (renderer.hasClass('active')) {
+                drawScene(true);
+                $(container).parent().trigger({
+                    type: 'captured-screenshot-ready',
+                    imageData: screenImage
+                });
+            }
         }).bind('mouse', function(event){
             if(renderer.hasClass('active')){
                 event.preventDefault();
@@ -1288,7 +1298,7 @@
                         }
                     }
 
-                    drawScene();
+                    drawScene(false);
                     pushCameraState();
                 }
             }
@@ -1309,7 +1319,7 @@
 
                 // Ready to render data
                 fetchScene();
-                drawScene();
+                drawScene(false);
             }
         });
     }

@@ -29,8 +29,8 @@
 // VTK Journal, 2011,
 // http://hdl.handle.net/10380/3252
 
-#ifndef __vtkBSplineTransform_h
-#define __vtkBSplineTransform_h
+#ifndef vtkBSplineTransform_h
+#define vtkBSplineTransform_h
 
 #include "vtkFiltersHybridModule.h" // For export macro
 #include "vtkWarpTransform.h"
@@ -61,7 +61,8 @@ public:
 
   // Description:
   // Set/Get a scale to apply to the transformation.
-  vtkSetMacro(DisplacementScale,double);
+  vtkSetMacro(DisplacementScale, double);
+  vtkGetMacro(DisplacementScale, double);
 
   // Description:
   // Set/Get the border mode, to alter behavior at the edge of the grid.

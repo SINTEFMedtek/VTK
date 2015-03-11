@@ -26,8 +26,8 @@
 // .SECTION Thanks
 // Thanks to Philippe Pebay and David Thompson from Sandia National Laboratories for implementing this class.
 
-#ifndef __vtkPMultiCorrelativeStatistics_h
-#define __vtkPMultiCorrelativeStatistics_h
+#ifndef vtkPMultiCorrelativeStatistics_h
+#define vtkPMultiCorrelativeStatistics_h
 
 #include "vtkFiltersParallelStatisticsModule.h" // For export macro
 #include "vtkMultiCorrelativeStatistics.h"
@@ -63,6 +63,7 @@ protected:
                       vtkTable* inParameters,
                       vtkMultiBlockDataSet* outMeta );
 
+  virtual vtkOrderStatistics* CreateOrderStatisticsInstance();
 
 private:
   vtkPMultiCorrelativeStatistics(const vtkPMultiCorrelativeStatistics&); // Not implemented.

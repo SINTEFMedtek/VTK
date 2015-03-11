@@ -38,8 +38,8 @@
 // Sid Sydoriak (sxs@lanl.gov) for adding boolean operations and
 // conditional expressions and for fixing a variety of bugs.
 
-#ifndef __vtkFunctionParser_h
-#define __vtkFunctionParser_h
+#ifndef vtkFunctionParser_h
+#define vtkFunctionParser_h
 
 #include "vtkCommonMiscModule.h" // For export macro
 #include "vtkObject.h"
@@ -72,10 +72,10 @@
 #define VTK_PARSER_HYPERBOLIC_TANGENT 24
 #define VTK_PARSER_MIN 25
 #define VTK_PARSER_MAX 26
-#define VTK_PARSER_CROSS 27
 #define VTK_PARSER_SIGN 28
 
 // functions involving vectors
+#define VTK_PARSER_CROSS 27
 #define VTK_PARSER_VECTOR_UNARY_MINUS 29
 #define VTK_PARSER_DOT_PRODUCT 30
 #define VTK_PARSER_VECTOR_ADD 31
@@ -126,6 +126,10 @@ public:
   static vtkFunctionParser *New();
   vtkTypeMacro(vtkFunctionParser, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent);
+
+  // Description:
+  // Return parser's MTime
+  unsigned long int GetMTime();
 
   // Description:
   // Set/Get input string to evaluate.

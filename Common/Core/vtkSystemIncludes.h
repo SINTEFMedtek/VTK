@@ -18,8 +18,8 @@
 // The vtkSystemIncludes centralizes the inclusion of system include
 // files.
 
-#ifndef __vtkSystemIncludes_h
-#define __vtkSystemIncludes_h
+#ifndef vtkSystemIncludes_h
+#define vtkSystemIncludes_h
 
 /* first include the local configuration for this machine */
 #define __VTK_SYSTEM_INCLUDES__INSIDE
@@ -95,6 +95,7 @@
 
 #define VTK_COLOR_MODE_DEFAULT 0
 #define VTK_COLOR_MODE_MAP_SCALARS 1
+#define VTK_COLOR_MODE_DIRECT_SCALARS 2
 
 // Constants for InterpolationType
 #define VTK_NEAREST_INTERPOLATION       0

@@ -741,10 +741,7 @@ void vtkMultiBlockPLOT3DReader::SetXYZFileName( const char* name )
     return;
     }
 
-  if ( this->XYZFileName )
-    {
-    delete [] this->XYZFileName;
-    }
+  delete [] this->XYZFileName;
 
   if ( name )
     {
@@ -897,8 +894,6 @@ int vtkMultiBlockPLOT3DReader::RequestInformation(
     fclose(qFp);
     }
 
-  info->Set(
-    vtkStreamingDemandDrivenPipeline::MAXIMUM_NUMBER_OF_PIECES(), 1);
   return 1;
 }
 

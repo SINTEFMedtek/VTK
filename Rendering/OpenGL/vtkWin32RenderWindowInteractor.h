@@ -23,8 +23,8 @@
 // messages into the event bindings by setting InstallMessageProc to false.
 // This provides a minimal "Mapped" mode of interaction
 //
-#ifndef __vtkWin32RenderWindowInteractor_h
-#define __vtkWin32RenderWindowInteractor_h
+#ifndef vtkWin32RenderWindowInteractor_h
+#define vtkWin32RenderWindowInteractor_h
 
 #include "vtkRenderingOpenGLModule.h" // For export macro
 #include "vtkRenderWindowInteractor.h"
@@ -59,12 +59,6 @@ public:
   // when their data is not displayed.
   virtual void Enable();
   virtual void Disable();
-
-  // Description:
-  // This will start up the event loop and never return. If you
-  // call this method it will loop processing events until the
-  // application is exited.
-  virtual void Start();
 
   // Description:
   // By default the interactor installs a MessageProc callback which
@@ -145,6 +139,12 @@ protected:
   // documentation.
   virtual int InternalCreateTimer(int timerId, int timerType, unsigned long duration);
   virtual int InternalDestroyTimer(int platformTimerId);
+
+  // Description:
+  // This will start up the event loop and never return. If you
+  // call this method it will loop processing events until the
+  // application is exited.
+  virtual void StartEventLoop();
 
 #ifdef VTK_USE_TDX
   vtkTDxWinDevice *Device;

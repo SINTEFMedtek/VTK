@@ -75,7 +75,7 @@ vtkAxisActor::vtkAxisActor()
   this->TitleTextProperty = vtkTextProperty::New();
   this->TitleTextProperty->SetColor(0.,0.,0.);
   this->TitleTextProperty->SetFontFamilyToArial();
-  this->TitleTextProperty->SetFontSize(18.);
+  this->TitleTextProperty->SetFontSize(18);
   this->TitleTextProperty->SetVerticalJustificationToCentered();
   this->TitleTextProperty->SetJustificationToCentered();
 
@@ -105,7 +105,7 @@ vtkAxisActor::vtkAxisActor()
   this->LabelTextProperty = vtkTextProperty::New();
   this->LabelTextProperty->SetColor(0.,0.,0.);
   this->LabelTextProperty->SetFontFamilyToArial();
-  this->LabelTextProperty->SetFontSize(14.);
+  this->LabelTextProperty->SetFontSize(14);
   this->LabelTextProperty->SetVerticalJustificationToBottom();
   this->LabelTextProperty->SetJustificationToLeft();
 
@@ -1379,6 +1379,11 @@ void vtkAxisActor::SetLabels(vtkStringArray *labels)
   // amount of memory.
   //
   int i, numLabels = labels->GetNumberOfValues();
+  if (numLabels < 0)
+    {
+    vtkErrorMacro(<< "Number of labels " << numLabels << " is invalid");
+    return;
+    }
   if (this->NumberOfLabelsBuilt != numLabels)
     {
     if (this->LabelMappers != NULL)

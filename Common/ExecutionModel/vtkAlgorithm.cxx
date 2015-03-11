@@ -57,13 +57,8 @@ vtkInformationKeyMacro(vtkAlgorithm, PORT_REQUIREMENTS_FILLED, Integer);
 vtkInformationKeyMacro(vtkAlgorithm, INPUT_PORT, Integer);
 vtkInformationKeyMacro(vtkAlgorithm, INPUT_CONNECTION, Integer);
 vtkInformationKeyMacro(vtkAlgorithm, INPUT_ARRAYS_TO_PROCESS, InformationVector);
-vtkInformationKeyMacro(vtkAlgorithm, PRESERVES_DATASET, Integer);
-vtkInformationKeyMacro(vtkAlgorithm, PRESERVES_GEOMETRY, Integer);
-vtkInformationKeyMacro(vtkAlgorithm, PRESERVES_BOUNDS, Integer);
-vtkInformationKeyMacro(vtkAlgorithm, PRESERVES_TOPOLOGY, Integer);
-vtkInformationKeyMacro(vtkAlgorithm, PRESERVES_ATTRIBUTES, Integer);
-vtkInformationKeyMacro(vtkAlgorithm, PRESERVES_RANGES, Integer);
-vtkInformationKeyMacro(vtkAlgorithm, MANAGES_METAINFORMATION, Integer);
+vtkInformationKeyMacro(vtkAlgorithm, CAN_PRODUCE_SUB_EXTENT, Integer);
+vtkInformationKeyMacro(vtkAlgorithm, CAN_HANDLE_PIECE_REQUEST, Integer);
 
 vtkExecutive* vtkAlgorithm::DefaultExecutivePrototype = 0;
 
@@ -240,7 +235,7 @@ void vtkAlgorithm::SetInputArrayToProcess(
 {
   if (!fieldAssociation)
     {
-    vtkErrorMacro("Association is requied");
+    vtkErrorMacro("Association is required");
     return;
     }
   if (!fieldAttributeTypeOrName)
@@ -296,8 +291,8 @@ void vtkAlgorithm::SetInputArrayToProcess(int idx, int port, int connection,
                                           int fieldAssociation,
                                           const char *name)
 {
-  // ignore empty string
-  if (!name || name[0] == '\0')
+  // ignore NULL string
+  if (!name)
     {
     return;
     }
@@ -580,7 +575,7 @@ vtkAbstractArray *vtkAlgorithm::GetInputAbstractArrayToProcess(
     association = vtkDataObject::FIELD_ASSOCIATION_CELLS;
     return inputDS->GetCellData()->GetAbstractArray(name);
     }
-  else
+  else if (inArrayInfo->Has(vtkDataObject::FIELD_ATTRIBUTE_TYPE()))
     {
     vtkDataSet *inputDS = vtkDataSet::SafeDownCast(input);
     if (!inputDS)
@@ -602,6 +597,10 @@ vtkAbstractArray *vtkAlgorithm::GetInputAbstractArrayToProcess(
 
     association = vtkDataObject::FIELD_ASSOCIATION_CELLS;
     return inputDS->GetCellData()->GetAbstractAttribute(fType);
+    }
+  else
+    {
+    return NULL;
     }
 }
 
@@ -1098,8 +1097,8 @@ void vtkAlgorithm::AddInputConnection(int port, vtkAlgorithmOutput* input)
   vtkDebugMacro("Adding connection to input port index " << consumerPort
                 << " from output port index " << producerPort
                 << " on algorithm "
-                << (producer? producer->GetAlgorithm()->GetClassName() : "")
-                << "(" << (producer? producer->GetAlgorithm() : 0) << ").");
+                << producer->GetAlgorithm()->GetClassName()
+                << "(" << producer->GetAlgorithm() << ").");
 
   // Get the information object from the producer of the new input.
   vtkInformation* newInfo = producer->GetOutputInformation(producerPort);
@@ -1192,8 +1191,8 @@ void vtkAlgorithm::RemoveInputConnection(int port, vtkAlgorithmOutput* input)
   vtkDebugMacro("Removing connection to input port index " << consumerPort
                 << " from output port index " << producerPort
                 << " on algorithm "
-                << (producer? producer->GetAlgorithm()->GetClassName() : "")
-                << "(" << (producer? producer->GetAlgorithm() : 0) << ").");
+                << producer->GetAlgorithm()->GetClassName()
+                << "(" << producer->GetAlgorithm() << ").");
 
   // Get the information object from the producer of the old input.
   vtkInformation* oldInfo = producer->GetOutputInformation(producerPort);
@@ -1415,10 +1414,12 @@ vtkAlgorithmOutput* vtkAlgorithm::GetInputConnection(int port, int index)
 {
   if(index < 0 || index >= this->GetNumberOfInputConnections(port))
     {
-    vtkErrorMacro("Attempt to get connection index " << index
-                  << " for input port " << port << ", which has "
-                  << this->GetNumberOfInputConnections(port)
-                  << " connections.");
+#if !defined NDEBUG
+    vtkWarningMacro("Attempt to get connection index " << index
+                    << " for input port " << port << ", which has "
+                    << this->GetNumberOfInputConnections(port)
+                    << " connections.");
+#endif
     return 0;
     }
   if(vtkInformation* info =
@@ -1477,6 +1478,18 @@ void vtkAlgorithm::UpdateInformation()
     ddp->UpdateInformation();
     }
 }
+
+//----------------------------------------------------------------------------
+void vtkAlgorithm::UpdateDataObject()
+{
+  vtkDemandDrivenPipeline* ddp =
+    vtkDemandDrivenPipeline::SafeDownCast(this->GetExecutive());
+  if (ddp)
+    {
+    ddp->UpdateDataObject();
+    }
+}
+
 
 //----------------------------------------------------------------------------
 void vtkAlgorithm::UpdateWholeExtent()
@@ -1632,11 +1645,9 @@ void vtkAlgorithm::SetProgressText(const char* ptext)
     {
     return;
     }
-  if (this->ProgressText)
-    {
-    delete[] this->ProgressText;
-    this->ProgressText = 0;
-    }
+  delete[] this->ProgressText;
+  this->ProgressText = 0;
+
   if (ptext)
     {
     size_t n = strlen(ptext) + 1;
@@ -1645,19 +1656,6 @@ void vtkAlgorithm::SetProgressText(const char* ptext)
     this->ProgressText = cp1;
     do { *cp1++ = *cp2++; } while ( --n );
     }
-}
-
-//-------------------------------------------------------------
-double vtkAlgorithm::ComputePriority()
-{
-  vtkStreamingDemandDrivenPipeline *sddp =
-    vtkStreamingDemandDrivenPipeline::SafeDownCast
-      (this->GetExecutive());
-  if (!sddp)
-    {
-    return 1.0;
-    }
-  return sddp->ComputePriority(0);
 }
 
 //-------------------------------------------------------------

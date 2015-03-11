@@ -18,8 +18,8 @@
 // vtkInformation for values that are vtkExecutive instances paired
 // with port numbers.
 
-#ifndef __vtkInformationExecutivePortKey_h
-#define __vtkInformationExecutivePortKey_h
+#ifndef vtkInformationExecutivePortKey_h
+#define vtkInformationExecutivePortKey_h
 
 #include "vtkCommonExecutionModelModule.h" // For export macro
 #include "vtkInformationKey.h"
@@ -36,6 +36,15 @@ public:
 
   vtkInformationExecutivePortKey(const char* name, const char* location);
   ~vtkInformationExecutivePortKey();
+
+  // Description:
+  // This method simply returns a new vtkInformationExecutivePortKey, given a
+  // name and a location. This method is provided for wrappers. Use the
+  // constructor directly from C++ instead.
+  static vtkInformationExecutivePortKey* MakeKey(const char* name, const char* location)
+    {
+    return new vtkInformationExecutivePortKey(name, location);
+    }
 
   // Description:
   // Get/Set the value associated with this key in the given

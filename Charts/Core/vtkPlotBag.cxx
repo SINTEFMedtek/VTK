@@ -27,18 +27,29 @@
 #include "vtkStringArray.h"
 #include "vtkTable.h"
 #include "vtkTimeStamp.h"
+#include "vtkMath.h"
 
 #include <algorithm>
+#include <sstream>
 
 //-----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkPlotBag);
+
+vtkSetObjectImplementationMacro(vtkPlotBag, LinePen, vtkPen);
 
 //-----------------------------------------------------------------------------
 vtkPlotBag::vtkPlotBag()
 {
   this->MedianPoints = vtkPoints2D::New();
   this->Q3Points = vtkPoints2D::New();
-  this->TooltipDefaultLabelFormat = "%l (%x, %y): %z";
+  this->TooltipDefaultLabelFormat = "%C, %l (%x, %y): %z";
+  this->Brush->SetColor(255, 0, 0);
+  this->Brush->SetOpacity(255);
+  this->Pen->SetColor(0, 0, 0);
+  this->Pen->SetWidth(5.f);
+  this->LinePen = vtkPen::New();
+  this->LinePen->SetColor(0, 0, 0);
+  this->LinePen->SetWidth(1.f);
 }
 
 //-----------------------------------------------------------------------------
@@ -53,6 +64,11 @@ vtkPlotBag::~vtkPlotBag()
     {
     this->Q3Points->Delete();
     this->Q3Points = 0;
+    }
+  if (this->LinePen)
+    {
+    this->LinePen->Delete();
+    this->LinePen = 0;
     }
 }
 
@@ -87,15 +103,16 @@ void vtkPlotBag::Update()
 }
 
 //-----------------------------------------------------------------------------
-class ArraySorter
+class DensityVal
 {
 public:
-  ArraySorter(vtkDataArray* arr) : Array(arr) {}
-  bool operator()(const vtkIdType& a, const vtkIdType& b)
+  DensityVal(double d, vtkIdType cid) : Density(d), Id(cid) {}
+  bool operator<(const DensityVal& b) const
   {
-    return this->Array->GetTuple1(a) > this->Array->GetTuple1(b);
+    return this->Density > b.Density;
   }
-  vtkDataArray* Array;
+  double Density;
+  vtkIdType Id;
 };
 
 //-----------------------------------------------------------------------------
@@ -108,50 +125,43 @@ void vtkPlotBag::UpdateTableCache(vtkDataArray* density)
     {
     return;
     }
-  vtkIdType nbPoints = density->GetNumberOfTuples();
+  vtkDataArray* d = density;
+  vtkPoints2D* points = this->Points;
 
-  // Sort the density array
-  std::vector<vtkIdType> ids;
-  ids.resize(nbPoints);
-  double sum = 0.0;
-  for (vtkIdType i = 0; i < nbPoints; i++)
+  vtkIdType nbPoints = d->GetNumberOfTuples();
+
+  // Fetch and sort arrays according their density
+  std::vector<DensityVal> ids;
+  ids.reserve(nbPoints);
+  for (int i = 0; i < nbPoints; i++)
     {
-    sum += density->GetTuple1(i);
-    ids[i] = i;
+    ids.push_back(DensityVal(d->GetTuple1(i), i));
     }
-
-  vtkNew<vtkDoubleArray> nDensity;
-  // Normalize the density array if needed
-  if (fabs(sum - 1.0) > 1.0e-12)
-    {
-    sum = 1.0 / sum;
-    nDensity->SetNumberOfComponents(1);
-    nDensity->SetNumberOfTuples(nbPoints);
-    for (vtkIdType i = 0; i < nbPoints; i++)
-      {
-      nDensity->SetTuple1(i, density->GetTuple1(ids[i]) * sum);
-      }
-    density = nDensity.GetPointer();
-    }
-
-  // Sort array by density
-  ArraySorter arraySorter(density);
-  std::sort(ids.begin(), ids.end(), arraySorter);
+  std::sort(ids.begin(), ids.end());
 
   vtkNew<vtkPointsProjectedHull> q3Points;
   q3Points->Allocate(nbPoints);
   vtkNew<vtkPointsProjectedHull> medianPoints;
   medianPoints->Allocate(nbPoints);
 
+  // Compute total density sum
+  double densitySum = 0.0;
+  for (vtkIdType i = 0; i < nbPoints; i++)
+    {
+    densitySum += d->GetTuple1(i);
+    }
+
+  double sum = 0.0;
   for (vtkIdType i = 0; i < nbPoints; i++)
     {
     double x[3];
-    this->Points->GetPoint(ids[i], x);
-    if (i < static_cast<vtkIdType>(nbPoints * 0.5))
+    points->GetPoint(ids[i].Id, x);
+    sum += ids[i].Density;
+    if (sum < 0.5 * densitySum)
       {
       medianPoints->InsertNextPoint(x);
       }
-    if (i < static_cast<vtkIdType>(nbPoints * 0.75))
+    if (sum < 0.99 * densitySum)
       {
       q3Points->InsertNextPoint(x);
       }
@@ -224,16 +234,13 @@ bool vtkPlotBag::Paint(vtkContext2D *painter)
     return false;
     }
 
-  unsigned char pcolor[4];
-  this->Pen->GetColor(pcolor);
   unsigned char bcolor[4];
   this->Brush->GetColor(bcolor);
 
   // Draw the 2 bags
-  this->Pen->SetColor(0, 0, 0);
   this->Brush->SetOpacity(255);
-  this->Brush->SetColor(pcolor[0] / 2, pcolor[1] / 2, pcolor[2] / 2);
-  painter->ApplyPen(this->Pen);
+  this->Brush->SetColor(bcolor[0] / 2, bcolor[1] / 2, bcolor[2] / 2);
+  painter->ApplyPen(this->LinePen);
   painter->ApplyBrush(this->Brush);
   if (this->Q3Points->GetNumberOfPoints() > 2)
     {
@@ -244,9 +251,8 @@ bool vtkPlotBag::Paint(vtkContext2D *painter)
     painter->DrawLine(this->Q3Points);
     }
 
-  this->Brush->SetColor(pcolor);
+  this->Brush->SetColor(bcolor);
   this->Brush->SetOpacity(128);
-  painter->ApplyPen(this->Pen);
   painter->ApplyBrush(this->Brush);
 
   if (this->MedianPoints->GetNumberOfPoints() > 2)
@@ -258,8 +264,7 @@ bool vtkPlotBag::Paint(vtkContext2D *painter)
     painter->DrawLine(this->MedianPoints);
     }
 
-  this->Brush->SetColor(bcolor);
-  this->Pen->SetColor(pcolor);
+  painter->ApplyPen(this->Pen);
 
   // Let PlotPoints draw the points as usual
   return this->Superclass::Paint(painter);
@@ -268,23 +273,21 @@ bool vtkPlotBag::Paint(vtkContext2D *painter)
 //-----------------------------------------------------------------------------
 bool vtkPlotBag::PaintLegend(vtkContext2D *painter, const vtkRectf& rect, int)
 {
-  vtkNew<vtkPen> blackPen;
-  blackPen->SetWidth(1.0);
-  blackPen->SetColor(0, 0, 0, 255);
-  painter->ApplyPen(blackPen.GetPointer());
+  painter->ApplyPen(this->LinePen);
+  unsigned char bcolor[4];
+  this->Brush->GetColor(bcolor);
+  unsigned char opacity = this->Brush->GetOpacity();
 
-  unsigned char pcolor[4];
-  this->Pen->GetColor(pcolor);
-
-  this->Brush->SetColor(pcolor[0] / 2, pcolor[1] / 2, pcolor[2] / 2);
   this->Brush->SetOpacity(255);
+  this->Brush->SetColor(bcolor[0] / 2, bcolor[1] / 2, bcolor[2] / 2);
   painter->ApplyBrush(this->Brush);
-  painter->DrawRect(rect[0], rect[1], rect[2]/2, rect[3]);
+  painter->DrawRect(rect[0], rect[1], rect[2], rect[3]);
 
-  this->Brush->SetColor(pcolor);
-  this->Brush->SetOpacity(255);
+  this->Brush->SetColor(bcolor);
+  this->Brush->SetOpacity(128);
   painter->ApplyBrush(this->Brush);
   painter->DrawRect(rect[0] + rect[2] / 2.f, rect[1], rect[2]/2, rect[3]);
+  this->Brush->SetOpacity(opacity);
 
   return true;
 }
@@ -306,7 +309,10 @@ vtkStringArray* vtkPlotBag::GetLabels()
     this->AutoLabels = vtkSmartPointer<vtkStringArray>::New();
     vtkDataArray *density = vtkDataArray::SafeDownCast(
       this->Data->GetInputAbstractArrayToProcess(2, this->GetInput()));
-    this->AutoLabels->InsertNextValue(density->GetName());
+    if (density)
+      {
+      this->AutoLabels->InsertNextValue(density->GetName());
+      }
     return this->AutoLabels;
     }
   return NULL;
@@ -353,6 +359,29 @@ vtkStdString vtkPlotBag::GetTooltipLabel(const vtkVector2d &plotPos,
           // GetLabel() is GetLabel(0) in this implementation
           tooltipLabel += this->GetLabel();
           break;
+        case 'c':
+          {
+          std::stringstream ss;
+          ss << seriesIndex;
+          tooltipLabel += ss.str();
+          }
+          break;
+        case 'C':
+          {
+          vtkAbstractArray *colName = vtkAbstractArray::SafeDownCast(
+            this->GetInput()->GetColumnByName("ColName"));
+          std::stringstream ss;
+          if (colName)
+            {
+            ss << colName->GetVariantValue(seriesIndex).ToString();
+            }
+          else
+            {
+            ss << "?";
+            }
+          tooltipLabel += ss.str();
+          }
+          break;
         default: // If no match, insert the entire format tag
           tooltipLabel += "%";
           tooltipLabel += format[i];
@@ -386,7 +415,6 @@ void vtkPlotBag::SetInputData(vtkTable *table)
 void vtkPlotBag::SetInputData(vtkTable *table, const vtkStdString &yColumn,
                               const vtkStdString &densityColumn)
 {
-
   vtkDebugMacro(<< "Setting input, Y column = \"" << yColumn.c_str() << "\", "
                 << "Density column = \"" << densityColumn.c_str() << "\"");
 
@@ -419,6 +447,10 @@ void vtkPlotBag::SetInputData(vtkTable *table, const vtkStdString &xColumn,
     vtkDataObject::FIELD_ASSOCIATION_ROWS, yColumn.c_str());
   this->Data->SetInputArrayToProcess(2, 0, 0,
     vtkDataObject::FIELD_ASSOCIATION_ROWS, densityColumn.c_str());
+  if (this->AutoLabels)
+    {
+    this->AutoLabels = 0;
+    }
 }
 
 //-----------------------------------------------------------------------------

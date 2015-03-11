@@ -27,8 +27,8 @@
 // Thanks to Philippe Pebay, David Thompson and Janine Bennett from
 // Sandia National Laboratories for implementing this class.
 
-#ifndef __vtkPPCAStatistics_h
-#define __vtkPPCAStatistics_h
+#ifndef vtkPPCAStatistics_h
+#define vtkPPCAStatistics_h
 
 #include "vtkFiltersParallelStatisticsModule.h" // For export macro
 #include "vtkPCAStatistics.h"
@@ -67,6 +67,8 @@ protected:
   virtual void Test( vtkTable*,
                      vtkMultiBlockDataSet*,
                      vtkTable* );
+
+  virtual vtkOrderStatistics* CreateOrderStatisticsInstance();
 
 private:
   vtkPPCAStatistics(const vtkPPCAStatistics&); // Not implemented.

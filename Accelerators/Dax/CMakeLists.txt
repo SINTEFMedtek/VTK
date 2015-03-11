@@ -13,7 +13,6 @@
 ##  the U.S. Government retains certain rights in this software.
 ##
 ##=============================================================================
-cmake_minimum_required(VERSION 2.8)
 
 #ensure we link against our dependencies
 include(module.cmake)
@@ -81,26 +80,67 @@ include_directories(${${vtk-module}_DEPENDS_INCLUDE_DIRS}
 
 set(headers
   vtkDaxDetailCommon.h
-  vtkDaxMarchingCubesImpl.h
+  vtkDaxContourImpl.h
   vtkDaxThresholdImpl.h
   vtkDaxConfig.h
   )
 
 #implementation of the algorithms for cpu accelerators
 set(cpu_accelerator_srcs
-  vtkDaxMarchingCubesImpl.cxx
+  vtkDaxContourImpl.cxx
   vtkDaxThresholdImpl.cxx
   )
 
 set(vtk_srcs
-  vtkDaxObjectFactory.h
-  vtkDaxMarchingCubes.cxx
+  vtkDaxContour.cxx
   vtkDaxThreshold.cxx
+  ${CMAKE_CURRENT_BINARY_DIR}/vtkAcceleratorsDaxObjectFactory.cxx
   )
 
 set_source_files_properties(
   ${headers}
   ${cpu_accelerator_srcs}
+  ${CMAKE_CURRENT_BINARY_DIR}/vtkAcceleratorsDaxObjectFactory.cxx
+  WRAP_EXCLUDE
+  )
+
+# Now for the object factory.
+set(opengl_overrides
+  Contour
+  Threshold
+  )
+# Now we need to generate the object factory for this module. Create a list of
+# overrides, and then generate the class that overrides those classes.
+set(vtk_module_overrides)
+foreach(_override ${opengl_overrides})
+  list(APPEND vtk_module_overrides vtk${_override})
+  set(vtk_module_vtk${_override}_override vtkDax${_override})
+endforeach()
+
+# Now we iterate and create that class file...
+foreach(_class ${vtk_module_overrides})
+  set(_override ${vtk_module_${_class}_override})
+  set(_vtk_override_includes "${_vtk_override_includes}
+#include \"${_override}.h\"")
+  set(_vtk_override_creates "${_vtk_override_creates}
+VTK_CREATE_CREATE_FUNCTION(${_override})")
+  set(_vtk_override_do "${_vtk_override_do}
+  this->RegisterOverride(\"${_class}\",
+                         \"${_override}\",
+                         \"rride for ${vtk-module} module\", 1,
+                         vtkObjectFactoryCreate${_override});")
+endforeach()
+
+# Now lets create the object factory classes
+string(TOUPPER ${vtk-module} VTK-MODULE)
+configure_file(${VTK_CMAKE_DIR}/vtkObjectFactory.h.in
+  ${CMAKE_CURRENT_BINARY_DIR}/${vtk-module}ObjectFactory.h)
+configure_file(${VTK_CMAKE_DIR}/vtkObjectFactory.cxx.in
+  ${CMAKE_CURRENT_BINARY_DIR}/${vtk-module}ObjectFactory.cxx)
+list(APPEND Module_SRCS
+  ${CMAKE_CURRENT_BINARY_DIR}/${vtk-module}ObjectFactory.cxx)
+set_source_files_properties(
+  ${vtk-module}ObjectFactory.cxx
   WRAP_EXCLUDE
   )
 
@@ -109,7 +149,7 @@ if(${VTK_DAX_PICKED_CUDA})
 
   #implementation of the algorithms for gpu accelerators
   set(cuda_accelerator_srcs
-    vtkDaxMarchingCubesImpl.cu
+    vtkDaxContourImpl.cu
     vtkDaxThresholdImpl.cu
     )
 
@@ -134,8 +174,12 @@ if(${VTK_DAX_PICKED_CUDA})
 
   vtk_module_library(vtkAcceleratorsDax ${vtk_srcs} ${cuda_compiled_srcs}
                                         ${headers})
-  target_link_libraries(vtkAcceleratorsDax ${CUDA_LIBRARIES})
+  vtk_module_link_libraries(vtkAcceleratorsDax LINK_PRIVATE ${CUDA_LIBRARIES})
 
+elseif(${VTK_DAX_PICKED_TBB})
+  vtk_module_library(vtkAcceleratorsDax ${vtk_srcs}
+                                        ${cpu_accelerator_srcs} ${headers})
+  vtk_module_link_libraries(vtkAcceleratorsDax LINK_PRIVATE ${TBB_LIBRARIES})
 else()
 
   vtk_module_library(vtkAcceleratorsDax ${vtk_srcs}

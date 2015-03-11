@@ -17,11 +17,11 @@
 // Outputs a Geo JSON (http://www.geojson.org) description of the input
 // polydata data set.
 
-#ifndef __vtkGeoJSONWriter_h
-#define __vtkGeoJSONWriter_h
+#ifndef vtkGeoJSONWriter_h
+#define vtkGeoJSONWriter_h
 
-#include <vtkIOGeoJSONModule.h> // For export macro
-#include <vtkWriter.h>
+#include "vtkIOGeoJSONModule.h" // For export macro
+#include "vtkWriter.h"
 
 class vtkLookupTable;
 
@@ -89,7 +89,7 @@ protected:
   void WriteData();
 
   // Helper for Write that writes attributes out
-  void WriteScalar(ostream *fp, vtkDataArray *da, vtkIdType ptId);
+  void WriteScalar(vtkDataArray *da, vtkIdType ptId);
   vtkLookupTable *LookupTable;
 
   bool WriteToOutputString;
@@ -100,9 +100,10 @@ protected:
 
   // Internal helpers
   ostream *OpenFile();
-  void ConditionalComma(ostream *, vtkIdType, vtkIdType);
+  void ConditionalComma(vtkIdType, vtkIdType);
   void CloseFile(ostream *);
-
+  class Internals;
+  Internals *WriterHelper;
   char* FileName;
 
 private:
@@ -110,4 +111,4 @@ private:
   void operator=(const vtkGeoJSONWriter&);       // Not implemented.
 };
 
-#endif // __vtkGeoJSONWriter_h
+#endif // vtkGeoJSONWriter_h

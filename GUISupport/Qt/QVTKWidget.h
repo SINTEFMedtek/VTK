@@ -248,8 +248,13 @@ protected:
   // that VTK chooses
   void x11_setup_window();
 
-#if defined(Q_WS_WIN)
+#if defined(Q_OS_WIN)
   bool winEvent(MSG* msg, long* result);
+
+#if QT_VERSION >= 0x050000
+  bool nativeEvent(const QByteArray& eventType, void* message, long* result);
+#endif
+
 #endif
 
 #if defined(QVTK_USE_CARBON)

@@ -181,10 +181,7 @@ LSDynaFamily::~LSDynaFamily()
       VTK_LSDYNA_CLOSEFILE(this->FD);
       }
 
-    if ( this->Chunk )
-      {
-      delete [] this->Chunk;
-      }
+    delete [] this->Chunk;
 
     delete this->BufferInfo;
     }
@@ -415,10 +412,7 @@ int LSDynaFamily::BufferChunk( WordType wType, vtkIdType chunkSizeInWords )
 
   if ( this->ChunkAlloc < chunkSizeInWords )
     {
-    if ( this->Chunk )
-      {
-      delete [] this->Chunk;
-      }
+    delete [] this->Chunk;
     this->ChunkAlloc = chunkSizeInWords;
     this->Chunk = new unsigned char[ this->ChunkAlloc*this->WordSize ];
     }
@@ -439,8 +433,6 @@ int LSDynaFamily::BufferChunk( WordType wType, vtkIdType chunkSizeInWords )
     this->ChunkValid += bytesRead;
     if ( bytesRead < bytesLeft )
       {
-      std::cout << "bytesRead < bytesLeft" << std::endl;
-      std::cout << "bytesRead " << bytesRead << " bytesLeft" << bytesLeft << std::endl;
       if ( bytesRead <= 0 )
         { // try advancing to next file
         VTK_LSDYNA_CLOSEFILE(this->FD);

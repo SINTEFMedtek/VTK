@@ -23,8 +23,8 @@
 // vtkInteractorStyleJoystickActor vtkInteractorStyleJoystickCamera
 // vtkInteractorStyleTrackballActor vtkInteractorStyleTrackballCamera
 
-#ifndef __vtkInteractorStyleSwitch_h
-#define __vtkInteractorStyleSwitch_h
+#ifndef vtkInteractorStyleSwitch_h
+#define vtkInteractorStyleSwitch_h
 
 #include "vtkInteractionStyleModule.h" // For export macro
 #include "vtkInteractorStyleSwitchBase.h"
@@ -39,6 +39,7 @@ class vtkInteractorStyleJoystickActor;
 class vtkInteractorStyleJoystickCamera;
 class vtkInteractorStyleTrackballActor;
 class vtkInteractorStyleTrackballCamera;
+class vtkInteractorStyleMultiTouchCamera;
 
 class VTKINTERACTIONSTYLE_EXPORT vtkInteractorStyleSwitch
   : public vtkInteractorStyleSwitchBase
@@ -64,6 +65,7 @@ public:
   void SetCurrentStyleToJoystickCamera();
   void SetCurrentStyleToTrackballActor();
   void SetCurrentStyleToTrackballCamera();
+  void SetCurrentStyleToMultiTouchCamera();
 
   // Description:
   // Only care about the char event, which is used to switch between
@@ -86,10 +88,12 @@ protected:
   vtkInteractorStyleJoystickCamera *JoystickCamera;
   vtkInteractorStyleTrackballActor *TrackballActor;
   vtkInteractorStyleTrackballCamera *TrackballCamera;
+  vtkInteractorStyleMultiTouchCamera *MultiTouchCamera;
   vtkInteractorStyle* CurrentStyle;
 
   int JoystickOrTrackball;
   int CameraOrActor;
+  bool MultiTouch;
 
 private:
   vtkInteractorStyleSwitch(const vtkInteractorStyleSwitch&);  // Not implemented.

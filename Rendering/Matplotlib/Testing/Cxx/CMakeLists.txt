@@ -9,17 +9,8 @@ if(NOT MATPLOTLIB_FOUND)
 endif()
 
 if(MATPLOTLIB_FOUND)
-  if(VTK_GHOSTSCRIPT_EXECUTABLE)
-    set(GL2PSTests
-      TestGL2PSMathTextActor.cxx
-      TestGL2PSMathTextActor3D.cxx
-      TestGL2PSMathTextOutput.cxx
-      TestGL2PSMathTextScaling.cxx
-    )
-  endif()
-
   # add tests that require data
-  vtk_add_test_cxx(
+  vtk_add_test_cxx(${vtk-module}CxxTests tests
     TestContextMathTextImage.cxx
     TestMathTextActor.cxx
     TestMathTextActor3D.cxx
@@ -28,11 +19,21 @@ if(MATPLOTLIB_FOUND)
     TestIndexedLookupScalarBar.cxx
     TestScalarBarCombinatorics.cxx
     )
+
+  if(VTK_GHOSTSCRIPT_EXECUTABLE)
+    vtk_add_test_cxx(${vtk-module}CxxTests GL2PSTests
+      TestGL2PSMathTextActor.cxx
+      TestGL2PSMathTextActor3D.cxx
+      TestGL2PSMathTextOutput.cxx
+      TestGL2PSMathTextScaling.cxx
+    )
+    list(APPEND tests
+      ${GL2PSTests})
+  endif()
+
+  vtk_test_cxx_executable(${vtk-module}CxxTests tests
+    RENDERING_FACTORY)
 endif()
-
-vtk_add_test_cxx(${GL2PSTests})
-
-vtk_test_cxx_executable(${vtk-module}CxxTests RENDERING_FACTORY)
 
 # The GL2PS tests produce postscript output, which cannot be compared using
 # the built-in image regression framework. The tests added above will create the
@@ -40,7 +41,8 @@ vtk_test_cxx_executable(${vtk-module}CxxTests RENDERING_FACTORY)
 # run the PNGCompare test target to do an image diff on the output against a
 # baseline.
 if(GL2PSTests)
-  foreach(test ${GL2PSTests} ${MixedTests})
+
+  foreach(test ${GL2PSTests})
     # Convert ps to png
     get_filename_component(TName ${test} NAME_WE)
     add_test(NAME ${vtk-module}Cxx-${TName}-RasterizePNG

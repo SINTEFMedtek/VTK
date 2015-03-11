@@ -352,21 +352,17 @@ void vtkXMLUnstructuredDataReader::SetupOutputInformation(vtkInformation *outInf
 {
   this->Superclass::SetupOutputInformation(outInfo);
 
-  // Set the maximum number of pieces that can be provided by this
-  // reader.
-  outInfo->Set(vtkStreamingDemandDrivenPipeline::MAXIMUM_NUMBER_OF_PIECES(),
-    this->NumberOfPieces);
+  if (this->NumberOfPieces > 1)
+    {
+    outInfo->Set(CAN_HANDLE_PIECE_REQUEST(), 1);
+    }
 }
 
 
 //----------------------------------------------------------------------------
 void vtkXMLUnstructuredDataReader::CopyOutputInformation(vtkInformation *outInfo, int port)
 {
-  vtkInformation *localInfo =
-    this->GetExecutive()->GetOutputInformation( port );
   this->Superclass::CopyOutputInformation(outInfo, port);
-  outInfo->CopyEntry(localInfo,
-    vtkStreamingDemandDrivenPipeline::MAXIMUM_NUMBER_OF_PIECES() );
 }
 
 
@@ -605,7 +601,7 @@ int vtkXMLUnstructuredDataReader::ReadCellArray(vtkIdType numberOfCells,
   vtkIdType i;
   for(i=0; i < numberOfCells; ++i)
     {
-    if(coffset[i] <= lastOffset)
+    if(coffset[i] < lastOffset)
       {
       vtkErrorMacro("Cannot read cell connectivity from " << eCells->GetName()
                     << " in piece " << this->Piece

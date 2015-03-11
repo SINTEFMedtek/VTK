@@ -31,8 +31,23 @@
 #include <sys/stat.h>
 #include <ctype.h>
 #include <string>
+#include <vector>
+#include <map>
 
 vtkStandardNewMacro(vtkEnSightGoldBinaryReader);
+
+
+class vtkEnSightGoldBinaryReader::FileOffsetMapInternal
+{
+  typedef std::string MapKey;
+  typedef std::map<int,vtkTypeInt64> MapValue;
+  public:
+    typedef std::map<MapKey, MapValue>::const_iterator const_iterator;
+    typedef std::map<MapKey, MapValue>::value_type value_type;
+
+    std::map<MapKey, MapValue> Map;
+};
+
 
 // This is half the precision of an int.
 #define MAXIMUM_PART_ID 65536
@@ -40,6 +55,8 @@ vtkStandardNewMacro(vtkEnSightGoldBinaryReader);
 //----------------------------------------------------------------------------
 vtkEnSightGoldBinaryReader::vtkEnSightGoldBinaryReader()
 {
+  this->FileOffsets = new vtkEnSightGoldBinaryReader::FileOffsetMapInternal;
+
   this->IFile = NULL;
   this->FileSize = 0;
   this->SizeOfInt = (int)sizeof(int);
@@ -51,6 +68,8 @@ vtkEnSightGoldBinaryReader::vtkEnSightGoldBinaryReader()
 //----------------------------------------------------------------------------
 vtkEnSightGoldBinaryReader::~vtkEnSightGoldBinaryReader()
 {
+  delete this->FileOffsets;
+
   if (this->IFile)
     {
     this->IFile->close();
@@ -252,7 +271,12 @@ int vtkEnSightGoldBinaryReader::ReadGeometryFile(const char* fileName, int timeS
     {
     if (numberOfTimeStepsInFile>1)
       {
-      for (i = 0; i < timeStep - 1; i++)
+      this->AddFileIndexToCache(fileName);
+
+      i = this->SeekToCachedTimeStep(fileName, timeStep-1);
+      // start w/ the number of TS we skipped, not the one we are at
+      // if we are not at the appropriate time step yet, we keep searching
+      for (; i < timeStep - 1; i++)
         {
         if (!this->SkipTimeStep())
           {
@@ -268,6 +292,8 @@ int vtkEnSightGoldBinaryReader::ReadGeometryFile(const char* fileName, int timeS
       this->ReadLine(line);
       }
     while ( strncmp(line, "BEGIN TIME STEP", 15) != 0 );
+    // found a time step -> cache it
+    this->AddTimeStepToCache(fileName, timeStep-1, this->IFile->tellg());
     }
 
   // Skip the 2 description lines.
@@ -659,7 +685,6 @@ int vtkEnSightGoldBinaryReader::SkipUnstructuredGrid(char line[256])
       strncmp(line, "g_bar3", 6) == 0)
       {
       vtkDebugMacro("bar3");
-      vtkWarningMacro("Only vertex nodes of this element will be read.");
 
       this->ReadInt(&numElements);
       if (numElements < 0 || numElements*this->SizeOfInt > this->FileSize ||
@@ -675,7 +700,7 @@ int vtkEnSightGoldBinaryReader::SkipUnstructuredGrid(char line[256])
         }
 
       // Skip nodeIdList.
-      this->IFile->seekg(sizeof(int)*2*numElements, ios::cur);
+      this->IFile->seekg(sizeof(int)*3*numElements, ios::cur);
       }
     else if (strncmp(line, "nsided", 6) == 0 ||
       strncmp(line, "g_nsided", 8) == 0)
@@ -717,7 +742,6 @@ int vtkEnSightGoldBinaryReader::SkipUnstructuredGrid(char line[256])
         strncmp(line, "g_tria6", 7) == 0)
         {
         vtkDebugMacro("tria6");
-        vtkWarningMacro("Only vertex nodes of this element will be read.");
         cellType = vtkEnSightReader::TRIA6;
         }
       else
@@ -758,7 +782,6 @@ int vtkEnSightGoldBinaryReader::SkipUnstructuredGrid(char line[256])
         strncmp(line, "g_quad8", 7) == 0)
         {
         vtkDebugMacro("quad8");
-        vtkWarningMacro("Only vertex nodes of this element will be read.");
         cellType = vtkEnSightReader::QUAD8;
         }
       else
@@ -837,7 +860,6 @@ int vtkEnSightGoldBinaryReader::SkipUnstructuredGrid(char line[256])
         strncmp(line, "g_tetra10", 9) == 0)
         {
         vtkDebugMacro("tetra10");
-        vtkWarningMacro("Only vertex nodes of this element will be read.");
         cellType = vtkEnSightReader::TETRA10;
         }
       else
@@ -878,7 +900,6 @@ int vtkEnSightGoldBinaryReader::SkipUnstructuredGrid(char line[256])
         strncmp(line, "g_pyramid13", 11) == 0)
         {
         vtkDebugMacro("pyramid13");
-        vtkWarningMacro("Only vertex nodes of this element will be read.");
         cellType = vtkEnSightReader::PYRAMID13;
         }
       else
@@ -919,7 +940,6 @@ int vtkEnSightGoldBinaryReader::SkipUnstructuredGrid(char line[256])
         strncmp(line, "g_hexa20", 8) == 0)
         {
         vtkDebugMacro("hexa20");
-        vtkWarningMacro("Only vertex nodes of this element will be read.");
         cellType = vtkEnSightReader::HEXA20;
         }
       else
@@ -960,7 +980,6 @@ int vtkEnSightGoldBinaryReader::SkipUnstructuredGrid(char line[256])
         strncmp(line, "g_penta15", 9) == 0)
         {
         vtkDebugMacro("penta15");
-        vtkWarningMacro("Only vertex nodes of this element will be read.");
         cellType = vtkEnSightReader::PENTA15;
         }
       else
@@ -1158,7 +1177,12 @@ int vtkEnSightGoldBinaryReader::ReadMeasuredGeometryFile(const char* fileName,
 
   if (this->UseFileSets)
     {
-    for (i = 0; i < timeStep - 1; i++)
+    this->AddFileIndexToCache(fileName);
+
+    i = this->SeekToCachedTimeStep(fileName, timeStep-1);
+    // start w/ the number of TS we skipped, not the one we are at
+    // if we are not at the appropriate time step yet, we keep searching
+    for (; i < timeStep - 1; i++)
       {
       while (strncmp(line, "BEGIN TIME STEP", 15) != 0)
         {
@@ -1188,6 +1212,8 @@ int vtkEnSightGoldBinaryReader::ReadMeasuredGeometryFile(const char* fileName,
       {
       this->ReadLine(line);
       }
+    // found a time step -> cache it
+    this->AddTimeStepToCache(fileName, i, this->IFile->tellg());
     }
 
   // Skip the description line.
@@ -1308,13 +1334,21 @@ int vtkEnSightGoldBinaryReader::ReadScalarsPerNode(
 
   if (this->UseFileSets)
     {
-    for (i = 0; i < timeStep - 1; i++)
+    this->AddFileIndexToCache(fileName);
+
+    i = this->SeekToCachedTimeStep(fileName, timeStep-1);
+    // start w/ the number of TS we skipped, not the one we are at
+    // if we are not at the appropriate time step yet, we keep searching
+    for (; i < timeStep - 1; i++)
       {
       this->ReadLine(line);
       while (strncmp(line, "BEGIN TIME STEP", 15) != 0)
         {
         this->ReadLine(line);
         }
+      // found a time step -> cache it
+      this->AddTimeStepToCache(fileName, i, this->IFile->tellg());
+
       this->ReadLine(line); // skip the description line
 
       if (measured)
@@ -1509,13 +1543,21 @@ int vtkEnSightGoldBinaryReader::ReadVectorsPerNode(
 
   if (this->UseFileSets)
     {
-    for (i = 0; i < timeStep - 1; i++)
+    this->AddFileIndexToCache(fileName);
+
+    i = this->SeekToCachedTimeStep(fileName, timeStep-1);
+    // start w/ the number of TS we skipped, not the one we are at
+    // if we are not at the appropriate time step yet, we keep searching
+    for (; i < timeStep - 1; i++)
       {
       this->ReadLine(line);
       while (strncmp(line, "BEGIN TIME STEP", 15) != 0)
         {
         this->ReadLine(line);
         }
+      // found a time step -> cache it
+      this->AddTimeStepToCache(fileName, i, this->IFile->tellg());
+
       this->ReadLine(line); // skip the description line
 
       if (measured)
@@ -1690,13 +1732,21 @@ int vtkEnSightGoldBinaryReader::ReadTensorsPerNode(
 
   if (this->UseFileSets)
     {
-    for (i = 0; i < timeStep - 1; i++)
+    this->AddFileIndexToCache(fileName);
+
+    i = this->SeekToCachedTimeStep(fileName, timeStep-1);
+    // start w/ the number of TS we skipped, not the one we are at
+    // if we are not at the appropriate time step yet, we keep searching
+    for (; i < timeStep - 1; i++)
       {
       this->ReadLine(line);
       while (strncmp(line, "BEGIN TIME STEP", 15) != 0)
         {
         this->ReadLine(line);
         }
+      // found a time step -> cache it
+      this->AddTimeStepToCache(fileName, i, this->IFile->tellg());
+
       this->ReadLine(line); // skip the description line
 
       while (this->ReadLine(line) &&
@@ -1835,13 +1885,21 @@ int vtkEnSightGoldBinaryReader::ReadScalarsPerElement(
 
   if (this->UseFileSets)
     {
-    for (i = 0; i < timeStep - 1; i++)
+    this->AddFileIndexToCache(fileName);
+
+    i = this->SeekToCachedTimeStep(fileName, timeStep-1);
+    // start w/ the number of TS we skipped, not the one we are at
+    // if we are not at the appropriate time step yet, we keep searching
+    for (; i < timeStep - 1; i++)
       {
       this->ReadLine(line);
       while (strncmp(line, "BEGIN TIME STEP", 15) != 0)
         {
         this->ReadLine(line);
         }
+       // found a time step -> cache it
+      this->AddTimeStepToCache(fileName, i, this->IFile->tellg());
+
       this->ReadLine(line); // skip the description line
       lineRead = this->ReadLine(line); // "part"
 
@@ -2073,13 +2131,21 @@ int vtkEnSightGoldBinaryReader::ReadVectorsPerElement(
 
   if (this->UseFileSets)
     {
-    for (i = 0; i < timeStep - 1; i++)
+    this->AddFileIndexToCache(fileName);
+
+    i = this->SeekToCachedTimeStep(fileName, timeStep-1);
+    // start w/ the number of TS we skipped, not the one we are at
+    // if we are not at the appropriate time step yet, we keep searching
+    for (; i < timeStep - 1; i++)
       {
       this->ReadLine(line);
       while (strncmp(line, "BEGIN TIME STEP", 15) != 0)
         {
         this->ReadLine(line);
         }
+       // found a time step -> cache it
+      this->AddTimeStepToCache(fileName, i, this->IFile->tellg());
+
       this->ReadLine(line); // skip the description line
       lineRead = this->ReadLine(line); // "part"
 
@@ -2305,13 +2371,21 @@ int vtkEnSightGoldBinaryReader::ReadTensorsPerElement(
 
   if (this->UseFileSets)
     {
-    for (i = 0; i < timeStep - 1; i++)
+    this->AddFileIndexToCache(fileName);
+
+    i = this->SeekToCachedTimeStep(fileName, timeStep-1);
+    // start w/ the number of TS we skipped, not the one we are at
+    // if we are not at the appropriate time step yet, we keep searching
+    for (; i < timeStep - 1; i++)
       {
       this->ReadLine(line);
       while (strncmp(line, "BEGIN TIME STEP", 15) != 0)
         {
         this->ReadLine(line);
         }
+      // found a time step -> cache it
+      this->AddTimeStepToCache(fileName, i, this->IFile->tellg());
+
       this->ReadLine(line); // skip the description line
       lineRead = this->ReadLine(line); // "part"
 
@@ -4076,6 +4150,47 @@ int vtkEnSightGoldBinaryReader::ReadIntArray(int *result,
   return 1;
 }
 
+// Internal function to read a single vtkTypeInt64.
+// Returns zero if there was an error.
+int vtkEnSightGoldBinaryReader::ReadLong(vtkTypeInt64 *result)
+{
+  char dummy[4];
+  if (this->Fortran)
+    {
+    if (!this->IFile->read(dummy, 4))
+      {
+      vtkErrorMacro("Read (fortran) failed.");
+      return 0;
+      }
+    }
+
+  if (!this->IFile->read((char*)result, sizeof(vtkTypeInt64)))
+    {
+    vtkErrorMacro("Read failed");
+    return 0;
+    }
+
+  if (this->ByteOrder == FILE_LITTLE_ENDIAN)
+    {
+    vtkByteSwap::Swap8LE(result);
+    }
+  else if (this->ByteOrder == FILE_BIG_ENDIAN)
+    {
+    vtkByteSwap::Swap8BE(result);
+    }
+
+  if (this->Fortran)
+    {
+    if (!this->IFile->read(dummy, 4))
+      {
+      vtkErrorMacro("Read (fortran) failed.");
+      return 0;
+      }
+    }
+
+  return 1;
+}
+
 // Internal function to read a float array.
 // Returns zero if there was an error.
 int vtkEnSightGoldBinaryReader::ReadFloatArray(float *result,
@@ -4126,4 +4241,96 @@ int vtkEnSightGoldBinaryReader::ReadFloatArray(float *result,
 void vtkEnSightGoldBinaryReader::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
+}
+
+// Seeks the IFile to the cached timestep nearest the target timestep.
+// Returns the actually seeked to timestep
+//----------------------------------------------------------------------------
+int vtkEnSightGoldBinaryReader::SeekToCachedTimeStep(const char* fileName,
+                                                     int realTimeStep)
+{
+  typedef vtkEnSightGoldBinaryReader::FileOffsetMapInternal MapType;
+  typedef MapType::const_iterator MapNameIterator;
+  typedef MapType::value_type::second_type::const_iterator FileOffsetIterator;
+
+  int j = 0;
+
+  MapNameIterator nameIterator = this->FileOffsets->Map.find(fileName);
+  if(nameIterator == this->FileOffsets->Map.end())
+    {
+    return j;
+    }
+
+  // Try to find the nearest time step for which we know the offset
+  for (int i = realTimeStep; i >= 0; i--)
+    {
+    FileOffsetIterator fileOffsetIterator = nameIterator->second.find(i);
+    if (fileOffsetIterator != nameIterator->second.end())
+      {
+      //we need to account for the last 80 characters as where we need to seek,
+      //as we need to be at the BEGIN TIMESTEP keyword and not
+      //the description line
+      this->IFile->seekg(fileOffsetIterator->second - 80l, ios::beg);
+      j = i;
+      break;
+      }
+    }
+  return j;
+}
+
+//----------------------------------------------------------------------------
+// Add a cached file offset
+void vtkEnSightGoldBinaryReader::AddTimeStepToCache(const char* fileName,
+                                                    int realTimeStep,
+                                                    vtkTypeInt64 address)
+{
+  if (this->FileOffsets->Map.find(fileName) == this->FileOffsets->Map.end())
+    {
+    std::map<int, vtkTypeInt64> tsMap;
+    this->FileOffsets->Map[fileName] = tsMap;
+    }
+  this->FileOffsets->Map[fileName][realTimeStep] = address;
+  return;
+}
+
+//----------------------------------------------------------------------------
+void vtkEnSightGoldBinaryReader::AddFileIndexToCache(const char* fileName)
+{
+  // only read the file index if we have not searched for the file index before
+  if (this->FileOffsets->Map.find(fileName) == this->FileOffsets->Map.end())
+    {
+    char line[80];
+    vtkTypeInt64 addr;
+    int  numTS;
+
+    // We add an empty map to prevent further attempts at reading the file index
+    std::map<int, vtkTypeInt64> tsMap;
+    this->FileOffsets->Map[fileName] = tsMap;
+
+    // Read the last 80 characters (+ a vtkTypeInt64) of the file and check for FILE_INDEX
+    vtkIdType seekOffset =
+      ( vtkIdType(-80) * static_cast<vtkIdType>(sizeof(char)) ) -
+                         static_cast<vtkIdType>(sizeof(vtkTypeInt64));
+    this->IFile->seekg(seekOffset, ios::end);
+
+    // right before the FILE_INDEX entry we might find the address of the index start
+    this->ReadLong(&addr);
+    this->ReadLine(line);
+
+    if (strncmp(line, "FILE_INDEX", 10) == 0)
+      {
+      // jump to beginning of the index and add all time steps
+      this->IFile->seekg(addr, ios::beg);
+      this->ReadInt(&numTS);
+
+      for (int i = 0; i < numTS; ++i)
+        {
+        this->ReadLong(&addr);
+        // The file index points at the description line, while VTK points at BEGIN TIMESTEP
+        this->FileOffsets->Map[fileName][i] = addr;
+        }
+      }
+    }
+  this->IFile->seekg(0l, ios::beg);
+  return;
 }

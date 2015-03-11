@@ -26,8 +26,8 @@
 // instance has an associated vtkExecutive when it is used in a
 // pipeline.  The executive is responsible for data flow.
 
-#ifndef __vtkAlgorithm_h
-#define __vtkAlgorithm_h
+#ifndef vtkAlgorithm_h
+#define vtkAlgorithm_h
 
 #include "vtkCommonExecutionModelModule.h" // For export macro
 #include "vtkObject.h"
@@ -210,13 +210,48 @@ public:
 
   // Description:
   // Keys used to specify input port requirements.
+  // \ingroup InformationKeys
   static vtkInformationIntegerKey* INPUT_IS_OPTIONAL();
+  // Description:
+  // \ingroup InformationKeys
   static vtkInformationIntegerKey* INPUT_IS_REPEATABLE();
+  // Description:
+  // \ingroup InformationKeys
   static vtkInformationInformationVectorKey* INPUT_REQUIRED_FIELDS();
+  // Description:
+  // \ingroup InformationKeys
   static vtkInformationStringVectorKey* INPUT_REQUIRED_DATA_TYPE();
+  // Description:
+  // \ingroup InformationKeys
   static vtkInformationInformationVectorKey* INPUT_ARRAYS_TO_PROCESS();
+  // Description:
+  // \ingroup InformationKeys
   static vtkInformationIntegerKey* INPUT_PORT();
+  // Description:
+  // \ingroup InformationKeys
   static vtkInformationIntegerKey* INPUT_CONNECTION();
+
+  // Description:
+  // This key tells the executive that a particular output port
+  // is capable of producing an arbitrary subextent of the whole
+  // extent. Many image sources and readers fall into this category
+  // but some such as the legacy structured data readers cannot
+  // support this feature.
+  // \ingroup InformationKeys
+  static vtkInformationIntegerKey* CAN_PRODUCE_SUB_EXTENT();
+
+  // Description:
+  // Key that tells the pipeline that a particular algorithm
+  // can or cannot handle piece request. If a filter cannot handle
+  // piece requests and is asked for a piece, the executive will
+  // flag an error. If a structured data source cannot handle piece
+  // requests but can produce sub-extents (CAN_PRODUCE_SUB_EXTENT),
+  // the executive will use an extent translator to split the extent
+  // into pieces. Otherwise, if a source cannot handle piece requests,
+  // the executive will ask for the whole data for piece 0 and not
+  // execute the source for other pieces.
+  // \ingroup InformationKeys
+  static vtkInformationIntegerKey* CAN_HANDLE_PIECE_REQUEST();
 
 
   // Description:
@@ -429,6 +464,10 @@ public:
   // Bring the algorithm's information up-to-date.
   virtual void UpdateInformation();
 
+  // Description:
+  // Create output object(s).
+  virtual void UpdateDataObject();
+
   // Description::
   // Propagate meta-data upstream.
   virtual void PropagateUpdateExtent();
@@ -469,23 +508,6 @@ public:
   // If the DefaultExecutivePrototype is set, a copy of it is created
   // in CreateDefaultExecutive() using NewInstance().
   static void SetDefaultExecutivePrototype(vtkExecutive* proto);
-
-  // Description:
-  // Returns the priority of the piece described by the current update
-  // extent. The priority is a number between 0.0 and 1.0 with 0 meaning
-  // skippable (REQUEST_DATA not needed) and 1.0 meaning important.
-  virtual double ComputePriority();
-
-  // Description:
-  // These are flags that can be set that let the pipeline keep accurate
-  // meta-information for ComputePriority.
-  static vtkInformationIntegerKey* PRESERVES_DATASET();
-  static vtkInformationIntegerKey* PRESERVES_GEOMETRY();
-  static vtkInformationIntegerKey* PRESERVES_BOUNDS();
-  static vtkInformationIntegerKey* PRESERVES_TOPOLOGY();
-  static vtkInformationIntegerKey* PRESERVES_ATTRIBUTES();
-  static vtkInformationIntegerKey* PRESERVES_RANGES();
-  static vtkInformationIntegerKey* MANAGES_METAINFORMATION();
 
   // Description:
   // If the whole output extent is required, this method can be called to set

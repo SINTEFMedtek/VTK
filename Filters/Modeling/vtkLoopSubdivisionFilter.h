@@ -40,8 +40,8 @@
 // .SECTION See Also
 // vtkApproximatingSubdivisionFilter
 
-#ifndef __vtkLoopSubdivisionFilter_h
-#define __vtkLoopSubdivisionFilter_h
+#ifndef vtkLoopSubdivisionFilter_h
+#define vtkLoopSubdivisionFilter_h
 
 #include "vtkFiltersModelingModule.h" // For export macro
 #include "vtkApproximatingSubdivisionFilter.h"
@@ -65,9 +65,9 @@ protected:
 
   virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 
-  void GenerateSubdivisionPoints (vtkPolyData *inputDS, vtkIntArray *edgeData,
-                                  vtkPoints *outputPts,
-                                  vtkPointData *outputPD);
+  int GenerateSubdivisionPoints (vtkPolyData *inputDS, vtkIntArray *edgeData,
+                                 vtkPoints *outputPts,
+                                 vtkPointData *outputPD);
   void GenerateEvenStencil (vtkIdType p1, vtkPolyData *polys,
                             vtkIdList *stencilIds, double *weights);
   void GenerateOddStencil (vtkIdType p1, vtkIdType p2, vtkPolyData *polys,

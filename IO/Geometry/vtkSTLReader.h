@@ -29,8 +29,8 @@
 // Binary files written on one system may not be readable on other systems.
 // vtkSTLWriter uses VAX or PC byte ordering and swaps bytes on other systems.
 
-#ifndef __vtkSTLReader_h
-#define __vtkSTLReader_h
+#ifndef vtkSTLReader_h
+#define vtkSTLReader_h
 
 #include "vtkIOGeometryModule.h" // For export macro
 #include "vtkPolyDataAlgorithm.h"
@@ -92,9 +92,9 @@ protected:
   vtkIncrementalPointLocator *Locator;
 
   int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-  int ReadBinarySTL(FILE *fp, vtkPoints*, vtkCellArray*);
-  int ReadASCIISTL(FILE *fp, vtkPoints*, vtkCellArray*,
-                   vtkFloatArray* scalars=0);
+  bool ReadBinarySTL(FILE *fp, vtkPoints*, vtkCellArray*);
+  bool ReadASCIISTL(FILE *fp, vtkPoints*, vtkCellArray*,
+                    vtkFloatArray* scalars=0);
   int GetSTLFileType(const char *filename);
 private:
   vtkSTLReader(const vtkSTLReader&);  // Not implemented.

@@ -39,8 +39,8 @@
 // .SECTION See Also
 // vtkActor vtkRenderer vtkOpenGLTexture
 
-#ifndef __vtkTexture_h
-#define __vtkTexture_h
+#ifndef vtkTexture_h
+#define vtkTexture_h
 
 #include "vtkRenderingCoreModule.h" // For export macro
 #include "vtkImageAlgorithm.h"
@@ -203,6 +203,10 @@ public:
   // only fully transparent pixels and fully opaque pixels and the
   // Interpolate flag is turn off.
   virtual int IsTranslucent();
+
+  // Description:
+  // Return the texture unit used for this texture
+  virtual int GetTextureUnit() { return 0; }
 
 protected:
   vtkTexture();

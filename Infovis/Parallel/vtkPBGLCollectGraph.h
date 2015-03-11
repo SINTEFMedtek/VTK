@@ -36,11 +36,13 @@
 // the graph for further inspection, at which point it might make
 // sense to collect that graph for, e.g., visualization.
 //
+// @deprecated Not maintained as of VTK 6.2 and will be removed eventually.
+//
 // .SECTION See Also
 // vtkGraph
 
-#ifndef __vtkPBGLCollectGraph_h
-#define __vtkPBGLCollectGraph_h
+#ifndef vtkPBGLCollectGraph_h
+#define vtkPBGLCollectGraph_h
 
 #include "vtkInfovisParallelModule.h" // For export macro
 #include "vtkStdString.h" // For string type
@@ -54,6 +56,7 @@
 class vtkSelection;
 class vtkDistributedGraphHelper;
 
+#if !defined(VTK_LEGACY_REMOVE)
 class VTKINFOVISPARALLEL_EXPORT vtkPBGLCollectGraph : public vtkGraphAlgorithm
 {
 public:
@@ -142,4 +145,5 @@ private:
 
 };
 
+#endif //VTK_LEGACY_REMOVE
 #endif

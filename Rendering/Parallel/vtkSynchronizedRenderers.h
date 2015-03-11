@@ -23,8 +23,8 @@
 // of rendered images across processes on its own. You typically either subclass
 // to implement a compositing algorithm or use a renderer capable of compositing
 // eg. IceT based renderer.
-#ifndef __vtkSynchronizedRenderers_h
-#define __vtkSynchronizedRenderers_h
+#ifndef vtkSynchronizedRenderers_h
+#define vtkSynchronizedRenderers_h
 
 #include "vtkRenderingParallelModule.h" // For export macro
 #include "vtkObject.h"
@@ -152,7 +152,8 @@ public:
 
     // This is a raw version of PushToViewport() that assumes that the
     // glViewport() has already been setup externally.
-    bool PushToFrameBuffer();
+    // the argument is optional for backwards compat with old OpenGL
+    bool PushToFrameBuffer(vtkRenderer *ren = NULL);
 
     // Captures the image from the viewport.
     // This doesn't trigger a render, just captures what's currently there in

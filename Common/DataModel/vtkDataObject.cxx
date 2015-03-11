@@ -41,7 +41,6 @@ vtkInformationKeyMacro(vtkDataObject, DATA_EXTENT_TYPE, Integer);
 vtkInformationKeyMacro(vtkDataObject, DATA_PIECE_NUMBER, Integer);
 vtkInformationKeyMacro(vtkDataObject, DATA_NUMBER_OF_PIECES, Integer);
 vtkInformationKeyMacro(vtkDataObject, DATA_NUMBER_OF_GHOST_LEVELS, Integer);
-vtkInformationKeyMacro(vtkDataObject, DATA_RESOLUTION, Double);
 vtkInformationKeyMacro(vtkDataObject, DATA_TIME_STEP, Double);
 vtkInformationKeyMacro(vtkDataObject, POINT_DATA_VECTOR, InformationVector);
 vtkInformationKeyMacro(vtkDataObject, CELL_DATA_VECTOR, InformationVector);
@@ -55,14 +54,12 @@ vtkInformationKeyMacro(vtkDataObject, FIELD_NAME, String);
 vtkInformationKeyMacro(vtkDataObject, FIELD_NUMBER_OF_COMPONENTS, Integer);
 vtkInformationKeyMacro(vtkDataObject, FIELD_NUMBER_OF_TUPLES, Integer);
 vtkInformationKeyRestrictedMacro(vtkDataObject, FIELD_RANGE, DoubleVector, 2);
-vtkInformationKeyRestrictedMacro(vtkDataObject, PIECE_FIELD_RANGE, DoubleVector, 2);
-vtkInformationKeyMacro(vtkDataObject, FIELD_ARRAY_NAME, String);
 vtkInformationKeyRestrictedMacro(vtkDataObject, PIECE_EXTENT, IntegerVector, 6);
 vtkInformationKeyMacro(vtkDataObject, FIELD_OPERATION, Integer);
+vtkInformationKeyRestrictedMacro(vtkDataObject, ALL_PIECES_EXTENT, IntegerVector, 6);
 vtkInformationKeyRestrictedMacro(vtkDataObject, DATA_EXTENT, IntegerPointer, 6);
 vtkInformationKeyRestrictedMacro(vtkDataObject, ORIGIN, DoubleVector, 3);
 vtkInformationKeyRestrictedMacro(vtkDataObject, SPACING, DoubleVector, 3);
-vtkInformationKeyMacro(vtkDataObject, DATA_GEOMETRY_UNMODIFIED, Integer);
 vtkInformationKeyMacro(vtkDataObject, SIL, DataObject);
 vtkInformationKeyRestrictedMacro(vtkDataObject, BOUNDING_BOX, DoubleVector, 6);
 
@@ -166,11 +163,11 @@ void vtkDataObject::Initialize()
   if (this->Information)
     {
     // Make sure the information is cleared.
+    this->Information->Remove(ALL_PIECES_EXTENT());
     this->Information->Remove(DATA_PIECE_NUMBER());
     this->Information->Remove(DATA_NUMBER_OF_PIECES());
     this->Information->Remove(DATA_NUMBER_OF_GHOST_LEVELS());
     this->Information->Remove(DATA_TIME_STEP());
-    this->Information->Remove(DATA_RESOLUTION());
     }
 
   this->Modified();
@@ -599,10 +596,6 @@ void vtkDataObject::InternalDataObjectCopy(vtkDataObject *src)
     {
     this->Information->CopyEntry(src->Information, DATA_TIME_STEP(), 1);
     }
-  if(src->Information->Has(DATA_RESOLUTION()))
-    {
-    this->Information->CopyEntry(src->Information, DATA_RESOLUTION(), 1);
-    }
 
   // This also caused a pipeline problem.
   // An input pipelineMTime was copied to output.  Pipeline did not execute...
@@ -685,7 +678,6 @@ vtkFieldData* vtkDataObject::GetAttributesAsFieldData(int type)
     {
     case FIELD:
       return this->FieldData;
-      break;
     }
   return 0;
 }
@@ -717,7 +709,6 @@ vtkIdType vtkDataObject::GetNumberOfElements(int type)
     {
     case FIELD:
       return this->FieldData->GetNumberOfTuples();
-      break;
     }
   return 0;
 }

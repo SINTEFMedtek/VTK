@@ -25,8 +25,8 @@
 // UTF16 strings passed to the MathText renderer will be converted to
 // UTF8.
 
-#ifndef __vtkMathTextFreeTypeTextRenderer_h
-#define __vtkMathTextFreeTypeTextRenderer_h
+#ifndef vtkMathTextFreeTypeTextRenderer_h
+#define vtkMathTextFreeTypeTextRenderer_h
 
 #include "vtkRenderingFreeTypeModule.h" // For export macro
 #include "vtkTextRenderer.h"
@@ -54,6 +54,10 @@ protected:
   bool GetBoundingBoxInternal(vtkTextProperty *tprop,
                               const vtkUnicodeString &str,
                               int bbox[4], int dpi, int backend);
+  bool GetMetricsInternal(vtkTextProperty *tprop, const vtkStdString &str,
+                          Metrics &metrics, int dpi, int backend);
+  bool GetMetricsInternal(vtkTextProperty *tprop, const vtkUnicodeString &str,
+                          Metrics &metrics, int dpi, int backend);
   bool RenderStringInternal(vtkTextProperty *tprop, const vtkStdString &str,
                             vtkImageData *data, int textDims[2], int dpi,
                             int backend);
@@ -82,4 +86,4 @@ private:
   vtkMathTextUtilities *MathTextUtilities;
 };
 
-#endif //__vtkMathTextFreeTypeTextRenderer_h
+#endif //vtkMathTextFreeTypeTextRenderer_h

@@ -59,8 +59,8 @@
 // any other line in the file.
 
 
-#ifndef __vtkDelimitedTextReader_h
-#define __vtkDelimitedTextReader_h
+#ifndef vtkDelimitedTextReader_h
+#define vtkDelimitedTextReader_h
 
 #include "vtkIOInfovisModule.h" // For export macro
 #include "vtkTableAlgorithm.h"
@@ -158,6 +158,7 @@ public:
 
   // Description:
   // Set/get whether to treat the first line of the file as headers.
+  // The default is false (no headers).
   vtkGetMacro(HaveHeaders, bool);
   vtkSetMacro(HaveHeaders, bool);
 

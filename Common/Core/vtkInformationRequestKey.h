@@ -17,8 +17,8 @@
 // vtkInformationRequestKey is used to represent keys for pointer
 // to pointer values in vtkInformation.h
 
-#ifndef __vtkInformationRequestKey_h
-#define __vtkInformationRequestKey_h
+#ifndef vtkInformationRequestKey_h
+#define vtkInformationRequestKey_h
 
 #include "vtkCommonCoreModule.h" // For export macro
 #include "vtkInformationKey.h"
@@ -33,6 +33,15 @@ public:
 
   vtkInformationRequestKey(const char* name, const char* location);
   ~vtkInformationRequestKey();
+
+  // Description:
+  // This method simply returns a new vtkInformationRequestKey, given a
+  // name and a location. This method is provided for wrappers. Use the
+  // constructor directly from C++ instead.
+  static vtkInformationRequestKey* MakeKey(const char* name, const char* location)
+    {
+    return new vtkInformationRequestKey(name, location);
+    }
 
   // Description:
   // Get/Set the value associated with this key in the given

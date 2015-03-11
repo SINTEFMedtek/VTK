@@ -17,15 +17,16 @@
 #ifndef vtkToDax_Threshold_h
 #define vtkToDax_Threshold_h
 
-#include "DataSetTypeToType.h"
-#include "CellTypeToType.h"
-#include "DataSetConverters.h"
+#include "vtkToDax/CellTypeToType.h"
+#include "vtkToDax/CompactPointField.h"
+#include "vtkToDax/DataSetConverters.h"
+#include "vtkToDax/DataSetTypeToType.h"
 
 #include "daxToVtk/CellTypeToType.h"
 #include "daxToVtk/DataSetConverters.h"
 
-#include <dax/cont/Scheduler.h>
-#include <dax/cont/GenerateTopology.h>
+#include <dax/cont/DispatcherGenerateTopology.h>
+#include <dax/cont/DispatcherMapCell.h>
 #include <dax/worklet/Threshold.h>
 
 namespace
@@ -42,23 +43,25 @@ template <> struct ThresholdOuputType< dax::CellTagVoxel >
 
 namespace vtkToDax
 {
+
   template<int B>
   struct DoThreshold
   {
     template<class InGridType,
              class OutGridType,
              typename ValueType,
-             class Container1,
-             class Container2,
+             class Container,
              class Adapter>
     int operator()(const InGridType &,
+                   vtkDataSet *,
                    OutGridType &,
+                   vtkUnstructuredGrid *,
                    ValueType,
                    ValueType,
-                   const dax::cont::ArrayHandle<ValueType,Container1,Adapter> &,
-                   dax::cont::ArrayHandle<ValueType,Container2,Adapter> &)
+                   const dax::cont::ArrayHandle<ValueType,Container,Adapter> &)
       {
-      std::cout << "Not calling DAX, GridType and CellType combination not supported" << std::endl;
+      vtkGenericWarningMacro(
+            << "Not calling Dax, GridType-CellType combination not supported");
       return 0;
       }
   };
@@ -68,38 +71,73 @@ namespace vtkToDax
     template<class InGridType,
              class OutGridType,
              typename ValueType,
-             class Container1,
-             class Container2,
+             class Container,
              class Adapter>
     int operator()(
-        const InGridType &inGrid,
-        OutGridType &outGeom,
+        const InGridType &inDaxGrid,
+        vtkDataSet *inVTKGrid,
+        OutGridType &outDaxGeom,
+        vtkUnstructuredGrid *outVTKGrid,
         ValueType thresholdMin,
         ValueType thresholdMax,
-        const dax::cont::ArrayHandle<ValueType,Container1,Adapter> &thresholdHandle,
-        dax::cont::ArrayHandle<ValueType,Container2,Adapter> &thresholdResult)
+        const dax::cont::ArrayHandle<ValueType,Container,Adapter> &thresholdHandle)
       {
       int result=1;
       try
         {
-        //we don't want to use the custom container, so specify the default
-        //container for the classification storage.
-        typedef dax::cont::GenerateTopology<
-                          dax::worklet::ThresholdTopology> ScheduleGT;
-        typedef dax::worklet::ThresholdClassify<ValueType> ThresholdClassifyType;
+        typedef dax::worklet::ThresholdCount<ValueType> ThresholdCountType;
 
-        dax::cont::Scheduler<Adapter> scheduler;
+        typedef dax::cont::DispatcherGenerateTopology<
+                  dax::worklet::ThresholdTopology,
+                  dax::cont::ArrayHandle< dax::Id >,
+                  Adapter >                             DispatchGT;
 
-        typedef typename ScheduleGT::ClassifyResultType ClassifyResultType;
-        ClassifyResultType classification;
+        typedef typename DispatchGT::CountHandleType CountHandleType;
 
-        scheduler.Invoke(ThresholdClassifyType(thresholdMin,thresholdMax),
-                 inGrid, thresholdHandle, classification);
+        ThresholdCountType countWorklet(thresholdMin,thresholdMax);
+        dax::cont::DispatcherMapCell<ThresholdCountType,Adapter>
+                                                  dispatchCount( countWorklet );
 
-        ScheduleGT resolveTopology(classification);
-        //remove classification resource from execution for more space
-        scheduler.Invoke(resolveTopology,inGrid,outGeom);
-        resolveTopology.CompactPointField(thresholdHandle,thresholdResult);
+        CountHandleType count;
+        dispatchCount.Invoke(inDaxGrid, thresholdHandle, count);
+
+        DispatchGT resolveTopology(count);
+        resolveTopology.Invoke(inDaxGrid,outDaxGeom);
+
+        // Convert output geometry to VTK.
+        daxToVtk::dataSetConverter(outDaxGeom, outVTKGrid);
+
+        // Copy arrays where possible.
+        vtkToDax::CompactPointField<DispatchGT> compact(resolveTopology,
+                                                        outVTKGrid);
+
+        vtkDispatcher<vtkAbstractArray,int> compactDispatcher;
+        compactDispatcher.Add<vtkFloatArray>(compact);
+        compactDispatcher.Add<vtkDoubleArray>(compact);
+        compactDispatcher.Add<vtkUnsignedCharArray>(compact);
+        compactDispatcher.Add<vtkIntArray>(compact);
+
+        vtkPointData *pd = inVTKGrid->GetPointData();
+        for (int arrayIndex = 0;
+             arrayIndex < pd->GetNumberOfArrays();
+             arrayIndex++)
+          {
+          vtkDataArray *array = pd->GetArray(arrayIndex);
+          if (array == NULL) { continue; }
+
+          compactDispatcher.Go(array);
+          }
+
+        // Pass information about attributes.
+        for (int attributeType = 0;
+             attributeType < vtkDataSetAttributes::NUM_ATTRIBUTES;
+             attributeType++)
+          {
+          vtkDataArray *attribute = pd->GetAttribute(attributeType);
+          if (attribute == NULL) { continue; }
+          outVTKGrid->GetPointData()->SetActiveAttribute(attribute->GetName(),
+                                                         attributeType);
+          }
       }
       catch(dax::cont::ErrorControlOutOfMemory error)
         {
@@ -166,28 +204,17 @@ namespace vtkToDax
                 vtkToDax::vtkTopologyContainerTag<VTKCellType>,
                 vtkToDax::vtkPointsContainerTag> resultGrid;
 
-      //get from the Field the proper handle type
-      FieldType outputHandle;
-
       InputDataSetType inputDaxData = vtkToDax::dataSetConverter(&dataSet,
                                                                  DataSetTypeToTypeStruct());
 
       vtkToDax::DoThreshold<DataSetTypeToTypeStruct::Valid> threshold;
       int result = threshold(inputDaxData,
-                       resultGrid,
-                       this->Min,
-                       this->Max,
-                       this->Field,
-                       outputHandle);
-
-      if(result==1 && resultGrid.GetNumberOfCells() > 0)
-        {
-        //if we converted correctly, copy the data back to VTK
-        //remembering to add back in the output array to the generated
-        //unstructured grid
-        daxToVtk::addPointData(this->Result,outputHandle,this->Name);
-        daxToVtk::dataSetConverter(resultGrid,this->Result);
-        }
+                             &dataSet,
+                             resultGrid,
+                             this->Result,
+                             this->Min,
+                             this->Max,
+                             this->Field);
 
       return result;
 

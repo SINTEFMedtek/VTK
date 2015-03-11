@@ -22,8 +22,8 @@
 //
 // This is private API, and should not be used outside of the vtkContext3D.
 
-#ifndef __vtkContextDevice3D_h
-#define __vtkContextDevice3D_h
+#ifndef vtkContextDevice3D_h
+#define vtkContextDevice3D_h
 
 #include "vtkRenderingContext2DModule.h" // For export macro
 #include "vtkObject.h"
@@ -40,6 +40,8 @@ class VTKRENDERINGCONTEXT2D_EXPORT vtkContextDevice3D : public vtkObject
 public:
   vtkTypeMacro(vtkContextDevice3D, vtkObject);
   virtual void PrintSelf(ostream &os, vtkIndent indent);
+
+  static vtkContextDevice3D * New();
 
   // Description:
   // Draw a polyline between the specified points.

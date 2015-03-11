@@ -937,17 +937,25 @@ int vtkExtractSelectedFrustum::ABoxFrustumIsect(double *bounds, vtkCell *cell)
     switch (cell->GetCellType())
       {
       case VTK_PIXEL:
+        {
+        edge = cell->GetEdge(2);
+        pts = edge->GetPoints();
+        pts->GetPoint(0, &vlist[3*3]);
+        pts->GetPoint(1, &vlist[2*3]);
+        break;
+        }
       case VTK_QUAD:
         {
         edge = cell->GetEdge(2);
         pts = edge->GetPoints();
-        pts->GetPoint(1, &vlist[2*3]);
-        pts->GetPoint(0, &vlist[3*3]);
+        pts->GetPoint(0, &vlist[2*3]);
+        pts->GetPoint(1, &vlist[3*3]);
         break;
         }
       case VTK_TRIANGLE:
         {
         edge = cell->GetEdge(1);
+        pts = edge->GetPoints();
         pts->GetPoint(1, &vlist[2*3]);
         break;
         }
@@ -1008,17 +1016,23 @@ int vtkExtractSelectedFrustum::ABoxFrustumIsect(double *bounds, vtkCell *cell)
       switch (face->GetCellType())
         {
         case VTK_PIXEL:
+          edge = face->GetEdge(2);
+          pts = edge->GetPoints();
+          pts->GetPoint(0, &vlist[3*3]);
+          pts->GetPoint(1, &vlist[2*3]);
+          break;
         case VTK_QUAD:
           {
           edge = face->GetEdge(2);
           pts = edge->GetPoints();
-          pts->GetPoint(1, &vlist[2*3]);
-          pts->GetPoint(0, &vlist[3*3]);
+          pts->GetPoint(0, &vlist[2*3]);
+          pts->GetPoint(1, &vlist[3*3]);
           break;
           }
         case VTK_TRIANGLE:
           {
           edge = face->GetEdge(1);
+          pts = edge->GetPoints();
           pts->GetPoint(1, &vlist[2*3]);
           break;
           }

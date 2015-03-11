@@ -17,8 +17,8 @@
 // vtkInformationUnsignedLongKey is used to represent keys for unsigned long values
 // in vtkInformation.
 
-#ifndef __vtkInformationUnsignedLongKey_h
-#define __vtkInformationUnsignedLongKey_h
+#ifndef vtkInformationUnsignedLongKey_h
+#define vtkInformationUnsignedLongKey_h
 
 #include "vtkCommonCoreModule.h" // For export macro
 #include "vtkInformationKey.h"
@@ -33,6 +33,15 @@ public:
 
   vtkInformationUnsignedLongKey(const char* name, const char* location);
   ~vtkInformationUnsignedLongKey();
+
+  // Description:
+  // This method simply returns a new vtkInformationUnsignedLongKey, given a
+  // name and a location. This method is provided for wrappers. Use the
+  // constructor directly from C++ instead.
+  static vtkInformationUnsignedLongKey* MakeKey(const char* name, const char* location)
+    {
+    return new vtkInformationUnsignedLongKey(name, location);
+    }
 
   // Description:
   // Get/Set the value associated with this key in the given

@@ -18,8 +18,8 @@
 // in a vtkRenderer. Uses the RenderOverlay pass to render the 2D
 // vtkContextScene.
 
-#ifndef __vtkContextActor_h
-#define __vtkContextActor_h
+#ifndef vtkContextActor_h
+#define vtkContextActor_h
 
 #include "vtkRenderingContext2DModule.h" // For export macro
 #include "vtkProp.h"
@@ -66,7 +66,7 @@ protected:
 
   // Description:
   // Initialize the actor - right now we just decide which device to initialize.
-  void Initialize(vtkViewport* viewport);
+  virtual void Initialize(vtkViewport* viewport);
 
   vtkSmartPointer<vtkContextScene> Scene;
   vtkNew<vtkContext2D> Context;

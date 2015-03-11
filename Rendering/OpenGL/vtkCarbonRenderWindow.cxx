@@ -20,7 +20,6 @@ PURPOSE.  See the above copyright notice for more information.
 #include "vtkOpenGLActor.h"
 #include "vtkOpenGLCamera.h"
 #include "vtkOpenGLLight.h"
-#include "vtkOpenGLPolyDataMapper.h"
 #include "vtkOpenGLProperty.h"
 #include "vtkOpenGLRenderer.h"
 #include "vtkOpenGLTexture.h"
@@ -333,7 +332,7 @@ void vtkCarbonRenderWindow::SetWindowName( const char * _arg )
     {
     CFStringRef newTitle =
       CFStringCreateWithCString(kCFAllocatorDefault, _arg,
-                                kCFStringEncodingASCII);
+                                kCFStringEncodingUTF8);
     SetWindowTitleWithCFString(this->RootWindow, newTitle);
     CFRelease(newTitle);
     }

@@ -55,6 +55,9 @@ vtkProbeFilter::vtkProbeFilter()
 
   this->PassCellArrays = 0;
   this->PassPointArrays = 0;
+  this->PassFieldArrays = 1;
+  this->Tolerance = 1.0;
+  this->ComputeTolerance = 1;
 }
 
 //----------------------------------------------------------------------------
@@ -120,6 +123,14 @@ int vtkProbeFilter::RequestData(
 
   this->Probe(input, source, output);
 
+  this->PassAttributeData(input, source, output);
+  return 1;
+}
+
+//----------------------------------------------------------------------------
+void vtkProbeFilter::PassAttributeData(
+  vtkDataSet* input, vtkDataObject* vtkNotUsed(source), vtkDataSet* output)
+{
   // copy point data arrays
   if (this->PassPointArrays)
     {
@@ -140,7 +151,14 @@ int vtkProbeFilter::RequestData(
       }
     }
 
-  return 1;
+  if (this->PassFieldArrays)
+    {
+    // nothing to do, vtkDemandDrivenPipeline takes care of that.
+    }
+  else
+    {
+    output->GetFieldData()->Initialize();
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -256,30 +274,37 @@ void vtkProbeFilter::ProbeEmptyPoints(vtkDataSet *input,
 
   char* maskArray = this->MaskPoints->GetPointer(0);
 
-  // Use tolerance as a function of size of source data
-  //
-  tol2 = source->GetLength();
-  tol2 = tol2 ? tol2*tol2 / 1000.0 : 0.001;
-
-  // the actual sampling rate needs to be considered for a
-  // more appropriate / accurate selection of the tolerance.
-  // Otherwise the tolerance simply determined above might be
-  // so large as to cause incorrect cell location
-  double bounds[6];
-  source->GetBounds(bounds);
-  double minRes = 10000000000.0;
-  double axisRes[3];
-  for ( int  i = 0;  i < 3;  i ++ )
+  if (this->ComputeTolerance)
     {
-    axisRes[i] = ( bounds[i * 2 + 1] - bounds[i * 2] ) / numPts;
-    if ( (axisRes[i] > 0.0) && (axisRes[i] < minRes) )
-      minRes = axisRes[i];
-    }
-  double minRes2 = minRes * minRes;
-  tol2 = tol2 > minRes2 ? minRes2 : tol2;
+    // Use tolerance as a function of size of source data
+    //
+    tol2 = source->GetLength();
+    tol2 = tol2 ? tol2*tol2 / 1000.0 : 0.001;
 
-  // Don't go below epsilon for a double
-  tol2 = (tol2 < VTK_DBL_EPSILON) ? VTK_DBL_EPSILON : tol2;
+    // the actual sampling rate needs to be considered for a
+    // more appropriate / accurate selection of the tolerance.
+    // Otherwise the tolerance simply determined above might be
+    // so large as to cause incorrect cell location
+    double bounds[6];
+    source->GetBounds(bounds);
+    double minRes = 10000000000.0;
+    double axisRes[3];
+    for ( int  i = 0;  i < 3;  i ++ )
+      {
+      axisRes[i] = ( bounds[i * 2 + 1] - bounds[i * 2] ) / numPts;
+      if ( (axisRes[i] > 0.0) && (axisRes[i] < minRes) )
+        minRes = axisRes[i];
+      }
+    double minRes2 = minRes * minRes;
+    tol2 = tol2 > minRes2 ? minRes2 : tol2;
+
+    // Don't go below epsilon for a double
+    tol2 = (tol2 < VTK_DBL_EPSILON) ? VTK_DBL_EPSILON : tol2;
+    }
+  else
+    {
+    tol2 = this->Tolerance * this->Tolerance;
+    }
 
   // Loop over all input points, interpolating source data
   //
@@ -382,49 +407,6 @@ int vtkProbeFilter::RequestInformation(
   outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(),
                inInfo->Get(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT()),
                6);
-  outInfo->Set(vtkStreamingDemandDrivenPipeline::MAXIMUM_NUMBER_OF_PIECES(),
-               inInfo->Get(
-                 vtkStreamingDemandDrivenPipeline::MAXIMUM_NUMBER_OF_PIECES()));
-
-  // Special case for ParaView.
-  if (this->SpatialMatch == 2)
-    {
-    outInfo->Set(
-      vtkStreamingDemandDrivenPipeline::MAXIMUM_NUMBER_OF_PIECES(),
-      sourceInfo->Get(
-        vtkStreamingDemandDrivenPipeline::MAXIMUM_NUMBER_OF_PIECES()));
-    }
-
-  if (this->SpatialMatch == 1)
-    {
-    int m1 =
-      inInfo->Get(vtkStreamingDemandDrivenPipeline::MAXIMUM_NUMBER_OF_PIECES());
-    int m2 =
-      sourceInfo->Get(
-        vtkStreamingDemandDrivenPipeline::MAXIMUM_NUMBER_OF_PIECES());
-    if (m1 < 0 && m2 < 0)
-      {
-      outInfo->Set(vtkStreamingDemandDrivenPipeline::MAXIMUM_NUMBER_OF_PIECES(),
-                   -1);
-      }
-    else
-      {
-      if (m1 < -1)
-        {
-        m1 = VTK_INT_MAX;
-        }
-      if (m2 < -1)
-        {
-        m2 = VTK_INT_MAX;
-        }
-      if (m2 < m1)
-        {
-        m1 = m2;
-        }
-      outInfo->Set(vtkStreamingDemandDrivenPipeline::MAXIMUM_NUMBER_OF_PIECES(),
-                   m1);
-      }
-    }
 
   // A variation of the bug fix from John Biddiscombe.
   // Make sure that the scalar type and number of components
@@ -554,4 +536,6 @@ void vtkProbeFilter::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "ValidPointMaskArrayName: " << (this->ValidPointMaskArrayName?
     this->ValidPointMaskArrayName : "vtkValidPointMask") << "\n";
   os << indent << "ValidPoints: " << this->ValidPoints << "\n";
+  os << indent << "PassFieldArrays: "
+     << (this->PassFieldArrays? "On" : " Off") << "\n";
 }

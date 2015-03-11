@@ -17,6 +17,7 @@
 #include "vtkExecutive.h"
 #include "vtkObjectFactory.h"
 #include "vtkInformation.h"
+#include "vtkInformationVector.h"
 #include "vtkMath.h"
 #include "vtkPolyData.h"
 #include "vtkRenderWindow.h"
@@ -112,6 +113,24 @@ void vtkPolyDataMapper::Update()
 }
 
 //----------------------------------------------------------------------------
+int vtkPolyDataMapper::ProcessRequest(vtkInformation* request,
+                                      vtkInformationVector** inputVector,
+                                      vtkInformationVector*)
+{
+  if(request->Has(vtkStreamingDemandDrivenPipeline::REQUEST_UPDATE_EXTENT()))
+    {
+    vtkInformation* inInfo = inputVector[0]->GetInformationObject(0);
+    int currentPiece = this->NumberOfSubPieces * this->Piece;
+    vtkStreamingDemandDrivenPipeline::SetUpdateExtent(
+      inInfo,
+      currentPiece,
+      this->NumberOfSubPieces * this->NumberOfPieces,
+      this->GhostLevel);
+    }
+  return 1;
+}
+
+//----------------------------------------------------------------------------
 // Get the bounds for the input of this mapper as
 // (Xmin,Xmax,Ymin,Ymax,Zmin,Zmax).
 double *vtkPolyDataMapper::GetBounds()
@@ -182,7 +201,7 @@ void vtkPolyDataMapper::MapDataArrayToVertexAttribute(
     int vtkNotUsed(componentno)
     )
 {
-  vtkErrorMacro("Not impmlemented at this level...");
+  vtkErrorMacro("Not implemented at this level...");
 }
 
 //----------------------------------------------------------------------------
@@ -193,20 +212,20 @@ void vtkPolyDataMapper::MapDataArrayToMultiTextureAttribute(
     int vtkNotUsed(componentno)
     )
 {
-  vtkErrorMacro("Not impmlemented at this level...");
+  vtkErrorMacro("Not implemented at this level...");
 }
 
 //----------------------------------------------------------------------------
 void vtkPolyDataMapper::RemoveVertexAttributeMapping(
   const char* vtkNotUsed(vertexAttributeName))
 {
-  vtkErrorMacro("Not impmlemented at this level...");
+  vtkErrorMacro("Not implemented at this level...");
 }
 
 //----------------------------------------------------------------------------
 void vtkPolyDataMapper::RemoveAllVertexAttributeMappings()
 {
-  vtkErrorMacro("Not impmlemented at this level...");
+  vtkErrorMacro("Not implemented at this level...");
 }
 
 //----------------------------------------------------------------------------

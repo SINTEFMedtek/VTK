@@ -19,8 +19,8 @@
 // from that in other similar keys because of our internal use of smart
 // pointers.
 
-#ifndef __vtkInformationObjectBaseVectorKey_h
-#define __vtkInformationObjectBaseVectorKey_h
+#ifndef vtkInformationObjectBaseVectorKey_h
+#define vtkInformationObjectBaseVectorKey_h
 
 #include "vtkCommonCoreModule.h" // For export macro
 #include "vtkInformationKey.h"
@@ -45,6 +45,17 @@ public:
                                     const char* requiredClass=0);
   //
   ~vtkInformationObjectBaseVectorKey();
+
+  // Description:
+  // This method simply returns a new vtkInformationObjectBaseVectorKey, given a
+  // name, location and optionally a required class (a classname to restrict
+  // which class types can be set with this key). This method is provided
+  // for wrappers. Use the constructor directly from C++ instead.
+  static vtkInformationObjectBaseVectorKey* MakeKey(const char* name, const char* location,
+                                             const char* requiredClass=0)
+    {
+    return new vtkInformationObjectBaseVectorKey(name, location, requiredClass);
+    }
 
   // Description:
   // Clear the vector.

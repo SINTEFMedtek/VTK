@@ -31,12 +31,12 @@
 // .SECTION Thanks
 // Developed by Timothy M. Shead (tshead@sandia.gov) at Sandia National Laboratories.
 
-#ifndef __vtkArrayNorm_h
-#define __vtkArrayNorm_h
+#ifndef vtkArrayNorm_h
+#define vtkArrayNorm_h
 
 #include "vtkInfovisCoreModule.h" // For export macro
-#include <vtkArrayDataAlgorithm.h>
-#include <vtkArrayRange.h>
+#include "vtkArrayDataAlgorithm.h"
+#include "vtkArrayRange.h"
 
 class VTKINFOVISCORE_EXPORT vtkArrayNorm : public vtkArrayDataAlgorithm
 {

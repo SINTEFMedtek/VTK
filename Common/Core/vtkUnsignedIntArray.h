@@ -18,11 +18,11 @@
 // provides methods for insertion and retrieval of values and will
 // automatically resize itself to hold new data.
 
-#ifndef __vtkUnsignedIntArray_h
-#define __vtkUnsignedIntArray_h
+#ifndef vtkUnsignedIntArray_h
+#define vtkUnsignedIntArray_h
 
 // Tell the template header how to give our superclass a DLL interface.
-#if !defined(__vtkUnsignedIntArray_cxx)
+#if !defined(vtkUnsignedIntArray_cxx)
 # define VTK_DATA_ARRAY_TEMPLATE_TYPE unsigned int
 #endif
 
@@ -47,7 +47,7 @@ public:
   // This macro expands to the set of method declarations that
   // make up the interface of vtkDataArrayTemplate, which is ignored
   // by the wrappers.
-#ifdef __WRAP__
+#if defined(__WRAP__) || defined (__WRAP_GCCXML__)
   vtkCreateWrappedArrayInterface(unsigned int);
 #endif
 

@@ -47,8 +47,8 @@
 // .SECTION See Also
 // vtkStreamLine vtkDashedStreamLine vtkStreamPoints
 
-#ifndef __vtkStreamer_h
-#define __vtkStreamer_h
+#ifndef vtkStreamer_h
+#define vtkStreamer_h
 
 #include "vtkFiltersFlowPathsModule.h" // For export macro
 #include "vtkPolyDataAlgorithm.h"
@@ -234,10 +234,7 @@ protected:
     StreamArray();
     ~StreamArray()
       {
-        if (this->Array)
-          {
-          delete [] this->Array;
-          }
+        delete [] this->Array;
       };
     vtkIdType GetNumberOfPoints() {return this->MaxId + 1;};
     StreamPoint *GetStreamPoint(vtkIdType i) {return this->Array + i;};

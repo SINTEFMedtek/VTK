@@ -22,8 +22,8 @@
 // .SECTION See Also
 // vtkMappedDataArray vtkUnstructuredGrid
 
-#ifndef __vtkUnstructuredGridBase_h
-#define __vtkUnstructuredGridBase_h
+#ifndef vtkUnstructuredGridBase_h
+#define vtkUnstructuredGridBase_h
 
 #include "vtkCommonDataModelModule.h" // For export macro
 #include "vtkPointSet.h"
@@ -37,7 +37,7 @@ public:
     this->Superclass::PrintSelf(os, indent);
   }
 
-  int GetDataObjectType() { return VTK_UNSTRUCTURED_GRID; }
+  int GetDataObjectType() { return VTK_UNSTRUCTURED_GRID_BASE; }
 
   // Description:
   // Allocate memory for the number of cells indicated. extSize is not used.

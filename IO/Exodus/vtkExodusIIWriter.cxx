@@ -41,8 +41,11 @@
 #include "vtkToolkits.h" // for VTK_USE_PARALLEL
 
 #include "vtk_exodusII.h"
-#include <time.h>
 #include <ctype.h>
+#include <map>
+#include <ctime>
+
+
 
 vtkObjectFactoryNewMacro (vtkExodusIIWriter);
 vtkCxxSetObjectMacro (vtkExodusIIWriter, ModelMetadata, vtkModelMetadata);
@@ -80,29 +83,23 @@ vtkExodusIIWriter::vtkExodusIIWriter ()
 
   this->LocalNodeIdMap = 0;
   this->LocalElementIdMap = 0;
-
+  this->TopologyChanged = false;
 }
 
 vtkExodusIIWriter::~vtkExodusIIWriter ()
 {
   this->SetModelMetadata(0); // kill the reference if its there
 
-  if (this->FileName)
-    {
-    delete [] this->FileName;
-    }
-  if (this->BlockIdArrayName)
-    {
-    delete [] this->BlockIdArrayName;
-    }
+  delete [] this->FileName;
+  delete [] this->BlockIdArrayName;
+
   if (this->TimeValues)
     {
     this->TimeValues->Delete ();
     }
-  if (this->BlockElementVariableTruthTable)
-    {
-    delete [] this->BlockElementVariableTruthTable;
-    }
+
+  delete [] this->BlockElementVariableTruthTable;
+
   for (size_t i = 0; i < this->BlockIdList.size (); i ++)
     {
     this->BlockIdList[i]->UnRegister (this);
@@ -140,29 +137,7 @@ int vtkExodusIIWriter::ProcessRequest (
   else if(request->Has(
       vtkStreamingDemandDrivenPipeline::REQUEST_UPDATE_EXTENT()))
     {
-    // get the requested update extent
-    if(!this->TimeValues)
-      {
-      this->TimeValues = vtkDoubleArray::New();
-      vtkInformation *info = inputVector[0]->GetInformationObject(0);
-      double *data = info->Get(vtkStreamingDemandDrivenPipeline::TIME_STEPS());
-      int len = info->Length(vtkStreamingDemandDrivenPipeline::TIME_STEPS());
-      this->TimeValues->SetNumberOfValues (len);
-      for (int i = 0; i < len; i ++)
-        {
-        this->TimeValues->SetValue (i, data[i]);
-        }
-      }
-    if (this->WriteAllTimeSteps)
-      {
-      if(this->TimeValues->GetPointer(0))
-        {
-        double timeReq= this->TimeValues->GetValue(this->CurrentTimeIndex);
-        inputVector[0]->GetInformationObject(0)->Set
-        ( vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEP(),  timeReq);
-        }
-      }
-    return 1;
+    return this->RequestUpdateExtent(request, inputVector, outputVector);
     }
   // generate the data
   else if(request->Has(vtkDemandDrivenPipeline::REQUEST_DATA()))
@@ -190,6 +165,37 @@ int vtkExodusIIWriter::RequestInformation (
     this->NumberOfTimeSteps = 0;
     }
 
+  return 1;
+}
+
+//----------------------------------------------------------------------------
+int vtkExodusIIWriter::RequestUpdateExtent (
+  vtkInformation* vtkNotUsed(request),
+  vtkInformationVector** inputVector,
+  vtkInformationVector* vtkNotUsed(outputVector))
+{
+  // get the requested update extent
+  if(!this->TimeValues)
+    {
+    this->TimeValues = vtkDoubleArray::New();
+    vtkInformation *info = inputVector[0]->GetInformationObject(0);
+    double *data = info->Get(vtkStreamingDemandDrivenPipeline::TIME_STEPS());
+    int len = info->Length(vtkStreamingDemandDrivenPipeline::TIME_STEPS());
+    this->TimeValues->SetNumberOfValues (len);
+    for (int i = 0; i < len; i ++)
+      {
+      this->TimeValues->SetValue (i, data[i]);
+      }
+    }
+  if (this->WriteAllTimeSteps)
+    {
+    if(this->TimeValues->GetPointer(0))
+      {
+      double timeReq= this->TimeValues->GetValue(this->CurrentTimeIndex);
+      inputVector[0]->GetInformationObject(0)->Set
+      ( vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEP(),  timeReq);
+      }
+    }
   return 1;
 }
 
@@ -230,13 +236,14 @@ int vtkExodusIIWriter::RequestData (
   this->WriteData ();
 
   this->CurrentTimeIndex ++;
-  if (this->CurrentTimeIndex >= this->NumberOfTimeSteps)
+  if (this->CurrentTimeIndex >= this->NumberOfTimeSteps ||
+      this->TopologyChanged)
     {
     this->CloseExodusFile ();
     this->CurrentTimeIndex = 0;
     if (this->WriteAllTimeSteps)
       {
-      // Tell the pipeline to start looping.
+      // Tell the pipeline to stop looping.
       request->Set(vtkStreamingDemandDrivenPipeline::CONTINUE_EXECUTING(), 0);
       }
     }
@@ -246,7 +253,21 @@ int vtkExodusIIWriter::RequestData (
     this->CloseExodusFile ();
     }
 
+  int localContinue = request->Get(
+    vtkStreamingDemandDrivenPipeline::CONTINUE_EXECUTING());
+  if (this->GlobalContinueExecuting(localContinue) != localContinue)
+    {
+    // Some other node decided to stop the execution.
+    assert (localContinue == 1);
+    request->Set(vtkStreamingDemandDrivenPipeline::CONTINUE_EXECUTING(), 0);
+    }
   return 1;
+}
+
+//----------------------------------------------------------------------------
+int vtkExodusIIWriter::GlobalContinueExecuting(int localContinueExecution)
+{
+  return localContinueExecution;
 }
 
 //----------------------------------------------------------------------------
@@ -264,6 +285,16 @@ void vtkExodusIIWriter::WriteData ()
   if (this->FlattenedInput.size () != this->NewFlattenedInput.size ())
     {
     newHierarchy = true;
+    }
+
+  // For now, we don't support changing topology even if the writer supports it.
+  // The reader needs to be updated to support changing topology.
+  if (newHierarchy && this->FlattenedInput.size () != 0)
+    {
+    this->TopologyChanged = true;
+    vtkErrorMacro (
+      "Temporal data with changing topology is not yet supported.");
+    return;
     }
 
   // Copies over the new results data in the new objects
@@ -306,12 +337,6 @@ void vtkExodusIIWriter::WriteData ()
     if (!this->WriteInitializationParameters ())
       {
       vtkErrorMacro(<< "vtkExodusIIWriter::WriteData init params");
-      return;
-      }
-
-    if (!this->WriteQARecords ())
-      {
-      vtkErrorMacro("vtkExodusIIWriter::WriteData QA records");
       return;
       }
 
@@ -649,7 +674,7 @@ void vtkExodusIIWriter::RemoveGhostCells()
 
 //----------------------------------------------------------------------------
 int vtkExodusIIWriter::CheckParametersInternal (int _NumberOfProcesses, int _MyRank)
- {
+{
    if (!this->FileName)
      {
      vtkErrorMacro("No filename specified.");
@@ -689,29 +714,11 @@ int vtkExodusIIWriter::CheckParametersInternal (int _NumberOfProcesses, int _MyR
     return 0;
     }
 
-  if (!this->GetModelMetadata())
+  // Data (and possibly the topology) is different for every time step so
+  // always create a new metadata.
+  if (!this->CreateDefaultMetadata ())
     {
-    /* TODO recover packed meta data
-    if (vtkModelMetadata::HasMetadata ())
-      {
-      // All the metadata has been packed into field arrays of the ugrid,
-      // probably by the vtkExodusReader or vtkPExodusReader.
-
-      vtkModelMetadata *mmd = vtkModelMetadata::New();
-      mmd->Unpack(this->FlattenedInput[i], 1);
-
-      this->SetModelMetadata(mmd);
-      mmd->Delete();
-      }
-    else if (!this->CreateExodusModel())  // use sensible defaults
-      {
-      return 0;
-      }
-    */
-    if (!this->CreateDefaultMetadata ())
-      {
-      return 0;
-      }
+    return 0;
     }
 
   if (!this->ParseMetadata ())
@@ -750,55 +757,18 @@ int vtkExodusIIWriter::CheckInputArrays ()
     vtkCellData *cd = this->FlattenedInput[i]->GetCellData();
     vtkPointData *pd = this->FlattenedInput[i]->GetPointData();
 
-    // Trying to find block id
-    vtkDataArray *da = 0;
-    if (this->BlockIdArrayName)
+    vtkIntArray *bia = this->GetBlockIdArray (
+      this->BlockIdArrayName, this->FlattenedInput[i]);
+    if (bia)
       {
-      da = cd->GetArray(this->BlockIdArrayName);
-      }
-    if (!da)
-      {
-      da = cd->GetArray("ObjectId");
-      if (da)
-        {
-        this->SetBlockIdArrayName("ObjectId");
-        }
-      else
-        {
-        da = cd->GetArray("ElementBlockIds");
-        if (da)
-          {
-          this->SetBlockIdArrayName("ElementBlockIds");
-          }
-        else
-          {
-          this->SetBlockIdArrayName(0);
-          if ((this->NumberOfProcesses > 1))
-            {
-            // Parallel apps must have a global list of all block IDs, plus a
-            // list of block IDs for each cell.
-            vtkWarningMacro(<< "Attempting to proceed without metadata");
-            }
-          }
-        }
-      }
-
-    if (da)
-      {
-      vtkIntArray *ia = vtkIntArray::SafeDownCast(da);
-      if (!ia)
-        {
-        vtkErrorMacro(<< "vtkExodusIIWriter, block ID array is not an integer array");
-        return 1;
-        }
-      this->BlockIdList[i] = ia;
+      this->BlockIdList[i] = bia;
       this->BlockIdList[i]->Register (this);
       // computing the max known id in order to create unique fill in values below
       for (int j = 0; j < numCells; j ++)
         {
-        if (this->BlockIdList[i]->GetValue (j) > MaxId)
+        if (this->BlockIdList[i]->GetValue (j) > this->MaxId)
           {
-          MaxId = this->BlockIdList[i]->GetValue (j);
+          this->MaxId = this->BlockIdList[i]->GetValue (j);
           }
         }
       }
@@ -809,7 +779,7 @@ int vtkExodusIIWriter::CheckInputArrays ()
       }
 
     // Trying to find global element id
-    da = cd->GetGlobalIds();
+    vtkDataArray *da = cd->GetGlobalIds();
     if (this->WriteOutGlobalElementIdArray && da)
       {
       vtkIdTypeArray *ia = vtkIdTypeArray::SafeDownCast(da);
@@ -871,7 +841,7 @@ int vtkExodusIIWriter::ConstructBlockInfoMap ()
       ia->SetNumberOfValues (ncells);
       for (int j = 0; j < ncells; j ++)
         {
-        ia->SetValue (j, this->FlattenedInput[i]->GetCellType(j) + MaxId);
+        ia->SetValue (j, this->FlattenedInput[i]->GetCellType(j) + this->MaxId);
         }
 
       // Pretend we had it in the metadata
@@ -880,7 +850,7 @@ int vtkExodusIIWriter::ConstructBlockInfoMap ()
       ia->Delete ();
 
       // Also increment the MaxId so we can keep it unique
-      MaxId += VTK_NUMBER_OF_CELL_TYPES;
+      this->MaxId += VTK_NUMBER_OF_CELL_TYPES;
       }
 
     // Compute all the block information mappings.
@@ -967,7 +937,10 @@ int vtkExodusIIWriter::ConstructBlockInfoMap ()
 int vtkExodusIIWriter::ConstructVariableInfoMaps ()
 {
   // Create the variable info maps.
-  this->NumberOfScalarGlobalArrays = 0;
+  if (this->GlobalVariableMap.empty())
+    {
+    this->NumberOfScalarGlobalArrays = 0;
+    }
   this->NumberOfScalarElementArrays = 0;
   this->NumberOfScalarNodeArrays = 0;
   this->BlockVariableMap.clear ();
@@ -1465,33 +1438,6 @@ int vtkExodusIIWriter::WriteInitializationParameters()
                        numBlocks, nnsets, nssets);
   return rc >= 0;
 }
-//
-//---------------------------------------------------------
-// Initialization, QA, Title, information records
-//---------------------------------------------------------
-int vtkExodusIIWriter::WriteQARecords()
-{
-  vtkModelMetadata *em = this->GetModelMetadata();
-
-  int nrecs = em->GetNumberOfQARecords();
-
-  if (nrecs > 0)
-    {
-    typedef char *p4[4];
-
-    p4 *qarecs = new p4 [nrecs];
-
-    for (int i=0; i<nrecs; i++)
-      {
-      em->GetQARecord(i, &qarecs[i][0], &qarecs[i][1], &qarecs[i][2], &qarecs[i][3]);
-      }
-    ex_put_qa(this->fid, nrecs, qarecs);
-
-    delete [] qarecs;
-    }
-
-  return 1;
-}
 
 //----------------------------------------------------------------------------
 int vtkExodusIIWriter::WriteInformationRecords()
@@ -1640,7 +1586,9 @@ int vtkExodusIIWriter::WriteBlockInformation()
     int numNodes = blockIter->second.NodesPerElement;
 
     int numPoints;
-    if (numNodes == 0)
+    if (numNodes == 0 &&
+        // Number of elements is 0 if all data is on one process
+        numElts > 0)
       {
       numPoints = blockIter->second.EntityNodeOffsets[numElts - 1]
                 + blockIter->second.EntityCounts[numElts - 1];
@@ -1760,7 +1708,8 @@ int vtkExodusIIWriter::WriteBlockInformation()
        blockIter ++)
     {
     char *name = vtkExodusIIWriter::GetCellTypeName (blockIter->second.Type);
-    if (blockIter->second.NodesPerElement == 0)
+    if (blockIter->second.NodesPerElement == 0 &&
+        blockIter->second.NumElements > 0)
       {
       int numElts = blockIter->second.NumElements;
       int numPoints = blockIter->second.EntityNodeOffsets[numElts - 1]
@@ -1828,10 +1777,7 @@ int vtkExodusIIWriter::WriteBlockInformation()
 
   for (size_t n = 0; n < nblocks; n ++)
     {
-    if (connectivity[n])
-      {
-      delete [] connectivity[n];
-      }
+    delete [] connectivity[n];
     if (this->PassDoubles && attributesD[n])
       {
       delete [] attributesD[n];
@@ -2196,7 +2142,7 @@ std::string vtkExodusIIWriter::CreateNameForScalarArray(
       s = s.substr (0, MAX_STR_LENGTH - 11);
       }
     // assume largest for 32 bit decimal representation
-    char n[10];
+    char n[11];
     sprintf (n, "%10d", component);
     s.append (n);
     return s;
@@ -2359,8 +2305,8 @@ int vtkExodusIIWriter::WriteNodeSetInformation()
   delete [] nsIdIdx;
   delete [] nsDFIdx;
   delete [] idBuf;
-  if (dfBuf) delete [] dfBuf;
-  else if (dfBufD) delete [] dfBufD;
+  delete [] dfBuf;
+  delete [] dfBufD;
 
   return (rc >= 0);
 }
@@ -2543,8 +2489,8 @@ int vtkExodusIIWriter::WriteSideSetInformation()
   delete [] ssDFIdx;
   delete [] idBuf;
   delete [] sideBuf;
-  if (dfBuf) delete [] dfBuf;
-  else if (dfBufD) delete [] dfBufD;
+  delete [] dfBuf;
+  delete [] dfBufD;
 
   return rc >= 0;
 }
@@ -2991,4 +2937,73 @@ int vtkExodusIIWriter::WriteNextTimeStep()
 void vtkExodusIIWriter::CheckBlockInfoMap()
 {
   // no op for serial version
+}
+
+bool vtkExodusIIWriter::SameTypeOfCells (vtkIntArray* cellToBlockId,
+                                         vtkUnstructuredGrid* input)
+{
+  if(cellToBlockId->GetNumberOfComponents () != 1 ||
+      cellToBlockId->GetNumberOfTuples () != input->GetNumberOfCells())
+    {
+    return false;
+    }
+  std::map<int, int> blockIdToCellType;
+  for (vtkIdType cellId = 0; cellId < cellToBlockId->GetNumberOfTuples ();
+       ++cellId)
+    {
+    vtkIdType blockId = cellToBlockId->GetValue(cellId);
+    std::map<int, int>::iterator it = blockIdToCellType.find(blockId);
+    if (it == blockIdToCellType.end())
+      {
+      blockIdToCellType[blockId] = input->GetCellType(cellId);
+      }
+    else
+      {
+      if (it->second != input->GetCellType(cellId))
+        {
+        return false;
+        }
+      }
+    }
+  return true;
+}
+
+vtkIntArray* vtkExodusIIWriter::GetBlockIdArray (
+  const char* name, vtkUnstructuredGrid* input)
+{
+  vtkDataArray *da = 0;
+  vtkCellData *cd = input->GetCellData();
+  if (name)
+    {
+    da = cd->GetArray(name);
+    }
+  if (!da)
+    {
+    name = "ObjectId";
+    da = cd->GetArray(name);
+    if (!da)
+      {
+      name = "ElementBlockIds";
+      da = cd->GetArray(name);
+      }
+    }
+  if (da)
+    {
+    vtkIntArray *ia = vtkIntArray::SafeDownCast(da);
+    if (ia != 0 && vtkExodusIIWriter::SameTypeOfCells (ia, input))
+      {
+      this->SetBlockIdArrayName(name);
+      return ia;
+      }
+    }
+  this->SetBlockIdArrayName(0);
+  if ((this->NumberOfProcesses > 1) &&
+      // you don't have metadata but you have some tuples.
+      cd->GetNumberOfTuples() > 0)
+    {
+    // Parallel apps must have a global list of all block IDs, plus a
+    // list of block IDs for each cell.
+    vtkWarningMacro(<< "Attempting to proceed without metadata");
+    }
+  return 0;
 }

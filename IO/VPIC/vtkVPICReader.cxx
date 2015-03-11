@@ -26,7 +26,6 @@
 #include "vtkObjectFactory.h"
 #include "vtkPointData.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
-#include "vtkTableExtentTranslator.h"
 #include "vtkToolkits.h"
 
 #include "vtkMultiProcessController.h"
@@ -93,6 +92,8 @@ vtkVPICReader::vtkVPICReader()
     this->Rank = 0;
     this->TotalRank = 1;
     }
+
+  this->UsedRank = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -112,8 +113,7 @@ vtkVPICReader::~vtkVPICReader()
   delete [] this->TimeSteps;
   delete [] this->dataLoaded;
 
-  if (this->exchanger)
-    delete this->exchanger;
+  delete this->exchanger;
 
   if (this->data)
     {
@@ -203,10 +203,8 @@ int vtkVPICReader::RequestInformation(
     this->YLayout[0] = 0;       this->YLayout[1] = layoutSize[1] - 1;
     this->ZLayout[0] = 0;       this->ZLayout[1] = layoutSize[2] - 1;
 
-    // Maximum number of pieces (processors) is number of files
-    this->NumberOfPieces = this->vpicData->getNumberOfParts();
-    outInfo->Set(vtkStreamingDemandDrivenPipeline::MAXIMUM_NUMBER_OF_PIECES(),
-                 this->NumberOfPieces);
+    outInfo->Set(CAN_HANDLE_PIECE_REQUEST(),
+     1);
 
     // Collect temporal information
     this->NumberOfTimeSteps = this->vpicData->getNumberOfTimeSteps();
@@ -264,9 +262,6 @@ int vtkVPICReader::RequestInformation(
     outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(),
                  this->WholeExtent, 6);
 
-    // Let the pipeline know how we want the data to be broken up
-    // Some processors might not get a piece of data to render
-    vtkTableExtentTranslator *extentTable = vtkTableExtentTranslator::New();
     int processorUsed = this->vpicData->getProcessorUsed();
 
     if(this->MPIController)
@@ -275,20 +270,7 @@ int vtkVPICReader::RequestInformation(
                                      1, vtkCommunicator::SUM_OP);
       }
 
-    extentTable->SetNumberOfPieces(this->UsedRank);
-
-    for (int piece = 0; piece < this->UsedRank; piece++) {
-      int subextent[6];
-      this->vpicData->getSubExtent(piece, subextent);
-      extentTable->SetExtentForPiece(piece, subextent);
-    }
     this->vpicData->getSubExtent(this->Rank, this->SubExtent);
-    extentTable->SetPiece(this->Rank);
-    extentTable->SetWholeExtent(this->WholeExtent);
-    extentTable->SetExtent(this->SubExtent);
-
-    vtkStreamingDemandDrivenPipeline::SetExtentTranslator(outInfo, extentTable);
-    extentTable->Delete();
 
     // Reset the SubExtent on this processor to include ghost cells
     // Leave the subextents in the extent table as the size without ghosts

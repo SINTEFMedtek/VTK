@@ -1,3 +1,7 @@
+# This module cannot be built at the same time as vtkRenderingOpenGL2
+if(TARGET vtkRenderingOpenGL2)
+  message(FATAL_ERROR "vtkRenderingOpenGL cannot be built with vtkRenderingOpenGL2, please disable one of them.")
+endif()
 # FIXME: This should probably be fixed, vtkgl generation needs some refinement
 # to allow for things to split up properly.
 
@@ -39,21 +43,34 @@ mark_as_advanced(VTK_USE_TDX)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/vtkTDxConfigure.h.in
   ${CMAKE_CURRENT_BINARY_DIR}/vtkTDxConfigure.h)
 
+include(vtkObjectFactory)
+
 set(Module_SRCS
   vtkCameraPass.cxx
+  vtkChooserPainter.cxx
+  vtkClearRGBPass.cxx
   vtkClearZPass.cxx
+  vtkClipPlanesPainter.cxx
+  vtkCoincidentTopologyResolutionPainter.cxx
   vtkColorMaterialHelper.cxx
+  vtkCompositePainter.cxx
+  vtkCompositePolyDataMapper2.cxx
   vtkDataTransferHelper.cxx
+  vtkDefaultPainter.cxx
   vtkDefaultPass.cxx
   vtkDepthPeelingPass.cxx
+  vtkDisplayListPainter.cxx
   vtkFrameBufferObject.cxx
   vtkFrameBufferObject2.cxx
   vtkGLSLShaderDeviceAdapter2.cxx
   vtkGaussianBlurPass.cxx
   vtkGenericOpenGLRenderWindow.cxx
+  vtkHardwareSelectionPolyDataPainter.cxx # Needed by vtkPainterPolyDataMapper
   vtkImageProcessingPass.cxx
   vtkLightingHelper.cxx
+  vtkLightingPainter.cxx
   vtkLightsPass.cxx
+  vtkLinesPainter.cxx
   vtkOpaquePass.cxx
   vtkOpenGLActor.cxx
   vtkOpenGLCamera.cxx
@@ -68,12 +85,12 @@ set(Module_SRCS
   vtkOpenGLHardwareSupport.cxx
   vtkOpenGLImageMapper.cxx
   vtkOpenGLImageSliceMapper.cxx
+  vtkOpenGLLabeledContourMapper.cxx
   vtkOpenGLLight.cxx
   vtkOpenGLLightMonitor.cxx
   vtkOpenGLLightingPainter.cxx
   vtkOpenGLModelViewProjectionMonitor.cxx
   vtkOpenGLPainterDeviceAdapter.cxx
-  vtkOpenGLPolyDataMapper.cxx
   vtkOpenGLPolyDataMapper2D.cxx
   vtkOpenGLProperty.cxx
   vtkOpenGLRenderWindow.cxx
@@ -83,12 +100,19 @@ set(Module_SRCS
   vtkOpenGLState.cxx
   vtkOpenGLTexture.cxx
   vtkOverlayPass.cxx
+  vtkPainter.cxx
+  vtkPainterPolyDataMapper.cxx
   vtkPixelBufferObject.cxx
+  vtkPointsPainter.cxx
+  vtkPolyDataPainter.cxx
+  vtkPolygonsPainter.cxx
+  vtkPrimitivePainter.cxx
   vtkRenderPass.cxx
   vtkRenderPassCollection.cxx
   vtkRenderState.cxx
   vtkRenderbuffer.cxx
-  vtkRenderbuffer.cxx
+  vtkRepresentationPainter.cxx
+  vtkScalarsToColorsPainter.cxx
   vtkSequencePass.cxx
   vtkShader2.cxx
   vtkShader2Collection.cxx
@@ -96,19 +120,45 @@ set(Module_SRCS
   vtkShadowMapBakerPass.cxx
   vtkShadowMapPass.cxx
   vtkSobelGradientMagnitudePass.cxx
+  vtkStandardPolyDataPainter.cxx
+  vtkTStripsPainter.cxx
   vtkTextureObject.cxx
   vtkTextureUnitManager.cxx
   vtkTranslucentPass.cxx
   vtkUniformVariables.cxx
+  vtkValuePainter.cxx
+  vtkValuePass.cxx
+  vtkValuePasses.cxx
   vtkVolumetricPass.cxx
   ${CMAKE_CURRENT_BINARY_DIR}/vtkgl.cxx
   ${CMAKE_CURRENT_BINARY_DIR}/vtkRenderingOpenGLObjectFactory.cxx
   )
+if (NOT VTK_LEGACY_REMOVE)
+  # vtkOpenGLPolyDataMapper is only added if not removing legacy code.
+  list(APPEND Module_SRCS
+    vtkOpenGLPolyDataMapper.cxx)
+endif()
+
+if(VTK_USE_TDX)
+  list(APPEND Module_SRCS
+    vtkTDxDevice.cxx
+    vtkTDxInteractorStyleGeo.cxx)
+
+  if(WIN32)
+   list(APPEND Module_SRCS vtkTDxWinDevice.cxx)
+  endif()
+  if(UNIX)
+    list(APPEND Module_SRCS vtkTDxUnixDevice.cxx)
+  endif()
+  if(APPLE)
+    list(APPEND Module_SRCS vtkTDxMacDevice.cxx)
+  endif()
+endif()
+
 
 set(${vtk-module}_HDRS
   vtkgluPickMatrix.h
   vtkOpenGL.h
-  vtkOpenGLProjectedPolyDataRayBounder.h
   ${CMAKE_CURRENT_BINARY_DIR}/vtkTDxConfigure.h
   ${CMAKE_CURRENT_BINARY_DIR}/vtkRenderingOpenGLConfigure.h
   ${CMAKE_CURRENT_BINARY_DIR}/vtkgl.h
@@ -120,6 +170,9 @@ set_source_files_properties(
   vtkOpenGLRenderWindow
   vtkRenderPass
   vtkRenderState
+  vtkPainter
+  vtkPolyDataPainter
+  vtkPrimitivePainter
   ABSTRACT
   )
 
@@ -152,12 +205,7 @@ if(WIN32)
   endif()
 elseif(APPLE)
   set(VTK_USE_APPLE_LOADER 1)
-  find_package(ApplicationServices)
-  find_package(IOKit)
-  mark_as_advanced(ApplicationServices IOKit)
-  if(ApplicationServices_FOUND AND IOKit_FOUND)
-    set(VTK_USE_CORE_GRAPHICS 1)
-  endif()
+  set(VTK_USE_CORE_GRAPHICS 1)
 else()
   include(CheckFunctionExists)
   set(VTK_SAVE_CMAKE_REQUIRED_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES}")
@@ -263,13 +311,6 @@ foreach(file ${shader_files})
   set_source_files_properties(${file_we} WRAP_EXCLUDE)
 endforeach()
 
-# Now we need to generate the object factory for this module. Create a list of
-# overrides, and then generate the class that overrides those classes.
-macro(vtk_add_override base override)
-  list(APPEND vtk_module_overrides ${base})
-  set(vtk_module_${base}_override ${override})
-endmacro()
-
 set(opengl_overrides
   Actor
   Camera
@@ -280,6 +321,7 @@ set(opengl_overrides
   Glyph3DMapper
   HardwareSelector
   ImageSliceMapper
+  LabeledContourMapper
   Light
   LightingPainter
   PainterDeviceAdapter
@@ -314,7 +356,7 @@ if(VTK_USE_X)
     vtkXOpenGLRenderWindow.cxx
     )
 elseif(VTK_USE_OSMESA)
-  message("VTK will be built with OSMesa support!")
+  message(STATUS "VTK will be built with OSMesa support!")
   find_package(OSMesa REQUIRED)
   if(NOT OSMESA_FOUND)
     message(FATAL_ERROR "The OSMesa library could not be found. REQUIRED for off screen rendering")
@@ -353,7 +395,7 @@ elseif(VTK_USE_COCOA)
                                 vtkCocoaRenderWindow.mm
                                 vtkCocoaGLView.mm
                                 PROPERTIES COMPILE_FLAGS "${VTK_REQUIRED_OBJCXX_FLAGS}")
-  endif(VTK_REQUIRED_OBJCXX_FLAGS)
+  endif()
   set_source_files_properties(vtkCocoaGLView WRAP_EXCLUDE)
 elseif(VTK_USE_CARBON)
   # Add some custom overrides
@@ -376,8 +418,7 @@ if(VTK_USE_NVCONTROL)
   set(vtk_module_vtkGPUInfoList_override "vtkXGPUInfoList")
 elseif(VTK_USE_CORE_GRAPHICS)
   list(APPEND Module_SRCS "vtkCoreGraphicsGPUInfoList.cxx")
-  set(extra_libs ${ApplicationServices_LIBRARY} ${IOKit_LIBRARY})
-  include_directories(${ApplicationServices_INCLUDE_DIR} ${IOKit_INCLUDE_DIR})
+  set(extra_libs)
   set(vtk_module_vtkGPUInfoList_override "vtkCoreGraphicsGPUInfoList")
 elseif(VTK_USE_DIRECTX)
   list(APPEND Module_SRCS "vtkDirectXGPUInfoList.cxx")
@@ -394,26 +435,8 @@ foreach(_override ${opengl_overrides})
   vtk_add_override(vtk${_override} vtkOpenGL${_override})
 endforeach()
 
-# Now we iterate and create that class file...
-foreach(_class ${vtk_module_overrides})
-  set(_override ${vtk_module_${_class}_override})
-  set(_vtk_override_includes "${_vtk_override_includes}
-#include \"${_override}.h\"")
-  set(_vtk_override_creates "${_vtk_override_creates}
-VTK_CREATE_CREATE_FUNCTION(${_override})")
-  set(_vtk_override_do "${_vtk_override_do}
-  this->RegisterOverride(\"${_class}\",
-                         \"${_override}\",
-                         \"Override for ${vtk-module} module\", 1,
-                         vtkObjectFactoryCreate${_override});")
-endforeach()
-
 # Now lets create the object factory classes
-string(TOUPPER ${vtk-module} VTK-MODULE)
-configure_file(${VTK_CMAKE_DIR}/vtkObjectFactory.h.in
-  ${CMAKE_CURRENT_BINARY_DIR}/${vtk-module}ObjectFactory.h)
-configure_file(${VTK_CMAKE_DIR}/vtkObjectFactory.cxx.in
-  ${CMAKE_CURRENT_BINARY_DIR}/${vtk-module}ObjectFactory.cxx)
+vtk_object_factory_configure("${vtk_module_overrides}")
 
 # Configure the module specific settings into a module configured header.
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/vtkRenderingOpenGLConfigure.h.in
@@ -430,7 +453,10 @@ set(${vtk-module}_INCLUDE_DIRS "${OPENGL_INCLUDE_DIR}")
 # Detect and clear OpenGL errors. If not then other classes/user code
 # may detect VTK's OpenGL errors and vice-versa.
 set(VTK_REPORT_OPENGL_ERRORS ON CACHE BOOL "Enable OpenGL error check and report")
-mark_as_advanced(VTK_REPORT_OPENGL_ERRORS)
+cmake_dependent_option(VTK_REPORT_OPENGL_ERRORS_IN_RELEASE_BUILDS
+  "Enable OpenGL error check and reporting in non-debug builds." OFF
+  VTK_REPORT_OPENGL_ERRORS OFF)
+mark_as_advanced(VTK_REPORT_OPENGL_ERRORS VTK_REPORT_OPENGL_ERRORS_IN_RELEASE_BUILDS)
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/vtkOpenGLError.h.in
     ${CMAKE_CURRENT_BINARY_DIR}/vtkOpenGLError.h)
@@ -449,17 +475,17 @@ if (VTK_IGNORE_GLDRIVER_BUGS)
 endif()
 
 vtk_module_library(vtkRenderingOpenGL ${Module_SRCS})
-target_link_libraries(vtkRenderingOpenGL
+vtk_module_link_libraries(vtkRenderingOpenGL
   LINK_PUBLIC ${OPENGL_LIBRARIES} ${extra_libs})
 if(VTK_USE_X)
-  target_link_libraries(vtkRenderingOpenGL
+  vtk_module_link_libraries(vtkRenderingOpenGL
     LINK_PUBLIC ${X11_LIBRARIES} ${X11_Xt_LIB})
 elseif(VTK_USE_COCOA)
-  target_link_libraries(vtkRenderingOpenGL LINK_PUBLIC "-framework Cocoa")
+  vtk_module_link_libraries(vtkRenderingOpenGL LINK_PUBLIC "-framework Cocoa")
 elseif(VTK_USE_CARBON)
-  target_link_libraries(vtkRenderingOpenGL LINK_PUBLIC "-framework Carbon")
+  vtk_module_link_libraries(vtkRenderingOpenGL LINK_PUBLIC "-framework Carbon")
 endif()
 
 if(VTK_OPENGL_HAS_OSMESA)
-  target_link_libraries(vtkRenderingOpenGL LINK_PUBLIC ${OSMESA_LIBRARY})
+  vtk_module_link_libraries(vtkRenderingOpenGL LINK_PUBLIC ${OSMESA_LIBRARY})
 endif()

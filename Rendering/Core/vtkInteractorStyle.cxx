@@ -266,6 +266,7 @@ void vtkInteractorStyle::SetInteractor(vtkRenderWindowInteractor *i)
   if (this->Interactor)
     {
     this->AddObserver(vtkCommand::StartInteractionEvent, this->EventForwarder);
+    this->AddObserver(vtkCommand::InteractionEvent, this->EventForwarder);
     this->AddObserver(vtkCommand::EndInteractionEvent, this->EventForwarder);
     }
   else
@@ -617,6 +618,27 @@ void vtkInteractorStyle::EndTimer()
     }
   this->StopState();
 }
+
+//----------------------------------------------------------------------------
+void vtkInteractorStyle::StartTwoPointer()
+{
+  if (this->State != VTKIS_NONE)
+    {
+    return;
+    }
+  this->StartState(VTKIS_TWO_POINTER);
+}
+
+//----------------------------------------------------------------------------
+void vtkInteractorStyle::EndTwoPointer()
+{
+  if (this->State != VTKIS_TWO_POINTER)
+    {
+    return;
+    }
+  this->StopState();
+}
+
 
 //----------------------------------------------------------------------------
 // By overriding the Rotate, Rotate members we can

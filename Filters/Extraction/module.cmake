@@ -2,6 +2,7 @@ vtk_module(vtkFiltersExtraction
   GROUPS
     StandAlone
   DEPENDS
+    vtkCommonDataModel
     vtkCommonExecutionModel
     vtkFiltersCore
     vtkFiltersGeneral
@@ -9,7 +10,9 @@ vtk_module(vtkFiltersExtraction
   TEST_DEPENDS
     vtkIOLegacy
     vtkIOXML
-    vtkRenderingOpenGL
+    vtkRendering${VTK_RENDERING_BACKEND}
     vtkTestingRendering
     vtkInteractionStyle
+  KIT
+    vtkFilters
   )

@@ -22,8 +22,8 @@
 // Collection can be turned on or off using the "PassThrough" flag.
 
 
-#ifndef __vtkCollectTable_h
-#define __vtkCollectTable_h
+#ifndef vtkCollectTable_h
+#define vtkCollectTable_h
 
 #include "vtkFiltersParallelModule.h" // For export macro
 #include "vtkTableAlgorithm.h"
@@ -66,7 +66,6 @@ protected:
   // Data generation method
   virtual int RequestUpdateExtent(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
   virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-  virtual int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 
   vtkMultiProcessController *Controller;
   vtkSocketController *SocketController;

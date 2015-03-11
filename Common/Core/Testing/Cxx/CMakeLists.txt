@@ -4,7 +4,9 @@ set(TestSystemInformation_ARGS ${CMAKE_BINARY_DIR})
 # Tell TestXMLFileOutputWindow where to write test file
 set(TestXMLFileOutputWindow_ARGS ${CMAKE_BINARY_DIR}/Testing/Temporary/XMLFileOutputWindow.txt)
 
-vtk_add_test_cxx(NO_DATA NO_VALID NO_OUTPUT
+vtk_add_test_cxx(${vtk-module}CxxTests tests
+  NO_DATA NO_VALID NO_OUTPUT
+  UnitTestMath.cxx
   TestArrayAPI.cxx
   TestArrayAPIConvenience.cxx
   TestArrayAPIDense.cxx
@@ -36,6 +38,7 @@ vtk_add_test_cxx(NO_DATA NO_VALID NO_OUTPUT
   TestObjectFactory.cxx
   TestObservers.cxx
   TestObserversPerformance.cxx
+  TestOStreamWrapper.cxx
   TestSMP.cxx
   TestSmartPointer.cxx
   TestSortDataArray.cxx
@@ -57,6 +60,6 @@ vtk_add_test_cxx(NO_DATA NO_VALID NO_OUTPUT
   #otherLookupTableWithEnabling.cxx
   otherStringArray.cxx
   )
-
-vtk_test_cxx_executable(${vtk-module}CxxTests
-  vtkTestNewVar.cxx)
+vtk_test_cxx_executable(${vtk-module}CxxTests tests
+  vtkTestNewVar.cxx
+  )

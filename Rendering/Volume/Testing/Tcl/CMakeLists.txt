@@ -1,20 +1,38 @@
-vtk_add_test_tcl(TestBunykRayCastFunction)
-vtk_add_test_tcl(TestLODProp3D)
-vtk_add_test_tcl(VolumeOutlineSourceClipped)
-vtk_add_test_tcl(VolumePickerCrop)
-vtk_add_test_tcl(VolumePicker)
-vtk_add_test_tcl(gaussian)
-vtk_add_test_tcl(volRCClipPlanes)
-vtk_add_test_tcl(volRCCropRegions)
-vtk_add_test_tcl(volRCRotateClip)
-vtk_add_test_tcl(volTM3DCompressedCropRegions)
-vtk_add_test_tcl(volTM3DCropRegions)
-vtk_add_test_tcl(volTM3DRotateClip)
-vtk_add_test_tcl(volTM2DCropRegions)
-vtk_add_test_tcl(VolumeOutlineSource)
-vtk_add_test_tcl(TestFixedPointRayCasterLinearCropped)
-vtk_add_test_tcl(TestFixedPointRayCasterLinear)
-vtk_add_test_tcl(TestFixedPointRayCasterNearestCropped)
-vtk_add_test_tcl(TestFixedPointRayCasterNearest)
-vtk_add_test_tcl(TestPTZSweep)
-vtk_add_test_tcl(volTM2DRotateClip)
+# These tests are built under all conditions
+set (GenericVolumeTclTests
+  gaussian.tcl
+  TestFixedPointRayCasterLinearCropped.tcl
+  TestFixedPointRayCasterLinear.tcl
+  TestFixedPointRayCasterNearestCropped.tcl
+  TestFixedPointRayCasterNearest.tcl
+  volRCClipPlanes.tcl
+  volRCCropRegions.tcl
+  volRCRotateClip.tcl
+  VolumePickerCrop.tcl
+  VolumePicker.tcl
+  )
+
+# These tests are only built when the rendering backend is OpenGL
+set (VolumeOpenGLTclTests
+  TestBunykRayCastFunction.tcl
+  TestLODProp3D.tcl
+  TestPTZSweep.tcl
+  volTM2DCropRegions.tcl
+  volTM2DRotateClip.tcl
+  volTM3DCompressedCropRegions.tcl
+  volTM3DCropRegions.tcl
+  volTM3DRotateClip.tcl
+  VolumeOutlineSourceClipped.tcl
+  VolumeOutlineSource.tcl
+  )
+
+if ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
+  vtk_add_test_tcl(
+    ${GenericVolumeTclTests}
+    )
+else ()
+  vtk_add_test_tcl(
+    ${GenericVolumeTclTests}
+    ${VolumeOpenGLTclTests}
+    )
+endif ()

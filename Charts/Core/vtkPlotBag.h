@@ -27,11 +27,13 @@
 // .SECTION See Also
 // vtkHighestDensityRegionsStatistics
 
-#ifndef __vtkPlotBag_h
-#define __vtkPlotBag_h
+#ifndef vtkPlotBag_h
+#define vtkPlotBag_h
 
 #include "vtkChartsCoreModule.h" // For export macro
 #include "vtkPlotPoints.h"
+
+class vtkPen;
 
 class VTKCHARTSCORE_EXPORT vtkPlotBag : public vtkPlotPoints
 {
@@ -90,6 +92,19 @@ public:
                             vtkIdType yColumn,
                             vtkIdType densityColumn);
 
+
+  // Description:
+  // Set/get the vtkPen object that controls how this plot draws boundary lines.
+  void SetLinePen(vtkPen* pen);
+  vtkGetObjectMacro(LinePen, vtkPen);
+
+  // Description:
+  // Set/get the vtkPen object that controls how this plot draws points.
+  // Those are just helpers functions:
+ //  this pen is actually the default Plot pen.
+  void SetPointPen(vtkPen* pen) { this->SetPen(pen); }
+  vtkPen* GetPointPen() { return this->GetPen(); }
+
 protected:
   vtkPlotBag();
   ~vtkPlotBag();
@@ -98,10 +113,11 @@ protected:
 
   vtkPoints2D* MedianPoints;
   vtkPoints2D* Q3Points;
+  vtkPen* LinePen;
 
 private:
   vtkPlotBag(const vtkPlotBag &); // Not implemented.
   void operator=(const vtkPlotBag &); // Not implemented.
 };
 
-#endif //__vtkPlotBag_h
+#endif //vtkPlotBag_h

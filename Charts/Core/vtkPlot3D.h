@@ -21,8 +21,8 @@
 // .SECTION See Also
 // vtkPlot3DPoints vtkPlot3DLine vtkPlot3DBar vtkChart vtkChartXY
 
-#ifndef __vtkPlot3D_h
-#define __vtkPlot3D_h
+#ifndef vtkPlot3D_h
+#define vtkPlot3D_h
 
 #include "vtkChartsCoreModule.h" // For export macro
 #include "vtkContextItem.h"
@@ -48,6 +48,11 @@ public:
   // Set/get the vtkPen object that controls how this plot draws (out)lines.
   void SetPen(vtkPen *pen);
   vtkPen* GetPen();
+
+  // Description:
+  // Set/get the vtkPen object that controls how this plot draws (out)lines.
+  void SetSelectionPen(vtkPen *pen);
+  vtkPen* GetSelectionPen();
 
   // Description:
   // Set the input to the plot.
@@ -112,6 +117,10 @@ protected:
   vtkSmartPointer<vtkPen> Pen;
 
   // Description:
+  // This object stores the vtkPen that controls how the plot is drawn.
+  vtkSmartPointer<vtkPen> SelectionPen;
+
+  // Description:
   // This array assigns a color to each datum in the plot.
   vtkNew<vtkUnsignedCharArray> Colors;
 
@@ -159,4 +168,4 @@ private:
 //ETX
 };
 
-#endif //__vtkPlot3D_h
+#endif //vtkPlot3D_h

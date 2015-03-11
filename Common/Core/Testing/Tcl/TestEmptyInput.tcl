@@ -62,9 +62,13 @@ set classExceptions {
    vtkDistributedDataFilter
    vtkAMREnzoReader
    vtkAMRFlashReader
-   vtkAMRFlashParticleReader
+   vtkAMRFlashParticlesReader
    vtkMathTextUtilities
    vtkMatplotlibMathTextUtilities
+   vtkQImageToImageSource
+   vtkQtLabelRenderStrategy
+   vtkQtStringToImage
+   vtkQtTreeRingLabelMapper
 }
 
 proc rtTestEmptyInputTest { fileid } {
@@ -78,6 +82,8 @@ proc rtTestEmptyInputTest { fileid } {
          flush stdout
          TestOne $a
          puts "done"
+      } else {
+          puts "NOT Testing -- $a - "
       }
    }
    puts "All Passed"

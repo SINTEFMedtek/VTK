@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Visualization Toolkit
-  Module:    vtkCellLocator.h
+  Module:    vtkCellTreeLocator.h
 
   Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
   All rights reserved.
@@ -33,8 +33,8 @@
 // vtkLocator vtkCellLocator vtkModifiedBSPTree
 
 
-#ifndef __vtkCellTreeLocator_h
-#define __vtkCellTreeLocator_h
+#ifndef vtkCellTreeLocator_h
+#define vtkCellTreeLocator_h
 
 #include "vtkFiltersGeneralModule.h" // For export macro
 #include "vtkAbstractCellLocator.h"

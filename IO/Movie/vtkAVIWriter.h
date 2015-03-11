@@ -20,8 +20,8 @@
 // .SECTION See Also
 // vtkGenericMovieWriter vtkMPEG2Writer
 
-#ifndef __vtkAVIWriter_h
-#define __vtkAVIWriter_h
+#ifndef vtkAVIWriter_h
+#define vtkAVIWriter_h
 
 #include "vtkIOMovieModule.h" // For export macro
 #include "vtkGenericMovieWriter.h"
@@ -70,7 +70,7 @@ public:
   // Common identifiers include DIVX, XVID, and H264.
   // http://en.wikipedia.org/wiki/FourCC.
   // Default value is:
-  //   - msvc
+  //   - MSVC
   // Other examples include:
   //   - DIB: Full Frames (Uncompressed)
   //   - LAGS: Lagarith Lossless Codec

@@ -23,8 +23,8 @@
 // vtkPlotPoints
 //
 
-#ifndef __vtkPlotPoints3D_h
-#define __vtkPlotPoints3D_h
+#ifndef vtkPlotPoints3D_h
+#define vtkPlotPoints3D_h
 
 #include "vtkChartsCoreModule.h" // For export macro
 #include "vtkPlot3D.h"
@@ -55,8 +55,6 @@ protected:
   // The selected points.
   vtkTimeStamp SelectedPointsBuildTime;
 
-  vtkNew<vtkPen> SelectedPen;
-
 private:
   vtkPlotPoints3D(const vtkPlotPoints3D &); // Not implemented.
   void operator=(const vtkPlotPoints3D &); // Not implemented.
@@ -64,4 +62,4 @@ private:
 
 };
 
-#endif //__vtkPlotPoints3D_h
+#endif //vtkPlotPoints3D_h

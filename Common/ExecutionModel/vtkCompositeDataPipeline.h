@@ -25,7 +25,7 @@
 // the contents of the composite dataset in this pass.
 // Sources that can produce more than one piece (note that a piece is
 // different than a block; each piece consistes of 0 or more blocks) should
-// set MAXIMUM_NUMBER_OF_PIECES to -1.
+// set CAN_HANDLE_PIECE_REQUEST.
 //
 // * REQUEST_UPDATE_EXTENT: This pass is identical to the one implemented
 // in vtkStreamingDemandDrivenPipeline
@@ -38,8 +38,8 @@
 // .SECTION See also
 //  vtkCompositeDataSet
 
-#ifndef __vtkCompositeDataPipeline_h
-#define __vtkCompositeDataPipeline_h
+#ifndef vtkCompositeDataPipeline_h
+#define vtkCompositeDataPipeline_h
 
 #include "vtkCommonExecutionModelModule.h" // For export macro
 #include "vtkStreamingDemandDrivenPipeline.h"
@@ -97,14 +97,12 @@ public:
   static vtkInformationIntegerVectorKey* UPDATE_COMPOSITE_INDICES();
 
   // Description:
-  // COMPOSITE_INDICES() is put in the output information by the executive if
-  // the request has UPDATE_COMPOSITE_INDICES() using the generated composite
-  // dataset's structure.
-  // Note that COMPOSITE_INDICES has to be sorted vector with increasing
-  // indices.
+  // BLOCK_AMOUNT_OF_DETAIL is a key placed in the information about a multi-block
+  // dataset that indicates how complex the block is.  It is intended to work with
+  // multi-resolution streaming code.  For example in a multi-resolution dataset of
+  // points, this key might store the number of points.
   // *** THIS IS AN EXPERIMENTAL FEATURE. IT MAY CHANGE WITHOUT NOTICE ***
-  static vtkInformationIntegerVectorKey* COMPOSITE_INDICES();
-
+  static vtkInformationDoubleKey* BLOCK_AMOUNT_OF_DETAIL();
 
 protected:
   vtkCompositeDataPipeline();
@@ -118,8 +116,6 @@ protected:
                                       vtkInformationVector** inInfoVec,
                                       vtkInformationVector* outInfoVec);
 
-  virtual void CopyFromDataToInformation(
-    vtkDataObject* dobj, vtkInformation* inInfo);
   virtual void PushInformation(vtkInformation*);
   virtual void PopInformation (vtkInformation*);
 
@@ -211,6 +207,15 @@ protected:
   // Because we sometimes have to swap between "simple" data types and composite
   // data types, we sometimes want to skip resetting the pipeline information.
   static vtkInformationIntegerKey* SUPPRESS_RESET_PI();
+
+  // Description:
+  // COMPOSITE_INDICES() is put in the output information by the executive if
+  // the request has UPDATE_COMPOSITE_INDICES() using the generated composite
+  // dataset's structure.
+  // Note that COMPOSITE_INDICES has to be sorted vector with increasing
+  // indices.
+  // *** THIS IS AN EXPERIMENTAL FEATURE. IT MAY CHANGE WITHOUT NOTICE ***
+  static vtkInformationIntegerVectorKey* DATA_COMPOSITE_INDICES();
 
 private:
   vtkCompositeDataPipeline(const vtkCompositeDataPipeline&);  // Not implemented.

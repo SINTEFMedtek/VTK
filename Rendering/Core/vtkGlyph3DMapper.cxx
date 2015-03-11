@@ -296,8 +296,6 @@ void vtkGlyph3DMapper::SetSourceData(int idx, vtkPolyData *pd)
 }
 
 // ---------------------------------------------------------------------------
-// Description:
-// Set the source to use for he glyph. Old style. See SetSourceConnection.
 void vtkGlyph3DMapper::SetSourceData(vtkPolyData *pd)
 {
   this->SetSourceData(0,pd);
@@ -386,12 +384,11 @@ void vtkGlyph3DMapper::PrintSelf(ostream& os, vtkIndent indent)
   int vtkGlyph3DMapper::RequestUpdateExtent(
     vtkInformation *vtkNotUsed(request),
     vtkInformationVector **inputVector,
-    vtkInformationVector *outputVector)
+    vtkInformationVector *)
 {
   // get the info objects
   vtkInformation *inInfo = inputVector[0]->GetInformationObject(0);
   vtkInformation *sourceInfo = inputVector[1]->GetInformationObject(0);
-  vtkInformation *outInfo = outputVector->GetInformationObject(0);
 
   if (sourceInfo)
     {
@@ -402,12 +399,6 @@ void vtkGlyph3DMapper::PrintSelf(ostream& os, vtkIndent indent)
     sourceInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_NUMBER_OF_GHOST_LEVELS(),
       0);
     }
-  inInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_PIECE_NUMBER(),
-    outInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_PIECE_NUMBER()));
-  inInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_NUMBER_OF_PIECES(),
-    outInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_NUMBER_OF_PIECES()));
-  inInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_NUMBER_OF_GHOST_LEVELS(),
-    outInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_NUMBER_OF_GHOST_LEVELS()));
   inInfo->Set(vtkStreamingDemandDrivenPipeline::EXACT_EXTENT(), 1);
 
   return 1;

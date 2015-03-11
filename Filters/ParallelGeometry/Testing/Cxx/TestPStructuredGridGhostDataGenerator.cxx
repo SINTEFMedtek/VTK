@@ -47,6 +47,9 @@
 
 //#define DEBUG_ON
 
+namespace
+{
+
 //------------------------------------------------------------------------------
 //      G L O B A  L   D A T A
 //------------------------------------------------------------------------------
@@ -58,16 +61,6 @@ int NumberOfPartitions;
 
 //------------------------------------------------------------------------------
 namespace Logger {
-  void Print( const std::string &msg)
-  {
-    if( Controller->GetLocalProcessId() == 0 )
-      {
-      std::cout << msg;
-      std::cout.flush();
-      }
-    Controller->Barrier();
-  }
-
   void Println(const std::string &msg )
   {
     if( Controller->GetLocalProcessId() == 0 )
@@ -541,8 +534,10 @@ int Test3D(
   return( rc );
 }
 
+}
+
 //------------------------------------------------------------------------------
-int main(int argc, char **argv)
+int TestPStructuredGridGhostDataGenerator(int argc, char *argv[])
 {
   int rc = 0;
   Controller = vtkMPIController::New();

@@ -13,8 +13,8 @@
 
 =========================================================================*/
 
-#ifndef __vtkPythonCommand_h
-#define __vtkPythonCommand_h
+#ifndef vtkPythonCommand_h
+#define vtkPythonCommand_h
 
 #include "vtkWrappingPythonCoreModule.h" // For export macro
 #include "vtkPython.h"
@@ -30,7 +30,7 @@ public:
 
   void SetObject(PyObject *o);
   void SetThreadState(PyThreadState *ts);
-  void Execute(vtkObject *ptr, unsigned long eventtype, void *CallData);
+  void Execute(vtkObject *ptr, unsigned long eventtype, void *callData);
 
   PyObject *obj;
   PyThreadState *ThreadState;

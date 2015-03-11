@@ -88,8 +88,8 @@
 //  vtkClipDataSet vtkClipVolume vtkClipPolyData vtkCutter vtkImplicitFunction
 
 
-#ifndef __vtkTableBasedClipDataSet_h
-#define __vtkTableBasedClipDataSet_h
+#ifndef vtkTableBasedClipDataSet_h
+#define vtkTableBasedClipDataSet_h
 
 #include "vtkFiltersGeneralModule.h" // For export macro
 #include "vtkUnstructuredGridAlgorithm.h"
@@ -195,11 +195,6 @@ public:
   vtkSetClampMacro(OutputPointsPrecision, int, SINGLE_PRECISION, DEFAULT_PRECISION);
   vtkGetMacro(OutputPointsPrecision, int);
 
-  // Description:
-  // Overridden to process REQUEST_UPDATE_EXTENT_INFORMATION.
-  virtual int ProcessRequest( vtkInformation *,
-                              vtkInformationVector **,
-                              vtkInformationVector  *);
 protected:
   vtkTableBasedClipDataSet( vtkImplicitFunction * cf = NULL );
   ~vtkTableBasedClipDataSet();

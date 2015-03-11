@@ -50,8 +50,8 @@
 // .SECTION See Also
 // vtkActor2D vtkTextProperty vtkTextMapper vtkPolyDataMapper2D
 
-#ifndef __vtkScalarBarActor_h
-#define __vtkScalarBarActor_h
+#ifndef vtkScalarBarActor_h
+#define vtkScalarBarActor_h
 
 #include "vtkRenderingAnnotationModule.h" // For export macro
 #include "vtkActor2D.h"
@@ -66,6 +66,7 @@ class vtkTextActor;
 class vtkTextMapper;
 class vtkTextProperty;
 class vtkTexture;
+class vtkTexturedActor2D;
 
 #define VTK_ORIENT_HORIZONTAL 0
 #define VTK_ORIENT_VERTICAL 1
@@ -179,7 +180,7 @@ public:
 
   // Description:
   // Get the texture actor.. you may want to change some properties on it
-  vtkGetObjectMacro( TextureActor, vtkActor2D );
+  vtkGetObjectMacro( TextureActor, vtkTexturedActor2D );
 
 //BTX
   enum { PrecedeScalarBar = 0, SucceedScalarBar };
@@ -201,7 +202,7 @@ public:
 
   // Description:
   // Set/Get the maximum width and height in pixels. Specifying the size as
-  // a relative fraction of the viewport can sometimes undersirably strech
+  // a relative fraction of the viewport can sometimes undesirably stretch
   // the size of the actor too much. These methods allow the user to set
   // bounds on the maximum size of the scalar bar in pixels along any
   // direction. Defaults to unbounded.
@@ -473,7 +474,7 @@ protected:
   // Description:
   // Allocate actors for lookup table annotations and position them properly.
   int MapAnnotationLabels(
-    vtkScalarsToColors* lkup, double start, double delta, double* range);
+    vtkScalarsToColors* lkup, double start, double delta, const double* range);
 
   // Description:
   // This method is called by \a ConfigureAnnotationLabels when Orientation is VTK_ORIENT_VERTICAL.
@@ -537,7 +538,7 @@ protected:
   vtkActor2D* ScalarBarActor; //!< Actor for \a ScalarBar.
   vtkPolyData* TexturePolyData; //!< Polygon colored when UseOpacity is true.
   vtkTexture* Texture; //!< Color data for \a TexturePolyData.
-  vtkActor2D* TextureActor; //!< Actor for \a TexturePolyData.
+  vtkTexturedActor2D* TextureActor; //!< Actor for \a TexturePolyData.
 
   vtkPolyData* Background; //!< Polygon used to fill the background.
   vtkPolyDataMapper2D* BackgroundMapper; //!< Mapper for \a Background.

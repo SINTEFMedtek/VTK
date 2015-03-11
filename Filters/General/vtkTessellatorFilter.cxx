@@ -487,14 +487,8 @@ void vtkTessellatorFilter::Teardown()
 {
   this->OutputMesh = 0;
   this->OutputPoints = 0;
-  if ( this->OutputAttributes )
-    {
-    delete [] this->OutputAttributes;
-    }
-  if ( this->OutputAttributeIndices )
-    {
-    delete [] this->OutputAttributeIndices;
-    }
+  delete [] this->OutputAttributes;
+  delete [] this->OutputAttributeIndices;
   this->Subdivider->ResetFieldList();
   this->Subdivider->SetMesh(0);
 }
@@ -1153,15 +1147,6 @@ int vtkTessellatorFilter::RequestData(
           vtkTessellatorHasPolys = 1;
           }
         continue;
-        }
-      else if ( np == VTK_VOXEL || np == VTK_HEXAHEDRON ||
-        np == VTK_QUADRATIC_HEXAHEDRON )
-        {
-        np = 27;
-        }
-      else
-        {
-        np = cp->GetNumberOfPoints();
         }
       double* pcoord = cp->GetParametricCoords();
       double* gcoord;

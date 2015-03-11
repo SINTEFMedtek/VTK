@@ -15,8 +15,8 @@
 // .NAME vtkExtractUnstructuredGridPiece - Return specified piece, including specified
 // number of ghost levels.
 
-#ifndef __vtkExtractUnstructuredGridPiece_h
-#define __vtkExtractUnstructuredGridPiece_h
+#ifndef vtkExtractUnstructuredGridPiece_h
+#define vtkExtractUnstructuredGridPiece_h
 
 #include "vtkFiltersParallelModule.h" // For export macro
 #include "vtkUnstructuredGridAlgorithm.h"
@@ -43,8 +43,8 @@ protected:
 
   // Usual data generation method
   virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-  virtual int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
   virtual int RequestUpdateExtent(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+  virtual int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 
   // A method for labeling which piece the cells belong to.
   void ComputeCellTags(vtkIntArray *cellTags, vtkIdList *pointOwnership,

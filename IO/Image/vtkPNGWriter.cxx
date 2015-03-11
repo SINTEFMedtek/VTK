@@ -22,6 +22,10 @@
 #include "vtkUnsignedCharArray.h"
 #include "vtk_png.h"
 
+#if _MSC_VER
+#define snprintf _snprintf
+#endif
+
 vtkStandardNewMacro(vtkPNGWriter);
 
 vtkCxxSetObjectMacro(vtkPNGWriter,Result,vtkUnsignedCharArray);
@@ -65,10 +69,11 @@ void vtkPNGWriter::Write()
     }
 
   // Make sure the file name is allocated
-  this->InternalFileName =
-    new char[(this->FileName ? strlen(this->FileName) : 1) +
+  size_t internalFileNameSize = (this->FileName ? strlen(this->FileName) : 1) +
             (this->FilePrefix ? strlen(this->FilePrefix) : 1) +
-            (this->FilePattern ? strlen(this->FilePattern) : 1) + 10];
+            (this->FilePattern ? strlen(this->FilePattern) : 1) + 256;
+  this->InternalFileName = new char[internalFileNameSize];
+  this->InternalFileName[0] = 0;
 
   // Fill in image information.
   this->GetInputExecutive(0, 0)->UpdateInformation();
@@ -89,21 +94,33 @@ void vtkPNGWriter::Write()
     uExt[4] = uExt[5] = this->FileNumber;
     vtkStreamingDemandDrivenPipeline::SetUpdateExtent(
       this->GetInputInformation(0, 0), uExt);
-    // determine the name
-    if (this->FileName)
+    if (!this->WriteToMemory)
       {
-      sprintf(this->InternalFileName,"%s",this->FileName);
-      }
-    else
-      {
-      if (this->FilePrefix)
+      int bytes_printed = 0;
+      // determine the name
+      if (this->FileName)
         {
-        sprintf(this->InternalFileName, this->FilePattern,
-                this->FilePrefix, this->FileNumber);
+        bytes_printed = snprintf(this->InternalFileName, internalFileNameSize,
+          "%s",this->FileName);
         }
       else
         {
-        sprintf(this->InternalFileName, this->FilePattern,this->FileNumber);
+        if (this->FilePrefix)
+          {
+          bytes_printed = snprintf(this->InternalFileName, internalFileNameSize,
+            this->FilePattern, this->FilePrefix, this->FileNumber);
+          }
+        else
+          {
+          bytes_printed = snprintf(this->InternalFileName, internalFileNameSize,
+            this->FilePattern,this->FileNumber);
+          }
+        }
+      if (static_cast<size_t>(bytes_printed) >= internalFileNameSize)
+        {
+        // add null terminating character just to be safe.
+        this->InternalFileName[internalFileNameSize-1] = 0;
+        vtkWarningMacro("Filename has been truncated.");
         }
       }
     vtkDemandDrivenPipeline::SafeDownCast(
@@ -174,8 +191,8 @@ extern "C"
 #if PNG_LIBPNG_VER >= 10400
     vtkPNGWriteWarningFunction(png_ptr, error_msg);
 #else
-    longjmp(png_ptr->jmpbuf, 1);
     (void)error_msg;
+    longjmp(png_ptr->jmpbuf, 1);
 #endif
   }
 }
@@ -220,6 +237,7 @@ void vtkPNGWriter::WriteSlice(vtkImageData *data, int* uExtent)
 
 
   this->TempFP = 0;
+  png_byte **row_pointers = 0;
   if (this->WriteToMemory)
     {
     vtkUnsignedCharArray *uc = this->GetResult();
@@ -249,6 +267,8 @@ void vtkPNGWriter::WriteSlice(vtkImageData *data, int* uExtent)
       if (setjmp(png_jmpbuf((png_ptr))))
         {
         fclose(this->TempFP);
+        delete [] row_pointers;
+        png_destroy_write_struct(&png_ptr, &info_ptr);
         this->SetErrorCode(vtkErrorCode::OutOfDiskSpaceError);
         return;
         }
@@ -293,7 +313,7 @@ void vtkPNGWriter::WriteSlice(vtkImageData *data, int* uExtent)
     png_set_swap(png_ptr);
 #endif
     }
-  png_byte **row_pointers = new png_byte *[height];
+  row_pointers = new png_byte *[height];
   vtkIdType *outInc = data->GetIncrements();
   vtkIdType rowInc = outInc[1]*bit_depth/8;
   for (ui = 0; ui < height; ui++)

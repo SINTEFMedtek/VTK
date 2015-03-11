@@ -19,9 +19,10 @@
 // .SECTION See Also
 // vtkContourGrid vtkCutter vtkContourFilter
 
-#ifndef __vtkContourHelper_h
-#define __vtkContourHelper_h
+#ifndef vtkContourHelper_h
+#define vtkContourHelper_h
 
+#include "vtkFiltersCoreModule.h" // For export macro
 #include "vtkSmartPointer.h" //for a member variable
 #include "vtkPolygonBuilder.h" //for a member variable
 
@@ -33,7 +34,7 @@ class vtkCell;
 class vtkDataArray;
 class vtkIdList;
 
-class vtkContourHelper
+class VTKFILTERSCORE_EXPORT vtkContourHelper
 {
 public:
   vtkContourHelper(vtkIncrementalPointLocator *locator,

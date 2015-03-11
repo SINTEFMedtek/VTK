@@ -72,8 +72,8 @@
 // Thanks to Goodwin Lawlor and Prabhu Ramachandran for this class.
 
 
-#ifndef __vtkGL2PSExporter_h
-#define __vtkGL2PSExporter_h
+#ifndef vtkGL2PSExporter_h
+#define vtkGL2PSExporter_h
 
 #include "vtkIOExportModule.h" // For export macro
 #include "vtkExporter.h"
@@ -112,6 +112,16 @@ public:
   // other options chosen.
   vtkSetStringMacro(FilePrefix);
   vtkGetStringMacro(FilePrefix);
+
+  // Description:
+  // The initial size of the GL2PS export buffer in bytes. The buffer is used to
+  // store the exported image prior to writing to file. If the buffer is too
+  // small, the exporter will enlarge the buffer and rerender until the export
+  // is successful. Setting a larger value here can reduce the time needed to
+  // export a complex scene by reducing the number of iterations required.
+  // The default initial size is 4 MB.
+  vtkSetMacro(BufferSize, int);
+  vtkGetMacro(BufferSize, int);
 
   // Description:
   // Set the title for the output, if supported. If NULL, "VTK GL2PS Export" is
@@ -343,6 +353,7 @@ protected:
   char *FilePrefix;
   char *Title;
   int FileFormat;
+  int BufferSize;
   int Sort;
   int Compress;
   int DrawBackground;

@@ -1,6 +1,7 @@
-vtk_add_test_cxx(
+vtk_add_test_cxx(${vtk-module}CxxTests tests
   FastSplatter.cxx
   ImageAccumulate.cxx,NO_VALID
+  ImageAccumulateLarge.cxx,NO_VALID,NO_DATA,NO_OUTPUT 32
   ImageAutoRange.cxx
   ImageBSplineCoefficients.cxx
   ImageHistogram.cxx
@@ -9,14 +10,19 @@ vtk_add_test_cxx(
   ImageResize3D.cxx
   ImageResizeCropping.cxx
   ImageWeightedSum.cxx,NO_VALID
-  ImportExport.cxx,NO_VALID # todo (unsatistfied deps)
+  ImportExport.cxx,NO_VALID
+  TestBSplineWarp.cxx
+  TestImageStencilDataMethods.cxx,NO_VALID
+  TestStencilWithLasso.cxx
+  TestStencilWithPolyDataContour.cxx
+  TestStencilWithPolyDataSurface.cxx
   TestUpdateExtentReset.cxx,NO_VALID
+  )
+list(APPEND tests
+  TestImageStencilData.cxx
   )
 
 # The stencil test is special
-set_property(DIRECTORY APPEND PROPERTY VTK_TEST_CXX_SOURCES
-  TestImageStencilData.cxx
-  )
 ExternalData_add_test(VTKData
   NAME ${vtk-module}Cxx-AddStencilData
   COMMAND ${vtk-module}CxxTests TestImageStencilData 1
@@ -36,4 +42,6 @@ ExternalData_add_test(VTKData
     -T ${VTK_TEST_OUTPUT_DIR}
     -V DATA{../Data/Baseline/TestClipStencilData.png,:})
 
-vtk_test_cxx_executable(${vtk-module}CxxTests RENDERING_FACTORY)
+vtk_test_cxx_executable(${vtk-module}CxxTests tests
+  RENDERING_FACTORY
+  )

@@ -17,8 +17,8 @@
 // vtkInformationIntegerVectorKey is used to represent keys for integer
 // vector values in vtkInformation.h
 
-#ifndef __vtkInformationIntegerVectorKey_h
-#define __vtkInformationIntegerVectorKey_h
+#ifndef vtkInformationIntegerVectorKey_h
+#define vtkInformationIntegerVectorKey_h
 
 #include "vtkCommonCoreModule.h" // For export macro
 #include "vtkInformationKey.h"
@@ -34,6 +34,16 @@ public:
   vtkInformationIntegerVectorKey(const char* name, const char* location,
                                  int length=-1);
   ~vtkInformationIntegerVectorKey();
+
+  // Description:
+  // This method simply returns a new vtkInformationIntegerVectorKey, given a
+  // name, a location and a required length. This method is provided for
+  // wrappers. Use the constructor directly from C++ instead.
+  static vtkInformationIntegerVectorKey* MakeKey(const char* name, const char* location,
+    int length=-1)
+    {
+    return new vtkInformationIntegerVectorKey(name, location, length);
+    }
 
   // Description:
   // Get/Set the value associated with this key in the given

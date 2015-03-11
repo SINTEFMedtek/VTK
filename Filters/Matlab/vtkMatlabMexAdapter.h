@@ -47,12 +47,13 @@
 //
 
 
-#ifndef __vtkMatlabMexAdapter
-#define __vtkMatlabMexAdapter
+#ifndef vtkMatlabMexAdapter_h
+#define vtkMatlabMexAdapter_h
 
 #include "mex.h" // Needed for Matlab mex.h mxArray
 #include "matrix.h" // Needed for Matlab matrix.h mxArray
 #include "vtkObject.h"
+#include "vtkFiltersMatlabModule.h"
 
 class vtkInformation;
 class vtkInformationVector;
@@ -63,7 +64,7 @@ class vtkDataArrayCollection;
 class vtkArrayData;
 class vtkDataObjectCollection;
 
-class VTK_GRAPHICS_EXPORT vtkMatlabMexAdapter : public vtkObject
+class VTKFILTERSMATLAB_EXPORT vtkMatlabMexAdapter : public vtkObject
 {
 
 public:
@@ -132,4 +133,3 @@ private:
 };
 
 #endif
-

@@ -32,8 +32,8 @@
 // a line or curve can be used to probe data to produce x-y plots along
 // that line or curve.
 
-#ifndef __vtkProbeFilter_h
-#define __vtkProbeFilter_h
+#ifndef vtkProbeFilter_h
+#define vtkProbeFilter_h
 
 #include "vtkFiltersCoreModule.h" // For export macro
 #include "vtkDataSetAlgorithm.h"
@@ -87,12 +87,40 @@ public:
   vtkGetStringMacro(ValidPointMaskArrayName)
 
   // Description:
-  // Shallow copy the input arrays to the output.
+  // Shallow copy the input cell data arrays to the output.
+  // Off by default.
   vtkSetMacro(PassCellArrays, int);
+  vtkBooleanMacro(PassCellArrays, int);
   vtkGetMacro(PassCellArrays, int);
-  //
+  // Description:
+  // Shallow copy the input point data arrays to the output
+  // Off by default.
   vtkSetMacro(PassPointArrays, int);
+  vtkBooleanMacro(PassPointArrays, int);
   vtkGetMacro(PassPointArrays, int);
+
+
+  // Description:
+  // Set whether to pass the field-data arrays from the Input i.e. the input
+  // providing the geometry to the output. On by default.
+  vtkSetMacro(PassFieldArrays, int);
+  vtkBooleanMacro(PassFieldArrays, int);
+  vtkGetMacro(PassFieldArrays, int);
+
+  // Description:
+  // Set the tolerance used to compute whether a point in the
+  // source is in a cell of the input.  This value is only used
+  // if ComputeTolerance is off.
+  vtkSetMacro(Tolerance, double);
+  vtkGetMacro(Tolerance, double);
+
+  // Description:
+  // Set whether to use the Tolerance field or precompute the tolerance.
+  // When on, the tolerance will be computed and the field
+  // value is ignored. Off by default.
+  vtkSetMacro(ComputeTolerance, bool);
+  vtkBooleanMacro(ComputeTolerance, bool);
+  vtkGetMacro(ComputeTolerance, bool);
 
 //BTX
 protected:
@@ -101,8 +129,12 @@ protected:
 
   int PassCellArrays;
   int PassPointArrays;
+  int PassFieldArrays;
 
   int SpatialMatch;
+
+  double Tolerance;
+  bool ComputeTolerance;
 
   virtual int RequestData(vtkInformation *, vtkInformationVector **,
     vtkInformationVector *);
@@ -110,6 +142,12 @@ protected:
     vtkInformationVector *);
   virtual int RequestUpdateExtent(vtkInformation *, vtkInformationVector **,
     vtkInformationVector *);
+
+  // Description:
+  // Call at end of RequestData() to pass attribute data respecting the
+  // PassCellArrays, PassPointArrays, PassFieldArrays flags.
+  void PassAttributeData(
+    vtkDataSet* input, vtkDataObject* source, vtkDataSet* output);
 
   // Description:
   // Equivalent to calling InitializeForProbing(); ProbeEmptyPoints().

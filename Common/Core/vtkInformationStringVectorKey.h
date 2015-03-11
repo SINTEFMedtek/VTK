@@ -17,8 +17,8 @@
 // vtkInformationStringVectorKey is used to represent keys for String
 // vector values in vtkInformation.h
 
-#ifndef __vtkInformationStringVectorKey_h
-#define __vtkInformationStringVectorKey_h
+#ifndef vtkInformationStringVectorKey_h
+#define vtkInformationStringVectorKey_h
 
 #include "vtkCommonCoreModule.h" // For export macro
 #include "vtkInformationKey.h"
@@ -34,6 +34,16 @@ public:
   vtkInformationStringVectorKey(const char* name, const char* location,
                                  int length=-1);
   ~vtkInformationStringVectorKey();
+
+  // Description:
+  // This method simply returns a new vtkInformationStringVectorKey, given a
+  // name, a location and a required length. This method is provided for
+  // wrappers. Use the constructor directly from C++ instead.
+  static vtkInformationStringVectorKey* MakeKey(const char* name, const char* location,
+    int length=-1)
+    {
+    return new vtkInformationStringVectorKey(name, location, length);
+    }
 
   // Description:
   // Get/Set the value associated with this key in the given

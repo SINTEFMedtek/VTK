@@ -22,8 +22,8 @@
 // vector arrays of built-in types size 2,3,4; for setting objects; and
 // debug, warning, and error printout information.
 
-#ifndef __vtkSetGet_h
-#define __vtkSetGet_h
+#ifndef vtkSetGet_h
+#define vtkSetGet_h
 
 #include "vtkCommonCoreModule.h" // For export macro
 #include "vtkSystemIncludes.h"
@@ -544,6 +544,19 @@ extern VTKCOMMONCORE_EXPORT void vtkOutputWindowDisplayDebugText(const char*);
 // sweet time getting around to implementing the method.
 //
 #define vtkNotUsed(x)
+
+//
+// This macro is used for functions which may not be used in a translation unit
+// due to different paths taken based on template types. Please give a reason
+// why the function may be considered unused (within a translation unit). For
+// example, a template specialization might not be used in compiles of sources
+// which use different template types.
+//
+#ifdef __GNUC__
+#define vtkMaybeUnused(reason) __attribute__((unused))
+#else
+#define vtkMaybeUnused(reason)
+#endif
 
 #define vtkWorldCoordinateMacro(name) \
 virtual vtkCoordinate *Get##name##Coordinate () \

@@ -1,12 +1,17 @@
-vtk_add_test_mpi(PBGLNamedVertexGraph.cxx)
-vtk_add_test_mpi(PBGLRandomGraph.cxx)
-vtk_add_test_mpi(TestPBGLAlgorithms.cxx)
-vtk_add_test_mpi(TestPBGLCollapseGraph.cxx)
-vtk_add_test_mpi(TestPBGLCollectGraph.cxx)
-vtk_add_test_mpi(TestPBGLEdgesPedigrees.cxx)
-vtk_add_test_mpi(TestPBGLGraphSQLReader.cxx)
-vtk_add_test_mpi(TestPBGLGraphSQLReaderFile.cxx)
-vtk_add_test_mpi(TestPBGLPedigrees.cxx)
-vtk_add_test_mpi(TestPBGLPipeline.cxx)
-vtk_add_test_mpi(TestPRMATGraphSource.cxx)
-vtk_add_test_mpi(TestPRandomGraphSource.cxx)
+include(vtkMPI)
+
+vtk_add_test_mpi(${vtk-module}CxxTests-MPI tests
+  PBGLNamedVertexGraph.cxx
+  PBGLRandomGraph.cxx
+  TestPBGLAlgorithms.cxx
+  TestPBGLCollapseGraph.cxx
+  TestPBGLCollectGraph.cxx
+  TestPBGLEdgesPedigrees.cxx
+  TestPBGLGraphSQLReader.cxx
+  TestPBGLGraphSQLReaderFile.cxx
+  TestPBGLPedigrees.cxx
+  TestPBGLPipeline.cxx
+  TestPRMATGraphSource.cxx
+  TestPRandomGraphSource.cxx
+  )
+vtk_test_mpi_executable(${vtk-module}CxxTests-MPI tests)

@@ -102,13 +102,13 @@ PURPOSE.  See the above copyright notice for more information.
 // by Sandia National Labs.
 //
 
-#ifndef __vtkOpenGLHAVSVolumeMapper_h
-#define __vtkOpenGLHAVSVolumeMapper_h
+#ifndef vtkOpenGLHAVSVolumeMapper_h
+#define vtkOpenGLHAVSVolumeMapper_h
 
 #include "vtkRenderingVolumeOpenGLModule.h" // For export macro
 #include "vtkHAVSVolumeMapper.h"
 
-#include <vtkWeakPointer.h> // to cache the vtkRenderWindow
+#include "vtkWeakPointer.h" // to cache the vtkRenderWindow
 class vtkRenderer;
 class vtkRenderWindow;
 

@@ -19,9 +19,7 @@
 
 // .NAME vtkModelMetadata - This class encapsulates the metadata
 //   that appear in mesh-based file formats but do not appear in
-//   vtkUnstructuredGrid.  It can pack itself into the field
-//   arrays of a vtkUnstructuredGrid, and be unpacked by metadata
-//   aware filters and writers later on.
+//   vtkUnstructuredGrid.
 //
 // .SECTION Description
 //   This class is inspired by the Exodus II file format, but
@@ -68,8 +66,8 @@
 // .SECTION See also
 //   vtkDistributedDataFilter vtkExtractCells
 
-#ifndef __vtkModelMetadata_h
-#define __vtkModelMetadata_h
+#ifndef vtkModelMetadata_h
+#define vtkModelMetadata_h
 
 #include "vtkIOExodusModule.h" // For export macro
 #include "vtkObject.h"
@@ -121,10 +119,6 @@ public:
   void SetInformationLines(int numLines, char **lines);
 
   // Description:
-  //   Add an information line.
-  void AddInformationLine(char *info);
-
-  // Description:
   //   Get a pointer to all the information lines.  The number
   //   of lines is returned;
   int GetInformationLines(char ***lines) const;
@@ -133,29 +127,6 @@ public:
   //   Get the number of information lines.
   int GetNumberOfInformationLines() const {
     return this->NumberOfInformationLines;}
-
-  // Description:
-  //   Set the list of QA records.  If there was already a
-  //   a list, it will be replaced with this one.  We use your
-  //   pointer and delete the records when done.
-  void SetQARecords(int numberOfRecords, char *QARecords[][4]);
-
-  // Description:
-  //   Add a QA record.  They fields are:
-  //    The code name
-  //    The code version number
-  //    The date (MM/DD/YY or NULL for today)
-  //    The time (HH:MM:SS or NULL for right now)
-  void AddQARecord(char *name, char *version, char *date, char *time);
-
-  // Description:
-  //   Get a pointer to the 4 fields of a QA record
-  void GetQARecord(int which, char **name, char **version,
-                   char **date, char **time) const;
-
-  // Description:
-  //   Get the number of QA records
-  int GetNumberOfQARecords() const {return this->NumberOfQARecords;}
 
   // Description:
   //    Set the index of the time step represented by the results
@@ -276,7 +247,6 @@ public:
   // Description:
   //   Set or get a pointer to a list of the number of nodes in each node set.
   //   We use your pointer, and free the memory when the object is freed.
-  int SetNodeSetSize(int *);
   int *GetNodeSetSize() const {return this->NodeSetSize;}
 
   // Description:
@@ -293,7 +263,6 @@ public:
   //   nodes in the node set.
   //   Length of list is number of node sets.
   //   We use your pointer, and free the memory when the object is freed.
-  int SetNodeSetNumberOfDistributionFactors(int *);
   int *GetNodeSetNumberOfDistributionFactors() const
     {return this->NodeSetNumberOfDistributionFactors;}
 
@@ -526,16 +495,6 @@ public:
     return this->AllVariablesDefinedInAllBlocks;}
 
   // Description:
-  //   If the element variable named is defined for the block Id
-  //   provided (in the element variable truth table) return a
-  //   1, otherwise return a 0.  If the variable name or block Id
-  //   are unrecognized, the default value of 1 is returned.
-  //   (This is an "original" variable name, from the file,
-  //   not a name created for the vtkUnstructuredGrid.  Use
-  //   FindOriginal*VariableName to map between the two.)
-  int ElementVariableIsDefinedInBlock(char *varname, int blockId);
-
-  // Description:
   //   The ModelMetadata object may contain these lists:
   //    o  the variables in the original data file
   //    o  the variables created in the u grid from those original variables
@@ -579,98 +538,6 @@ public:
     return this->MapToOriginalNodeVariableNames;}
 
   // Description:
-  //   Given the name of an element variable the vtkUnstructuredGrid
-  //   described by this ModelMetadata, and a component number, give
-  //   the name of the scalar array in the original
-  //   file that turned into that component when the file was
-  //   read into VTK.
-  char *FindOriginalElementVariableName(const char *name, int component);
-
-  // Description:
-  //   Given the name of an node variable the vtkUnstructuredGrid
-  //   described by this ModelMetadata, and a component number, give
-  //   the name of the scalar array in the original
-  //   file that turned into that component when the file was
-  //   read into VTK.
-  char *FindOriginalNodeVariableName(const char *name, int component);
-
-  // Description:
-  //   Static function that returns 1 if the vtkUnstructuredGrid
-  //   has metadata packed into it's field arrays, and 0 otherwise.
-  static int HasMetadata(vtkDataSet *grid);
-
-  // Description:
-  //   Static function that removes the packed metadata arrays
-  //   from a dataset.
-  static void RemoveMetadata(vtkDataSet *grid);
-
-  // Description:
-  //   Pack this object's metadata into a field array of a dataset.
-  void Pack(vtkDataSet *ugrid);
-
-  // Description:
-  //   Unpack the metadata stored in a dataset,
-  //   and initialize this object with it.  Return 1 if there's
-  //   no metadata packed into the grid, 0 if OK.
-  //   If deleteIt is ON, then delete the grid's packed data after
-  //   unpacking it into the object.
-  int Unpack(vtkDataSet *ugrid, int deleteIt);
-
-  // Description:
-  //   In order to write Exodus files from vtkUnstructuredGrid
-  //   objects that were read from Exodus files, we need to know
-  //   the mapping from variable names in the UGrid to variable
-  //   names in the Exodus file.  (The Exodus reader combines
-  //   scalar variables with similar names into vectors in the
-  //   UGrid.)  When building the UGrid to which this
-  //   ModelMetadata refers, add each element and node variable
-  //   name with this call, including the name of original variable
-  //   that yielded it's first component, and the number of components.
-  //   If a variable is removed from the UGrid, remove it from
-  //   the ModelMetadata.  (If this information is missing or
-  //   incomplete, the ExodusIIWriter can still do something
-  //   sensible in creating names for variables.)
-  int AddUGridElementVariable(char *ugridVarName, char *origName, int numComponents);
-  int RemoveUGridElementVariable(char *ugridVarName);
-
-  int AddUGridNodeVariable(char *ugridVarName, char *origName, int numComponents);
-  int RemoveUGridNodeVariable(char *ugridVarName);
-
-  // Description:
-  //   In VTK we take vtkUnstructuredGrids and perform
-  //   operations on them, including subsetting and merging
-  //   grids.  We need to modify the metadata object
-  //   when this happens.  MergeModelMetadata merges the supplied
-  //   model (both global and local metadata) into this model.
-  //   The models must be from the same file set.
-  //
-  //   MergeModelMetadata assumes that no element in one metadata
-  //   object appears in the other.  (It doesn't test for duplicate
-  //   elements when merging the two metadata objects.)
-  int MergeModelMetadata(const vtkModelMetadata *em);
-
-  // Description:
-  //   The metadata is divided into global metadata and local
-  //   metadata.  MergeGlobalInformation merges just the
-  //   global metadata of the supplied object into the
-  //   global metadata of this object.
-  int MergeGlobalInformation(const vtkModelMetadata *em);
-
-  // Description:
-  //   Create and return a new metadata object which contains
-  //   the information for the subset of global cell IDs provided.
-  //   We need the grid containing the cells so we can find point
-  //   Ids as well, and also the name of the global cell ID array
-  //   and the name of the global point ID array.
-  vtkModelMetadata *ExtractModelMetadata(vtkIdTypeArray *globalCellIdList,
-                                         vtkDataSet *grid);
-
-  // Description:
-  //   Create and return a new metadata object containing only the
-  //   global metadata of this metadata object.
-  vtkModelMetadata *ExtractGlobalMetadata();
-
-  // Description:
   //   Free selected portions of the metadata when updating values
   //   in the vtkModelMetadata object.  Resetting a particular field,
   //   (i.e. SetNodeSetIds) frees the previous setting, but if you
@@ -697,11 +564,6 @@ public:
   //   Set the object back to it's initial state
   void Reset();
 
-  // Description:
-  //   Block information is stored in arrays.  This method returns
-  //   the array index for a given block ID.
-  int GetBlockLocalIndex(int id);
-
 protected:
   vtkModelMetadata();
   ~vtkModelMetadata();
@@ -713,59 +575,13 @@ private:
   void FreeAllMetadata();
   void FreeAllIvars();
 
-  void FreeQARecords();
-
   int BuildBlockElementIdListIndex();
   int BuildBlockAttributesIndex();
-  int BuildNodeSetNodeIdListIndex();
-  int BuildNodeSetDistributionFactorIndex();
-  int BuildSideSetListIndex();
   int BuildSideSetDistributionFactorIndex();
-
-  int InitializeFromSizeArray(vtkIntArray *ia, int &maxStr, int &maxLine);
-  vtkIntArray *PackSizeArray(int maxStr, int maxLine);
-  int InitializeFromIntArray(vtkModelMetadata *sizes, vtkIntArray *ia);
-  vtkIntArray *PackIntArray();
-  int InitializeFromCharArray(vtkModelMetadata *sizes,
-                   vtkCharArray *uca, int maxStr, int maxLine);
-  vtkCharArray *PackCharArray(int maxStr, int maxLine);
-  int InitializeFromFloatArray(vtkFloatArray *fa);
-  vtkFloatArray *PackFloatArray();
 
   static char *StrDupWithNew(const char *s);
 
-  static char *WriteLines(char *p, int maxLines, int maxLen, char **lines);
-  static char *ReadLines(char ***to, int maxLines,
-                            int maxLen, char *from);
-  static char **CopyLines(char **lines, int num);
-  static int *CopyInts(int *vals, int num);
-
   static int FindNameOnList(char *name, char **list, int listLen);
-
-  int MergeIdLists(int numSubLists,
-    int *id1, int *id1Idx, int id1Len,
-      float *dist1, int *dist1Idx, int dist1Len,
-    int *id2, int *id2Idx, int id2Len,
-      float *dist2, int *dist2Idx, int dist2Len,
-    int **idNew, int **idNewIdx, int *idNewLen,
-      float **distNew, int **distNewIdx, int *distNewLen);
-
-  int AppendFloatLists(int numSubLists,
-    float *id1, int *id1Idx, int id1Len,
-    float *id2, int *id2Idx, int id2Len,
-    float **idNew, int **idNewIdx, int *idNewLen);
-
-  int AppendIntegerLists(int numSubLists,
-    int *id1, int *id1Idx, int id1Len,
-    int *id2, int *id2Idx, int id2Len,
-    int **idNew, int **idNewIdx, int *idNewLen);
-
-  void ExtractCellsFromBlockData(vtkModelMetadataSTLCloak *idset,
-                                 vtkModelMetadata *mmd);
-  void ExtractNodesFromNodeSetData(vtkModelMetadataSTLCloak *idset,
-                                   vtkModelMetadata *mmd);
-  void ExtractSidesFromSideSetData(vtkModelMetadataSTLCloak *idset,
-                                   vtkModelMetadata *mmd);
 
   void ShowFloats(const char *what, int num, float *f);
   void ShowLines(const char *what, int num, char **l);
@@ -794,11 +610,6 @@ private:
   //        in a file of a partitioned set, or are read in from file)
 
   char *Title;                 // (G)
-
-  int NumberOfQARecords;       // (G)
-//BTX
-  char *(*QARecord)[4];        // NumberOfQARecords * 4 (G)
-//ETX
 
   int NumberOfInformationLines; // (G)
   char **InformationLine;       // (G)

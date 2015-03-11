@@ -33,11 +33,14 @@
 // .SECTION See Also
 // vtkGeometryFilter vtkExtractGeometry vtkExtractGrid
 
-#ifndef __vtkExtractVOI_h
-#define __vtkExtractVOI_h
+#ifndef vtkExtractVOI_h
+#define vtkExtractVOI_h
 
 #include "vtkImagingCoreModule.h" // For export macro
 #include "vtkImageAlgorithm.h"
+
+// Forward Declarations
+class vtkExtractStructuredGridHelper;
 
 class VTKIMAGINGCORE_EXPORT vtkExtractVOI : public vtkImageAlgorithm
 {
@@ -64,9 +67,20 @@ public:
   vtkSetVector3Macro(SampleRate, int);
   vtkGetVectorMacro(SampleRate, int, 3);
 
+  // Description:
+  // Control whether to enforce that the "boundary" of the grid is output in
+  // the subsampling process. (This ivar only has effect when the SampleRate
+  // in any direction is not equal to 1.) When this ivar IncludeBoundary is
+  // on, the subsampling will always include the boundary of the grid even
+  // though the sample rate is not an even multiple of the grid
+  // dimensions. (By default IncludeBoundary is off.)
+  vtkSetMacro(IncludeBoundary,int);
+  vtkGetMacro(IncludeBoundary,int);
+  vtkBooleanMacro(IncludeBoundary,int);
+
 protected:
   vtkExtractVOI();
-  ~vtkExtractVOI() {}
+  ~vtkExtractVOI();
 
   virtual int RequestUpdateExtent(vtkInformation*,
                                   vtkInformationVector**,
@@ -78,8 +92,19 @@ protected:
                           vtkInformationVector** inputVector,
                           vtkInformationVector* outputVector);
 
+  // Description:
+  // Implementation for RequestData using a specified VOI. This is because the
+  // parallel filter needs to muck around with the VOI to get spacing and
+  // partitioning to play nice.
+  bool RequestDataImpl(int voi[6],
+                       vtkInformationVector **inputVector,
+                       vtkInformationVector *outputVector);
+
   int VOI[6];
   int SampleRate[3];
+  int IncludeBoundary;
+
+  vtkExtractStructuredGridHelper* Internal;
 private:
   vtkExtractVOI(const vtkExtractVOI&);  // Not implemented.
   void operator=(const vtkExtractVOI&);  // Not implemented.

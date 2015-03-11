@@ -26,8 +26,8 @@
 // .SECTION See Also
 // vtkWindow vtkRenderer
 
-#ifndef __vtkViewport_h
-#define __vtkViewport_h
+#ifndef vtkViewport_h
+#define vtkViewport_h
 
 #include "vtkRenderingCoreModule.h" // For export macro
 #include "vtkObject.h"
@@ -212,10 +212,27 @@ public:
   virtual vtkAssemblyPath* PickProp(double selectionX, double selectionY) = 0;
 
   // Description:
+  // Return the Prop that has the highest z value at the given x1, y1
+  // and x2,y2 positions in the viewport.  Basically, the top most prop that
+  // renders the pixel at selectionX1, selectionY1, selectionX2, selectionY2
+  // will be returned.  If no Props are there NULL is returned.  This method
+  // selects from the Viewports Prop list.
+  virtual vtkAssemblyPath* PickProp(double selectionX1, double selectionY1,
+                                    double selectionX2, double selectionY2) = 0;
+
+  // Description:
   // Same as PickProp with two arguments, but selects from the given
   // collection of Props instead of the Renderers props.  Make sure
   // the Props in the collection are in this renderer.
   vtkAssemblyPath* PickPropFrom(double selectionX, double selectionY,
+                                vtkPropCollection*);
+
+  // Description:
+  // Same as PickProp with four arguments, but selects from the given
+  // collection of Props instead of the Renderers props.  Make sure
+  // the Props in the collection are in this renderer.
+  vtkAssemblyPath* PickPropFrom(double selectionX1, double selectionY1,
+                                double selectionX2, double selectionY2,
                                 vtkPropCollection*);
 
   // Description:
@@ -230,6 +247,8 @@ public:
   double GetPickX2() const {return this->PickX2;}
   double GetPickY2() const {return this->PickY2;}
   vtkGetMacro(IsPicking, int);
+  vtkGetMacro(CurrentPickId, unsigned int);
+  void SetCurrentPickId(unsigned int a) {this->CurrentPickId = a;};
   vtkGetObjectMacro(PickResultProps, vtkPropCollection);
 
   // Description:

@@ -25,6 +25,7 @@
 #include "vtkObject.h"
 #include <vector> // For STL vector
 #include <cassert>  // For assert
+#include <string> // For std::string
 
 class VTKCOMMONEXECUTIONMODEL_EXPORT vtkExtentRCBPartitioner : public vtkObject
 {
@@ -60,6 +61,12 @@ class VTKCOMMONEXECUTIONMODEL_EXPORT vtkExtentRCBPartitioner : public vtkObject
       {
       this->SetGlobalExtent( ext[0], ext[1], ext[2], ext[3], ext[4], ext[5] );
       }
+
+    // Description:
+    // On/Off DuplicateNodes between partitions. Default is On.
+    vtkSetMacro(DuplicateNodes,int);
+    vtkGetMacro(DuplicateNodes,int);
+    vtkBooleanMacro(DuplicateNodes,int);
 
     // Description:
     // Set/Get macro for the number of ghost layers.
@@ -164,6 +171,12 @@ class VTKCOMMONEXECUTIONMODEL_EXPORT vtkExtentRCBPartitioner : public vtkObject
      int GlobalExtent[6];
      int NumberOfPartitions;
      int NumExtents;
+
+     int DuplicateNodes; // indicates whether nodes are duplicated between
+                         // partitions, so that they are abutting. This is
+                         // set to true by default. If disabled, the resulting
+                         // partitions will have gaps.
+
      bool ExtentIsPartitioned;
 
      // BTX

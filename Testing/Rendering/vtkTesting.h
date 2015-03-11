@@ -56,8 +56,8 @@
 //    }
 //
 
-#ifndef __vtkTesting_h
-#define __vtkTesting_h
+#ifndef vtkTesting_h
+#define vtkTesting_h
 
 #include "vtkTestingRenderingModule.h" // For export macro
 #include "vtkObject.h"
@@ -91,29 +91,49 @@ public:
   // Description:
   // This method is intended to be a comprehensive, one line replacement for
   // vtkRegressionTest and for the replay based testing using
-  // vtkInteractorEventRecorder greatly simplifying API and code bloat. It scans
-  // the command line specified for the following :
-  // - If a "--DisableReplay" is specified, it disables the testing replay. This
-  //   is particularly useful in enabling the user to exercise the widgets.
-  //   Typically the widgets are defined by the testing replay, so the user
-  //   misses out on playing around with the widget definition behaviour.
-  // - If a "--Record" is specified in the command line, it records the
-  //   interactions into a "vtkInteractorEventRecorder.log" file. This is useful
-  //   when creating the playback stream that is plugged into tests.
+  // vtkInteractorEventRecorder, greatly simplifying API and code
+  // bloat. It scans the command line specified for the following :
+  // - If a "--DisableReplay" is specified, it disables the testing
+  //   replay. This is particularly useful in enabling the user to
+  //   exercise the widgets. Typically the widgets are defined by the
+  //   testing replay, so the user misses out on playing around with the
+  //   widget definition behaviour.
+  // - If a "--Record" is specified, it records the interactions into
+  //   a "vtkInteractorEventRecorder.log" file. This is useful when
+  //   creating the playback stream that is plugged into tests. The
+  //   file can be used to create a const char * variable for playback
+  //   or can copied into a location as a playback file.
+  // - If a "--PlaybackFile filename is specified,the provided file
+  //   contains the events and is passed to the event recorder.
   //
   // Typical usage in a test for a VTK widget that needs playback
   // testing / recording is :
   //
-  //   const char TestFooWidgetTestLog[] = {
+  //   const char TestFooWidgetLog[] = {
   //    ....
   //    };
   //
   //   int TestFooWidget( int argc, char *argv[] )
   //   {
   //     ...
-  //     return vtkTesting::InteractorEventLoop( argc, argv, iren, TestFooWidgetTestLog );
+  //     return vtkTesting::InteractorEventLoop(
+  //         argc, argv, iren,
+  //         TestFooWidgetLog );
   //   }
   //
+  // In tests that playback events from a file:
+  // TestFooEventLog.txt stored in  ../Data/Input/TestFooEventLog.txt
+  // The CMakeLists.txt file should contain:
+  //
+  // set(TestFoo_ARGS "--PlaybackFile"
+  //   "DATA{../Data/Input/TestFooEventLog.txt}")
+  //
+  // and the API is
+  //   int TestFoo( int argc, char *argv[] )
+  //   {
+  //     ...
+  //     return vtkTesting::InteractorEventLoop( argc, argv, iren );
+  //   }
   //
   // In tests where no playback is exercised, the API is simply
   //
@@ -130,15 +150,29 @@ public:
 //ETX
 
   // Description:
-  // Use front buffer for tests. By default use back buffer.
+  // Use the front buffer first for regression test comparisons. By
+  // default use back buffer first, then try the front buffer if the
+  // test fails when comparing to the back buffer.
   vtkSetClampMacro(FrontBuffer, int, 0, 1);
   vtkBooleanMacro(FrontBuffer, int);
   vtkGetMacro(FrontBuffer, int);
 
   // Description:
-  // Perform the test and return result. At the same time the output will be
-  // written cout
+  // Perform the test and return the result. Delegates to
+  // RegressionTestAndCaptureOutput, sending the output to cout.
   virtual int RegressionTest(double thresh);
+
+  // Description:
+  // Perform the test and return the result. At the same time, write
+  // the output to the output stream os. Includes timing information
+  // in the output.
+  virtual int RegressionTestAndCaptureOutput(double thresh, ostream &os);
+
+  // Description:
+  // Perform the test and return the result. At the same time, write
+  // the output to the output stream os. This method is nearly the
+  // same as RegressionTestAndCaptureOutput, but does not include
+  // timing information in the output.
   virtual int RegressionTest(double thresh,ostream &os);
 
   // Description:
@@ -187,6 +221,7 @@ public:
   // AddArgument for each argument that was passed into the command line
   void AddArgument(const char *argv);
   void AddArguments(int argc,const char **argv);
+  void AddArguments(int argc, char **argv);
 
   //BTX
   // Description:

@@ -22,13 +22,15 @@
 //
 // Uses single input array specified with SetInputArrayToProcess(0,...)
 // to collapse groups of vertices with the same value into a single vertex.
+// @deprecated Not maintained as of VTK 6.2 and will be removed eventually.
 
-#ifndef __vtkPBGLCollapseGraph_h
-#define __vtkPBGLCollapseGraph_h
+#ifndef vtkPBGLCollapseGraph_h
+#define vtkPBGLCollapseGraph_h
 
 #include "vtkInfovisParallelModule.h" // For export macro
 #include "vtkGraphAlgorithm.h"
 
+#if !defined(VTK_LEGACY_REMOVE)
 class VTKINFOVISPARALLEL_EXPORT vtkPBGLCollapseGraph : public vtkGraphAlgorithm
 {
 public:
@@ -50,5 +52,6 @@ private:
   void operator=(const vtkPBGLCollapseGraph&);   // Not implemented
 };
 
+#endif //VTK_LEGACY_REMOVE
 #endif
 

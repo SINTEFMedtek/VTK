@@ -58,8 +58,10 @@
 // vtkPRandomGraphSource. Greater skew values tend to produce graphs
 // with a power-law degree distribution, which mimics the behavior of
 // many real-world graphs based on social networks.
-#ifndef __vtkPBGLRMATGraphSource_h
-#define __vtkPBGLRMATGraphSource_h
+//
+// @deprecated Not maintained as of VTK 6.2 and will be removed eventually.
+#ifndef vtkPBGLRMATGraphSource_h
+#define vtkPBGLRMATGraphSource_h
 
 #include "vtkInfovisParallelModule.h" // For export macro
 #include "vtkGraphAlgorithm.h"
@@ -67,6 +69,7 @@
 class vtkGraph;
 class vtkPVXMLElement;
 
+#if !defined(VTK_LEGACY_REMOVE)
 class VTKINFOVISPARALLEL_EXPORT vtkPBGLRMATGraphSource : public vtkGraphAlgorithm
 {
 public:
@@ -175,5 +178,6 @@ private:
   void operator=(const vtkPBGLRMATGraphSource&);   // Not implemented
 };
 
+#endif //VTK_LEGACY_REMOVE
 #endif
 

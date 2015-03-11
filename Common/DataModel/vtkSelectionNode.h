@@ -40,8 +40,8 @@
 // .SECTION Caveats
 // No SelectionList is created by default. It should be assigned.
 
-#ifndef __vtkSelectionNode_h
-#define __vtkSelectionNode_h
+#ifndef vtkSelectionNode_h
+#define vtkSelectionNode_h
 
 #include "vtkCommonDataModelModule.h" // For export macro
 #include "vtkObject.h"
@@ -158,6 +158,12 @@ public:
   // This is the same as setting the FIELD_TYPE() key on the property.
   virtual void SetFieldType(int type);
   virtual int GetFieldType();
+
+  // Description:
+  // Methods to convert vtkSelectionNode::SelectionField to
+  // vtkDataSetAttribute::AttributeTypes and vice-versa.
+  static int ConvertSelectionFieldToAttributeType(int val);
+  static int ConvertAttributeTypeToSelectionField(int val);
 
   // Description:
   // Set/Get the query expression string.

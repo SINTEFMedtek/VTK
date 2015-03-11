@@ -18,8 +18,8 @@
 // The important capability it has is to produce images without bringing
 // data back to the CPU.
 
-#ifndef __vtkPistonMapper_h
-#define __vtkPistonMapper_h
+#ifndef vtkPistonMapper_h
+#define vtkPistonMapper_h
 
 #include "vtkAcceleratorsPistonModule.h" // For export macro
 #include "vtkMapper.h"
@@ -89,6 +89,8 @@ public:
   // Bring this algorithm's outputs up-to-date.
   // Overridden to allow specification on streaming piece.
   virtual void Update();
+  // Use the other overloads of Update.
+  using vtkAlgorithm::Update;
 
   // Description:
   // If you want only a part of the data, specify by setting the piece.

@@ -119,7 +119,6 @@
 
 
 /* Copy the first part of user declarations.  */
-#line 1 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
 
 /* Force the definition for Linux */
 /* Possible bug in older Linux yacc */
@@ -136,9 +135,12 @@ extern "C" {
 #include <XdmfHDF.h>
 #include <math.h>
 
-static XdmfArray *XdmfExprReturnValue;
+static xdmf2::XdmfArray *XdmfExprReturnValue;
 XdmfExprSymbol *XdmfExprItemsTable = NULL;
 
+
+namespace xdmf2
+{
 
 class XdmfInt64Array : public XdmfArray {
 public :
@@ -151,6 +153,8 @@ public :
                 this->SetNumberOfElements( 10 );
                 };
 };
+
+}
 
 #define ADD_XDMF_tokARRAY_TO_SYMBOL( a ) \
         { \
@@ -177,7 +181,7 @@ public :
 #endif
 
 #if ! defined (YYSTYPE) && ! defined (YYSTYPE_IS_DECLARED)
-#line 44 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
 typedef union YYSTYPE {
         double                DoubleValue;
         long                IntegerValue;
@@ -196,7 +200,7 @@ typedef union YYSTYPE {
 
 
 /* Line 214 of yacc.c.  */
-#line 201 "/home/andy/vtk/Xdmf-bin/libsrc/XdmfExprYacc.tab.c"
+
 
 #if ! defined (yyoverflow) || YYERROR_VERBOSE
 
@@ -1177,7 +1181,7 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 68 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
                 /* 
                 printf("Complete\n");
@@ -1187,31 +1191,31 @@ yyreduce:
     break;
 
   case 3:
-#line 76 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
-                XdmfArray *TempArray = ( XdmfArray *)yyvsp[0].ArrayPointer;
+                xdmf2::XdmfArray *TempArray = ( xdmf2::XdmfArray *)yyvsp[0].ArrayPointer;
 
                 /* printf("Setting %s from ArrayExpression\n", $1); */
-                XdmfExprReturnValue = (XdmfArray *)yyvsp[-2].ArrayPointer;
+                XdmfExprReturnValue = (xdmf2::XdmfArray *)yyvsp[-2].ArrayPointer;
                 *XdmfExprReturnValue = *TempArray;
                 delete TempArray;
                 }
     break;
 
   case 4:
-#line 84 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
                 /* printf("Setting %s from ScalarExpression\n", $1); */
-                XdmfExprReturnValue = (XdmfArray *)yyvsp[-2].ArrayPointer;
+                XdmfExprReturnValue = (xdmf2::XdmfArray *)yyvsp[-2].ArrayPointer;
                 *XdmfExprReturnValue = yyvsp[0].DoubleValue;
                 }
     break;
 
   case 5:
-#line 89 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
-                        XdmfArray        *Array1 = ( XdmfArray *)yyvsp[-3].ArrayPointer;
-                        XdmfArray        *Result = ( XdmfArray *)yyvsp[-5].ArrayPointer;
+                        xdmf2::XdmfArray        *Array1 = ( xdmf2::XdmfArray *)yyvsp[-3].ArrayPointer;
+                        xdmf2::XdmfArray        *Result = ( xdmf2::XdmfArray *)yyvsp[-5].ArrayPointer;
                         XdmfLength        i, index, Length = Array1->GetNumberOfElements();
 
                         for( i = 0 ; i < Length ; i++ ){
@@ -1224,11 +1228,11 @@ yyreduce:
     break;
 
   case 6:
-#line 101 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
-                        XdmfArray        *Array1 = ( XdmfArray *)yyvsp[-3].ArrayPointer;
-                        XdmfArray        *Array2 = ( XdmfArray *)yyvsp[0].ArrayPointer;
-                        XdmfArray        *Result = ( XdmfArray *)yyvsp[-5].ArrayPointer;
+                        xdmf2::XdmfArray        *Array1 = ( xdmf2::XdmfArray *)yyvsp[-3].ArrayPointer;
+                        xdmf2::XdmfArray        *Array2 = ( xdmf2::XdmfArray *)yyvsp[0].ArrayPointer;
+                        xdmf2::XdmfArray        *Result = ( xdmf2::XdmfArray *)yyvsp[-5].ArrayPointer;
                         XdmfFloat64        Value;
                         XdmfLength        i, index, Length = Array1->GetNumberOfElements();
 
@@ -1244,41 +1248,41 @@ yyreduce:
     break;
 
   case 7:
-#line 117 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
-                        XdmfArray *Range;
+                        xdmf2::XdmfArray *Range;
 
                         /* printf("Array Range %d:%d = ScalarExpression \n", $3, $5);         */
-                        Range = (XdmfArray *)yyvsp[-7].ArrayPointer;
+                        Range = (xdmf2::XdmfArray *)yyvsp[-7].ArrayPointer;
                         XdmfExprReturnValue = Range->Reference( yyvsp[-5].IntegerValue, yyvsp[-3].IntegerValue ); /* This is a Reference */
                         *XdmfExprReturnValue = yyvsp[0].DoubleValue;
 
                         /* Now Point to the Entire Array */
-                        XdmfExprReturnValue = (XdmfArray *)yyvsp[-7].ArrayPointer;
+                        XdmfExprReturnValue = (xdmf2::XdmfArray *)yyvsp[-7].ArrayPointer;
                         }
     break;
 
   case 8:
-#line 128 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
-                        XdmfArray *TempArray = ( XdmfArray *)yyvsp[0].ArrayPointer;
-                        XdmfArray *Range;
+                        xdmf2::XdmfArray *TempArray = ( xdmf2::XdmfArray *)yyvsp[0].ArrayPointer;
+                        xdmf2::XdmfArray *Range;
 
                         /* printf("Array Range %d:%d = ArrayExpression \n", $3, $5);         */
-                        Range = (XdmfArray *)yyvsp[-7].ArrayPointer;
+                        Range = (xdmf2::XdmfArray *)yyvsp[-7].ArrayPointer;
                         XdmfExprReturnValue = Range->Reference( yyvsp[-5].IntegerValue, yyvsp[-3].IntegerValue ); /* This is a Reference */
                         *XdmfExprReturnValue = *TempArray;
 
                         /* Now Point to the Entire Array */
-                        XdmfExprReturnValue = (XdmfArray *)yyvsp[-7].ArrayPointer;
+                        XdmfExprReturnValue = (xdmf2::XdmfArray *)yyvsp[-7].ArrayPointer;
                         delete TempArray;
                         }
     break;
 
   case 9:
-#line 141 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
-                XdmfArray *TempArray = ( XdmfArray *)yyvsp[0].ArrayPointer;
+                xdmf2::XdmfArray *TempArray = ( xdmf2::XdmfArray *)yyvsp[0].ArrayPointer;
 
                 /* printf("Clone from ArrayExpression\n"); */
                 XdmfExprReturnValue = TempArray;        
@@ -1287,17 +1291,17 @@ yyreduce:
     break;
 
   case 10:
-#line 148 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
                 printf("Pointless !! Scalar = %g\n", yyvsp[0].DoubleValue);
                 }
     break;
 
   case 11:
-#line 153 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
-                        XdmfArray *Array1 = ( XdmfArray *)yyvsp[-2].ArrayPointer;
-                        XdmfArray *Array2 = ( XdmfArray *)yyvsp[0].ArrayPointer;
+                        xdmf2::XdmfArray *Array1 = ( xdmf2::XdmfArray *)yyvsp[-2].ArrayPointer;
+                        xdmf2::XdmfArray *Array2 = ( xdmf2::XdmfArray *)yyvsp[0].ArrayPointer;
 
                         /* printf("Array 0x%X + 0x%X\n", Array1, Array2); */
                         *Array1 += *Array2;
@@ -1307,12 +1311,12 @@ yyreduce:
     break;
 
   case 12:
-#line 162 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
                         /* Interlace */
-                        XdmfArray *Array1 = ( XdmfArray *)yyvsp[-2].ArrayPointer;
-                        XdmfArray *Array2 = ( XdmfArray *)yyvsp[0].ArrayPointer;
-                        XdmfArray *NewArray = new XdmfArray();
+                        xdmf2::XdmfArray *Array1 = ( xdmf2::XdmfArray *)yyvsp[-2].ArrayPointer;
+                        xdmf2::XdmfArray *Array2 = ( xdmf2::XdmfArray *)yyvsp[0].ArrayPointer;
+                        xdmf2::XdmfArray *NewArray = new xdmf2::XdmfArray();
                         XdmfInt32 i, Rank1, Rank2;
                         XdmfInt64 NewLength, Length1, Length2, IFactor, Lcd;
                         XdmfInt64 Dimension1[ XDMF_MAX_DIMENSION ];
@@ -1387,12 +1391,12 @@ yyreduce:
     break;
 
   case 13:
-#line 239 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
                         /* Interlace */
-                        XdmfArray *Array1 = ( XdmfArray *)yyvsp[-2].ArrayPointer;
-                        XdmfArray *Array2 = ( XdmfArray *)yyvsp[0].ArrayPointer;
-                        XdmfArray *NewArray = new XdmfArray();
+                        xdmf2::XdmfArray *Array1 = ( xdmf2::XdmfArray *)yyvsp[-2].ArrayPointer;
+                        xdmf2::XdmfArray *Array2 = ( xdmf2::XdmfArray *)yyvsp[0].ArrayPointer;
+                        xdmf2::XdmfArray *NewArray = new xdmf2::XdmfArray();
                         XdmfInt32 i, Rank1, Rank2;
                         XdmfInt64 Dimension1[ XDMF_MAX_DIMENSION ];
                         XdmfInt64 Dimension2[ XDMF_MAX_DIMENSION ];
@@ -1455,10 +1459,10 @@ yyreduce:
     break;
 
   case 14:
-#line 303 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
-                        XdmfArray *Array1 = ( XdmfArray *)yyvsp[-2].ArrayPointer;
-                        XdmfArray *Array2 = ( XdmfArray *)yyvsp[0].ArrayPointer;
+                        xdmf2::XdmfArray *Array1 = ( xdmf2::XdmfArray *)yyvsp[-2].ArrayPointer;
+                        xdmf2::XdmfArray *Array2 = ( xdmf2::XdmfArray *)yyvsp[0].ArrayPointer;
 
                         /* printf("Array 0x%X + 0x%X\n", Array1, Array2); */
                         *Array1 -= *Array2;
@@ -1468,10 +1472,10 @@ yyreduce:
     break;
 
   case 15:
-#line 312 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
-                        XdmfArray *Array1 = ( XdmfArray *)yyvsp[-2].ArrayPointer;
-                        XdmfArray *Array2 = ( XdmfArray *)yyvsp[0].ArrayPointer;
+                        xdmf2::XdmfArray *Array1 = ( xdmf2::XdmfArray *)yyvsp[-2].ArrayPointer;
+                        xdmf2::XdmfArray *Array2 = ( xdmf2::XdmfArray *)yyvsp[0].ArrayPointer;
 
                         /* printf("Array 0x%X * 0x%X\n", Array1, Array2); */
                         *Array1 *= *Array2;
@@ -1482,10 +1486,10 @@ yyreduce:
     break;
 
   case 16:
-#line 322 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
-                        XdmfArray *Array1 = ( XdmfArray *)yyvsp[-2].ArrayPointer;
-                        XdmfArray *Array2 = ( XdmfArray *)yyvsp[0].ArrayPointer;
+                        xdmf2::XdmfArray *Array1 = ( xdmf2::XdmfArray *)yyvsp[-2].ArrayPointer;
+                        xdmf2::XdmfArray *Array2 = ( xdmf2::XdmfArray *)yyvsp[0].ArrayPointer;
 
                         /* printf("Array 0x%X + 0x%X\n", Array1, Array2); */
                         *Array1 /= *Array2;
@@ -1495,10 +1499,10 @@ yyreduce:
     break;
 
   case 17:
-#line 331 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
-                        XdmfArray *Array1 = ( XdmfArray *)yyvsp[-2].ArrayPointer;
-                        XdmfArray *Result;
+                        xdmf2::XdmfArray *Array1 = ( xdmf2::XdmfArray *)yyvsp[-2].ArrayPointer;
+                        xdmf2::XdmfArray *Result;
 
                         /* printf("Array + %g\n", $3); */
                         Result  = Array1;
@@ -1508,10 +1512,10 @@ yyreduce:
     break;
 
   case 18:
-#line 340 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
-                        XdmfArray *Array1 = ( XdmfArray *)yyvsp[-2].ArrayPointer;
-                        XdmfArray *Result;
+                        xdmf2::XdmfArray *Array1 = ( xdmf2::XdmfArray *)yyvsp[-2].ArrayPointer;
+                        xdmf2::XdmfArray *Result;
 
                         /* printf("Array - %g\n", $3); */
                         Result  = Array1;
@@ -1521,10 +1525,10 @@ yyreduce:
     break;
 
   case 19:
-#line 349 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
-                        XdmfArray *Array1 = ( XdmfArray *)yyvsp[-2].ArrayPointer;
-                        XdmfArray *Result;
+                        xdmf2::XdmfArray *Array1 = ( xdmf2::XdmfArray *)yyvsp[-2].ArrayPointer;
+                        xdmf2::XdmfArray *Result;
 
                         /* printf("Array * %g\n", $3); */
                         Result  = Array1;
@@ -1534,10 +1538,10 @@ yyreduce:
     break;
 
   case 20:
-#line 358 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
-                        XdmfArray *Array1 = ( XdmfArray *)yyvsp[-2].ArrayPointer;
-                        XdmfArray *Result;
+                        xdmf2::XdmfArray *Array1 = ( xdmf2::XdmfArray *)yyvsp[-2].ArrayPointer;
+                        xdmf2::XdmfArray *Result;
 
                         /* printf("Array / %g\n", $3); */
                         Result  = Array1;
@@ -1547,10 +1551,10 @@ yyreduce:
     break;
 
   case 21:
-#line 367 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
-                        XdmfArray *Array1 = ( XdmfArray *)yyvsp[0].ArrayPointer;
-                        XdmfArray *Result;
+                        xdmf2::XdmfArray *Array1 = ( xdmf2::XdmfArray *)yyvsp[0].ArrayPointer;
+                        xdmf2::XdmfArray *Result;
 
                         /* printf("Array + %g\n", $1); */
                         Result  = Array1;
@@ -1560,10 +1564,10 @@ yyreduce:
     break;
 
   case 22:
-#line 376 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
-                        XdmfArray *Array1 = ( XdmfArray *)yyvsp[0].ArrayPointer;
-                        XdmfArray *Result;
+                        xdmf2::XdmfArray *Array1 = ( xdmf2::XdmfArray *)yyvsp[0].ArrayPointer;
+                        xdmf2::XdmfArray *Result;
 
                         /* printf("Array - %g\n", $1); */
                         Result  = Array1;
@@ -1573,10 +1577,10 @@ yyreduce:
     break;
 
   case 23:
-#line 385 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
-                        XdmfArray *Array1 = ( XdmfArray *)yyvsp[0].ArrayPointer;
-                        XdmfArray *Result;
+                        xdmf2::XdmfArray *Array1 = ( xdmf2::XdmfArray *)yyvsp[0].ArrayPointer;
+                        xdmf2::XdmfArray *Result;
 
                         /* printf("Array * %g\n", $1); */
                         Result  = Array1;
@@ -1586,10 +1590,10 @@ yyreduce:
     break;
 
   case 24:
-#line 394 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
-                        XdmfArray *Array1 = ( XdmfArray *)yyvsp[0].ArrayPointer;
-                        XdmfArray *Result;
+                        xdmf2::XdmfArray *Array1 = ( xdmf2::XdmfArray *)yyvsp[0].ArrayPointer;
+                        xdmf2::XdmfArray *Result;
 
                         /* printf("Array / %g\n", $1); */
                         Result  = Array1;
@@ -1599,11 +1603,11 @@ yyreduce:
     break;
 
   case 25:
-#line 403 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
-                        XdmfArray        *Array1 = ( XdmfArray *)yyvsp[-3].ArrayPointer;
-                        XdmfArray        *Array2 = ( XdmfArray *)yyvsp[-1].ArrayPointer;
-                        XdmfArray        *Result;
+                        xdmf2::XdmfArray        *Array1 = ( xdmf2::XdmfArray *)yyvsp[-3].ArrayPointer;
+                        xdmf2::XdmfArray        *Array2 = ( xdmf2::XdmfArray *)yyvsp[-1].ArrayPointer;
+                        xdmf2::XdmfArray        *Result;
 
                         /* printf("ArrayExpression From Indexes\n"); */
                         Result = Array1->Clone( Array2 );
@@ -1613,10 +1617,10 @@ yyreduce:
     break;
 
   case 26:
-#line 413 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
-                        XdmfArray *Array1 = ( XdmfArray *)yyvsp[-5].ArrayPointer;
-                        XdmfArray *Range, *Result;
+                        xdmf2::XdmfArray *Array1 = ( xdmf2::XdmfArray *)yyvsp[-5].ArrayPointer;
+                        xdmf2::XdmfArray *Range, *Result;
 
                         /* printf("ArrayExpression From Array Range %d:%d\n", $3, $5);         */
                         Range = Array1->Reference( yyvsp[-3].IntegerValue, yyvsp[-1].IntegerValue ); /* This not a copy  */
@@ -1628,13 +1632,13 @@ yyreduce:
     break;
 
   case 27:
-#line 424 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
-                        XdmfArray        *Array1 = ( XdmfArray *)yyvsp[-3].ArrayPointer;
-                        XdmfArray        *Array2 = ( XdmfArray *)yyvsp[-1].ArrayPointer;
+                        xdmf2::XdmfArray        *Array1 = ( xdmf2::XdmfArray *)yyvsp[-3].ArrayPointer;
+                        xdmf2::XdmfArray        *Array2 = ( xdmf2::XdmfArray *)yyvsp[-1].ArrayPointer;
                         XdmfLength        i, howmany = 0, cntr = 0;
                         XdmfLength        Length1 = Array1->GetNumberOfElements(), Length2;
-                        XdmfInt64Array        *Index = new XdmfInt64Array( Length1 );
+                        xdmf2::XdmfInt64Array        *Index = new xdmf2::XdmfInt64Array( Length1 );
                         XdmfInt64        A1Value, A2Value;
                         XdmfInt64        *A1Values, *A2Values;
                         float                Percent;
@@ -1672,19 +1676,19 @@ yyreduce:
                                         Index->SetValue( i, -1);
                                         }
                                 }        
-                        yyval.ArrayPointer = ( XdmfArray *)Index;
+                        yyval.ArrayPointer = ( xdmf2::XdmfArray *)Index;
                         }
     break;
 
   case 28:
-#line 469 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
-                        XdmfArray        *Array1 = ( XdmfArray *)yyvsp[-3].ArrayPointer;
+                        xdmf2::XdmfArray        *Array1 = ( xdmf2::XdmfArray *)yyvsp[-3].ArrayPointer;
                         /* XdmfLength        howmany = 0; */
                         XdmfLength        i, cntr = 0;
                         XdmfLength        Length1 = Array1->GetNumberOfElements(), Length2;
-                        XdmfInt64Array        *Index = new XdmfInt64Array( Length1 );
-                        XdmfArray        *Array2 = ( XdmfArray *)yyvsp[-1].ArrayPointer;
+                        xdmf2::XdmfInt64Array        *Index = new xdmf2::XdmfInt64Array( Length1 );
+                        xdmf2::XdmfArray        *Array2 = ( xdmf2::XdmfArray *)yyvsp[-1].ArrayPointer;
                         XdmfFloat64        A1Value, A2Value;
 
                         Length2 = Array2->GetNumberOfElements();
@@ -1709,17 +1713,17 @@ yyreduce:
                                         Index->SetValue( i, -1);
                                         }
                                 }        
-                        yyval.ArrayPointer = ( XdmfArray *)Index;
+                        yyval.ArrayPointer = ( xdmf2::XdmfArray *)Index;
                         }
     break;
 
   case 29:
-#line 502 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
-                        XdmfArray        *Array1 = ( XdmfArray *)yyvsp[-3].ArrayPointer;
+                        xdmf2::XdmfArray        *Array1 = ( xdmf2::XdmfArray *)yyvsp[-3].ArrayPointer;
                         XdmfLength        i, cntr = 0;
                         XdmfLength        Length = Array1->GetNumberOfElements();
-                        XdmfInt64Array        *Index = new XdmfInt64Array( Length );
+                        xdmf2::XdmfInt64Array        *Index = new xdmf2::XdmfInt64Array( Length );
                         XdmfFloat64        Value, SValue = yyvsp[-1].DoubleValue;
 
                         for( i = 0 ; i < Length ; i++ ){
@@ -1734,17 +1738,17 @@ yyreduce:
                                 return( 0 );
                                 }
                         Index->SetNumberOfElements( cntr );
-                        yyval.ArrayPointer = ( XdmfArray *)Index;
+                        yyval.ArrayPointer = ( xdmf2::XdmfArray *)Index;
                         }
     break;
 
   case 30:
-#line 523 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
-                        XdmfArray        *Array1 = ( XdmfArray *)yyvsp[-3].ArrayPointer;
+                        xdmf2::XdmfArray        *Array1 = ( xdmf2::XdmfArray *)yyvsp[-3].ArrayPointer;
                         XdmfLength        i, cntr = 0;
                         XdmfLength        Length = Array1->GetNumberOfElements();
-                        XdmfInt64Array        *Index = new XdmfInt64Array( Length );
+                        xdmf2::XdmfInt64Array        *Index = new xdmf2::XdmfInt64Array( Length );
                         XdmfFloat64        Value, SValue = yyvsp[-1].DoubleValue;
 
                         for( i = 0 ; i < Length ; i++ ){
@@ -1759,17 +1763,17 @@ yyreduce:
                                 return( 0 );
                                 }
                         Index->SetNumberOfElements( cntr );
-                        yyval.ArrayPointer = ( XdmfArray *)Index;
+                        yyval.ArrayPointer = ( xdmf2::XdmfArray *)Index;
                         }
     break;
 
   case 31:
-#line 544 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
-                        XdmfArray        *Array1 = ( XdmfArray *)yyvsp[-3].ArrayPointer;
+                        xdmf2::XdmfArray        *Array1 = ( xdmf2::XdmfArray *)yyvsp[-3].ArrayPointer;
                         XdmfLength        i, cntr = 0;
                         XdmfLength        Length = Array1->GetNumberOfElements();
-                        XdmfInt64Array        *Index = new XdmfInt64Array( Length );
+                        xdmf2::XdmfInt64Array        *Index = new xdmf2::XdmfInt64Array( Length );
                         XdmfFloat64        Value, SValue = yyvsp[-1].DoubleValue;
 
                         for( i = 0 ; i < Length ; i++ ){
@@ -1784,17 +1788,17 @@ yyreduce:
                                 return( 0 );
                                 }
                         Index->SetNumberOfElements( cntr );
-                        yyval.ArrayPointer = ( XdmfArray *)Index;
+                        yyval.ArrayPointer = ( xdmf2::XdmfArray *)Index;
                         }
     break;
 
   case 32:
-#line 565 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
-                        XdmfArray        *Array1 = ( XdmfArray *)yyvsp[-3].ArrayPointer;
+                        xdmf2::XdmfArray        *Array1 = ( xdmf2::XdmfArray *)yyvsp[-3].ArrayPointer;
                         XdmfLength        i, cntr = 0;
                         XdmfLength        Length = Array1->GetNumberOfElements();
-                        XdmfInt64Array        *Index = new XdmfInt64Array( Length );
+                        xdmf2::XdmfInt64Array        *Index = new xdmf2::XdmfInt64Array( Length );
                         XdmfFloat64        Value, SValue = yyvsp[-1].DoubleValue;
 
                         for( i = 0 ; i < Length ; i++ ){
@@ -1809,17 +1813,17 @@ yyreduce:
                                 return( 0 );
                                 }
                         Index->SetNumberOfElements( cntr );
-                        yyval.ArrayPointer = ( XdmfArray *)Index;
+                        yyval.ArrayPointer = ( xdmf2::XdmfArray *)Index;
                         }
     break;
 
   case 33:
-#line 586 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
-                        XdmfArray        *Array1 = ( XdmfArray *)yyvsp[-3].ArrayPointer;
+                        xdmf2::XdmfArray        *Array1 = ( xdmf2::XdmfArray *)yyvsp[-3].ArrayPointer;
                         XdmfLength        i, cntr = 0;
                         XdmfLength        Length = Array1->GetNumberOfElements();
-                        XdmfInt64Array        *Index = new XdmfInt64Array( Length );
+                        xdmf2::XdmfInt64Array        *Index = new xdmf2::XdmfInt64Array( Length );
                         XdmfFloat64        Value, SValue = yyvsp[-1].DoubleValue;
 
                         for( i = 0 ; i < Length ; i++ ){
@@ -1834,17 +1838,17 @@ yyreduce:
                                 return( 0 );
                                 }
                         Index->SetNumberOfElements( cntr );
-                        yyval.ArrayPointer = ( XdmfArray *)Index;
+                        yyval.ArrayPointer = ( xdmf2::XdmfArray *)Index;
                         }
     break;
 
   case 34:
-#line 607 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
-                        XdmfArray        *Array1 = ( XdmfArray *)yyvsp[-3].ArrayPointer;
+                        xdmf2::XdmfArray        *Array1 = ( xdmf2::XdmfArray *)yyvsp[-3].ArrayPointer;
                         XdmfLength        i, cntr = 0;
                         XdmfLength        Length = Array1->GetNumberOfElements();
-                        XdmfInt64Array        *Index = new XdmfInt64Array( Length );
+                        xdmf2::XdmfInt64Array        *Index = new xdmf2::XdmfInt64Array( Length );
                         XdmfFloat64        Value, SValue = yyvsp[-1].DoubleValue;
 
                         for( i = 0 ; i < Length ; i++ ){
@@ -1859,19 +1863,19 @@ yyreduce:
                                 return( 0 );
                                 }
                         Index->SetNumberOfElements( cntr );
-                        yyval.ArrayPointer = ( XdmfArray *)Index;
+                        yyval.ArrayPointer = ( xdmf2::XdmfArray *)Index;
                         }
     break;
 
   case 35:
-#line 628 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
 
                         if( yyvsp[-3].Symbol->DoubleFunctionPtr == NULL ){
                                 /* printf("Bad Function Ptr for %s\n", $1->Name ); */
                                 yyval.ArrayPointer = yyvsp[-1].ArrayPointer;
                         } else {
-                                XdmfArray *Array1 = ( XdmfArray *)yyvsp[-1].ArrayPointer;
+                                xdmf2::XdmfArray *Array1 = ( xdmf2::XdmfArray *)yyvsp[-1].ArrayPointer;
                                 XdmfFloat64        Value;
                                 XdmfLength        i, Length = Array1->GetNumberOfElements();
 
@@ -1886,7 +1890,7 @@ yyreduce:
     break;
 
   case 36:
-#line 646 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
                         /* printf("( ArrayExpression )\n"); */
                         yyval.ArrayPointer = yyvsp[-1].ArrayPointer;
@@ -1894,7 +1898,7 @@ yyreduce:
     break;
 
   case 37:
-#line 650 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
                         /* printf("( ArrayExpression )\n"); */
                         yyval.ArrayPointer = yyvsp[-1].ArrayPointer;
@@ -1902,10 +1906,10 @@ yyreduce:
     break;
 
   case 38:
-#line 654 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
-                        XdmfArray *Array1 = ( XdmfArray *)yyvsp[0].ArrayPointer;
-                        XdmfArray *Result;
+                        xdmf2::XdmfArray *Array1 = ( xdmf2::XdmfArray *)yyvsp[0].ArrayPointer;
+                        xdmf2::XdmfArray *Result;
 
                         /* printf("ArrayExpression From Array\n"); */
 
@@ -1921,7 +1925,7 @@ yyreduce:
     break;
 
   case 39:
-#line 671 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
                         /* printf("Scalar +\n"); */
                         yyval.DoubleValue = yyvsp[-2].DoubleValue + yyvsp[0].DoubleValue;
@@ -1929,7 +1933,7 @@ yyreduce:
     break;
 
   case 40:
-#line 675 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
                         /* printf("Scalar -\n"); */
                         yyval.DoubleValue = yyvsp[-2].DoubleValue - yyvsp[0].DoubleValue;
@@ -1937,7 +1941,7 @@ yyreduce:
     break;
 
   case 41:
-#line 679 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
                         /* printf("Scalar *\n"); */
                         yyval.DoubleValue = yyvsp[-2].DoubleValue * yyvsp[0].DoubleValue;
@@ -1945,7 +1949,7 @@ yyreduce:
     break;
 
   case 42:
-#line 683 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
                         /* printf("Scalar /\n"); */
                         yyval.DoubleValue = yyvsp[-2].DoubleValue / yyvsp[0].DoubleValue;
@@ -1953,7 +1957,7 @@ yyreduce:
     break;
 
   case 43:
-#line 687 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
                         if( yyvsp[-3].Symbol->DoubleFunctionPtr == NULL ){
                                 /* printf("Bad Function Ptr for %s\n", $1->Name ); */
@@ -1965,7 +1969,7 @@ yyreduce:
     break;
 
   case 44:
-#line 695 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
                         /* printf ("( ScalarExpression )\n"); */
                         yyval.DoubleValue = yyvsp[-1].DoubleValue;
@@ -1973,7 +1977,7 @@ yyreduce:
     break;
 
   case 45:
-#line 699 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
                         /* printf ("ScalarExpression from tokINTEGER\n"); */
                         yyval.DoubleValue = yyvsp[0].IntegerValue;
@@ -1981,7 +1985,7 @@ yyreduce:
     break;
 
   case 46:
-#line 703 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
     {
                         /* printf ("ScalarExpression from FLOAT\n"); */
                         yyval.DoubleValue = yyvsp[0].DoubleValue;
@@ -1992,7 +1996,7 @@ yyreduce:
     }
 
 /* Line 999 of yacc.c.  */
-#line 2008 "/home/andy/vtk/Xdmf-bin/libsrc/XdmfExprYacc.tab.c"
+
 
   yyvsp -= yylen;
   yyssp -= yylen;
@@ -2186,7 +2190,7 @@ yyreturn:
 }
 
 
-#line 710 "/home/andy/vtk/Xdmf/libsrc/XdmfExpr.y"
+
 
 
 /* extern        FILE        *yyin, *yyout; */
@@ -2292,13 +2296,13 @@ return( Item );
 /**/
 #endif
 
-XdmfArray *
+xdmf2::XdmfArray *
 XdmfExprParse( char *string ){
 
 XdmfExprSymbol        *Item;
 XdmfLength        CurrentTime;
 XdmfLength        TimeOfCreation;
-XdmfArray        *ap;
+xdmf2::XdmfArray        *ap;
 
 /* Build the Symbol Table if Necessary */
 Item = XdmfExprSymbolLookup( NULL );
@@ -2336,7 +2340,7 @@ InputBufferEnd = strlen( InputBuffer );
 InputBufferPtr = OutputBufferPtr = 0;
 XdmfExprReturnValue = NULL;
 /* printf("XdmfExprParse Scanning <%s>\n", InputBuffer); */
-CurrentTime = GetCurrentArrayTime();
+ CurrentTime = xdmf2::GetCurrentArrayTime();
 if ( yyparse() != 0 ){
         /* Error */
         XdmfExprReturnValue = NULL;
@@ -2356,7 +2360,7 @@ XdmfExprItemsTable = NULL;
 
 /* Remove All Arrays Older than when we started */
 /* printf("Cleaning up Temparary Arrays\n"); */
-while( ( ap = GetNextOlderArray( CurrentTime, &TimeOfCreation ) ) != NULL ){
+ while( ( ap = xdmf2::GetNextOlderArray( CurrentTime, &TimeOfCreation ) ) != NULL ){
         /* Don't remove the return value */
         if( ap != XdmfExprReturnValue ){
                 /* printf("Removing Temporary Array\n"); */

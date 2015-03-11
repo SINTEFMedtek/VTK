@@ -21,8 +21,8 @@
 
 
 
-#ifndef __vtkPOutlineCornerFilter_h
-#define __vtkPOutlineCornerFilter_h
+#ifndef vtkPOutlineCornerFilter_h
+#define vtkPOutlineCornerFilter_h
 
 #include "vtkFiltersParallelModule.h" // For export macro
 #include "vtkPolyDataAlgorithm.h"
@@ -65,7 +65,6 @@ protected:
   vtkMultiProcessController* Controller;
   vtkOutlineCornerSource *OutlineCornerSource;
   virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-  virtual int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
   virtual int FillInputPortInformation(int port, vtkInformation *info);
 
   double CornerFactor;

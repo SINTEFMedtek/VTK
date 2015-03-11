@@ -23,8 +23,8 @@
 // vtkPolyDataReader vtkStructuredPointsReader vtkStructuredGridReader
 // vtkUnstructuredGridReader vtkRectilinearGridReader
 
-#ifndef __vtkDataReader_h
-#define __vtkDataReader_h
+#ifndef vtkDataReader_h
+#define vtkDataReader_h
 
 #include "vtkIOLegacyModule.h" // For export macro
 #include "vtkAlgorithm.h"
@@ -374,6 +374,7 @@ protected:
   int ReadTCoordsData(vtkDataSetAttributes *a, int num);
   int ReadGlobalIds(vtkDataSetAttributes *a, int num);
   int ReadPedigreeIds(vtkDataSetAttributes *a, int num);
+  int ReadEdgeFlags(vtkDataSetAttributes *a, int num);
 
   int ReadDataSetData(vtkDataSet *ds);
 

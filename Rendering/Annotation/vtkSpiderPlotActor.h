@@ -42,8 +42,8 @@
 // .SECTION See Also
 // vtkParallelCoordinatesActor vtkXYPlotActor2D
 
-#ifndef __vtkSpiderPlotActor_h
-#define __vtkSpiderPlotActor_h
+#ifndef vtkSpiderPlotActor_h
+#define vtkSpiderPlotActor_h
 
 #include "vtkRenderingAnnotationModule.h" // For export macro
 #include "vtkActor2D.h"
@@ -132,7 +132,7 @@ public:
 
   // Description:
   // Specify the number of circumferential rings. If set to zero, then
-  // none will be shown; othewise the specified number will be shown.
+  // none will be shown; otherwise the specified number will be shown.
   vtkSetClampMacro(NumberOfRings,int,0,VTK_INT_MAX);
   vtkGetMacro(NumberOfRings,int);
 

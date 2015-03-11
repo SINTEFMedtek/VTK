@@ -34,11 +34,14 @@
 // vtkGeometryFilter vtkExtractGeometry vtkExtractVOI
 // vtkStructuredGridGeometryFilter
 
-#ifndef __vtkExtractGrid_h
-#define __vtkExtractGrid_h
+#ifndef vtkExtractGrid_h
+#define vtkExtractGrid_h
 
 #include "vtkFiltersExtractionModule.h" // For export macro
 #include "vtkStructuredGridAlgorithm.h"
+
+// Forward Declarations
+class vtkExtractStructuredGridHelper;
 
 class VTKFILTERSEXTRACTION_EXPORT vtkExtractGrid : public vtkStructuredGridAlgorithm
 {
@@ -76,15 +79,26 @@ public:
 
 protected:
   vtkExtractGrid();
-  ~vtkExtractGrid() {}
+  ~vtkExtractGrid();
 
   virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
   virtual int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
   virtual int RequestUpdateExtent(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 
+  // Description:
+  // Implementation for RequestData using a specified VOI. This is because the
+  // parallel filter needs to muck around with the VOI to get spacing and
+  // partitioning to play nice.
+  bool RequestDataImpl(int voi[6],
+                       vtkInformationVector **inputVector,
+                       vtkInformationVector *outputVector);
+
+
   int VOI[6];
   int SampleRate[3];
   int IncludeBoundary;
+
+  vtkExtractStructuredGridHelper* Internal;
 
 private:
   vtkExtractGrid(const vtkExtractGrid&);  // Not implemented.

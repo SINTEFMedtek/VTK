@@ -33,8 +33,8 @@
 // vtkMinimalStandardRandomSequence, vtkBoxMuellerRandomSequence,
 // vtkQuaternion
 
-#ifndef __vtkMath_h
-#define __vtkMath_h
+#ifndef vtkMath_h
+#define vtkMath_h
 
 #include "vtkCommonCoreModule.h" // For export macro
 #include "vtkObject.h"
@@ -404,6 +404,10 @@ public:
   static double Distance2BetweenPoints(const double x[3], const double y[3]);
 
   // Description:
+  // Compute angle in radians between two vectors.
+  static double AngleBetweenVectors(const double v1[3], const double v2[3]);
+
+  // Description:
   // Compute the amplitude of a Gaussian function with mean=0 and specified variance.
   // That is, 1./(sqrt(2 Pi * variance)) * exp(-distanceFromMean^2/(2.*variance)).
   static double GaussianAmplitude(const double variance, const double distanceFromMean);
@@ -530,7 +534,7 @@ public:
   // General matrix multiplication.  You must allocate output storage.
   // colA == rowB
   // and matrix C is rowA x colB
-  static void MultiplyMatrix(const double **A, const double **B,
+  static void MultiplyMatrix(double **A, double **B,
                              unsigned int rowA, unsigned int colA,
                              unsigned int rowB, unsigned int colB,
                              double **C);
@@ -713,6 +717,7 @@ public:
   // real symmetric matrix. Square 3x3 matrix a; output eigenvalues in w;
   // and output eigenvectors in v. Resulting eigenvalues/vectors are sorted
   // in decreasing order; eigenvectors are normalized.
+  // NOTE: the input matirx a is modified during the solution
   static int Jacobi(float **a, float *w, float **v);
   static int Jacobi(double **a, double *w, double **v);
 
@@ -722,6 +727,7 @@ public:
   // eigenvalues in w; and output eigenvectors in v. Resulting
   // eigenvalues/vectors are sorted in decreasing order; eigenvectors are
   // normalized.  w and v need to be allocated previously
+  // NOTE: the input matirx a is modified during the solution
   static int JacobiN(float **a, int n, float *w, float **v);
   static int JacobiN(double **a, int n, double *w, double **v);
 
@@ -926,7 +932,7 @@ public:
   // three non-collinear points P1, P2, and P3. Using Cartesian coordinates
   // to represent these points as spatial vectors, it is possible to use the
   // dot product and cross product to calculate the radius and center of the
-  // circle. See: http://en.wikipedia.org/wiki/Circumcircle and more
+  // circle. See: http://en.wikipedia.org/wiki/Circumscribed_circle and more
   // specifically the section Barycentric coordinates from cross- and
   // dot-products
   static double Solve3PointCircle(const double p1[3], const double p2[3], const double p3[3], double center[3]);
@@ -1040,8 +1046,8 @@ inline int vtkMath::Ceil(double x)
 //----------------------------------------------------------------------------
 inline float vtkMath::Normalize(float x[3])
 {
-  float den;
-  if ( ( den = vtkMath::Norm( x ) ) != 0.0 )
+  float den = vtkMath::Norm( x );
+  if ( den != 0.0 )
     {
     for (int i=0; i < 3; i++)
       {
@@ -1054,8 +1060,8 @@ inline float vtkMath::Normalize(float x[3])
 //----------------------------------------------------------------------------
 inline double vtkMath::Normalize(double x[3])
 {
-  double den;
-  if ( ( den = vtkMath::Norm( x ) ) != 0.0 )
+  double den = vtkMath::Norm( x );
+  if ( den != 0.0 )
     {
     for (int i=0; i < 3; i++)
       {
@@ -1068,8 +1074,8 @@ inline double vtkMath::Normalize(double x[3])
 //----------------------------------------------------------------------------
 inline float vtkMath::Normalize2D(float x[3])
 {
-  float den;
-  if ( ( den = vtkMath::Norm2D( x ) ) != 0.0 )
+  float den = vtkMath::Norm2D( x );
+  if ( den != 0.0 )
     {
     for (int i=0; i < 2; i++)
       {
@@ -1082,8 +1088,8 @@ inline float vtkMath::Normalize2D(float x[3])
 //----------------------------------------------------------------------------
 inline double vtkMath::Normalize2D(double x[3])
 {
-  double den;
-  if ( ( den = vtkMath::Norm2D( x ) ) != 0.0 )
+  double den = vtkMath::Norm2D( x );
+  if ( den != 0.0 )
     {
     for (int i=0; i < 2; i++)
       {

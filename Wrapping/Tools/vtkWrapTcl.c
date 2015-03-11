@@ -21,8 +21,10 @@
 #include "vtkParseMain.h"
 #include "vtkParseHierarchy.h"
 #include "vtkConfigure.h"
+#include "vtkWrap.h"
 
 HierarchyInfo *hierarchyInfo = NULL;
+StringCache *stringCache = NULL;
 int numberOfWrappedFunctions = 0;
 FunctionInfo *wrappedFunctions[1000];
 extern FunctionInfo *currentFunction;
@@ -155,7 +157,7 @@ void output_temp(FILE *fp, int i, unsigned int aType,
     case VTK_PARSE_SIGNED_CHAR: fprintf(fp,"signed char "); break;
     case VTK_PARSE_BOOL:        fprintf(fp,"bool "); break;
     case VTK_PARSE_STRING:      fprintf(fp,"%s ",Id); break;
-    case VTK_PARSE_UNKNOWN:     return;
+    case VTK_PARSE_UNKNOWN:     fprintf(fp,"%s ",Id); break;
     }
 
   /* handle array arguments */
@@ -467,6 +469,12 @@ void return_result(FILE *fp)
               MAX_ARGS);
       fprintf(fp,"    Tcl_SetResult(interp, tempResult, TCL_VOLATILE);\n");
       break;
+    case VTK_PARSE_UNKNOWN:
+      fprintf(fp,"    char tempResult[1024];\n");
+      fprintf(fp,"    sprintf(tempResult,\"%%i\",static_cast<int>(temp%i));\n",
+              MAX_ARGS);
+      fprintf(fp,"    Tcl_SetResult(interp, tempResult, TCL_VOLATILE);\n");
+      break;
     case VTK_PARSE_STRING:
       fprintf(fp,"    Tcl_SetResult(interp, const_cast<char *>(temp%i.c_str()), TCL_VOLATILE);\n",MAX_ARGS);
       break;
@@ -596,6 +604,12 @@ void get_args(FILE *fp, int i)
               start_arg);
       fprintf(fp,"    temp%i = static_cast<unsigned long long>(tempi);\n",i);
       break;
+    case VTK_PARSE_UNKNOWN:
+      fprintf(fp,"    if (Tcl_GetInt(interp,argv[%i],&tempi) != TCL_OK) error = 1;\n",
+              start_arg);
+      fprintf(fp,"    temp%i = static_cast<%s>(tempi);\n",i,
+              currentFunction->ArgClasses[i]);
+      break;
     case VTK_PARSE_STRING:
     case VTK_PARSE_STRING_REF:
       fprintf(fp,"    temp%i = argv[%i];\n",i,start_arg);
@@ -632,6 +646,7 @@ void get_args(FILE *fp, int i)
             case VTK_PARSE_LONG_LONG:
             case VTK_PARSE___INT64:
             case VTK_PARSE_SIGNED_CHAR:
+            case VTK_PARSE_UNKNOWN:
               fprintf(fp,"    if (Tcl_GetInt(interp,argv[%i],&tempi) != TCL_OK) error = 1;\n",
                       start_arg);
               fprintf(fp,"    temp%i[%i] = tempi;\n",i,j);
@@ -716,7 +731,7 @@ int checkFunctionSignature(ClassInfo *data)
 #ifdef VTK_TYPE_USE___INT64
     VTK_PARSE___INT64, VTK_PARSE_UNSIGNED___INT64,
 #endif
-    VTK_PARSE_OBJECT, VTK_PARSE_STRING,
+    VTK_PARSE_OBJECT, VTK_PARSE_STRING, VTK_PARSE_UNKNOWN,
     0
   };
 
@@ -758,6 +773,25 @@ int checkFunctionSignature(ClassInfo *data)
     if (supported_types[j] == 0)
       {
       args_ok = 0;
+      }
+
+    if (baseType == VTK_PARSE_UNKNOWN)
+      {
+      const char *qualified_name = 0;
+      if ((argType & VTK_PARSE_INDIRECT) == 0)
+        {
+        qualified_name = vtkParseHierarchy_QualifiedEnumName(
+          hierarchyInfo, data, stringCache,
+          currentFunction->ArgClasses[i]);
+        }
+      if (qualified_name)
+        {
+        currentFunction->ArgClasses[i] = qualified_name;
+        }
+      else
+        {
+        args_ok = 0;
+        }
       }
 
     if (baseType == VTK_PARSE_STRING &&
@@ -823,6 +857,25 @@ int checkFunctionSignature(ClassInfo *data)
   if (supported_types[j] == 0)
     {
     args_ok = 0;
+    }
+
+  if (baseType == VTK_PARSE_UNKNOWN)
+    {
+    const char *qualified_name = 0;
+    if ((returnType & VTK_PARSE_INDIRECT) == 0)
+      {
+      qualified_name = vtkParseHierarchy_QualifiedEnumName(
+        hierarchyInfo, data, stringCache,
+        currentFunction->ReturnClass);
+      }
+    if (qualified_name)
+      {
+      currentFunction->ReturnClass = qualified_name;
+      }
+    else
+      {
+      args_ok = 0;
+      }
     }
 
   if (baseType == VTK_PARSE_STRING &&
@@ -1048,6 +1101,9 @@ int main(int argc, char *argv[])
   /* get command-line args and parse the header file */
   file_info = vtkParse_Main(argc, argv);
 
+  /* some utility functions require the string cache */
+  stringCache = file_info->Strings;
+
   /* get the command-line options */
   options = vtkParse_GetCommandLineOptions();
 
@@ -1115,7 +1171,20 @@ int main(int argc, char *argv[])
 
   for (i = 0; i < data->NumberOfSuperClasses; i++)
     {
-    fprintf(fp,"int %sCppCommand(%s *op, Tcl_Interp *interp,\n             int argc, char *argv[]);\n",data->SuperClasses[i],data->SuperClasses[i]);
+    char *safe_name = vtkWrap_SafeSuperclassName(data->SuperClasses[i]);
+    const char *safe_superclass = safe_name ? safe_name : data->SuperClasses[i];
+
+    /* if a template class is detected add a typedef */
+    if (safe_name)
+      {
+      fprintf(fp,"typedef %s %s;\n",
+              data->SuperClasses[i], safe_name);
+      }
+
+    fprintf(fp,"int %sCppCommand(%s *op, Tcl_Interp *interp,\n             int argc, char *argv[]);\n",
+            safe_superclass, safe_superclass);
+
+    free(safe_name);
     }
   fprintf(fp,"int VTKTCL_EXPORT %sCppCommand(%s *op, Tcl_Interp *interp,\n             int argc, char *argv[]);\n",data->Name,data->Name);
   fprintf(fp,"\nint %sCommand(ClientData cd, Tcl_Interp *interp,\n             int argc, char *argv[])\n{\n",data->Name);
@@ -1156,9 +1225,14 @@ int main(int argc, char *argv[])
   /* check our superclasses */
   for (i = 0; i < data->NumberOfSuperClasses; i++)
     {
+    char *safe_name = vtkWrap_SafeSuperclassName(data->SuperClasses[i]);
+    const char *safe_superclass = safe_name ? safe_name : data->SuperClasses[i];
+
     fprintf(fp,"      if (%sCppCommand(static_cast<%s *>(op),interp,argc,argv) == TCL_OK)\n        {\n",
-            data->SuperClasses[i],data->SuperClasses[i]);
+            safe_superclass, data->SuperClasses[i]);
     fprintf(fp,"        return TCL_OK;\n        }\n");
+
+    free(safe_name);
     }
   fprintf(fp,"      }\n    return TCL_ERROR;\n    }\n\n");
 
@@ -1191,8 +1265,13 @@ int main(int argc, char *argv[])
   /* recurse up the tree */
   for (i = 0; i < data->NumberOfSuperClasses; i++)
     {
+    char *safe_name = vtkWrap_SafeSuperclassName(data->SuperClasses[i]);
+    const char *safe_superclass = safe_name ? safe_name : data->SuperClasses[i];
+
     fprintf(fp,"    %sCppCommand(op,interp,argc,argv);\n",
-            data->SuperClasses[i]);
+            safe_superclass);
+
+    free(safe_name);
     }
   /* now list our methods */
   fprintf(fp,"    Tcl_AppendResult(interp,\"Methods from %s:\\n\",NULL);\n",data->Name);
@@ -1256,11 +1335,16 @@ int main(int argc, char *argv[])
   /* recurse up the tree */
   for (i = 0; i < data->NumberOfSuperClasses; i++)
     {
+    char *safe_name = vtkWrap_SafeSuperclassName(data->SuperClasses[i]);
+    const char *safe_superclass = safe_name ? safe_name : data->SuperClasses[i];
+
     fprintf(fp,"    %sCppCommand(op,interp,argc,argv);\n",
-            data->SuperClasses[i]);
+            safe_superclass);
     /* append the result to our string */
     fprintf(fp,"    Tcl_DStringGetResult ( interp, &dStringParent );\n" );
     fprintf(fp,"    Tcl_DStringAppend ( &dString, Tcl_DStringValue ( &dStringParent ), -1 );\n" );
+
+    free(safe_name);
     }
   for (k = 0; k < numberOfWrappedFunctions; k++)
     {
@@ -1282,7 +1366,10 @@ int main(int argc, char *argv[])
 
   /* Now handle if we are asked for a specific function */
   fprintf(fp,"    if(argc==3) {\n" );
-  fprintf(fp,"      Tcl_DString dString;\n");
+  if (numberOfWrappedFunctions > 0)
+    {
+    fprintf(fp,"      Tcl_DString dString;\n");
+    }
   if (data->NumberOfSuperClasses > 0)
   {
     fprintf(fp,"      int SuperClassStatus;\n" );
@@ -1290,9 +1377,14 @@ int main(int argc, char *argv[])
   /* recurse up the tree */
   for (i = 0; i < data->NumberOfSuperClasses; i++)
     {
+    char *safe_name = vtkWrap_SafeSuperclassName(data->SuperClasses[i]);
+    const char *safe_superclass = safe_name ? safe_name : data->SuperClasses[i];
+
     fprintf(fp,"    SuperClassStatus = %sCppCommand(op,interp,argc,argv);\n",
-            data->SuperClasses[i]);
+            safe_superclass);
     fprintf(fp,"    if ( SuperClassStatus == TCL_OK ) { return TCL_OK; }\n" );
+
+    free(safe_name);
     }
   /* Now we handle it ourselves */
   for (k = 0; k < numberOfWrappedFunctions; k++)
@@ -1429,9 +1521,14 @@ int main(int argc, char *argv[])
   /* try superclasses */
   for (i = 0; i < data->NumberOfSuperClasses; i++)
     {
+    char *safe_name = vtkWrap_SafeSuperclassName(data->SuperClasses[i]);
+    const char *safe_superclass = safe_name ? safe_name : data->SuperClasses[i];
+
     fprintf(fp,"\n  if (%sCppCommand(static_cast<%s *>(op),interp,argc,argv) == TCL_OK)\n",
-            data->SuperClasses[i], data->SuperClasses[i]);
+            safe_superclass, data->SuperClasses[i]);
     fprintf(fp,"    {\n    return TCL_OK;\n    }\n");
+
+    free(safe_name);
     }
 
 

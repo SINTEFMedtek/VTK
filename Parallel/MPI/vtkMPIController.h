@@ -37,8 +37,8 @@
 // vtkOutputPort vtkInputPort  vtkMultiProcessController
 // vtkMPICommunicator vtkProcessGroup
 
-#ifndef __vtkMPIController_h
-#define __vtkMPIController_h
+#ifndef vtkMPIController_h
+#define vtkMPIController_h
 
 #include "vtkParallelMPIModule.h" // For export macro
 #include "vtkMultiProcessController.h"
@@ -157,6 +157,12 @@ public:
                   int tag, vtkMPICommunicator::Request& req)
     { return ((vtkMPICommunicator*)this->Communicator)->NoBlockSend
         (data, length, remoteProcessId, tag, req); }
+#ifdef VTK_USE_64BIT_IDS
+  int NoBlockSend(const vtkIdType* data, int length, int remoteProcessId,
+                  int tag, vtkMPICommunicator::Request& req)
+    { return ((vtkMPICommunicator*)this->Communicator)->NoBlockSend
+        (data, length, remoteProcessId, tag, req); }
+#endif
 
   // Description:
   // This method receives data from a corresponding send (non-blocking).

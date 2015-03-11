@@ -20,13 +20,12 @@
 #include "vtkOpenGLCamera.h"
 #include "vtkOpenGLLight.h"
 #include "vtkOpenGLActor.h"
-#include "vtkOpenGLPolyDataMapper.h"
 #include "vtkXRenderWindowInteractor.h"
 
 #include "vtkOpenGL.h"
 
-// define GLX_GLXEXT_LEGACY to prevent glx.h to include glxext.h provided by
-// the system
+// Define GLX_GLXEXT_LEGACY to prevent glx.h from including the glxext.h
+// provided by the system.
 #define GLX_GLXEXT_LEGACY
 #include "GL/glx.h"
 
@@ -35,7 +34,7 @@
 #include "vtkToolkits.h"
 
 #ifdef VTK_OPENGL_HAS_OSMESA
-#include <GL/osmesa.h>
+# include <GL/osmesa.h>
 #endif
 
 #include "vtkCommand.h"

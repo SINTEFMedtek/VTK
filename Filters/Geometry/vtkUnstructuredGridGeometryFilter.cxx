@@ -815,6 +815,7 @@ int vtkUnstructuredGridGeometryFilter::RequestData(
     }
   vtkPointData *pd=input->GetPointData();
   vtkCellData *cd=input->GetCellData();
+  vtkFieldData *fd=input->GetFieldData();
   vtkIdType numPts=input->GetNumberOfPoints();
   vtkPoints *inPts=input->GetPoints();
   vtkSmartPointer<vtkCellIterator> cellIter =
@@ -823,6 +824,7 @@ int vtkUnstructuredGridGeometryFilter::RequestData(
   // Output
   vtkPointData *outputPD=output->GetPointData();
   vtkCellData *outputCD=output->GetCellData();
+  vtkFieldData *outputFD=output->GetFieldData();
 //  vtkUnsignedCharArray *types=vtkUnsignedCharArray::New();
 //  types->Allocate(numCells);
 //  vtkIdTypeArray *locs=vtkIdTypeArray::New();
@@ -936,6 +938,9 @@ int vtkUnstructuredGridGeometryFilter::RequestData(
     originalCellIds->Allocate(numCells, numCells/2);
     }
 
+  // Shallow copy field data not associated with points or cells
+  outputFD->ShallowCopy(fd);
+
   vtkIdType *pointMap=0;
 
   if(this->Merging)
@@ -993,7 +998,9 @@ int vtkUnstructuredGridGeometryFilter::RequestData(
          ||(cellType>=VTK_QUADRATIC_EDGE && cellType<=VTK_QUADRATIC_QUAD)
          ||(cellType==VTK_BIQUADRATIC_QUAD)
          ||(cellType==VTK_QUADRATIC_LINEAR_QUAD)
-         ||(cellType==VTK_BIQUADRATIC_TRIANGLE))
+         ||(cellType==VTK_BIQUADRATIC_TRIANGLE)
+         ||(cellType==VTK_CUBIC_LINE)
+        )
         {
         vtkDebugMacro(<<"not 3D cell. type="<<cellType);
         // not 3D: just copy it
@@ -1387,6 +1394,11 @@ int vtkUnstructuredGridGeometryFilter::RequestData(
               ++face;
               }
             break;
+          default:
+            vtkErrorMacro(<< "Cell type "
+                          << vtkCellTypes::GetClassNameFromTypeId(cellType)
+                          << "(" << cellType << ")"
+                          << " is not a 3D cell.")
           }
         }
       } //if cell is visible
@@ -1488,6 +1500,7 @@ int vtkUnstructuredGridGeometryFilter::RequestData(
 //  conn->Delete();
 
   output->Squeeze();
+  delete [] cellVis;
   return 1;
 }
 

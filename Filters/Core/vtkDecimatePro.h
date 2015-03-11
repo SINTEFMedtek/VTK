@@ -73,8 +73,8 @@
 // vtkDecimate vtkQuadricClustering vtkQuadricDecimation
 
 
-#ifndef __vtkDecimatePro_h
-#define __vtkDecimatePro_h
+#ifndef vtkDecimatePro_h
+#define vtkDecimatePro_h
 
 #include "vtkFiltersCoreModule.h" // For export macro
 #include "vtkPolyDataAlgorithm.h"
@@ -309,10 +309,7 @@ protected:
       {this->MaxId = -1; this->Array = new LocalVertex[sz];};
     ~VertexArray()
       {
-        if (this->Array)
-          {
-          delete [] this->Array;
-          }
+        delete [] this->Array;
       };
     vtkIdType GetNumberOfVertices() {return this->MaxId + 1;};
     void InsertNextVertex(LocalVertex& v)
@@ -332,10 +329,7 @@ protected:
       {this->MaxId = -1; this->Array = new LocalTri[sz];};
     ~TriArray()
       {
-        if (this->Array)
-          {
-          delete [] this->Array;
-          }
+        delete [] this->Array;
       };
     vtkIdType GetNumberOfTriangles() {return this->MaxId + 1;};
     void InsertNextTriangle(LocalTri& t)

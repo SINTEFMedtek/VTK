@@ -87,6 +87,13 @@ int vtkWrap_IsSpecialObject(ValueInfo *val)
           val->Class[0] == 'v' && strncmp(val->Class, "vtk", 3) == 0);
 }
 
+int vtkWrap_IsPythonObject(ValueInfo *val)
+{
+  unsigned int t = (val->Type & VTK_PARSE_BASE_TYPE);
+  return (t == VTK_PARSE_UNKNOWN &&
+          strncmp(val->Class, "Py", 2) == 0);
+}
+
 int vtkWrap_IsQtObject(ValueInfo *val)
 {
   unsigned int t = (val->Type & VTK_PARSE_BASE_TYPE);
@@ -276,6 +283,28 @@ int vtkWrap_IsRef(ValueInfo *val)
 int vtkWrap_IsConst(ValueInfo *val)
 {
   return ((val->Type & VTK_PARSE_CONST) != 0);
+}
+
+/* -------------------------------------------------------------------- */
+/* Check if the arg type is an enum that is a member of the class */
+int vtkWrap_IsEnumMember(ClassInfo *data, ValueInfo *arg)
+{
+  int i;
+
+  if (arg->Class)
+    {
+    /* check if the enum is a member of the class */
+    for (i = 0; i < data->NumberOfEnums; i++)
+      {
+      EnumInfo *info = data->Enums[i];
+      if (info->Name && strcmp(arg->Class, info->Name) == 0)
+        {
+        return 1;
+        }
+      }
+    }
+
+  return 0;
 }
 
 /* -------------------------------------------------------------------- */
@@ -857,10 +886,13 @@ const char *vtkWrap_GetTypeName(ValueInfo *val)
 /* variable declarations */
 
 void vtkWrap_DeclareVariable(
-  FILE *fp, ValueInfo *val, const char *name, int i, int flags)
+  FILE *fp, ClassInfo *data, ValueInfo *val, const char *name,
+  int i, int flags)
 {
   unsigned int aType;
   int j;
+  const char *typeName;
+  char *newTypeName = NULL;
 
   if (val == NULL)
     {
@@ -876,7 +908,27 @@ void vtkWrap_DeclareVariable(
     return;
     }
 
-  /* add a couple spaces */
+  typeName = vtkWrap_GetTypeName(val);
+
+  if (vtkWrap_IsEnumMember(data, val))
+    {
+    /* use a typedef to work around compiler issues when someone used
+       the same name for the enum type as for a variable or method */
+    newTypeName = (char *)malloc(strlen(name) + 16);
+    if (i >= 0)
+      {
+      sprintf(newTypeName, "%s%i_type", name, i);
+      }
+    else
+      {
+      sprintf(newTypeName, "%s_type", name);
+      }
+    fprintf(fp, "  typedef %s::%s %s;\n",
+            data->Name, typeName, newTypeName);
+    typeName = newTypeName;
+    }
+
+  /* add a couple spaces for indentation*/
   fprintf(fp,"  ");
 
   /* for const * return types, prepend with const */
@@ -902,7 +954,7 @@ void vtkWrap_DeclareVariable(
     }
 
   /* print the type name */
-  fprintf(fp, "%s ", vtkWrap_GetTypeName(val));
+  fprintf(fp, "%s ", typeName);
 
   /* indirection */
   if ((flags & VTK_WRAP_RETURN) != 0)
@@ -997,6 +1049,8 @@ void vtkWrap_DeclareVariable(
     {
     fprintf(fp, ";\n");
     }
+
+  free(newTypeName);
 }
 
 void vtkWrap_DeclareVariableSize(
@@ -1037,4 +1091,35 @@ void vtkWrap_DeclareVariableSize(
             "  const int %s%s = %s;\n",
             name, idx, val->Dimensions[0]);
     }
+}
+
+char *vtkWrap_SafeSuperclassName(const char *name)
+{
+  int template_class = 0;
+  size_t size = strlen(name);
+  char *safe_name = malloc(size + 1);
+  size_t i;
+
+  memcpy(safe_name, name, size + 1);
+
+  for (i = 0; i < size; ++i)
+  {
+    char c = name[i];
+    if (c == '<' || c == '>')
+      {
+      safe_name[i] = '_';
+      template_class = 1;
+      }
+    if  (c == ',' || c == ' ')
+      {
+      safe_name[i] = '_';
+      }
+  }
+
+  if (!template_class)
+    {
+    free(safe_name);
+    return NULL;
+    }
+  return safe_name;
 }

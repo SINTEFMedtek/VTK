@@ -1,4 +1,5 @@
-vtk_add_test_cxx(
+vtk_add_test_cxx(${vtk-module}CxxTests tests
+  TestAppendFilter.cxx,NO_VALID
   TestAppendPolyData.cxx,NO_VALID
   TestAppendSelection.cxx,NO_VALID
   TestArrayCalculator.cxx,NO_VALID
@@ -20,12 +21,15 @@ vtk_add_test_cxx(
   TestHedgeHog.cxx,NO_VALID
   TestImplicitPolyDataDistance.cxx,NO_VALID
   TestMaskPoints.cxx,NO_VALID
+  TestNamedComponents.cxx,NO_VALID
   TestPolyDataConnectivityFilter.cxx,NO_VALID
+  TestProbeFilter.cxx,NO_VALID
   TestSmoothPolyDataFilter.cxx,NO_VALID
   TestSMPPipelineContour.cxx,NO_VALID
+  TestStructuredGridAppend.cxx,NO_VALID
   TestThreshold.cxx,NO_VALID
   TestThresholdPoints.cxx,NO_VALID
   TestTransposeTable.cxx,NO_VALID
   TestTubeFilter.cxx,NO_VALID
   )
-vtk_test_cxx_executable(${vtk-module}CxxTests)
+vtk_test_cxx_executable(${vtk-module}CxxTests tests)

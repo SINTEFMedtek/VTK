@@ -17,8 +17,8 @@
 // vtkInformationDataObjectKey is used to represent keys in
 // vtkInformation for values that are vtkDataObject instances.
 
-#ifndef __vtkInformationDataObjectKey_h
-#define __vtkInformationDataObjectKey_h
+#ifndef vtkInformationDataObjectKey_h
+#define vtkInformationDataObjectKey_h
 
 #include "vtkCommonCoreModule.h" // For export macro
 #include "vtkInformationKey.h"
@@ -35,6 +35,15 @@ public:
 
   vtkInformationDataObjectKey(const char* name, const char* location);
   ~vtkInformationDataObjectKey();
+
+  // Description:
+  // This method simply returns a new vtkInformationDataObjectKey, given a
+  // name and a location. This method is provided for wrappers. Use the
+  // constructor directly from C++ instead.
+  static vtkInformationDataObjectKey* MakeKey(const char* name, const char* location)
+    {
+    return new vtkInformationDataObjectKey(name, location);
+    }
 
   //BTX
   // Description:

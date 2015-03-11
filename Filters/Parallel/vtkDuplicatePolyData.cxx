@@ -90,11 +90,8 @@ void vtkDuplicatePolyData::InitializeSchedule(int numProcs)
     delete [] this->Schedule[i];
     this->Schedule[i] = NULL;
     }
-  if (this->Schedule)
-    {
-    delete [] this->Schedule;
-    this->Schedule = NULL;
-    }
+  delete [] this->Schedule;
+  this->Schedule = NULL;
 
   this->NumberOfProcesses = numProcs;
   if (numProcs == 0)
@@ -168,20 +165,6 @@ void vtkDuplicatePolyData::InitializeSchedule(int numProcs)
 
   delete [] procFlags;
   procFlags = NULL;
-}
-
-//----------------------------------------------------------------------------
-int vtkDuplicatePolyData::RequestInformation(
-  vtkInformation *vtkNotUsed(request),
-  vtkInformationVector **vtkNotUsed(inputVector),
-  vtkInformationVector *outputVector)
-{
-  // get the info object
-  vtkInformation *outInfo = outputVector->GetInformationObject(0);
-  outInfo->Set(vtkStreamingDemandDrivenPipeline::MAXIMUM_NUMBER_OF_PIECES(),
-               -1);
-
-  return 1;
 }
 
 //--------------------------------------------------------------------------

@@ -21,15 +21,13 @@
 // vtkXMLPImageDataReader vtkXMLPStructuredGridReader
 // vtkXMLPRectilinearGridReader
 
-#ifndef __vtkXMLPStructuredDataReader_h
-#define __vtkXMLPStructuredDataReader_h
+#ifndef vtkXMLPStructuredDataReader_h
+#define vtkXMLPStructuredDataReader_h
 
 #include "vtkIOXMLModule.h" // For export macro
 #include "vtkXMLPDataReader.h"
 
 class vtkExtentSplitter;
-class vtkExtentTranslator;
-//class vtkTableExtentTranslator;
 class vtkXMLStructuredDataReader;
 
 class VTKIOXML_EXPORT vtkXMLPStructuredDataReader : public vtkXMLPDataReader
@@ -37,14 +35,6 @@ class VTKIOXML_EXPORT vtkXMLPStructuredDataReader : public vtkXMLPDataReader
 public:
   vtkTypeMacro(vtkXMLPStructuredDataReader,vtkXMLPDataReader);
   void PrintSelf(ostream& os, vtkIndent indent);
-
-  // Description:
-  // Get an extent translator that will create pieces matching the
-  // input file's piece breakdown.  This can be used further down the
-  // pipeline to prevent reading from outside this process's piece.
-  // The translator is only valid after an UpdateInformation has been
-  // called.
-  virtual vtkExtentTranslator* GetExtentTranslator();
 
   // For the specified port, copy the information this reader sets up in
   // SetupOutputInformation to outInfo
@@ -77,7 +67,6 @@ protected:
                      vtkDataArray* inArray, vtkDataArray* outArray);
   int ComputePieceSubExtents();
 
-  //vtkTableExtentTranslator* ExtentTranslator;
   vtkExtentSplitter* ExtentSplitter;
 
   // The extent to be updated in the output.

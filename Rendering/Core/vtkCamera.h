@@ -23,8 +23,8 @@
 // .SECTION See Also
 // vtkPerspectiveTransform
 
-#ifndef __vtkCamera_h
-#define __vtkCamera_h
+#ifndef vtkCamera_h
+#define vtkCamera_h
 
 #include "vtkRenderingCoreModule.h" // For export macro
 #include "vtkObject.h"
@@ -401,6 +401,12 @@ public:
                                                               double nearz,
                                                               double farz);
 
+  // Description:
+  // Return the projection transform matrix, which converts from camera
+  // coordinates to viewport coordinates. This method computes
+  // the aspect, nearz and farz, then calls the more specific
+  // signature of GetCompositeProjectionTransformMatrix
+  virtual vtkMatrix4x4 *GetProjectionTransformMatrix(vtkRenderer *ren);
 
   // Description:
   // In addition to the instance variables such as position and orientation,
@@ -494,13 +500,13 @@ protected:
   // Description:
   // These methods should only be used within vtkCamera.cxx.
   void ComputeDistance();
-  void ComputeViewTransform();
+  virtual void ComputeViewTransform();
 
   // Description:
   // These methods should only be used within vtkCamera.cxx.
-  void ComputeProjectionTransform(double aspect,
-                                  double nearz,
-                                  double farz);
+  virtual void ComputeProjectionTransform(double aspect,
+                                          double nearz,
+                                          double farz);
 
   // Description:
   // These methods should only be used within vtkCamera.cxx.

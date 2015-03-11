@@ -21,8 +21,8 @@
 // Only the whole extent is modified.
 // 2: If ClipDataOn is set, then you will get no more that the clipped
 // extent.
-#ifndef __vtkImageClip_h
-#define __vtkImageClip_h
+#ifndef vtkImageClip_h
+#define vtkImageClip_h
 
 // I did not make this a subclass of in place filter because
 // the references on the data do not matter. I make no modifications
@@ -54,10 +54,6 @@ public:
   vtkSetMacro(ClipData, int);
   vtkGetMacro(ClipData, int);
   vtkBooleanMacro(ClipData, int);
-
-  // Description:
-  // Hack set output by piece
-  void SetOutputWholeExtent(int piece, int numPieces);
 
 protected:
   vtkImageClip();

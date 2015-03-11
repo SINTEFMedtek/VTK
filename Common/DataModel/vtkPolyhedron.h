@@ -22,15 +22,15 @@
 // method of Mean Value Coordinates (MVC). See the VTK class
 // vtkMeanValueCoordinatesInterpolator for more information.
 //
-// The class assumes that the polyhedron is non-convex. However, the
-// polygonal faces should be planar. Non-planar polygonal faces will
+// The class does not require the polyhedron to be convex. However, the
+// polygonal faces must be planar. Non-planar polygonal faces will
 // definitely cause problems, especially in severely warped situations.
 
 // .SECTION See Also
 // vtkCell3D vtkConvecPointSet vtkMeanValueCoordinatesInterpolator
 
-#ifndef __vtkPolyhedron_h
-#define __vtkPolyhedron_h
+#ifndef vtkPolyhedron_h
+#define vtkPolyhedron_h
 
 #include "vtkCommonDataModelModule.h" // For export macro
 #include "vtkCell3D.h"

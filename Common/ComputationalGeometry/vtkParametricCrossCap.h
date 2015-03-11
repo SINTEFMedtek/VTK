@@ -23,11 +23,11 @@
 // in the "VTK Technical Documents" section in the VTk.org web pages.
 //
 // .SECTION Thanks
-// Andrew Maclean a.maclean@cas.edu.au for
-// creating and contributing the class.
+// Andrew Maclean andrew.amaclean@gmail.com for creating and contributing the
+// class.
 //
-#ifndef __vtkParametricCrossCap_h
-#define __vtkParametricCrossCap_h
+#ifndef vtkParametricCrossCap_h
+#define vtkParametricCrossCap_h
 
 #include "vtkCommonComputationalGeometryModule.h" // For export macro
 #include "vtkParametricFunction.h"

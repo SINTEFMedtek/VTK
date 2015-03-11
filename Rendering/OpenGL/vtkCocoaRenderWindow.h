@@ -21,7 +21,7 @@ PURPOSE.  See the above copyright notice for more information.
 // To use this class, build VTK with VTK_USE_COCOA turned ON (this is
 // the default).
 // This class can be used by 32 and 64 bit processes, and either in
-// garbage collected or reference counted modes. ARC is not supported.
+// garbage collected or reference counted modes. ARC is not yet supported.
 // vtkCocoaRenderWindow uses Objective-C++, and the OpenGL and
 // Cocoa APIs. This class's default behaviour is to create an NSWindow and
 // a vtkCocoaGLView which are used together to draw all VTK content.
@@ -37,8 +37,8 @@ PURPOSE.  See the above copyright notice for more information.
 // That means no Objective-C may be used. That's why some instance variables
 // are void* instead of what they really should be.
 
-#ifndef __vtkCocoaRenderWindow_h
-#define __vtkCocoaRenderWindow_h
+#ifndef vtkCocoaRenderWindow_h
+#define vtkCocoaRenderWindow_h
 
 #include "vtkRenderingOpenGLModule.h" // For export macro
 #include "vtkOpenGLRenderWindow.h"
@@ -235,6 +235,11 @@ public:
   virtual void SetCurrentCursor(int);
 
   // Description:
+  // Get the ViewCreated flag. It is 1 if this object created an instance
+  // of NSView, 0 otherwise.
+  virtual int GetViewCreated();
+
+  // Description:
   // Get the WindowCreated flag. It is 1 if this object created an instance
   // of NSWindow, 0 otherwise.
   virtual int GetWindowCreated();
@@ -313,6 +318,9 @@ protected:
   // It manages all Cocoa objects in this C++ class.
   void SetCocoaManager(void *manager);
   void *GetCocoaManager();
+
+  void SetCocoaServer(void *server);            // Really a vtkCocoaServer*
+  void *GetCocoaServer();
 
 private:
   vtkCocoaRenderWindow(const vtkCocoaRenderWindow&);  // Not implemented.

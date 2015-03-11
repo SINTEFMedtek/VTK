@@ -41,8 +41,8 @@
 // vtkMarchingContourFilter vtkMarchingCubes vtkSliceCubes
 // vtkMarchingSquares vtkImageMarchingCubes
 
-#ifndef __vtkContourFilter_h
-#define __vtkContourFilter_h
+#ifndef vtkContourFilter_h
+#define vtkContourFilter_h
 
 #include "vtkFiltersCoreModule.h" // For export macro
 #include "vtkPolyDataAlgorithm.h"
@@ -151,12 +151,6 @@ public:
   vtkSetMacro(GenerateTriangles,int);
   vtkGetMacro(GenerateTriangles,int);
   vtkBooleanMacro(GenerateTriangles,int);
-
-  // Description:
-  // see vtkAlgorithm for details
-  virtual int ProcessRequest(vtkInformation*,
-                             vtkInformationVector**,
-                             vtkInformationVector*);
 
   // Description:
   // Set/get the desired precision for the output types. See the documentation

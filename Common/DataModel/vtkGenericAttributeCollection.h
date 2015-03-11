@@ -17,8 +17,8 @@
 // vtkGenericAttributeCollection is a class that collects attributes
 // (represented by vtkGenericAttribute).
 
-#ifndef __vtkGenericAttributeCollection_h
-#define __vtkGenericAttributeCollection_h
+#ifndef vtkGenericAttributeCollection_h
+#define vtkGenericAttributeCollection_h
 
 #include "vtkCommonDataModelModule.h" // For export macro
 #include "vtkObject.h"
@@ -179,8 +179,7 @@ public:
   // Description:
   // Indices of attributes to interpolate.
   // \pre not_empty: !IsEmpty()
-  // \post valid_result: GetNumberOfAttributesToInterpolate()>0 implies
-  //                       result!=0
+  // \post valid_result: GetNumberOfAttributesToInterpolate()>0
   int *GetAttributesToInterpolate();
   //ETX
 

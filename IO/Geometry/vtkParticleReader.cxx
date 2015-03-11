@@ -136,11 +136,8 @@ vtkParticleReader::~vtkParticleReader()
     this->File = NULL;
     }
 
-  if (this->FileName)
-    {
-    delete [] this->FileName;
-    this->FileName = NULL;
-    }
+  delete [] this->FileName;
+  this->FileName = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -181,11 +178,34 @@ int vtkParticleReader::RequestInformation(
   vtkInformationVector **vtkNotUsed(inputVector),
   vtkInformationVector *outputVector)
 {
-  // get the info object
-  vtkInformation *outInfo = outputVector->GetInformationObject(0);
+  if (!this->FileName)
+    {
+    vtkErrorMacro(<<"FileName must be specified.");
+    return 0;
+    }
 
-  outInfo->Set(vtkStreamingDemandDrivenPipeline::MAXIMUM_NUMBER_OF_PIECES(),
-               -1);
+  this->OpenFile();
+  int ft = this->FileType;
+  if ( ft == FILE_TYPE_IS_UNKNOWN )
+    {
+    ft = DetermineFileType();
+    if ( ft == FILE_TYPE_IS_UNKNOWN )
+      {
+      vtkErrorMacro(<< "File type cannot be determined.");
+      return 0;
+      }
+    }
+  this->File->close();
+  delete this->File;
+  this->File = NULL;
+
+
+  if (ft == FILE_TYPE_IS_BINARY)
+    {
+    vtkInformation *outInfo = outputVector->GetInformationObject(0);
+    outInfo->Set(CAN_HANDLE_PIECE_REQUEST(),
+                 1);
+    }
 
   return 1;
 }
@@ -221,10 +241,8 @@ int vtkParticleReader::RequestData(
     {
     case VTK_FLOAT:
       return ProduceOutputFromTextFileFloat(outputVector);
-      break;
     case VTK_DOUBLE:
       return ProduceOutputFromTextFileDouble(outputVector);
-      break;
     default:
       {
       vtkErrorMacro(<<"Only float or double data can be processed.");
@@ -236,10 +254,8 @@ int vtkParticleReader::RequestData(
     {
     case VTK_FLOAT:
       return ProduceOutputFromBinaryFileFloat(outputVector);
-      break;
     case VTK_DOUBLE:
       return ProduceOutputFromBinaryFileDouble(outputVector);
-      break;
     default:
       {
       vtkErrorMacro(<<"Only float or double data can be processed.");

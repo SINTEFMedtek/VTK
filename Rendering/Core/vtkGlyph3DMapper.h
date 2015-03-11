@@ -23,8 +23,8 @@
 // .SECTION See Also
 // vtkGlyph3D
 
-#ifndef __vtkGlyph3DMapper_h
-#define __vtkGlyph3DMapper_h
+#ifndef vtkGlyph3DMapper_h
+#define vtkGlyph3DMapper_h
 
 #include "vtkRenderingCoreModule.h" // For export macro
 #include "vtkMapper.h"
@@ -67,7 +67,10 @@ public:
   void SetSourceData(int idx, vtkPolyData *pd);
 
   // Description:
-  // Set the source to use for he glyph. Old style. See SetSourceConnection.
+  // Set the source to use for he glyph.
+  // Note that this method does not connect the pipeline. The algorithm will
+  // work on the input data as it is without updating the producer of the data.
+  // See SetSourceConnection for connecting the pipeline.
   void SetSourceData(vtkPolyData *pd);
 
   // Description:

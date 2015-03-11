@@ -66,17 +66,6 @@ int vtkTemporalSnapToTimeStep::ProcessRequest(
   // execute information
   if(request->Has(vtkDemandDrivenPipeline::REQUEST_INFORMATION()))
     {
-    if(request->Has(vtkStreamingDemandDrivenPipeline::FROM_OUTPUT_PORT()))
-      {
-      int outputPort = request->Get(
-        vtkStreamingDemandDrivenPipeline::FROM_OUTPUT_PORT());
-      vtkInformation* info = outputVector->GetInformationObject(outputPort);
-      if (info)
-        {
-        info->Set(
-          vtkStreamingDemandDrivenPipeline::MAXIMUM_NUMBER_OF_PIECES(), -1);
-        }
-      }
     return this->RequestInformation(request, inputVector, outputVector);
     }
 
@@ -155,15 +144,15 @@ int vtkTemporalSnapToTimeStep::RequestData(
   if (inData && outData)
     {
     outData->ShallowCopy(inData);
-    }
 
-  // fill in the time steps
-  double inTime =  inData->GetInformation()->Get(vtkDataObject::DATA_TIME_STEP());
+    // fill in the time steps
+    double inTime = inData->GetInformation()->Get(vtkDataObject::DATA_TIME_STEP());
 
-  if(inData->GetInformation()->Has(vtkDataObject::DATA_TIME_STEP()))
-    {
-    double outTime = inTime;
-    outData->GetInformation()->Set(vtkDataObject::DATA_TIME_STEP(), outTime);
+    if(inData->GetInformation()->Has(vtkDataObject::DATA_TIME_STEP()))
+      {
+      double outTime = inTime;
+      outData->GetInformation()->Set(vtkDataObject::DATA_TIME_STEP(), outTime);
+      }
     }
 
   return 1;

@@ -1,7 +1,4 @@
-set(tests
-  TestAmoebaMinimizer
+vtk_add_test_tcl(
+  NO_DATA NO_RT
+  TestAmoebaMinimizer.tcl
   )
-
-foreach(test ${tests})
-  vtk_add_test_tcl(${test}.tcl NO_DATA NO_RT)
-endforeach()

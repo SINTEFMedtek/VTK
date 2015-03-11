@@ -27,9 +27,11 @@
 //
 // .SECTION See Also
 // vtkGraph vtkPBGLGraphAdaptor vtkBoostGraphAdapter
+//
+// @deprecated Not maintained as of VTK 6.2 and will be removed eventually.
 
-#ifndef __vtkPBGLMinimumSpanningTree_h
-#define __vtkPBGLMinimumSpanningTree_h
+#ifndef vtkPBGLMinimumSpanningTree_h
+#define vtkPBGLMinimumSpanningTree_h
 
 #include "vtkInfovisParallelModule.h" // For export macro
 #include "vtkStdString.h" // For string type
@@ -39,6 +41,7 @@
 
 class vtkSelection;
 
+#if !defined(VTK_LEGACY_REMOVE)
 class VTKINFOVISPARALLEL_EXPORT vtkPBGLMinimumSpanningTree : public vtkGraphAlgorithm
 {
 public:
@@ -83,4 +86,5 @@ private:
   void operator=(const vtkPBGLMinimumSpanningTree&);  // Not implemented.
 };
 
+#endif //VTK_LEGACY_REMOVE
 #endif

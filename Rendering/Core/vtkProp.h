@@ -22,8 +22,8 @@
 // .SECTION See Also
 // vtkActor2D vtkActor vtkVolume vtkProp3D
 
-#ifndef __vtkProp_h
-#define __vtkProp_h
+#ifndef vtkProp_h
+#define vtkProp_h
 
 #include "vtkRenderingCoreModule.h" // For export macro
 #include "vtkObject.h"
@@ -35,6 +35,8 @@ class vtkPropCollection;
 class vtkViewport;
 class vtkWindow;
 class vtkInformation;
+class vtkInformationIntegerKey;
+class vtkInformationDoubleVectorKey;
 
 class VTKRENDERINGCORE_EXPORT vtkProp : public vtkObject
 {
@@ -144,6 +146,34 @@ public:
   // Tells if the prop has all the required keys.
   // \pre keys_can_be_null: requiredKeys==0 || requiredKeys!=0
   virtual bool HasKeys(vtkInformation *requiredKeys);
+
+  // Description:
+  // Props may provide a mapping from picked value to actual value
+  // This is useful for hardware based pickers where
+  // there is a mapping between the color in the buffer
+  // and the actual pick value
+  virtual vtkIdType GetConvertedPickValue(vtkIdType idIn,
+      int vtkNotUsed(fieldassociation)) { return idIn; }
+
+  // Description:
+  // Optional Key Indicating the texture unit for general texture mapping
+  // Old OpenGL was a state machine where you would push or pop
+  // items. The new OpenGL design is more mapper centric. Some
+  // classes push a texture and then assume a mapper will use it.
+  // The new design wants explicit comunication of when a texture
+  // is being used.  This key can be used to pass that information
+  // down to a mapper.
+  static vtkInformationIntegerKey *GeneralTextureUnit();
+
+  // Description:
+  // Optional Key Indicating the texture transform for general texture mapping
+  // Old OpenGL was a state machine where you would push or pop
+  // items. The new OpenGL design is more mapper centric. Some
+  // classes push a texture and then assume a mapper will use it.
+  // The new design wants explicit comunication of when a texture
+  // is being used.  This key can be used to pass that information
+  // down to a mapper.
+  static vtkInformationDoubleVectorKey *GeneralTextureTransform();
 
 //BTX
   // Description:

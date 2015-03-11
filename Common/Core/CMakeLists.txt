@@ -40,7 +40,13 @@ endif()
 
 if ("${VTK_SMP_IMPLEMENTATION_TYPE}" STREQUAL "TBB")
   find_package(TBB REQUIRED)
-  set(VTK_SMP_IMPLEMENTATION_LIBRARIES ${TBB_LIBRARY})
+  set(VTK_SMP_IMPLEMENTATION_LIBRARIES "")
+  if (TBB_LIBRARY)
+    list(APPEND VTK_SMP_IMPLEMENTATION_LIBRARIES optimized ${TBB_LIBRARY})
+  endif()
+  if (TBB_LIBRARY_DEBUG)
+    list(APPEND VTK_SMP_IMPLEMENTATION_LIBRARIES debug ${TBB_LIBRARY_DEBUG})
+  endif()
   set(VTK_SMP_ATOMIC_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/SMP/TBB")
   include_directories(${TBB_INCLUDE_DIRS})
   # This needs to be here because all modules that include vtkAtomic.h
@@ -68,13 +74,13 @@ else()
 endif()
 
 configure_file(${VTK_SMP_ATOMIC_DIRECTORY}/vtkAtomicInt.h.in
-  ${CMAKE_CURRENT_BINARY_DIR}/vtkAtomicInt.h COPY_ONLY)
+  ${CMAKE_CURRENT_BINARY_DIR}/vtkAtomicInt.h COPYONLY)
 
 configure_file(SMP/${VTK_SMP_IMPLEMENTATION_TYPE}/vtkSMPThreadLocal.h.in
-  ${CMAKE_CURRENT_BINARY_DIR}/vtkSMPThreadLocal.h COPY_ONLY)
+  ${CMAKE_CURRENT_BINARY_DIR}/vtkSMPThreadLocal.h COPYONLY)
 
 configure_file(SMP/${VTK_SMP_IMPLEMENTATION_TYPE}/vtkSMPToolsInternal.h.in
-  ${CMAKE_CURRENT_BINARY_DIR}/vtkSMPToolsInternal.h COPY_ONLY)
+  ${CMAKE_CURRENT_BINARY_DIR}/vtkSMPToolsInternal.h COPYONLY)
 
 #-----------------------------------------------------------------------------
 
@@ -196,6 +202,7 @@ SET(Module_SRCS
   vtkWindow.cxx
   vtkXMLFileOutputWindow.cxx
   vtkDataArrayTemplate.txx
+  vtkDataArrayTemplateHelper.cxx
   vtkDenseArray.txx
   vtkSparseArray.txx
   vtkTypedArray.txx
@@ -270,6 +277,12 @@ if(WIN32)
     vtkWin32ProcessOutputWindow.cxx
     )
   set_property(SOURCE vtkWin32OutputWindowProcessEncoded.c PROPERTY WRAP_EXCLUDE 1)
+endif()
+
+if(ANDROID)
+  list(APPEND Module_SRCS
+    vtkAndroidOutputWindow.cxx
+    )
 endif()
 
 # Generate data for folding Unicode strings
@@ -500,6 +513,7 @@ set_source_files_properties(
   vtkWeakPointerBase.cxx
   vtkUnicodeString.cxx
   vtkDataArrayTemplate.h
+  vtkDataArrayPrivate.txx
 
   vtkABI.h
   vtkArrayInterpolate.h
@@ -512,6 +526,7 @@ set_source_files_properties(
   vtkArrayPrint.txx
   vtkAutoInit.h
   vtkDataArrayTemplate.txx
+  vtkDataArrayTemplateHelper.cxx
   vtkDataArrayTemplateImplicit.txx
   vtkDenseArray.txx
   vtkIOStreamFwd.h
@@ -593,4 +608,4 @@ endif()
 
 vtk_module_library(vtkCommonCore ${Module_SRCS})
 
-target_link_libraries(vtkCommonCore LINK_PRIVATE ${CMAKE_THREAD_LIBS_INIT} LINK_PUBLIC ${VTK_SMP_IMPLEMENTATION_LIBRARIES})
+vtk_module_link_libraries(vtkCommonCore LINK_PRIVATE ${CMAKE_THREAD_LIBS} LINK_PUBLIC ${VTK_SMP_IMPLEMENTATION_LIBRARIES})

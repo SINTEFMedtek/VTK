@@ -41,7 +41,7 @@
 #include "vtkMultiPieceDataSet.h"
 #include "vtkStringArray.h"
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <string>
 #include <vector>
 #include <vtksys/ios/sstream>
@@ -77,7 +77,6 @@ public:
 
   void SetName(std::string name)
     {
-    this->Names.clear();
     this->Names.push_back(name);
     this->ResetNameIterator();
     }
@@ -171,20 +170,9 @@ vtkRCalculatorFilter::~vtkRCalculatorFilter()
     this->ri->Delete();
     }
 
-  if(this->Rscript)
-    {
-    delete [] this->Rscript;
-    }
-
-  if(this->RfileScript)
-    {
-    delete [] this->RfileScript;
-    }
-
-  if(this->ScriptFname)
-    {
-    delete [] this->ScriptFname;
-    }
+  delete [] this->Rscript;
+  delete [] this->RfileScript;
+  delete [] this->ScriptFname;
 
   if(this->CurrentTime)
     {
@@ -342,12 +330,24 @@ int vtkRCalculatorFilter::RequestDataObject(
         }
       else
         {
-         if (!output || !output->IsA(input->GetClassName()))
-           {
-           vtkDataObject* newOutput = input->NewInstance();
-           info->Set(vtkDataObject::DATA_OBJECT(), newOutput);
-           newOutput->Delete();
-           }
+        if (!output || !output->IsA(input->GetClassName()))
+          {
+          vtkDataObject* newOutput = NULL;
+          if (this->rcfi->GetTableNames.Count() > 0)
+            {
+            newOutput = vtkTable::New();
+            }
+          else if (this->rcfi->GetTreeNames.Count() > 0)
+            {
+            newOutput = vtkTree::New();
+            }
+          else
+            {
+            newOutput = input->NewInstance();
+            }
+          info->Set(vtkDataObject::DATA_OBJECT(), newOutput);
+          newOutput->Delete();
+          }
         }
       }
     return (1);
@@ -384,73 +384,42 @@ int vtkRCalculatorFilter::RequestData(vtkInformation *vtkNotUsed(request),
     this->ri->OutputBuffer(this->OutputBuffer, BUFFER_SIZE);
     }
 
-
   vtkInformation* outinfo = outputVector->GetInformationObject(0);
   vtkInformation* inpinfo = inputVector[0]->GetInformationObject(0);
 
   vtkDataObject* input = inpinfo->Get(vtkDataObject::DATA_OBJECT());
   vtkDataObject* output = outinfo->Get(vtkDataObject::DATA_OBJECT());
 
-  //only one output port
-  //the output type is assumed to be the same as the first input data object
-  //(backward compatibility)
-  output->ShallowCopy(input);
-
-  // if the input is a composite, we also need to initialize the
-  // output's components.
-  vtkCompositeDataSet* inComposite =
-    vtkCompositeDataSet::SafeDownCast(input);
-  int tableCount = 0;
-  int treeCount = 0;
-  int itemCount = 0;
-  if (inComposite)
-   {
-   vtkCompositeDataSet* outComposite =
-     vtkCompositeDataSet::SafeDownCast(output);
-   outComposite->CopyStructure(inComposite);
-   vtkCompositeDataIterator* iter = inComposite->NewIterator();
-   iter->InitTraversal();
-   for (iter->InitTraversal(); !iter->IsDoneWithTraversal();
-        iter->GoToNextItem())
-     {
-     vtkDataObject* currentDataObject = iter->GetCurrentDataObject();
-     if (currentDataObject->IsA("vtkTable"))
-       {
-       tableCount++;
-       }
-     else if (currentDataObject->IsA("vtkTree"))
-       {
-       treeCount++;
-       }
-
-
-     vtkDataObject* outComponent = currentDataObject->NewInstance();
-     outComposite->SetDataSet(iter, outComponent);
-     outComponent->Delete();
-     itemCount++;
-     }
-   iter->Delete();
-   }
-
+  // initialize the output's components if it is a composite data set.
   if (this->HasMultipleGets())
     {
     vtkMultiPieceDataSet* outComposite =
         vtkMultiPieceDataSet::SafeDownCast(output);
 
-    for (int i=0; i<rcfi->GetTableNames.Count()-tableCount; i++)
+    int tableCount = 0;
+    int treeCount = 0;
+    int itemCount = 0;
+
+    for (int i=0; i < this->rcfi->GetTableNames.Count() - tableCount; i++)
       {
       vtkTable *table = vtkTable::New();
       outComposite->SetPiece(itemCount++, table);
       table->Delete();
       }
 
-    for (int i=0; i<rcfi->GetTreeNames.Count()-treeCount; i++)
+    for (int i=0; i < this->rcfi->GetTreeNames.Count() - treeCount; i++)
       {
       vtkTree *tree = vtkTree::New();
       outComposite->SetPiece(itemCount++, tree);
       tree->Delete();
       }
-   }
+    }
+  else if (!output->IsA("vtkTable") && !output->IsA("vtkTree"))
+    {
+    // some tests assume that input arrays will also be present in the output
+    // data set.
+    output->ShallowCopy(input);
+    }
 
   // For now: use the first input information for timing
   if(this->TimeOutput)
@@ -1016,12 +985,7 @@ int vtkRCalculatorFilter::SetRscriptFromFile(const char* fname)
     len = ftell(fp);
     fseek(fp,0,SEEK_SET);
 
-    if(this->RfileScript)
-      {
-      delete [] this->RfileScript;
-      this->RfileScript = 0;
-      }
-
+    delete [] this->RfileScript;
     this->RfileScript = new char[len+1];
     rlen = static_cast<long>(fread(this->RfileScript,1,len,fp));
     this->RfileScript[len] = '\0';
@@ -1283,11 +1247,11 @@ void vtkRCalculatorFilter::GetTrees(vtkStringArray* NamesOfRvars)
 
 int vtkRCalculatorFilter::HasMultipleGets()
 {
-  return (rcfi->GetTreeNames.Count() > 1 || rcfi->GetTableNames.Count() > 1);
+  return rcfi->GetTreeNames.Count() + rcfi->GetTableNames.Count() > 1;
 
 }
 
 int vtkRCalculatorFilter::HasMultiplePuts()
 {
-  return (rcfi->PutTreeNames.Count() > 1 || rcfi->PutTableNames.Count() > 1);
+  return rcfi->PutTreeNames.Count() + rcfi->PutTableNames.Count() > 1;
 }

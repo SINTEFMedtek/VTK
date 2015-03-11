@@ -39,8 +39,8 @@
 // .SECTION See Also
 // vtkImplicitFunction vtkClipPolyData
 
-#ifndef __vtkCutter_h
-#define __vtkCutter_h
+#ifndef vtkCutter_h
+#define vtkCutter_h
 
 #include "vtkFiltersCoreModule.h" // For export macro
 #include "vtkPolyDataAlgorithm.h"
@@ -193,12 +193,6 @@ public:
 protected:
   vtkCutter(vtkImplicitFunction *cf=NULL);
   ~vtkCutter();
-
-  // Description:
-  // Overridden to process REQUEST_UPDATE_EXTENT_INFORMATION.
-  virtual int ProcessRequest(vtkInformation*,
-                             vtkInformationVector**,
-                             vtkInformationVector*);
 
   virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
   virtual int RequestUpdateExtent(vtkInformation *, vtkInformationVector **, vtkInformationVector *);

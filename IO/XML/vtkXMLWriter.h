@@ -19,11 +19,12 @@
 // subclasses provide actual writer implementations calling upon this
 // functionality.
 
-#ifndef __vtkXMLWriter_h
-#define __vtkXMLWriter_h
+#ifndef vtkXMLWriter_h
+#define vtkXMLWriter_h
 
 #include "vtkIOXMLModule.h" // For export macro
 #include "vtkAlgorithm.h"
+#include <vtksys/ios/sstream> // For ostringstream ivar
 
 class vtkAbstractArray;
 class vtkArrayIterator;
@@ -110,6 +111,13 @@ public:
   // Get/Set the name of the output file.
   vtkSetStringMacro(FileName);
   vtkGetStringMacro(FileName);
+
+  // Description:
+  // Enable writing to an OutputString instead of the default, a file.
+  vtkSetMacro(WriteToOutputString,int);
+  vtkGetMacro(WriteToOutputString,int);
+  vtkBooleanMacro(WriteToOutputString,int);
+  std::string GetOutputString() { return this->OutputString; }
 
   // Description:
   // Get/Set the compressor used to compress binary and appended data
@@ -226,6 +234,13 @@ protected:
   // The output stream to which the XML is written.
   ostream* Stream;
 
+  // Whether this object is writing to a string or a file.
+  // Default is 0: write to file.
+  int WriteToOutputString;
+
+  // The output string.
+  std::string OutputString;
+
   // The output byte order.
   int ByteOrder;
 
@@ -300,9 +315,9 @@ protected:
 
   // Utility methods for subclasses.
   vtkDataSet* GetInputAsDataSet();
-  int StartFile();
+  virtual int StartFile();
   virtual void WriteFileAttributes();
-  int EndFile();
+  virtual int EndFile();
   void DeleteAFile();
   void DeleteAFile(const char* name);
 
@@ -394,9 +409,6 @@ protected:
   void WriteCoordinatesAppendedData(vtkDataArray* xc, vtkDataArray* yc,
                                     vtkDataArray* zc, int timestep,
                                     OffsetsManagerGroup *coordManager);
-  virtual vtkAbstractArray* CreateArrayForPoints(vtkAbstractArray* inArray);
-  virtual vtkAbstractArray* CreateArrayForCells(vtkAbstractArray* inArray);
-  virtual vtkDataArray* CreateExactCoordinates(vtkDataArray* inArray, int xyz);
   void WritePPointData(vtkPointData* pd, vtkIndent indent);
   void WritePCellData(vtkCellData* cd, vtkIndent indent);
   void WritePPoints(vtkPoints* points, vtkIndent indent);
@@ -428,9 +440,14 @@ protected:
   float ProgressRange[2];
 
   ofstream* OutFile;
+  vtksys_ios::ostringstream* OutStringStream;
 
+  int OpenStream();
   int OpenFile();
+  int OpenString();
+  void CloseStream();
   void CloseFile();
+  void CloseString();
 
   // The timestep currently being written
   int TimeStep;

@@ -19,8 +19,8 @@
 // It can paint multi-spectral images.
 
 
-#ifndef __vtkImageCanvasSource2D_h
-#define __vtkImageCanvasSource2D_h
+#ifndef vtkImageCanvasSource2D_h
+#define vtkImageCanvasSource2D_h
 
 #include "vtkImagingSourcesModule.h" // For export macro
 #include "vtkImageAlgorithm.h"
@@ -53,6 +53,10 @@ public:
   // Set DrawColor to (a, b, c, 0)
   void SetDrawColor(double a, double b, double c) {
     this->SetDrawColor(a, b, c, 0.0);}
+
+  // Description:
+  // Initialize the canvas with a given volume
+  void InitializeCanvasVolume(vtkImageData *volume);
 
   // Description:
   // Set the pixels inside the box (min0, max0, min1, max1) to the current

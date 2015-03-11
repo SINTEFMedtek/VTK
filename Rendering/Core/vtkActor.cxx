@@ -17,6 +17,8 @@
 #include "vtkDataArray.h"
 #include "vtkObjectFactory.h"
 #include "vtkImageData.h"
+#include "vtkInformation.h"
+#include "vtkInformationDoubleVectorKey.h"
 #include "vtkMapper.h"
 #include "vtkMath.h"
 #include "vtkMatrix4x4.h"
@@ -25,7 +27,9 @@
 #include "vtkProperty.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderer.h"
+#include "vtkScalarsToColors.h"
 #include "vtkTexture.h"
+#include "vtkTransform.h"
 
 #include <math.h>
 
@@ -127,7 +131,6 @@ int vtkActor::GetIsOpaque()
   return is_opaque? 1 : 0;
 }
 
-
 //----------------------------------------------------------------------------
 // This causes the actor to be rendered. It in turn will render the actor's
 // property, texture map and then mapper. If a property hasn't been
@@ -150,8 +153,10 @@ int vtkActor::RenderOpaqueGeometry(vtkViewport *vp)
     this->GetProperty();
     }
 
-  // is this actor opaque ?
-  if (this->GetIsOpaque())
+  // is this actor opaque
+  // Do this check only when not in selection mode
+  if (this->GetIsOpaque() ||
+    (ren->GetSelector() && this->Property->GetOpacity() > 0.0))
     {
     this->Property->Render(this, ren);
 
@@ -165,12 +170,30 @@ int vtkActor::RenderOpaqueGeometry(vtkViewport *vp)
     if (this->Texture)
       {
       this->Texture->Render(ren);
+      if (this->Texture->GetTransform())
+        {
+        vtkInformation *info = this->GetPropertyKeys();
+        if (!info)
+          {
+          info = vtkInformation::New();
+          this->SetPropertyKeys(info);
+          info->Delete();
+          }
+        info->Set(vtkProp::GeneralTextureTransform(),
+          &(this->Texture->GetTransform()->GetMatrix()->Element[0][0])
+          ,16);
+        }
       }
     this->Render(ren,this->Mapper);
     this->Property->PostRender(this, ren);
     if (this->Texture)
       {
       this->Texture->PostRender(ren);
+      if (this->Texture->GetTransform())
+        {
+        vtkInformation *info = this->GetPropertyKeys();
+        info->Remove(vtkProp::GeneralTextureTransform());
+        }
       }
     this->EstimatedRenderTime += this->Mapper->GetTimeToDraw();
     renderedSomething = 1;
@@ -212,9 +235,31 @@ int vtkActor::RenderTranslucentPolygonalGeometry(vtkViewport *vp)
     if (this->Texture)
       {
       this->Texture->Render(ren);
+      if (this->Texture->GetTransform())
+        {
+        vtkInformation *info = this->GetPropertyKeys();
+        if (!info)
+          {
+          info = vtkInformation::New();
+          this->SetPropertyKeys(info);
+          info->Delete();
+          }
+        info->Set(vtkProp::GeneralTextureTransform(),
+          &(this->Texture->GetTransform()->GetMatrix()->Element[0][0])
+          ,16);
+        }
       }
     this->Render(ren,this->Mapper);
     this->Property->PostRender(this, ren);
+    if (this->Texture)
+      {
+      this->Texture->PostRender(ren);
+      if (this->Texture->GetTransform())
+        {
+        vtkInformation *info = this->GetPropertyKeys();
+        info->Remove(vtkProp::GeneralTextureTransform());
+        }
+      }
     this->EstimatedRenderTime += this->Mapper->GetTimeToDraw();
 
     renderedSomething = 1;

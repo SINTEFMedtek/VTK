@@ -23,8 +23,8 @@ resulting in wrapper code that is faster and more compact.
 
 // .NAME vtkPythonArgs
 
-#ifndef __vtkPythonArgs_h
-#define __vtkPythonArgs_h
+#ifndef vtkPythonArgs_h
+#define vtkPythonArgs_h
 
 #include "vtkWrappingPythonCoreModule.h" // For export macro
 #include "vtkPythonUtil.h"
@@ -104,6 +104,17 @@ public:
   int GetArgSize(int i);
 
   // Description:
+  // Get the next argument as a naked Python object.
+  bool GetPythonObject(PyObject *&v) {
+    bool b;
+    v = this->GetArgAsPythonObject(b);
+    return b; }
+  bool GetPythonObject(PyObject *o, PyObject *&v) {
+    bool b;
+    v = vtkPythonArgs::GetArgAsPythonObject(o, b);
+    return b; }
+
+  // Description:
   // Get the next argument as a vtkObjectBase derived type.
   // It uses a C-style cast instead of a static_cast, which
   // means that it works on incomplete types, and also means
@@ -151,14 +162,14 @@ public:
   // Description:
   // Get the next argument as an enum value.
   template<class T>
-  bool GetEnumValue(T &v, const char *enumname) {
+  bool GetEnumValue(T &v, PyTypeObject *enumtype) {
     bool r;
-    v = static_cast<T>(this->GetArgAsEnum(enumname, r));
+    v = static_cast<T>(this->GetArgAsEnum(enumtype, r));
     return r; }
   template<class T>
-  static bool GetEnumValue(PyObject *o, T &v, const char *enumname) {
+  static bool GetEnumValue(PyObject *o, T &v, PyTypeObject *enumtype) {
     bool r;
-    v = static_cast<T>(vtkPythonArgs::GetArgAsEnum(o, enumname, r));
+    v = static_cast<T>(vtkPythonArgs::GetArgAsEnum(o, enumtype, r));
     return r; }
 
   // Description:
@@ -492,6 +503,12 @@ protected:
 
   // Description:
   // Get the next argument as an object of the given type.
+  PyObject *GetArgAsPythonObject(bool &valid);
+  static PyObject *GetArgAsPythonObject(
+    PyObject *o, bool &valid);
+
+  // Description:
+  // Get the next argument as an object of the given type.
   vtkObjectBase *GetArgAsVTKObject(const char *classname, bool &valid);
   static vtkObjectBase *GetArgAsVTKObject(
     PyObject *o, const char *classname, bool &valid);
@@ -504,9 +521,9 @@ protected:
 
   // Description:
   // Get the next argument as an object of the given type.
-  int GetArgAsEnum(const char *classname, bool &valid);
+  int GetArgAsEnum(PyTypeObject *enumtype, bool &valid);
   static int GetArgAsEnum(
-    PyObject *o, const char *classname, bool &valid);
+    PyObject *o, PyTypeObject *enumtype, bool &valid);
 
   // Description:
   // Get the next argument as an object of the given type.
@@ -665,7 +682,7 @@ PyObject *vtkPythonArgs::BuildValue(const void *a)
 {
   if (a)
     {
-    const char *s = vtkPythonUtil::ManglePointer(a, "void_p");
+    const char *s = vtkPythonUtil::ManglePointer(a, "p_void");
     return PyString_FromString(s);
     }
   Py_INCREF(Py_None);

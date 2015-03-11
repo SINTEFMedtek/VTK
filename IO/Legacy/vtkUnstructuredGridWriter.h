@@ -19,8 +19,8 @@
 // .SECTION Caveats
 // Binary files written on one system may not be readable on other systems.
 
-#ifndef __vtkUnstructuredGridWriter_h
-#define __vtkUnstructuredGridWriter_h
+#ifndef vtkUnstructuredGridWriter_h
+#define vtkUnstructuredGridWriter_h
 
 #include "vtkIOLegacyModule.h" // For export macro
 #include "vtkDataWriter.h"
@@ -43,6 +43,9 @@ protected:
   ~vtkUnstructuredGridWriter() {}
 
   void WriteData();
+
+  int WriteCellsAndFaces(ostream *fp, vtkUnstructuredGrid *grid,
+                         const char *label);
 
   virtual int FillInputPortInformation(int port, vtkInformation *info);
 

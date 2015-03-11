@@ -17,8 +17,8 @@
 // vtkInformationObjectBaseKey is used to represent keys in
 // vtkInformation for values that are vtkObjectBase instances.
 
-#ifndef __vtkInformationObjectBaseKey_h
-#define __vtkInformationObjectBaseKey_h
+#ifndef vtkInformationObjectBaseKey_h
+#define vtkInformationObjectBaseKey_h
 
 #include "vtkCommonCoreModule.h" // For export macro
 #include "vtkInformationKey.h"
@@ -36,6 +36,17 @@ public:
   vtkInformationObjectBaseKey(const char* name, const char* location,
                               const char* requiredClass=0);
   ~vtkInformationObjectBaseKey();
+
+  // Description:
+  // This method simply returns a new vtkInformationObjectBaseKey, given a
+  // name, location and optionally a required class (a classname to restrict
+  // which class types can be set with this key). This method is provided
+  // for wrappers. Use the constructor directly from C++ instead.
+  static vtkInformationObjectBaseKey* MakeKey(const char* name, const char* location,
+                                             const char* requiredClass=0)
+    {
+    return new vtkInformationObjectBaseKey(name, location, requiredClass);
+    }
 
   // Description:
   // Get/Set the value associated with this key in the given
@@ -56,6 +67,9 @@ public:
 protected:
   // The type required of all objects stored with this key.
   const char* RequiredClass;
+
+  vtkInformationKeySetStringMacro(RequiredClass);
+
 private:
   vtkInformationObjectBaseKey(const vtkInformationObjectBaseKey&);  // Not implemented.
   void operator=(const vtkInformationObjectBaseKey&);  // Not implemented.

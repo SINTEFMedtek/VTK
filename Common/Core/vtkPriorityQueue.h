@@ -12,7 +12,7 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-// .NAME vtkPriorityQueue - an list of ids arranged in priority order
+// .NAME vtkPriorityQueue - a list of ids arranged in priority order
 // .SECTION Description
 // vtkPriorityQueue is a general object for creating and manipulating lists
 // of object ids (e.g., point or cell ids). Object ids are sorted according
@@ -32,8 +32,8 @@
 // array. This avoids the overhead associated with parent/child pointers,
 // and frequent memory allocation and deallocation.
 
-#ifndef __vtkPriorityQueue_h
-#define __vtkPriorityQueue_h
+#ifndef vtkPriorityQueue_h
+#define vtkPriorityQueue_h
 
 #include "vtkCommonCoreModule.h" // For export macro
 #include "vtkObject.h"

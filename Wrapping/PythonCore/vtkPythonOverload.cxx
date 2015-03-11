@@ -565,6 +565,21 @@ int vtkPythonOverload::CheckArg(
           }
         }
 
+      // Generic python objects
+      else if (classname[0] == '*' && classname[1] == 'P' &&
+               classname[2] == 'y')
+        {
+        // Skip over the "*"
+        classname++;
+
+        // Mark this match as low priority compared to other matches
+        penalty = VTK_PYTHON_NEEDS_CONVERSION;
+
+        // Code can be added here to do inheritance-based checks, but
+        // this has to be done on a case-by-case basis because the "C"
+        // name of a python type is different from its "Python" name.
+        }
+
       // Qt objects and enums
       else if (((classname[0] == '*' || classname[0] == '&') &&
                 (classname[1] == 'Q' && isalpha(classname[2]))) ||
@@ -594,6 +609,44 @@ int vtkPythonOverload::CheckArg(
             penalty = VTK_PYTHON_INCOMPATIBLE;
             PyErr_Clear();
             }
+          }
+        }
+
+      // Enum type
+      else if (isalpha(classname[0]) ||
+               (classname[0] == '&' && isalpha(classname[1])))
+        {
+        if (classname[0] == '&')
+          {
+          classname++;
+          }
+        if (PyInt_Check(arg))
+          {
+          if (strcmp(arg->ob_type->tp_name, classname) == 0)
+            {
+            penalty = VTK_PYTHON_EXACT_MATCH;
+            }
+          else
+            {
+            /* tp_name doesn't include namespace, so we also allow
+               matches between "name" and "namespace.name" */
+            size_t l, m;
+            l = strlen(arg->ob_type->tp_name);
+            m = strlen(classname);
+            if (l < m && !isalnum(classname[m-l-1]) &&
+                strcmp(arg->ob_type->tp_name, &classname[m-l]) == 0)
+              {
+              penalty = VTK_PYTHON_GOOD_MATCH;
+              }
+            else
+              {
+              penalty = VTK_PYTHON_NEEDS_CONVERSION;
+              }
+            }
+          }
+        else
+          {
+          penalty = VTK_PYTHON_INCOMPATIBLE;
           }
         }
 

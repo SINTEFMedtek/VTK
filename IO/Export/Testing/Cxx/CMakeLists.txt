@@ -1,14 +1,15 @@
 include(vtkGhostscript)
 
 # Only run GL2PS tests if GhostScript is available
-if(VTK_GHOSTSCRIPT_EXECUTABLE)
+if(VTK_GHOSTSCRIPT_EXECUTABLE AND (VTK_RENDERING_BACKEND STREQUAL "OpenGL"))
   set(GL2PSTests
-    TestContextGL2PS.cxx,NO_VALID
+    TestContextGL2PS.cxx
     TestGL2PSExporterMultipleRenderers.cxx
-    TestGL2PSExporterRaster.cxx,NO_VALID
+    TestGL2PSExporterRaster.cxx
     TestGL2PSExporterRasterExclusion.cxx
-    TestGL2PSExporterVector.cxx,NO_VALID
-    TestGL2PSExporterVolumeRaster.cxx,NO_VALID
+    TestGL2PSExporterVector.cxx
+    TestGL2PSExporterVolumeRaster.cxx
+    TestGL2PSTextActor.cxx
     TestGL2PSTextActor3D.cxx
     TestGL2PSLabeledDataMapper.cxx
     TestLinePlotGL2PS.cxx
@@ -16,9 +17,13 @@ if(VTK_GHOSTSCRIPT_EXECUTABLE)
   )
 endif()
 
-vtk_add_test_cxx(X3DTest.cxx NO_DATA NO_VALID)
-vtk_add_test_cxx(${GL2PSTests})
-vtk_test_cxx_executable(${vtk-module}CxxTests RENDERING_FACTORY)
+vtk_add_test_cxx(${vtk-module}CxxTests tests
+  X3DTest.cxx,NO_DATA,NO_VALID
+  ${GL2PSTests}
+  )
+vtk_test_cxx_executable(${vtk-module}CxxTests tests
+  RENDERING_FACTORY
+  )
 
 # The GL2PS tests produce postscript output, which cannot be compared using
 # the built-in image regression framework. The tests added above will create the
@@ -43,6 +48,7 @@ if(GL2PSTests)
         DEPENDS "${vtk-module}Cxx-${TName}"
         REQUIRED_FILES
           "${VTK_TEST_OUTPUT_DIR}/${TName}.ps"
+        LABELS "${${vtk-module}_TEST_LABELS}"
     )
 
     # Convert ps to png
@@ -67,6 +73,7 @@ if(GL2PSTests)
         DEPENDS "${vtk-module}Cxx-${TName}-RasterizePNG"
         REQUIRED_FILES
           "${VTK_TEST_OUTPUT_DIR}/${TName}-raster.png"
+        LABELS "${${vtk-module}_TEST_LABELS}"
     )
   endforeach()
 endif()

@@ -1,8 +1,9 @@
+set(TestOrientedGlyphContour_ARGS "--PlaybackFile" "DATA{../Data/Input/TestOrientedGlyphContourEventLog.txt}")
 set(TerrainPolylineEditor_ARGS -ProjectionMode 2 -HeightOffset 100)
-vtk_add_test_cxx(
-  BoxWidget.cxx
+vtk_add_test_cxx(${vtk-module}CxxTests tests
   BoxWidget2.cxx
-  # ImagePlaneWidget.cxx # todo (unsatisfied deps)
+  BoxWidget.cxx
+  ImagePlaneWidget.cxx
   TerrainPolylineEditor.cxx
   TestAffineWidget.cxx
   TestAngleWidget2D.cxx
@@ -10,32 +11,32 @@ vtk_add_test_cxx(
   TestBalloonWidget.cxx
   TestBiDimensionalWidget.cxx
   TestBorderWidget.cxx
-  # TestBrokenLineWidget.cxx # todo (unsatisfied deps)
-  # TestButtonWidget.cxx # todo (unsatistfied deps)
+  TestBrokenLineWidget.cxx
   TestCameraWidget.cxx
+  TestCaptionWidget.cxx
   TestCellCentersPointPlacer.cxx
   TestCenteredSliderWidget2D.cxx
   TestCheckerboardWidget.cxx
   TestConstrainedHandleWidget.cxx
   TestContourWidget2.cxx
   TestDijkstraImageGeodesicPath.cxx
-  TestDistanceWidget.cxx
   TestDistanceWidget3D.cxx
+  TestDistanceWidget.cxx
   TestFixedSizeHandleRepresentation3D.cxx
   TestFocalPlaneContour.cxx
-  TestHandleWidget.cxx
   TestHandleWidget2D.cxx
-  # TestImageActorContourWidget.cxx # todo(unsatistfied deps)
+  TestHandleWidget.cxx
+  TestImageActorContourWidget.cxx
   TestImageTracerWidget.cxx
-  TestImplicitPlaneWidget.cxx
+  TestImplicitPlaneWidget2b.cxx
   TestImplicitPlaneWidget2.cxx
   TestImplicitPlaneWidget2LockNormalToCamera.cxx
-  TestImplicitPlaneWidget2b.cxx
-  TestLogoWidget.cxx
+  TestImplicitPlaneWidget.cxx
   TestLogoWidgetAlphaBlending.cxx
+  TestLogoWidget.cxx
   TestLogoWidgetDepthPeeling.cxx
   TestOrientationMarkerWidget.cxx
-  # TestOrthoPlanes.cxx # todo (unsatistfied deps)
+  TestOrthoPlanes.cxx
   TestParallelopipedWidget.cxx
   TestPickingManagerSeedWidget.cxx
   TestPlaybackWidget.cxx
@@ -43,18 +44,20 @@ vtk_add_test_cxx(
   TestProgrammaticPlacement.cxx
   TestProp3DButtonRepresentation.cxx,NO_VALID
   TestRectilinearWipeWidget.cxx
-  # TestResliceCursorWidget2.cxx # todo (unsatistfied deps)
-  # TestResliceCursorWidget3.cxx # todo (unsatistfied deps)
+  TestResliceCursorWidget2.cxx
+  TestResliceCursorWidget3.cxx
   TestScalarBarWidget.cxx
-  TestSeedWidget.cxx
   TestSeedWidget2.cxx
+  TestSeedWidget.cxx
   TestSeedWidgetNonUniformRepresentations.cxx
-  TestSliderWidget.cxx
   TestSliderWidget2D.cxx
-  # TestSplineWidget.cxx # todo (unsatistfied deps)
+  TestSliderWidget.cxx
+  TestSplineWidget.cxx
+  TestSphereWidgetZoomInOut.cxx
   TestTextWidget.cxx
   )
-vtk_add_test_cxx(NO_VALID
+vtk_add_test_cxx(${vtk-module}CxxTests no_valid_tests
+  NO_VALID
   vtkAngleRepresentation2DTest1.cxx
   vtkAngleRepresentation3DTest1.cxx
   vtkAngleWidgetTest1.cxx
@@ -77,31 +80,58 @@ vtk_add_test_cxx(NO_VALID
   )
 
 # Tests with data
-vtk_add_test_cxx(
+vtk_add_test_cxx(${vtk-module}CxxTests data_tests
   TestDijkstraGraphGeodesicPath.cxx
-  TestLineWidget.cxx
   TestLineWidget2.cxx
+  TestLineWidget.cxx
+  TestOrientedGlyphContour.cxx
   TestPlaneWidget.cxx
   TestPointWidget.cxx
-  TestPolyPlane.cxx,NO_VALID
   TestPolygonalHandleRepresentations.cxx
   TestPolygonalRepresentationHandleWidget.cxx
   TestPolygonalSurfaceConstrainedDistanceWidget.cxx
+  TestPolyPlane.cxx,NO_VALID
   TestSphereHandleWidget.cxx
   TestSurfaceConstrainedHandleWidget.cxx
   TestTensorProbeWidget.cxx
   )
 
 if(NOT VTK_OPENGL_HAS_OSMESA)
-  vtk_add_test_cxx(TestPickingManagerWidgets.cxx)
+  vtk_add_test_cxx(${vtk-module}CxxTests ogl_tests
+    TestPickingManagerWidgets.cxx
+    )
 endif()
 
-vtk_test_cxx_executable(${vtk-module}CxxTests RENDERING_FACTORY)
+# These tests depend on volume rendering classes not build for OpenGL2
+if(VTK_RENDERING_BACKEND STREQUAL "OpenGL")
+  vtk_add_test_cxx(${vtk-module}CxxTests tests
+    TestButtonWidget.cxx
+    TestImageCroppingRegionsWidget.cxx
+    )
+endif()
 
+set(all_tests
+  ${tests}
+  ${no_valid_tests}
+  ${data_tests}
+  ${ogl_tests}
+  )
+vtk_test_cxx_executable(${vtk-module}CxxTests all_tests
+  RENDERING_FACTORY
+  )
+
+# Allow local customization of timeout for this test.
+if(NOT VTK_TEST_TIMEOUT_TerrainPolylineEditor)
+  set(VTK_TEST_TIMEOUT_TerrainPolylineEditor 90)
+endif()
 set_tests_properties(${vtk-module}Cxx-TerrainPolylineEditor
-  PROPERTIES TIMEOUT 90)
+  PROPERTIES TIMEOUT ${VTK_TEST_TIMEOUT_TerrainPolylineEditor})
 
 if(NOT VTK_OPENGL_HAS_OSMESA)
+  # Allow local customization of timeout for this test.
+  if(NOT VTK_TEST_TIMEOUT_TestPickingManagerSeedWidget)
+    set(VTK_TEST_TIMEOUT_TestPickingManagerSeedWidget 60)
+  endif()
   set_tests_properties(${vtk-module}Cxx-TestPickingManagerSeedWidget
-    PROPERTIES TIMEOUT 60)
+    PROPERTIES TIMEOUT ${VTK_TEST_TIMEOUT_TestPickingManagerSeedWidget})
 endif()

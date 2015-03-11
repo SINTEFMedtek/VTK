@@ -40,10 +40,7 @@ vtkPStructuredGridConnectivity::vtkPStructuredGridConnectivity()
 vtkPStructuredGridConnectivity::~vtkPStructuredGridConnectivity()
 {
   // STEP 0: Delete MPI requests list
-  if( this->MPIRequests == NULL )
-    {
-    delete [] this->MPIRequests;
-    }
+  delete [] this->MPIRequests;
 
   // STEP 1: Clear all remote data
   this->ClearRemoteData();
@@ -202,12 +199,12 @@ void vtkPStructuredGridConnectivity::TransferRemoteNeighborData(
   this->GetGhostedGridExtent( gridIdx, GhostedGridExtent );
 
   int GhostedGridCellExtent[6];
-  vtkStructuredData::GetCellExtentFromNodeExtent(
+  vtkStructuredData::GetCellExtentFromPointExtent(
       GhostedGridExtent, GhostedGridCellExtent );
 
   // STEP 1: Get Neighboring cell extent
   int RcvCellExtent[6];
-  vtkStructuredData::GetCellExtentFromNodeExtent(
+  vtkStructuredData::GetCellExtentFromPointExtent(
       const_cast<int*>(Neighbor.RcvExtent), RcvCellExtent);
 
   // STEP 2: Transfer the data
@@ -766,7 +763,7 @@ void vtkPStructuredGridConnectivity::SerializeGhostPoints(
 
   // STEP 3: Compute the number of nodes in the send extent
   int dataDescription = vtkStructuredData::GetDataDescriptionFromExtent( ext );
-  int N = vtkStructuredData::GetNumberOfNodes(ext, dataDescription );
+  int N = vtkStructuredData::GetNumberOfPoints(ext, dataDescription );
 //  bytestream << N;
 
   // STEP 4: Allocate and store points in a temporary array
@@ -844,7 +841,7 @@ void vtkPStructuredGridConnectivity::DeserializeGhostPoints(
 
   // STEP 1: If there are points, deserialize them
   int dataDescription = vtkStructuredData::GetDataDescriptionFromExtent( ext );
-  int N = vtkStructuredData::GetNumberOfNodes(ext,dataDescription);
+  int N = vtkStructuredData::GetNumberOfPoints(ext,dataDescription);
 
   // STEP 2: Pop the points from the bytestream
   double *pnts      = NULL;
@@ -1019,7 +1016,7 @@ void vtkPStructuredGridConnectivity::SerializeFieldData(
 
     int dataType  = myArray->GetDataType();
     int numComp   = myArray->GetNumberOfComponents();
-    int numTuples = vtkStructuredData::GetNumberOfNodes(ext);
+    int numTuples = vtkStructuredData::GetNumberOfPoints(ext);
 
     // STEP 1: Write the datatype and number of components
     bytestream << dataType << numTuples << numComp;
@@ -1189,11 +1186,11 @@ void vtkPStructuredGridConnectivity::SerializeGhostCellData(
   int GridExtent[6];
   this->GetGridExtent( gridIdx, GridExtent );
   int GridCellExtent[6];
-  vtkStructuredData::GetCellExtentFromNodeExtent(GridExtent,GridCellExtent);
+  vtkStructuredData::GetCellExtentFromPointExtent(GridExtent,GridCellExtent);
 
   // STEP 1: Get the cell extent of the sub-extent
   int cellExtent[6];
-  vtkStructuredData::GetCellExtentFromNodeExtent( ext, cellExtent );
+  vtkStructuredData::GetCellExtentFromPointExtent( ext, cellExtent );
 
   // STEP 2: Serialize the cell data
   bytestream << 1;
@@ -1233,7 +1230,7 @@ void vtkPStructuredGridConnectivity::DeserializeGhostCellData(
   // STEP 1: De-serialize the cell data
   this->RemoteCellData[gridIdx][nei] = vtkCellData::New();
   int cellext[6];
-  vtkStructuredData::GetCellExtentFromNodeExtent( ext, cellext );
+  vtkStructuredData::GetCellExtentFromPointExtent( ext, cellext );
   this->DeserializeFieldData(
       cellext,this->RemoteCellData[gridIdx][nei],bytestream);
 }

@@ -1,42 +1,70 @@
-vtk_add_test_python(CamBlur.py)
-vtk_add_test_python(ImageActor.py)
-vtk_add_test_python(ImageActorStressed.py)
-vtk_add_test_python(NoLightGeneration.py)
-vtk_add_test_python(PolyDataMapperAllPolygons.py)
-vtk_add_test_python(PolyDataMapperAllWireframe.py)
-vtk_add_test_python(ScalarBar.py)
-vtk_add_test_python(TestCameraInterpolator.py)
-vtk_add_test_python(TestMapperLUT.py NO_DATA NO_VALID)
-vtk_add_test_python(TestOnePoint.py)
-# vtk_add_test_python(TestParallelCoordinates.py) # disabled in TCL too
-vtk_add_test_python(TestRotate.py)
-vtk_add_test_python(TestTransformInterpolator.py)
-vtk_add_test_python(TestTriangleStripCellColor.py)
-vtk_add_test_python(TransformConcatenation.py)
-vtk_add_test_python(TransformCoverage.py)
-vtk_add_test_python(TransformImageData.py)
-vtk_add_test_python(TransformPolyData.py)
-vtk_add_test_python(assembly.py)
-vtk_add_test_python(cameraWarpedCone.py)
-vtk_add_test_python(cowHair.py)
-vtk_add_test_python(cowHair2.py)
-vtk_add_test_python(pickCells.py)
-vtk_add_test_python(propAssembly.py)
-vtk_add_test_python(rendererSource.py)
-vtk_add_test_python(rotations.py)
-vtk_add_test_python(stereoDresdenMace.py)
-vtk_add_test_python(PickerWithLocator.py)
-vtk_add_test_python(SurfacePickerWithTexture.py)
-# XML shader code removed, test needs rewriting for new API
-#vtk_add_test_python(TestGenericVertexAttributesGLSL.py)
-vtk_add_test_python(TestLeaderActor2D.py)
-vtk_add_test_python(TestOpacity2.py)
-vtk_add_test_python(TestOpacityVectors.py)
-vtk_add_test_python(TestTransformCoordinateSystems.py)
-vtk_add_test_python(TestWindowToImageTransparency.py)
-vtk_add_test_python(TexturedSphere.py)
-vtk_add_test_python(cells.py NO_RT)
-
 if(VTK_USE_GLSL_SHADERS)
-  vtk_add_test_python(TestGLSLShader.py)
+  set(glsl_tests
+    TestGLSLShader.py,NO_VALID
+    )
 endif()
+
+vtk_add_test_python(
+  CamBlur.py
+  ImageActor.py
+  ImageActorStressed.py
+  NoLightGeneration.py
+  PolyDataMapperAllPolygons.py
+  PolyDataMapperAllWireframe.py
+  ScalarBar.py
+  TestCameraInterpolator.py
+  TestMapperLUT.py,NO_DATA,NO_VALID
+  TestOnePoint.py
+  # TestParallelCoordinates.py) # disabled in TCL too
+  TestRotate.py
+  TestTransformInterpolator.py
+  TransformConcatenation.py
+  TransformCoverage.py
+  TransformImageData.py
+  TransformPolyData.py
+  assembly.py
+  cameraWarpedCone.py
+  cowHair.py
+  cowHair2.py
+  pickCells.py
+  propAssembly.py
+  rendererSource.py
+  rotations.py
+  stereoDresdenMace.py
+  PickerWithLocator.py
+  SurfacePickerWithTexture.py
+  # XML shader code removed, test needs rewriting for new API
+  #TestGenericVertexAttributesGLSL.py
+  TestLeaderActor2D.py
+  TestOpacity2.py
+  TestOpacityVectors.py
+  TestTransformCoordinateSystems.py
+  TestWindowToImageTransparency.py
+  TexturedSphere.py
+  TestScalarMaterialMode.py
+  cells.py,NO_RT
+  ${glsl_tests}
+  )
+
+if(NOT VTK_RENDERING_BACKEND STREQUAL "OpenGL2")
+vtk_add_test_python(
+  # pass triangle cell scalars into a strip as field data
+  # have the renderer render the triangle strip using the
+  # original triangle cell data (now stored in field data)
+  # for the opengl2 backend we are not supporting this
+  # as strips are not recommended and this is an odd case
+  # of trying to get higher performance from strips but yet
+  # still trying to make them render as individual triangles
+  # for opengl2 just skip the stripper and the result will
+  # be what you want
+  TestTriangleStripCellColor.py
+)
+endif()
+
+vtk_add_test_python(
+  TestOutOfRangeDiscretizableColorTransferFunction.py --useBelowRangeColor --useAboveRangeColor
+)
+
+vtk_add_test_python(
+  TestOutOfRangeColorTransferFunction.py --useBelowRangeColor --useAboveRangeColor
+)

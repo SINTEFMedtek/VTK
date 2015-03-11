@@ -74,8 +74,8 @@
 // vtkCellLocatorInterpolatedVelocityField
 //
 
-#ifndef __vtkStreamTracer_h
-#define __vtkStreamTracer_h
+#ifndef vtkStreamTracer_h
+#define vtkStreamTracer_h
 
 #include "vtkFiltersFlowPathsModule.h" // For export macro
 #include "vtkPolyDataAlgorithm.h"
@@ -114,7 +114,9 @@ public:
 
   // Description:
   // Specify the source object used to generate starting points (seeds).
-  // Old style. Do not use.
+  // Note that this method does not connect the pipeline. The algorithm will
+  // work on the input data as it is without updating the producer of the data.
+  // See SetSourceConnection for connecting the pipeline.
   void SetSourceData(vtkDataSet *source);
   vtkDataSet *GetSource();
 

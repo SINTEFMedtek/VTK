@@ -32,9 +32,10 @@
 //  Developed by Thomas Otahal at Sandia National Laboratories.
 //
 
-#ifndef __vtkMatlabEngineFilter_h
-#define __vtkMatlabEngineFilter_h
+#ifndef vtkMatlabEngineFilter_h
+#define vtkMatlabEngineFilter_h
 
+#include "vtkFiltersMatlabModule.h"
 #include "vtkDataObjectAlgorithm.h"
 
 class vtkMatlabEngineInterface;
@@ -42,7 +43,7 @@ class vtkMatlabEngineFilterInternals;
 class vtkDataSet;
 class vtkDoubleArray;
 
-class VTK_GRAPHICS_EXPORT vtkMatlabEngineFilter : public vtkDataObjectAlgorithm
+class VTKFILTERSMATLAB_EXPORT vtkMatlabEngineFilter : public vtkDataObjectAlgorithm
 {
 
 public:
@@ -164,4 +165,3 @@ private:
 };
 
 #endif
-

@@ -21,11 +21,11 @@
 // in the "VTK Technical Documents" section in the VTk.org web pages.
 //
 // .SECTION Thanks
-// Andrew Maclean a.maclean@cas.edu.au for
-// creating and contributing the class.
+// Andrew Maclean andrew.amaclean@gmail.com for creating and contributing the
+// class.
 //
-#ifndef __vtkParametricRoman_h
-#define __vtkParametricRoman_h
+#ifndef vtkParametricRoman_h
+#define vtkParametricRoman_h
 
 #include "vtkCommonComputationalGeometryModule.h" // For export macro
 #include "vtkParametricFunction.h"
@@ -53,7 +53,7 @@ public:
   static vtkParametricRoman *New();
 
   // Description:
-  // Set/Get the radius.
+  // Set/Get the radius. Default is 1.
   vtkSetMacro(Radius,double);
   vtkGetMacro(Radius,double);
 

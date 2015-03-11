@@ -13,7 +13,7 @@
     var vtkWebLibs = {
         "core" : [
         "ext/core/jquery-1.8.3.min.js",
-        "ext/core/autobahn.js",
+        "ext/core/autobahn.min.js",
         "ext/core/gl-matrix.js",
         "ext/core/jquery.hammer.js",
         "ext/core/vgl.min.js",
@@ -75,6 +75,33 @@
         "rickshaw": [
         "ext/rickshaw/rickshaw.min.css",
         "ext/rickshaw/rickshaw.min.js"
+        ],
+        "widgets": [
+        "ext/pure/pure.min.js",
+        "ext/d3/d3.v2.js",
+        "ext/rickshaw/rickshaw.min.css",
+        "ext/rickshaw/rickshaw.min.js",
+        "ext/fontello/css/animation.css",
+        "ext/fontello/css/fontello.css",
+        "lib/widgets/FileBrowser/vtkweb-widget-filebrowser.tpl",
+        "lib/widgets/TreeWidget/vtkweb-widget-tree.tpl",
+        "lib/widgets/vtkweb-widgets-min.css",
+        "lib/widgets/vtkweb-widgets-min.js"
+        ],
+        "pv-visualizer": [
+        "ext/fontello/css/animation.css",
+        "ext/fontello/css/fontello.css",
+        "ext/bootstrap3/css/bootstrap-theme.min.css",
+        "ext/bootstrap3/css/bootstrap.min.css",
+        "ext/bootstrap3/js/bootstrap.min.js",
+        "lib/js/paraview.ui.action.list.js",
+        "lib/js/paraview.ui.files.js",
+        "lib/js/paraview.ui.data.js",
+        "lib/js/paraview.ui.proxy.editor.js",
+        "lib/css/paraview.ui.proxy.editor.css",
+        "lib/js/paraview.ui.svg.pipeline.js",
+        "lib/js/paraview.ui.opacity.editor.js",
+        "lib/css/paraview.ui.opacity.editor.css"
         ]
 
     },
@@ -184,7 +211,7 @@
     // If no modules have been defined, just pick the default
     // ---------------------------------------------------------------------
     if(modules.length == 0) {
-        modules = [ "all-min" ];
+        modules = [ "core-min" ];
     }
 
     // ---------------------------------------------------------------------

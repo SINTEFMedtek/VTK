@@ -22,8 +22,8 @@
 // vtkScalarsToColorsItem
 // vtkPiecewiseControlPointsItem
 
-#ifndef __vtkControlPointsItem_h
-#define __vtkControlPointsItem_h
+#ifndef vtkControlPointsItem_h
+#define vtkControlPointsItem_h
 
 #include "vtkChartsCoreModule.h" // For export macro
 #include "vtkCommand.h" // For vtkCommand enum
@@ -327,7 +327,7 @@ protected:
   // Description:
   // Clamp the given 2D pos into the bounds of the function.
   // Return true if the pos has been clamped, false otherwise.
-  bool ClampPos(double pos[2], double bounds[4]);
+  virtual bool ClampPos(double pos[2], double bounds[4]);
   bool ClampValidPos(double pos[2]);
 
   // Description:

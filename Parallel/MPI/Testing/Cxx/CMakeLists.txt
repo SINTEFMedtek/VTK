@@ -1,15 +1,27 @@
 include(vtkMPI)
 
-vtk_add_test_mpi(TestDistributedDataShadowMapPass.cxx)
-vtk_add_test_mpi(TestNonBlockingCommunication.cxx)
-vtk_add_test_mpi(GenericCommunicator.cxx)
-vtk_add_test_mpi(MPIController.cxx ExerciseMultiProcessController.cxx)
-vtk_add_test_mpi(TestProcess.cxx)
-vtk_add_test_mpi(TestPProbe.cxx TESTING_DATA)
+if(NOT VTK_RENDERING_BACKEND STREQUAL "OpenGL2")
+  set(extra_opengl_tests
+    TestDistributedDataShadowMapPass.cxx
+    )
+endif()
 
-vtk_mpi_link(TestDistributedDataShadowMapPass)
-vtk_mpi_link(TestNonBlockingCommunication)
-vtk_mpi_link(GenericCommunicator)
-vtk_mpi_link(MPIController)
-vtk_mpi_link(TestProcess)
-vtk_mpi_link(TestPProbe)
+vtk_add_test_mpi(${vtk-module}CxxTests-MPI tests
+  TESTING_DATA
+  TestPProbe.cxx
+  )
+vtk_add_test_mpi(${vtk-module}CxxTests-MPI no_data_tests
+  GenericCommunicator.cxx
+  MPIController.cxx
+  TestNonBlockingCommunication.cxx
+  TestProcess.cxx
+  ${extra_opengl_tests}
+  )
+
+set(all_tests
+  ${tests}
+  ${no_data_tests}
+  )
+vtk_test_mpi_executable(${vtk-module}CxxTests-MPI all_tests
+  ExerciseMultiProcessController.cxx
+  )

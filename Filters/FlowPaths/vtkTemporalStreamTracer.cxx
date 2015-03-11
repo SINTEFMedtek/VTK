@@ -150,11 +150,8 @@ vtkTemporalStreamTracer::vtkTemporalStreamTracer()
 vtkTemporalStreamTracer::~vtkTemporalStreamTracer()
 {
   this->SetParticleWriter(NULL);
-  if (this->ParticleFileName)
-  {
-    delete []this->ParticleFileName;
-    this->ParticleFileName = NULL;
-  }
+  delete [] this->ParticleFileName;
+  this->ParticleFileName = NULL;
 }
 //----------------------------------------------------------------------------
 int vtkTemporalStreamTracer::FillInputPortInformation(
@@ -245,9 +242,6 @@ int vtkTemporalStreamTracer::RequestInformation(
     vtkErrorMacro(<<"Input information has no TIME_STEPS set");
     return 0;
     }
-
-  outInfo->Set(
-    vtkStreamingDemandDrivenPipeline::MAXIMUM_NUMBER_OF_PIECES(), -1);
 
   outInfo->Set(vtkStreamingDemandDrivenPipeline::TIME_STEPS(),
                &this->OutputTimeValues[0],
@@ -409,7 +403,7 @@ int vtkTemporalStreamTracer::InitializeInterpolator()
           inp->ComputeBounds();
           inp->GetBounds(&bbox.b[0]);
           this->CachedBounds[T].push_back(bbox);
-          bool static_dataset = this->StaticMesh || inp->GetInformation()->Has(vtkDataObject::DATA_GEOMETRY_UNMODIFIED());
+          bool static_dataset = (this->StaticMesh != 0);
           this->AllFixedGeometry = this->AllFixedGeometry && static_dataset;
           // add the dataset to the interpolator
           this->Interpolator->SetDataSetAtTime(index++, T, this->CurrentTimeSteps[T], inp, static_dataset);
@@ -476,10 +470,6 @@ int vtkTemporalStreamTracer::SetTemporalInput(vtkDataObject *data, int i)
         vtkSmartPointer<vtkDataSet> copy;
         copy.TakeReference(ds->NewInstance());
         copy->ShallowCopy(ds);
-        if (ds->GetInformation()->Has(vtkDataObject::DATA_GEOMETRY_UNMODIFIED()))
-          {
-          copy->GetInformation()->Set(vtkDataObject::DATA_GEOMETRY_UNMODIFIED(),1);
-          }
         this->InputDataT[i]->SetBlock(this->InputDataT[i]->GetNumberOfBlocks(), copy);
         }
       }
@@ -555,9 +545,6 @@ void vtkTemporalStreamTracer::AssignSeedsToProcessors(
   // take points from the source object and create a particle list
   //
   int numSeeds = source->GetNumberOfPoints();
-#ifndef NDEBUG
-  int numTested = numSeeds;
-#endif
   candidates.resize(numSeeds);
   //
   for (int i=0; i<numSeeds; i++) {
@@ -586,7 +573,7 @@ void vtkTemporalStreamTracer::AssignSeedsToProcessors(
   //
 
 #ifndef NDEBUG
-  numTested = static_cast<int>(candidates.size());
+  int numTested = static_cast<int>(candidates.size());
 #endif
   this->TestParticles(candidates, LocalSeedPoints, LocalAssignedCount);
   int TotalAssigned = LocalAssignedCount; (void)TotalAssigned;

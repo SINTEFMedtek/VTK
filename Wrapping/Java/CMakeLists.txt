@@ -5,7 +5,18 @@ include_directories(${JAVA_INCLUDE_PATH} ${JAVA_INCLUDE_PATH2})
 
 # Add the option to package VTK for custom Java packaging
 option(VTK_JAVA_INSTALL "Use the Java rules to build the native libraries." OFF)
+option(VTK_JAVA_CLEANUP_INSTALL "Should java packaging cleanup install directory." OFF)
+mark_as_advanced(VTK_JAVA_CLEANUP_INSTALL)
+
 if(VTK_JAVA_INSTALL)
+
+  # Make sure we embed the runtime libraries when packaging the Java binaries
+  if(WIN32)
+    # install system runtimes.
+    set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION "bin")
+    include(InstallRequiredSystemLibraries)
+  endif()
+
   set(VTK_CUSTOM_LIBRARY_SUFFIX "" CACHE STRING "" FORCE)
   mark_as_advanced(VTK_CUSTOM_LIBRARY_SUFFIX)
   if(APPLE)
@@ -69,7 +80,8 @@ if(APPLE)
   set(JAVAC_OPTIONS -J-Xmx512m)
 endif()
 
-foreach(module ${VTK_MODULES_ENABLED})
+get_property(java_modules GLOBAL PROPERTY VTK_JAVA_WRAPPED)
+foreach(module IN LISTS java_modules)
   if(NOT ${module}_EXCLUDE_FROM_WRAPPING)
     include(${${module}_BINARY_DIR}/JavaDependencies.cmake OPTIONAL)
     list(APPEND _MODULES_TO_WRAP ${module})
@@ -210,11 +222,13 @@ if(vtkRenderingCore_ENABLED AND vtkIOImage_ENABLED)
     vtkPanel
 
     rendering/vtkAbstractComponent
+    rendering/vtkAbstractEventInterceptor
     rendering/vtkComponent
     rendering/vtkEventInterceptor
     rendering/vtkInteractorForwarder
     rendering/awt/vtkAwtComponent
     rendering/awt/vtkInternalAwtComponent
+    rendering/awt/vtkPanelComponent
     )
   if(VTK_JAVA_SWT_COMPONENT)
     set(VTK_JAVA_DEPENDENCIES ${VTK_JAVA_DEPENDENCIES}
@@ -304,13 +318,28 @@ if(JOGL_GLUE)
     set(JAVA_COMPILATION_CLASSPATH "${JAVA_COMPILATION_CLASSPATH}${SEPARATOR}${JOGL_GLUE}")
 endif()
 
+# Set the javac source version
+set(VTK_JAVA_SOURCE_VERSION "1.5" CACHE STRING "javac source version")
+mark_as_advanced(VTK_JAVA_SOURCE_VERSION)
+set(VTK_JAVA_TARGET_VERSION "1.5" CACHE STRING "javac target version")
+mark_as_advanced(VTK_JAVA_TARGET_VERSION)
+
 # Compile the Java classes
 add_custom_command(
   OUTPUT ${VTK_BINARY_DIR}/java/javac_stamp.txt
   DEPENDS ${VTK_JAVA_SOURCE_FILES}
   COMMAND ${JAVA_COMPILE} ${JAVAC_OPTIONS}
-    -source 1.5 -classpath ${JAVA_COMPILATION_CLASSPATH} -sourcepath ${VTK_SOURCE_DIR}/Wrapping/Java/ -d ${VTK_BINARY_DIR}/java
-    ${VTK_BINARY_DIR}/java/vtk/*.java ${VTK_BINARY_DIR}/java/vtk/rendering/*.java ${VTK_BINARY_DIR}/java/vtk/rendering/awt/*.java ${VTK_BINARY_DIR}/java/vtk/sample/*.java ${SWT_FILES} ${JOGL_FILES}
+          -source ${VTK_JAVA_SOURCE_VERSION}
+          -target ${VTK_JAVA_TARGET_VERSION}
+          -classpath ${JAVA_COMPILATION_CLASSPATH}
+          -sourcepath ${VTK_SOURCE_DIR}/Wrapping/Java/
+          -d ${VTK_BINARY_DIR}/java
+          ${VTK_BINARY_DIR}/java/vtk/*.java
+          ${VTK_BINARY_DIR}/java/vtk/rendering/*.java
+          ${VTK_BINARY_DIR}/java/vtk/rendering/awt/*.java
+          ${VTK_BINARY_DIR}/java/vtk/sample/*.java
+          ${SWT_FILES}
+          ${JOGL_FILES}
   COMMAND ${CMAKE_COMMAND} -E touch ${VTK_BINARY_DIR}/java/javac_stamp.txt
   COMMENT "Compiling Java Classes"
   )
@@ -340,10 +369,13 @@ if(BUILD_TESTING)
   # Compile Java Tests
   add_custom_command(
     OUTPUT ${VTK_BINARY_DIR}/java/javac_tests_stamp.txt
-    COMMAND ${JAVA_COMPILE} ${JAVAC_OPTIONS} -classpath ${VTK_JAR_PATH}/vtk.jar${SEPARATOR}${VTK_BINARY_DIR}/Wrapping/Java
-    -source 1.5 -sourcepath ${VTK_SOURCE_DIR}/Wrapping/Java
-    -d ${VTK_BINARY_DIR}/Wrapping/Java
-    ${VTK_JAVA_TESTS}
+    COMMAND ${JAVA_COMPILE} ${JAVAC_OPTIONS}
+            -classpath ${VTK_JAR_PATH}/vtk.jar${SEPARATOR}${VTK_BINARY_DIR}/Wrapping/Java
+            -source ${VTK_JAVA_SOURCE_VERSION}
+            -target ${VTK_JAVA_TARGET_VERSION}
+            -sourcepath ${VTK_SOURCE_DIR}/Wrapping/Java
+            -d ${VTK_BINARY_DIR}/Wrapping/Java
+            ${VTK_JAVA_TESTS}
     COMMAND ${CMAKE_COMMAND} -E touch ${VTK_BINARY_DIR}/java/javac_tests_stamp.txt
     DEPENDS ${VTK_JAR_PATH}/vtk.jar ${VTK_JAVA_TESTS}
     COMMENT "Compiling Java Tests"
@@ -353,12 +385,12 @@ if(BUILD_TESTING)
   if(vtkTestingRendering_ENABLED)
 
     # Require Rendering
-    if(vtkRenderingOpenGL_ENABLED)
+    if(vtkRendering${VTK_RENDERING_BACKEND}_ENABLED)
       # If JAVA_DATAMODEL_FLAG is set, pass it as first argument. Otherwise, it's empty.
       # For example, use "-d64" to force 64-bit java jvm.
       #
       ExternalData_add_test(VTKData
-         JavaRegression ${JAVA_RUNTIME} ${VTK_TEST_JAVA_DATAMODEL_FLAG}
+         JavaRendering ${JAVA_RUNTIME} ${VTK_TEST_JAVA_DATAMODEL_FLAG}
          -classpath "${VTK_JAR_PATH}/vtk.jar${SEPARATOR}${VTK_BINARY_DIR}/Wrapping/Java"
          vtk.test.Regression -D ${VTK_TEST_DATA_DIR}
          -V DATA{Baseline/Cone.png,:}
@@ -418,4 +450,4 @@ if(VTK_JAVA_INSTALL)
   configure_file(Maven/README.txt.in
                ${VTK_BINARY_DIR}/MAVEN-README.txt @ONLY)
   install(SCRIPT ${VTK_BINARY_DIR}/JavaInstall.cmake)
-endif(VTK_JAVA_INSTALL)
+endif()

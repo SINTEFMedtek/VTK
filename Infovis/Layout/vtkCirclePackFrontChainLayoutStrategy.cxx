@@ -486,13 +486,15 @@ bool vtkCirclePackFrontChainLayoutStrategyImplementation::validCjAfterCn(vtkIdTy
     CnSearchPathLength++;
     decrListIteratorWrapAround(Cn, frontChain);
     if(Cn == frontChain.end())
+      {
       decrListIteratorWrapAround(Cn, frontChain);
-      if(this->circlesIntersect(Ci,
-                                *Cn,
-                                circlesArray))
-        {
-        return false;
-        }
+      }
+    if(this->circlesIntersect(Ci,
+                              *Cn,
+                              circlesArray))
+      {
+      return false;
+      }
     }
 
   return true;
@@ -516,14 +518,15 @@ bool vtkCirclePackFrontChainLayoutStrategyImplementation::validCjBeforeCm(vtkIdT
     CmSearchPathLength++;
     incrListIteratorWrapAround(Cm, frontChain);
     if(Cm == frontChain.end())
+      {
       incrListIteratorWrapAround(Cm, frontChain);
-
-      if(this->circlesIntersect(Ci,
-                                *Cm,
-                                circlesArray))
-        {
-        return false;
-        }
+      }
+    if(this->circlesIntersect(Ci,
+                              *Cm,
+                              circlesArray))
+      {
+      return false;
+      }
     }
   return true;
 }
@@ -790,11 +793,8 @@ vtkCirclePackFrontChainLayoutStrategy::vtkCirclePackFrontChainLayoutStrategy()
 
 vtkCirclePackFrontChainLayoutStrategy::~vtkCirclePackFrontChainLayoutStrategy()
 {
-  if(this->pimpl)
-    {
-    delete this->pimpl;
-    this->pimpl = 0;
-    }
+  delete this->pimpl;
+  this->pimpl=0;
 }
 
 void vtkCirclePackFrontChainLayoutStrategy::Layout(vtkTree *inputTree,

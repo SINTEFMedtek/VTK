@@ -68,6 +68,7 @@ do.
 #include <signal.h>    /* sigaction */
 #include <dirent.h>    /* DIR, dirent */
 #include <ctype.h>     /* isspace */
+#include <assert.h>    /* assert */
 
 #if defined(__VMS)
 # define KWSYSPE_VMS_NONBLOCK , O_NONBLOCK
@@ -450,6 +451,7 @@ int kwsysProcess_AddCommand(kwsysProcess* cp, char const* const* command)
       }
     for(i=0; i < n; ++i)
       {
+      assert(command[i]); /* Quiet Clang scan-build. */
       newCommands[cp->NumberOfCommands][i] = strdup(command[i]);
       if(!newCommands[cp->NumberOfCommands][i])
         {
@@ -2413,6 +2415,12 @@ static void kwsysProcessKill(pid_t process_id)
   /* Suspend the process to be sure it will not create more children.  */
   kill(process_id, SIGSTOP);
 
+#if defined(__CYGWIN__)
+  /* Some Cygwin versions seem to need help here.  Give up our time slice
+     so that the child can process SIGSTOP before we send SIGKILL.  */
+  usleep(1);
+#endif
+
   /* Kill all children if we can find them.  */
 #if defined(__linux__) || defined(__CYGWIN__)
   /* First try using the /proc filesystem.  */
@@ -2449,6 +2457,7 @@ static void kwsysProcessKill(pid_t process_id)
           if(f)
             {
             size_t nread = fread(buffer, 1, KWSYSPE_PIPE_BUFFER_SIZE, f);
+            fclose(f);
             buffer[nread] = '\0';
             if(nread > 0)
               {
@@ -2463,7 +2472,6 @@ static void kwsysProcessKill(pid_t process_id)
                   }
                 }
               }
-            fclose(f);
             }
           }
         }

@@ -61,8 +61,8 @@
 //     We use the terms "point" and "node" interchangeably.
 //     Also, we use the terms "element" and "cell" interchangeably.
 
-#ifndef __vtkExodusIIWriter_h
-#define __vtkExodusIIWriter_h
+#ifndef vtkExodusIIWriter_h
+#define vtkExodusIIWriter_h
 
 #include "vtkIOExodusModule.h" // For export macro
 #include "vtkWriter.h"
@@ -186,6 +186,7 @@ protected:
   vtkDoubleArray* TimeValues;
   int CurrentTimeIndex;
   int FileTimeOffset;
+  bool TopologyChanged;
 
 //BTX
   vtkDataObject *OriginalInput;
@@ -270,6 +271,10 @@ protected:
                           vtkInformationVector** inputVector,
                           vtkInformationVector* outputVector);
 
+  virtual int RequestUpdateExtent (vtkInformation* request,
+                                   vtkInformationVector** inputVector,
+                                   vtkInformationVector* outputVector);
+
   int FillInputPortInformation (int port, vtkInformation* info);
 
   int RequestData (vtkInformation* request,
@@ -287,6 +292,10 @@ protected:
   void RemoveGhostCells ();
   int CheckParametersInternal (int NumberOfProcesses, int MyRank);
   virtual int CheckParameters ();
+  // If writing in parallel multiple time steps exchange after each time step
+  // if we should continue the execution. Pass local continueExecution as a
+  // parameter and return the global continueExecution.
+  virtual int GlobalContinueExecuting(int localContinueExecution);
   int CheckInputArrays ();
   virtual void CheckBlockInfoMap();
   int ConstructBlockInfoMap ();
@@ -314,7 +323,6 @@ protected:
   vtkIdType GetElementLocalId(vtkIdType id);
 
   int WriteInitializationParameters ();
-  int WriteQARecords ();
   int WriteInformationRecords ();
   int WritePoints ();
   int WriteCoordinateNames ();
@@ -326,6 +334,10 @@ protected:
   int WriteSideSetInformation ();
   int WriteProperties ();
   int WriteNextTimeStep ();
+  vtkIntArray* GetBlockIdArray (
+    const char* BlockIdArrayName, vtkUnstructuredGrid* input);
+  static bool SameTypeOfCells (vtkIntArray* cellToBlockId,
+                               vtkUnstructuredGrid* input);
 
 //BTX
   double ExtractGlobalData (const char *name, int comp, int ts);

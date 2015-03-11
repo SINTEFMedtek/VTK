@@ -21,8 +21,8 @@
 // the vtkCPExodusIIInSituReader to read an Exodus II file's data into this
 // structure.
 
-#ifndef __vtkCPExodusIINodalCoordinatesTemplate_h
-#define __vtkCPExodusIINodalCoordinatesTemplate_h
+#ifndef vtkCPExodusIINodalCoordinatesTemplate_h
+#define vtkCPExodusIINodalCoordinatesTemplate_h
 
 #include "vtkMappedDataArray.h"
 #include "vtkIOExodusModule.h" // For export macro
@@ -79,6 +79,8 @@ public:
   void InsertTuple(vtkIdType i, const double *source);
   void InsertTuples(vtkIdList *dstIds, vtkIdList *srcIds,
                     vtkAbstractArray *source);
+  void InsertTuples(vtkIdType dstStart, vtkIdType n, vtkIdType srcStart,
+                    vtkAbstractArray* source);
   vtkIdType InsertNextTuple(vtkIdType j, vtkAbstractArray *source);
   vtkIdType InsertNextTuple(const float *source);
   vtkIdType InsertNextTuple(const double *source);
@@ -119,6 +121,6 @@ private:
 
 #include "vtkCPExodusIINodalCoordinatesTemplate.txx"
 
-#endif //__vtkCPExodusIINodalCoordinatesTemplate_h
+#endif //vtkCPExodusIINodalCoordinatesTemplate_h
 
 // VTK-HeaderTest-Exclude: vtkCPExodusIINodalCoordinatesTemplate.h

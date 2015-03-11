@@ -29,8 +29,8 @@
 // This source only generate geometry, no DataArrays like normals or texture
 // coordinates.
 
-#ifndef __vtkTessellatedBoxSource_h
-#define __vtkTessellatedBoxSource_h
+#ifndef vtkTessellatedBoxSource_h
+#define vtkTessellatedBoxSource_h
 
 #include "vtkFiltersSourcesModule.h" // For export macro
 #include "vtkPolyDataAlgorithm.h"
@@ -91,12 +91,6 @@ public:
 protected:
    vtkTessellatedBoxSource();
   ~vtkTessellatedBoxSource();
-
-  // Description:
-  // Called by the superclass. Send the WHOLE_BOUNDING_BOX key.
-  virtual int RequestInformation(vtkInformation *request,
-                                 vtkInformationVector **inputVector,
-                                 vtkInformationVector *outputVector);
 
   // Description:
   // Called by the superclass. Actual creation of the points and cells

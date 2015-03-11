@@ -21,8 +21,8 @@
 // .SECTION See Also
 // vtkPlotPoints vtkPlotLine vtkPlotBar vtkChart vtkChartXY
 
-#ifndef __vtkPlot_h
-#define __vtkPlot_h
+#ifndef vtkPlot_h
+#define vtkPlot_h
 
 #include "vtkChartsCoreModule.h" // For export macro
 #include "vtkContextItem.h"
@@ -129,6 +129,18 @@ public:
   // Set/get the vtkBrush object that controls how this plot fills shapes.
   void SetBrush(vtkBrush *brush);
   vtkBrush* GetBrush();
+
+  // Description:
+  // Set/get the vtkBrush object that controls how this plot fills selected
+  // shapes.
+  void SetSelectionPen(vtkPen *pen);
+  vtkPen* GetSelectionPen();
+
+  // Description:
+  // Set/get the vtkBrush object that controls how this plot fills selected
+  // shapes.
+  void SetSelectionBrush(vtkBrush *brush);
+  vtkBrush* GetSelectionBrush();
 
   // Description:
   // Set the label of this plot.
@@ -282,6 +294,16 @@ protected:
   vtkSmartPointer<vtkBrush> Brush;
 
   // Description:
+  // This object stores the vtkPen that controls how the selected elements
+  // of the plot are drawn.
+  vtkSmartPointer<vtkPen> SelectionPen;
+
+  // Description:
+  // This object stores the vtkBrush that controls how the selected elements
+  // of the plot are drawn.
+  vtkSmartPointer<vtkBrush> SelectionBrush;
+
+  // Description:
   // Plot labels, used by legend.
   vtkSmartPointer<vtkStringArray> Labels;
 
@@ -339,4 +361,4 @@ private:
 //ETX
 };
 
-#endif //__vtkPlot_h
+#endif //vtkPlot_h

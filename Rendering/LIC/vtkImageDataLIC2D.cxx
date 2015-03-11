@@ -25,7 +25,6 @@
 #include "vtkInformationVector.h"
 #include "vtkStructuredExtent.h"
 #include "vtkObjectFactory.h"
-#include "vtkImageDataLIC2DExtentTranslator.h"
 #include "vtkLineIntegralConvolution2D.h"
 #include "vtkFrameBufferObject2.h"
 #include "vtkRenderbuffer.h"
@@ -249,24 +248,6 @@ int vtkImageDataLIC2D::RequestInformation(
 
   outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(), ext, 6);
   outInfo->Set(vtkDataObject::SPACING(), spacing, 3);
-
-  // Setup ExtentTranslator
-  vtkImageDataLIC2DExtentTranslator* extTranslator =
-    vtkImageDataLIC2DExtentTranslator::SafeDownCast(
-      vtkStreamingDemandDrivenPipeline::GetExtentTranslator(outInfo));
-
-  if (!extTranslator)
-    {
-    extTranslator = vtkImageDataLIC2DExtentTranslator::New();
-    vtkStreamingDemandDrivenPipeline::SetExtentTranslator(outInfo, extTranslator);
-    extTranslator->Delete();
-    }
-
-  extTranslator->SetAlgorithm(this);
-  extTranslator->SetInputWholeExtent(wholeExtent);
-  extTranslator->SetInputExtentTranslator(
-    vtkExtentTranslator::SafeDownCast(
-    inInfo->Get(vtkStreamingDemandDrivenPipeline::EXTENT_TRANSLATOR())));
 
   return 1;
 }
@@ -606,7 +587,7 @@ int vtkImageDataLIC2D::RequestData(
 
   // add ghosts
   double rk4fac = 3.0;
-  int nGhosts = this->Steps*this->StepSize*rk4fac;
+  int nGhosts = static_cast<int>(this->Steps*this->StepSize*rk4fac);
   nGhosts = nGhosts < 1 ? 1 : nGhosts;
   nGhosts *= 2; // for second ee lic pass
 

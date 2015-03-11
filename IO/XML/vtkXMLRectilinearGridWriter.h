@@ -23,8 +23,8 @@
 // .SECTION See Also
 // vtkXMLPRectilinearGridWriter
 
-#ifndef __vtkXMLRectilinearGridWriter_h
-#define __vtkXMLRectilinearGridWriter_h
+#ifndef vtkXMLRectilinearGridWriter_h
+#define vtkXMLRectilinearGridWriter_h
 
 #include "vtkIOXMLModule.h" // For export macro
 #include "vtkXMLStructuredDataWriter.h"
@@ -61,7 +61,6 @@ protected:
   void WriteInlinePiece(vtkIndent indent);
   void GetInputExtent(int* extent);
   const char* GetDataSetName();
-  vtkDataArray* CreateExactCoordinates(vtkDataArray* a, int xyz);
   void CalculateSuperclassFraction(float* fractions);
 
   // Coordinate array appended data positions.

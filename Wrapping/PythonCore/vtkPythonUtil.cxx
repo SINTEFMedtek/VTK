@@ -59,35 +59,72 @@ public:
 };
 
 //--------------------------------------------------------------------
-// There are five maps associated with the Python wrappers
-
-//--------------------------------------------------------------------
-class vtkPythonReferenceCountedValue
-{
-public:
-  vtkPythonReferenceCountedValue()
-  {
-    this->VTKObject = NULL;
-    this->PythonObject = NULL;
-  }
-  vtkPythonReferenceCountedValue(vtkSmartPointerBase const& cpp,
-                                 PyObject* python)
-  {
-    this->VTKObject = cpp;
-    this->PythonObject = python;
-  }
-
-  vtkSmartPointerBase VTKObject;
-  PyObject* PythonObject;
-};
+// There are six maps associated with the Python wrappers
 
 // Map VTK objects to python objects (this is also the cornerstone
 // of the vtk/python garbage collection system, because it contains
 // exactly one pointer reference for each VTK object known to python)
 class vtkPythonObjectMap
-  : public std::map<vtkObjectBase*, vtkPythonReferenceCountedValue>
+  : public std::map<vtkObjectBase*, std::pair<PyObject *, vtkAtomicInt<vtkTypeInt32> > >
 {
+public:
+  ~vtkPythonObjectMap();
+
+  void add(vtkObjectBase* key, PyObject* value);
+  void remove(vtkObjectBase* key);
 };
+
+// Call Delete instead of relying on vtkSmartPointer, so that crashes
+// caused by deletion are easier to follow in the debug stack trace
+vtkPythonObjectMap::~vtkPythonObjectMap()
+{
+  iterator i;
+  for (i = this->begin(); i != this->end(); ++i)
+    {
+    for (int j = 0; j < i->second.second; ++j)
+      {
+      i->first->Delete();
+      }
+    }
+}
+
+void
+vtkPythonObjectMap::add(vtkObjectBase* key, PyObject* value)
+{
+  key->Register(0);
+  iterator i = this->find(key);
+  if (i == this->end())
+    {
+    (*this)[key] = std::make_pair(value, 1);
+    }
+  else
+    {
+    i->second.first = value;
+    ++i->second.second;
+    }
+}
+
+void
+vtkPythonObjectMap::remove(vtkObjectBase* key)
+{
+  iterator i = this->find(key);
+  if (i != this->end())
+    {
+    // Save the object. The iterator will become invalid if the iterator is
+    // erased.
+    vtkObjectBase* obj = i->first;
+    // Remove it from the map if necessary.
+    if (!--i->second.second)
+      {
+      this->erase(i);
+      }
+    // Remove a reference to the object. This must be done *after* removing it
+    // from the map (if needed) because if there's a callback which reacts when
+    // the reference is dropped, it might call RemoveObjectFromMap as well. If
+    // it still exists in the map at that point, this becomes an infinite loop.
+    obj->Delete();
+    }
+}
 
 // Keep weak pointers to VTK objects that python no longer has
 // references to.  Python keeps the python 'dict' for VTK objects
@@ -109,6 +146,12 @@ class vtkPythonClassMap
 // Like the ClassMap, for types not derived from vtkObjectBase.
 class vtkPythonSpecialTypeMap
   : public std::map<std::string, PyVTKSpecialType>
+{
+};
+
+// Keep track of all the C++ namespaces that have been wrapped.
+class vtkPythonNamespaceMap
+  : public std::map<std::string, PyObject*>
 {
 };
 
@@ -164,6 +207,7 @@ vtkPythonUtil::vtkPythonUtil()
   this->GhostMap = new vtkPythonGhostMap;
   this->ClassMap = new vtkPythonClassMap;
   this->SpecialTypeMap = new vtkPythonSpecialTypeMap;
+  this->NamespaceMap = new vtkPythonNamespaceMap;
   this->PythonCommandList = new vtkPythonCommandList;
 }
 
@@ -174,6 +218,7 @@ vtkPythonUtil::~vtkPythonUtil()
   delete this->GhostMap;
   delete this->ClassMap;
   delete this->SpecialTypeMap;
+  delete this->NamespaceMap;
   delete this->PythonCommandList;
 }
 
@@ -310,7 +355,7 @@ void vtkPythonUtil::AddObjectToMap(PyObject *obj, vtkObjectBase *ptr)
 #endif
 
   ((PyVTKObject *)obj)->vtk_ptr = ptr;
-  (*vtkPythonMap->ObjectMap)[ptr] = vtkPythonReferenceCountedValue(ptr, obj);
+  vtkPythonMap->ObjectMap->add(ptr, obj);
 
 #ifdef VTKPYTHONDEBUG
   vtkGenericWarningMacro("Added object to map obj= " << obj << " "
@@ -339,7 +384,7 @@ void vtkPythonUtil::RemoveObjectFromMap(PyObject *obj)
       wptr = pobj->vtk_ptr;
       }
 
-    vtkPythonMap->ObjectMap->erase(pobj->vtk_ptr);
+    vtkPythonMap->ObjectMap->remove(pobj->vtk_ptr);
 
     // if the VTK object still exists, then make a ghost
     if (wptr.GetPointer())
@@ -348,7 +393,7 @@ void vtkPythonUtil::RemoveObjectFromMap(PyObject *obj)
       std::vector<PyObject*> delList;
 
       // Erase ghosts of VTK objects that have been deleted
-      std::map<vtkObjectBase*, PyVTKObjectGhost>::iterator i =
+      vtkPythonGhostMap::iterator i =
         vtkPythonMap->GhostMap->begin();
       while (i != vtkPythonMap->GhostMap->end())
         {
@@ -388,11 +433,11 @@ PyObject *vtkPythonUtil::GetObjectFromPointer(vtkObjectBase *ptr)
 
   if (ptr)
     {
-    std::map<vtkObjectBase*, vtkPythonReferenceCountedValue>::iterator i =
+    vtkPythonObjectMap::iterator i =
       vtkPythonMap->ObjectMap->find(ptr);
     if (i != vtkPythonMap->ObjectMap->end())
       {
-      obj = i->second.PythonObject;
+      obj = i->second.first;
       }
     if (obj)
       {
@@ -407,7 +452,7 @@ PyObject *vtkPythonUtil::GetObjectFromPointer(vtkObjectBase *ptr)
     }
 
   // search weak list for object, resurrect if it is there
-  std::map<vtkObjectBase*, PyVTKObjectGhost>::iterator j =
+  vtkPythonGhostMap::iterator j =
     vtkPythonMap->GhostMap->find(ptr);
   if (j != vtkPythonMap->GhostMap->end())
     {
@@ -425,7 +470,7 @@ PyObject *vtkPythonUtil::GetObjectFromPointer(vtkObjectBase *ptr)
     {
     // create a new object
     PyObject *vtkclass = NULL;
-    std::map<std::string, PyObject*>::iterator k =
+    vtkPythonClassMap::iterator k =
       vtkPythonMap->ClassMap->find(ptr->GetClassName());
     if (k != vtkPythonMap->ClassMap->end())
       {
@@ -745,7 +790,7 @@ void *vtkPythonUtil::GetPointerFromSpecialObject(
     }
 
   // try to construct the special object from the supplied object
-  std::map<std::string, PyVTKSpecialType>::iterator it =
+  vtkPythonSpecialTypeMap::iterator it =
     vtkPythonMap->SpecialTypeMap->find(result_type);
   if(it != vtkPythonMap->SpecialTypeMap->end())
     {
@@ -805,6 +850,67 @@ void *vtkPythonUtil::GetPointerFromSpecialObject(
   sprintf(error_string,"method requires a %.500s, a %.500s was provided.",
           result_type, object_type);
   PyErr_SetString(PyExc_TypeError, error_string);
+
+  return NULL;
+}
+
+//--------------------------------------------------------------------
+void vtkPythonUtil::AddNamespaceToMap(PyObject *module)
+{
+  if (!PyVTKNamespace_Check(module))
+    {
+    return;
+    }
+
+  if (vtkPythonMap == NULL)
+    {
+    vtkPythonMap = new vtkPythonUtil();
+    Py_AtExit(vtkPythonUtilDelete);
+    }
+
+  const char *name = PyVTKNamespace_GetName(module);
+  // let's make sure it isn't already there
+  vtkPythonNamespaceMap::iterator i =
+    vtkPythonMap->NamespaceMap->find(name);
+  if (i != vtkPythonMap->NamespaceMap->end())
+    {
+    return;
+    }
+
+  (*vtkPythonMap->NamespaceMap)[name] = module;
+}
+
+//--------------------------------------------------------------------
+// This method is called
+void vtkPythonUtil::RemoveNamespaceFromMap(PyObject *obj)
+{
+  if (vtkPythonMap && PyVTKNamespace_Check(obj))
+    {
+    const char *name = PyVTKNamespace_GetName(obj);
+    vtkPythonNamespaceMap::iterator it =
+      vtkPythonMap->NamespaceMap->find(name);
+    if (it != vtkPythonMap->NamespaceMap->end() &&
+        it->second == obj)
+      {
+      // The map has a pointer to the object, but does not hold a
+      // reference, therefore there is no decref.
+      vtkPythonMap->NamespaceMap->erase(it);
+      }
+    }
+}
+
+//--------------------------------------------------------------------
+PyObject *vtkPythonUtil::FindNamespace(const char *name)
+{
+  if (vtkPythonMap)
+    {
+    vtkPythonNamespaceMap::iterator it =
+      vtkPythonMap->NamespaceMap->find(name);
+    if (it != vtkPythonMap->NamespaceMap->end())
+      {
+      return it->second;
+      }
+    }
 
   return NULL;
 }

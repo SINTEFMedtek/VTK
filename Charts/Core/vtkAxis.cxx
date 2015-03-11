@@ -76,6 +76,7 @@ vtkAxis::vtkAxis()
   this->GridVisible = true;
   this->LabelsVisible = true;
   this->TicksVisible = true;
+  this->AxisVisible = true;
   this->Precision = 2;
   this->Notation = vtkAxis::STANDARD_NOTATION;
   this->Behavior = vtkAxis::AUTO;
@@ -295,8 +296,11 @@ bool vtkAxis::Paint(vtkContext2D *painter)
 
   painter->ApplyPen(this->Pen);
   // Draw this axis
-  painter->DrawLine(this->Point1[0], this->Point1[1],
-                    this->Point2[0], this->Point2[1]);
+  if (this->AxisVisible)
+    {
+    painter->DrawLine(this->Point1[0], this->Point1[1],
+                      this->Point2[0], this->Point2[1]);
+    }
 
   // Draw the axis title if there is one
   if (!this->Title.empty())
@@ -1404,15 +1408,24 @@ double vtkAxis::CalculateNiceMinMax(double &min, double &max)
     tickPixelSpacing = 45;
     }
 
-  double niceTickSpacing =
-    vtkAxis::NiceMinMax(min, max, pixelRange, tickPixelSpacing);
+  double niceTickSpacing = 0.0;
+  if (max < min)
+    {
+    niceTickSpacing =
+      vtkAxis::NiceMinMax(max, min, pixelRange, tickPixelSpacing);
+    }
+  else
+    {
+    niceTickSpacing =
+      vtkAxis::NiceMinMax(min, max, pixelRange, tickPixelSpacing);
+    }
 
   if (this->NumberOfTicks > 0)
     {
     // An exact number of ticks was requested, use the min/max and exact number.
     min = this->Minimum;
     max = this->Maximum;
-    double range = abs(max - min);
+    double range = fabs(max - min);
     return range / double(this->NumberOfTicks - 1);
     }
   else
@@ -1496,14 +1509,14 @@ void vtkAxis::GenerateLogSpacedLinearTicks(int order, double min, double max)
   // Figure out which digit to vary and by how much.
   double linMin = pow(10., min);
   double linMax = pow(10., max);
-  int varyDigit = floor(log10(linMax - linMin));
+  int varyDigit = static_cast<int>(floor(log10(linMax - linMin)));
   if (varyDigit == order)
     {
     --varyDigit;
     }
   double multiplier = pow(10.,varyDigit);
-  int lo = floor(linMin / multiplier);
-  int hi = ceil(linMax / multiplier);
+  int lo = static_cast<int>(floor(linMin / multiplier));
+  int hi = static_cast<int>(ceil(linMax / multiplier));
   if (hi - lo < 2)
     {
     ++hi;

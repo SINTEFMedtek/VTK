@@ -18,11 +18,12 @@
 // for use with the python matplotlib.mathtext module (implemented in the
 // vtkMatplotlib module).
 
-#ifndef __vtkMathTextUtilities_h
-#define __vtkMathTextUtilities_h
+#ifndef vtkMathTextUtilities_h
+#define vtkMathTextUtilities_h
 
 #include "vtkRenderingFreeTypeModule.h" // For export macro
 #include "vtkObject.h"
+#include "vtkTextRenderer.h" // for metrics
 
 class vtkImageData;
 class vtkPath;
@@ -73,6 +74,12 @@ public:
   // a given str, tprop, and dpi
   virtual bool GetBoundingBox(vtkTextProperty *tprop, const char *str,
                               unsigned int dpi, int bbox[4]) = 0;
+
+  // Description:
+  // Return the metrics for the rendered str, tprop, and dpi.
+  virtual bool GetMetrics(vtkTextProperty *tprop, const char *str,
+                          unsigned int dpi,
+                          vtkTextRenderer::Metrics &metrics) = 0;
 
   // Description:
   // Render the given string @a str into the vtkImageData @a data with a

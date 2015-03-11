@@ -18,11 +18,11 @@
 // It provides methods for insertion and retrieval of values and will
 // automatically resize itself to hold new data.
 
-#ifndef __vtkSignedCharArray_h
-#define __vtkSignedCharArray_h
+#ifndef vtkSignedCharArray_h
+#define vtkSignedCharArray_h
 
 // Tell the template header how to give our superclass a DLL interface.
-#if !defined(__vtkSignedCharArray_cxx)
+#if !defined(vtkSignedCharArray_cxx)
 # define VTK_DATA_ARRAY_TEMPLATE_TYPE signed char
 #endif
 
@@ -47,7 +47,7 @@ public:
   // This macro expands to the set of method declarations that
   // make up the interface of vtkDataArrayTemplate, which is ignored
   // by the wrappers.
-#ifdef __WRAP__
+#if defined(__WRAP__) || defined (__WRAP_GCCXML__)
   vtkCreateWrappedArrayInterface(signed char);
 #endif
 

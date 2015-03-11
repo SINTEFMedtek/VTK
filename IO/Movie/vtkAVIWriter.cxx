@@ -141,7 +141,8 @@ void vtkAVIWriter::Start()
   char fourcc[4] = {' ', ' ', ' ', ' '};
   if (this->CompressorFourCC)
     {
-    memcpy(fourcc, this->CompressorFourCC, strlen(this->CompressorFourCC));
+    size_t len = strlen(this->CompressorFourCC);
+    memcpy(fourcc, this->CompressorFourCC, len > 4 ? 4 : len);
     }
   opts.fccHandler=mmioFOURCC(fourcc[0], fourcc[1], fourcc[2], fourcc[3]);
   switch (this->GetQuality())
@@ -171,11 +172,16 @@ void vtkAVIWriter::Start()
       }
     }
 
-  if (AVIMakeCompressedStream(&this->Internals->StreamCompressed,
+  int avierr = AVIMakeCompressedStream(&this->Internals->StreamCompressed,
                               this->Internals->Stream,
-                              &opts, NULL) != AVIERR_OK)
+                              &opts, NULL);
+  if (avierr != AVIERR_OK)
     {
-    vtkErrorMacro("Unable to compress " << this->FileName);
+    vtkErrorMacro("Unable to compress " << this->FileName << ": " <<
+        (avierr == AVIERR_NOCOMPRESSOR ? "unknown compressor" :
+        (avierr == AVIERR_MEMORY ? "not enough memory" :
+        (avierr == AVIERR_UNSUPPORTED ? "unsupported data type" :
+         "unknown error"))));
     this->SetErrorCode(vtkGenericMovieWriter::CanNotCompress);
     return;
     }

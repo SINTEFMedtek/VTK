@@ -117,8 +117,8 @@
 // .SECTION See Also
 // vtkDelaunay3D vtkTransformFilter vtkGaussianSplatter
 
-#ifndef __vtkDelaunay2D_h
-#define __vtkDelaunay2D_h
+#ifndef vtkDelaunay2D_h
+#define vtkDelaunay2D_h
 
 #include "vtkFiltersCoreModule.h" // For export macro
 #include "vtkPolyDataAlgorithm.h"
@@ -149,7 +149,8 @@ public:
   // triangulation is created. The lines/polygons are assumed to reference
   // points in the input point set (i.e. point ids are identical in the
   // input and source).
-  // Old style. See SetSourceConnection.
+  // Note that this method does not connect the pipeline. See SetSourceConnection
+  // for connecting the pipeline.
   void SetSourceData(vtkPolyData *);
 
   // Description:
@@ -258,7 +259,7 @@ private:
   vtkIdType FindTriangle(double x[3], vtkIdType ptIds[3], vtkIdType tri,
                          double tol, vtkIdType nei[3], vtkIdList *neighbors);
   void CheckEdge(vtkIdType ptId, double x[3], vtkIdType p1, vtkIdType p2,
-                 vtkIdType tri);
+                 vtkIdType tri, bool recursive);
 
   virtual int FillInputPortInformation(int, vtkInformation*);
 

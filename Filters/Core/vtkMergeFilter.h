@@ -19,8 +19,8 @@
 // this filter is of the same type as the input (i.e., vtkDataSet.) It treats
 // both cell and point data set attributes.
 
-#ifndef __vtkMergeFilter_h
-#define __vtkMergeFilter_h
+#ifndef vtkMergeFilter_h
+#define vtkMergeFilter_h
 
 #include "vtkFiltersCoreModule.h" // For export macro
 #include "vtkDataSetAlgorithm.h"
@@ -36,7 +36,9 @@ public:
 
   // Description:
   // Specify object from which to extract geometry information.
-  // Old style. Use SetGeometryConnection() instead.
+  // Note that this method does not connect the pipeline. The algorithm will
+  // work on the input data as it is without updating the producer of the data.
+  // See SetGeometryConnection for connecting the pipeline.
   void SetGeometryInputData(vtkDataSet *input) {this->SetInputData(input);};
   vtkDataSet *GetGeometry();
 
@@ -50,7 +52,9 @@ public:
 
   // Description:
   // Specify object from which to extract scalar information.
-  // Old style. Use SetScalarsConnection() instead.
+  // Note that this method does not connect the pipeline. The algorithm will
+  // work on the input data as it is without updating the producer of the data.
+  // See SetScalarConnection for connecting the pipeline.
   void SetScalarsData(vtkDataSet *);
   vtkDataSet *GetScalars();
 
@@ -64,7 +68,9 @@ public:
 
   // Description:
   // Set / get the object from which to extract vector information.
-  // Old style. Use SetVectorsConnection() instead.
+  // Note that this method does not connect the pipeline. The algorithm will
+  // work on the input data as it is without updating the producer of the data.
+  // See SetVectorsConnection for connecting the pipeline.
   void SetVectorsData(vtkDataSet *);
   vtkDataSet *GetVectors();
 
@@ -78,7 +84,9 @@ public:
 
   // Description:
   // Set / get the object from which to extract normal information.
-  // Old style. Use SetNormalsConnection() instead.
+  // Note that this method does not connect the pipeline. The algorithm will
+  // work on the input data as it is without updating the producer of the data.
+  // See SetNormalsConnection for connecting the pipeline.
   void SetNormalsData(vtkDataSet *);
   vtkDataSet *GetNormals();
 
@@ -93,7 +101,9 @@ public:
   // Description:
   // Set / get the object from which to extract texture coordinates
   // information.
-  // Old style. Use SetTCoordsConnection() instead.
+  // Note that this method does not connect the pipeline. The algorithm will
+  // work on the input data as it is without updating the producer of the data.
+  // See SetTCoordsConnection for connecting the pipeline.
   void SetTCoordsData(vtkDataSet *);
   vtkDataSet *GetTCoords();
 
@@ -108,7 +118,9 @@ public:
 
   // Description:
   // Set / get the object from which to extract tensor data.
-  // Old style. Use SetTensorsConnection() instead.
+  // Note that this method does not connect the pipeline. The algorithm will
+  // work on the input data as it is without updating the producer of the data.
+  // See SetTensorsConnection for connecting the pipeline.
   void SetTensorsData(vtkDataSet *);
   vtkDataSet *GetTensors();
 

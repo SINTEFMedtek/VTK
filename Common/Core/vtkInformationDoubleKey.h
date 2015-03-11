@@ -17,8 +17,8 @@
 // vtkInformationDoubleKey is used to represent keys for double values
 // in vtkInformation.
 
-#ifndef __vtkInformationDoubleKey_h
-#define __vtkInformationDoubleKey_h
+#ifndef vtkInformationDoubleKey_h
+#define vtkInformationDoubleKey_h
 
 #include "vtkCommonCoreModule.h" // For export macro
 #include "vtkInformationKey.h"
@@ -33,6 +33,15 @@ public:
 
   vtkInformationDoubleKey(const char* name, const char* location);
   ~vtkInformationDoubleKey();
+
+  // Description:
+  // This method simply returns a new vtkInformationDoubleKey, given a
+  // name and a location. This method is provided for wrappers. Use the
+  // constructor directly from C++ instead.
+  static vtkInformationDoubleKey* MakeKey(const char* name, const char* location)
+    {
+    return new vtkInformationDoubleKey(name, location);
+    }
 
   // Description:
   // Get/Set the value associated with this key in the given

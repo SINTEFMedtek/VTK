@@ -18,15 +18,19 @@
 // a metadata file that lists all of the files in a data set.
 
 
-#ifndef __vtkPDataSetWriter_h
-#define __vtkPDataSetWriter_h
+#ifndef vtkPDataSetWriter_h
+#define vtkPDataSetWriter_h
 
 #include "vtkIOParallelModule.h" // For export macro
 #include "vtkDataSetWriter.h"
 
+#include <map> // for keeping track of extents
+#include <vector> // for keeping track of extents
+
 class vtkImageData;
 class vtkRectilinearGrid;
 class vtkStructuredGrid;
+class vtkMultiProcessController;
 
 class VTKIOPARALLEL_EXPORT vtkPDataSetWriter : public vtkDataSetWriter
 {
@@ -75,6 +79,13 @@ public:
   vtkGetMacro(UseRelativeFileNames, int);
   vtkBooleanMacro(UseRelativeFileNames, int);
 
+  // Description:
+  // Controller used to communicate data type of blocks.
+  // By default, the global controller is used. If you want another
+  // controller to be used, set it with this.
+  virtual void SetController(vtkMultiProcessController*);
+  vtkGetObjectMacro(Controller, vtkMultiProcessController);
+
 protected:
   vtkPDataSetWriter();
   ~vtkPDataSetWriter();
@@ -101,6 +112,11 @@ protected:
   char *FilePattern;
 
   void DeleteFiles();
+
+  typedef std::map<int, std::vector<int> > ExtentsType;
+  ExtentsType Extents;
+
+  vtkMultiProcessController* Controller;
 
 private:
   vtkPDataSetWriter(const vtkPDataSetWriter&); // Not implemented

@@ -20,7 +20,7 @@
      * @class vtkWeb.Session
      * vtkWeb Session object on which RPC method calls can be made.
      *
-     *     session.call("vtk:render", request).then( function (reply) {
+     *     session.call("viewport.image.render", request).then( function (reply) {
      *        // Do something with the reply
      *     });
      */
@@ -93,42 +93,90 @@
      *          }
      *      );
      */
-    function connect(connection, readyCallback, closeCallback) {
-        var wsuri = connection.sessionURL, onReady = readyCallback, onClose = closeCallback;
+    function connect(connectionInfo, readyCallback, closeCallback) {
+        var wsuri = connectionInfo.sessionURL, onReady = readyCallback, onClose = closeCallback;
 
-        if(!connection.hasOwnProperty("secret")) {
-            connection.secret = "vtkweb-secret"; // Default value
+        if(!connectionInfo.hasOwnProperty("secret")) {
+            connectionInfo.secret = "vtkweb-secret"; // Default value
         }
 
-        GLOBAL.ab.connect(wsuri, function (session) {
-            try {
-                session.authreq("vtkweb").then(function (challenge) {
-                    // derive secret if salted WAMP-CRA
-                    var secret = GLOBAL.ab.deriveKey(connection.secret, JSON.parse(challenge).authextra);
-                    var signature = session.authsign(challenge, secret);
+        connectionInfo.connection = new autobahn.Connection({
+            url: wsuri,
+            realm: "vtkweb",
+            authmethods: ["wampcra"],
+            authid: "vtkweb",
+            onchallenge: function(session, method, extra) {
+                if (method === "wampcra") {
+                    var secretKey = autobahn.auth_cra.derive_key(connectionInfo.secret, "salt123");
+                    return autobahn.auth_cra.sign(secretKey, extra.challenge);
+                } else {
+                    throw "don't know how to authenticate using '" + method + "'";
+                }
+            }
+        });
 
-                    session.auth(signature).then(function(){
-                        session.prefix("vtk", "http://vtk.org/vtk#");
-                        session.prefix("event", "http://vtk.org/event#");
-                        connection.session = session;
-                        connections[connection.sessionURL] = connection;
-                        if (onReady) {
-                            onReady(connection);
-                        }
-                    }).otherwise(function(error){
-                        alert("Authentication error");
-                        GLOBAL.close();
-                    });
-                });
+        connectionInfo.connection.onopen = function(session, details) {
+            try {
+                connectionInfo.session = session;
+                connections[connectionInfo.sessionURL] = connectionInfo;
+
+                if (onReady) {
+                    onReady(connectionInfo);
+                }
             } catch(e) {
                 console.log(e);
             }
-        }, function (code, reason) {
-            delete connections[connection.sessionURL];
+        }
+
+        connectionInfo.connection.onclose = function() {
+            delete connections[connectionInfo.sessionURL];
             if (onClose) {
-                onClose(code, reason);
+                onClose(arguments[0], arguments[1].reason);
             }
-        });
+            return false;
+        }
+
+        connectionInfo.connection.open();
+    }
+
+    /**
+     * Create a session that uses only http to make calls to the
+     * server-side protocols.
+     *
+     * @member {object} vtkWeb.connect
+     * A json object that only needs a 'sessionURL' string in to know where
+     * to send method requests.
+     *
+     * @param connetionInfo
+     *
+     * @param {Function} readyCallback
+     * Callback function called when a connection that has been extended with
+     * a valid session that can be used to make server-side method calls.
+     *
+     */
+    function httpConnect(connectionInfo, readyCallback) {
+        connectionInfo.session = {
+            'call': function(methodName, args) {
+                var dfd = $.Deferred();
+
+                $.ajax({
+                    type: 'POST',
+                    url: connectionInfo.sessionURL + methodName,
+                    dataType: 'json',
+                    data: JSON.stringify({ 'args': args }),
+                    success: function(result) {
+                        dfd.resolve(result);
+                    },
+                    error: function(error) {
+                        dfd.reject(error);
+                    }
+                });
+
+                return dfd.promise();
+            }
+        };
+
+        readyCallback(connectionInfo);
     }
 
     /**
@@ -182,13 +230,16 @@
     module.getConnections = function () {
         return getConnections();
     };
+    module.httpConnect = function(connection, readyCallback) {
+        return httpConnect(connection, readyCallback);
+    };
 
     // ----------------------------------------------------------------------
     // Local module registration
     // ----------------------------------------------------------------------
     try {
       // Tests for presence of autobahn, then registers this module
-      if (GLOBAL.ab !== undefined) {
+      if (GLOBAL.autobahn !== undefined) {
         module.registerModule('vtkweb-connect');
       } else {
         console.error('Module failed to register, autobahn is missing');

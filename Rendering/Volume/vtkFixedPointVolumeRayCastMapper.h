@@ -55,8 +55,8 @@
 // .SECTION see also
 // vtkVolumeMapper
 
-#ifndef __vtkFixedPointVolumeRayCastMapper_h
-#define __vtkFixedPointVolumeRayCastMapper_h
+#ifndef vtkFixedPointVolumeRayCastMapper_h
+#define vtkFixedPointVolumeRayCastMapper_h
 
 #include "vtkRenderingVolumeModule.h" // For export macro
 #include "vtkVolumeMapper.h"
@@ -314,6 +314,13 @@ public:
   // to flip the MIP comparison in order to support
   // minimum intensity blending
   vtkGetMacro( FlipMIPComparison, int );
+
+  // Description:
+  // WARNING: INTERNAL METHOD - NOT INTENDED FOR GENERAL USE
+  // Release any graphics resources that are being consumed by this mapper.
+  // The parameter window could be used to determine which graphic
+  // resources to release.
+  virtual void ReleaseGraphicsResources(vtkWindow *);
 
 protected:
   vtkFixedPointVolumeRayCastMapper();

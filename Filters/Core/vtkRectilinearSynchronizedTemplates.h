@@ -25,8 +25,8 @@
 // .SECTION See Also
 // vtkContourFilter vtkSynchronizedTemplates2D vtkSynchronizedTemplates3D
 
-#ifndef __vtkRectilinearSynchronizedTemplates_h
-#define __vtkRectilinearSynchronizedTemplates_h
+#ifndef vtkRectilinearSynchronizedTemplates_h
+#define vtkRectilinearSynchronizedTemplates_h
 
 #include "vtkFiltersCoreModule.h" // For export macro
 #include "vtkPolyDataAlgorithm.h"
@@ -119,10 +119,6 @@ public:
     {this->ContourValues->GenerateValues(numContours, rangeStart, rangeEnd);}
 
   // Description:
-  // Needed by templated functions.
-  int *GetExecuteExtent() {return this->ExecuteExtent;}
-
-  // Description:
   // Set/get which component of the scalar array to contour on; defaults to 0.
   vtkSetMacro(ArrayComponent, int);
   vtkGetMacro(ArrayComponent, int);
@@ -154,8 +150,6 @@ protected:
   virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
   virtual int RequestUpdateExtent(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
   virtual int FillInputPortInformation(int port, vtkInformation *info);
-
-  int ExecuteExtent[6];
 
   int ArrayComponent;
 

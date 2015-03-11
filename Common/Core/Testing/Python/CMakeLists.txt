@@ -1,21 +1,22 @@
-if(VTK_PYTHON_EXE)
-  foreach(tfile
-    PythonSmoke
-    TestArrayArguments
-    TestExecuteMethodFinalizeCrash
-    TestGhost
-    TestIgnoreBTX
-    TestMutable
-    TestNumpySupport
-    TestOperators
-    TestPointers
-    TestStrings
-    TestSubClass
-    TestTerminationCrash
-    TestVariant
-    TestWeakref
-    TestCommand
-    )
-    vtk_add_test_python(${tfile}.py NO_DATA NO_VALID NO_OUTPUT)
-  endforeach()
-endif()
+vtk_add_test_python(
+  NO_DATA NO_VALID NO_OUTPUT
+  PythonSmoke.py
+  TestArrayArguments.py
+  TestEnums.py
+  TestExecuteMethodFinalizeCrash.py
+  TestGhost.py
+  TestIgnoreBTX.py
+  TestMutable.py
+  TestNumpySupport.py
+  TestNumpyInterface.py
+  TestOperators.py
+  TestOverloads.py
+  TestPointers.py
+  TestStrings.py
+  TestSubClass.py
+  TestSwigPointer.py
+  TestTerminationCrash.py
+  TestVariant.py
+  TestWeakref.py
+  TestCommand.py
+  )

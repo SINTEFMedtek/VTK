@@ -82,8 +82,8 @@
 // vtkAttributeDataToFieldDataFilter vtkFieldDataToAttributeDataFilter
 // vtkTextProperty
 
-#ifndef __vtkXYPlotActor_h
-#define __vtkXYPlotActor_h
+#ifndef vtkXYPlotActor_h
+#define vtkXYPlotActor_h
 
 #define VTK_XYPLOT_INDEX                 0
 #define VTK_XYPLOT_ARC_LENGTH            1
@@ -99,7 +99,7 @@
 
 #include "vtkRenderingAnnotationModule.h" // For export macro
 #include "vtkActor2D.h"
-#include <vtkSmartPointer.h> // For SP
+#include "vtkSmartPointer.h" // For SP
 
 class vtkXYPlotActorConnections;
 class vtkAlgorithmOutput;

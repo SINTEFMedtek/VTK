@@ -1,28 +1,50 @@
-vtk_add_test_python(TestBunykRayCastFunction.py)
-vtk_add_test_python(TestLODProp3D.py)
-vtk_add_test_python(TestPTZSweep.py)
-vtk_add_test_python(gaussian.py)
-vtk_add_test_python(volRCClipPlanes.py)
-vtk_add_test_python(volRCCropRegions.py)
-vtk_add_test_python(volRCRotateClip.py)
-vtk_add_test_python(volTM2DCropRegions.py)
-vtk_add_test_python(volTM2DRotateClip.py)
-vtk_add_test_python(VolumeOutlineSource.py)
-vtk_add_test_python(VolumeOutlineSourceClipped.py)
-vtk_add_test_python(VolumePickerCrop.py)
-vtk_add_test_python(cursor3D.py)
-vtk_add_test_python(volTM3DCompressedCropRegions.py)
-vtk_add_test_python(volTM3DCropRegions.py)
-vtk_add_test_python(volTM3DRotateClip.py)
-vtk_add_test_python(TestFixedPointRayCasterLinear.py NO_RT)
-vtk_add_test_python(TestFixedPointRayCasterLinearCropped.py NO_RT)
-vtk_add_test_python(TestFixedPointRayCasterNearest.py NO_RT)
-vtk_add_test_python(TestFixedPointRayCasterNearestCropped.py NO_RT)
-vtk_add_test_python(VolumePicker.py NO_RT)
+# These tests are built under all conditions
+set (GenericVolumePythonTests
+     cursor3D.py
+     gaussian.py
+     TestFixedPointRayCasterLinearCropped.py,NO_RT
+     TestFixedPointRayCasterLinear.py,NO_RT
+     TestFixedPointRayCasterNearestCropped.py,NO_RT
+     TestFixedPointRayCasterNearest.py,NO_RT
+     volRCClipPlanes.py
+     volRCCropRegions.py
+     volRCRotateClip.py
+     VolumePickerCrop.py
+     VolumePicker.py,NO_RT)
 
-set_tests_properties(vtkRenderingVolumePython-volTM3DCompressedCropRegions
-  PROPERTIES TIMEOUT 250)
-set_tests_properties(vtkRenderingVolumePython-volTM3DCropRegions
-  PROPERTIES TIMEOUT 250)
-set_tests_properties(vtkRenderingVolumePython-volTM3DRotateClip
-  PROPERTIES TIMEOUT 80)
+# These tests are only built when the rendering backend is OpenGL
+set (VolumeOpenGLPythonTests
+     TestBunykRayCastFunction.py
+     TestLODProp3D.py
+     TestPTZSweep.py
+     volTM2DCropRegions.py
+     volTM2DRotateClip.py
+     volTM3DCompressedCropRegions.py
+     volTM3DCropRegions.py
+     volTM3DRotateClip.py
+     VolumeOutlineSourceClipped.py
+     VolumeOutlineSource.py)
+
+# These tests are only built when the rendering backend is OpenGL2
+set (VolumeOpenGL2PythonTests
+     TestGPURayCastIndependentComponent.py,NO_RT
+     TestGPURayCastIndependentComponentMIP.py,NO_RT
+     TestGPURayCastIndependentComponentMinIP.py,NO_RT)
+
+if ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
+  vtk_add_test_python(
+    ${GenericVolumePythonTests}
+    ${VolumeOpenGL2PythonTests}
+    )
+else ()
+  vtk_add_test_python(
+    ${GenericVolumePythonTests}
+    ${VolumeOpenGLPythonTests}
+    )
+  set_tests_properties(vtkRenderingVolumePython-volTM3DCompressedCropRegions
+    PROPERTIES TIMEOUT 250)
+  set_tests_properties(vtkRenderingVolumePython-volTM3DCropRegions
+    PROPERTIES TIMEOUT 250)
+  set_tests_properties(vtkRenderingVolumePython-volTM3DRotateClip
+    PROPERTIES TIMEOUT 80)
+endif ()

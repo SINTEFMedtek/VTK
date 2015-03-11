@@ -29,8 +29,8 @@
 // and so on. The implication is that there are no direct lists of cell ids
 // per leaf node, instead the cell ids are implicitly known.
 
-#ifndef __vtkSimpleScalarTree_h
-#define __vtkSimpleScalarTree_h
+#ifndef vtkSimpleScalarTree_h
+#define vtkSimpleScalarTree_h
 
 #include "vtkCommonExecutionModelModule.h" // For export macro
 #include "vtkScalarTree.h"
@@ -102,10 +102,10 @@ protected:
   int BranchingFactor; //number of children per node
   vtkScalarNode *Tree; //pointerless scalar range tree
   int TreeSize; //allocated size of tree
+  vtkIdType LeafOffset; //offset to leaf nodes of tree
+  vtkIdType TreeIndex; //traversal location within tree
 
 private:
-  vtkIdType TreeIndex; //traversal location within tree
-  vtkIdType LeafOffset; //offset to leaf nodes of tree
   int       ChildNumber; //current child in traversal
   vtkIdType CellId; //current cell id being examined
   int       FindStartLeaf(vtkIdType index, int level);

@@ -21,8 +21,8 @@
 // vtkParticlePathFilterBase has the details of the algorithms
 
 
-#ifndef __vtkParticlePathFilter_h
-#define __vtkParticlePathFilter_h
+#ifndef vtkParticlePathFilter_h
+#define vtkParticlePathFilter_h
 
 #include "vtkFiltersFlowPathsModule.h" // For export macro
 #include "vtkSmartPointer.h" // For protected ivars.
@@ -31,7 +31,7 @@
 
 class VTKFILTERSFLOWPATHS_EXPORT ParticlePathFilterInternal
 {
- public:
+public:
   ParticlePathFilterInternal():Filter(NULL){}
   void Initialize(vtkParticleTracerBase* filter);
   virtual ~ParticlePathFilterInternal(){}
@@ -46,23 +46,30 @@ private:
 
 class VTKFILTERSFLOWPATHS_EXPORT vtkParticlePathFilter: public vtkParticleTracerBase
 {
- public:
+public:
   vtkTypeMacro(vtkParticlePathFilter,vtkParticleTracerBase)
   void PrintSelf(ostream& os, vtkIndent indent);
 
   static vtkParticlePathFilter *New();
 
- protected:
+protected:
   vtkParticlePathFilter();
-  ~vtkParticlePathFilter(){}
+  ~vtkParticlePathFilter();
   vtkParticlePathFilter(const vtkParticlePathFilter&);  // Not implemented.
   void operator=(const vtkParticlePathFilter&);  // Not implemented.
 
   virtual void ResetCache();
   virtual int OutputParticles(vtkPolyData* poly);
+  virtual void InitializeExtraPointDataArrays(vtkPointData* outputPD);
+  virtual void AppendToExtraPointDataArrays(vtkParticleTracerBaseNamespace::ParticleInformation &);
+
   void Finalize();
 
   ParticlePathFilterInternal It;
+
+private:
+  vtkDoubleArray* SimulationTime;
+  vtkIntArray* SimulationTimeStep;
 };
 
 

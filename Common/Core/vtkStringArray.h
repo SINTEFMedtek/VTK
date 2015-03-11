@@ -23,8 +23,8 @@
 // .SECTION Thanks
 // Andy Wilson (atwilso@sandia.gov) wrote this class.
 
-#ifndef __vtkStringArray_h
-#define __vtkStringArray_h
+#ifndef vtkStringArray_h
+#define vtkStringArray_h
 
 #include "vtkCommonCoreModule.h" // For export macro
 #include "vtkAbstractArray.h"
@@ -90,6 +90,13 @@ public:
   // Note that memory allocation is performed as necessary to hold the data.
   virtual void InsertTuples(vtkIdList *dstIds, vtkIdList *srcIds,
                             vtkAbstractArray *source);
+
+  // Description:
+  // Copy n consecutive tuples starting at srcStart from the source array to
+  // this array, starting at the dstStart location.
+  // Note that memory allocation is performed as necessary to hold the data.
+  virtual void InsertTuples(vtkIdType dstStart, vtkIdType n, vtkIdType srcStart,
+                            vtkAbstractArray* source);
 
   // Description:
   // Insert the jth tuple in the source array, at the end in this array.

@@ -23,8 +23,8 @@
 // of value stored in a vtkInformation instance corresponding to a
 // given key matches the type expected for that key.
 
-#ifndef __vtkInformationKey_h
-#define __vtkInformationKey_h
+#ifndef vtkInformationKey_h
+#define vtkInformationKey_h
 
 #include "vtkCommonCoreModule.h" // For export macro
 #include "vtkObjectBase.h"
@@ -96,9 +96,71 @@ public:
   void Print(vtkInformation* info);
   virtual void Print(ostream& os, vtkInformation* info);
 
+  // Description:
+  // This function is only relevant when the pertaining key
+  // is used in a VTK pipeline. Specific keys that handle
+  // pipeline data requests (for example, UPDATE_PIECE_NUMBER)
+  // can overwrite this method to notify the pipeline that a
+  // a filter should be (re-)executed because what is in
+  // the current output is different that what is being requested
+  // by the key. For example, DATA_PIECE_NUMBER != UPDATE_PIECE_NUMBER.
+  virtual bool NeedToExecute(vtkInformation* vtkNotUsed(pipelineInfo),
+                             vtkInformation* vtkNotUsed(dobjInfo)) {return false;}
+
+  // Description:
+  // This function is only relevant when the pertaining key
+  // is used in a VTK pipeline. Specific keys that handle
+  // pipeline data requests (for example, UPDATE_PIECE_NUMBER)
+  // can overwrite this method to store in the data information
+  // meta-data about the request that led to the current filter
+  // execution. This meta-data can later be used to compare what
+  // is being requested to decide whether the filter needs to
+  // re-execute. For example, a filter may store the current
+  // UPDATE_PIECE_NUMBER in the data object's information as
+  // the DATA_PIECE_NUMBER. DATA_PIECE_NUMBER can later be compared
+  // to a new UPDATA_PIECE_NUMBER to decide whether a filter should
+  // re-execute.
+  virtual void StoreMetaData(vtkInformation* vtkNotUsed(request),
+                             vtkInformation* vtkNotUsed(pipelineInfo),
+                             vtkInformation* vtkNotUsed(dobjInfo)) {}
+
+  // Description:
+  // This function is only relevant when the pertaining key
+  // is used in a VTK pipeline. By overwriting this method, a
+  // key can decide if/how to copy itself downstream or upstream
+  // during a particular pipeline pass. For example, meta-data keys
+  // can copy themselves during REQUEST_INFORMATION whereas request
+  // keys can copy themselves during REQUEST_UPDATE_EXTENT.
+  virtual void CopyDefaultInformation(vtkInformation* vtkNotUsed(request),
+                                      vtkInformation* vtkNotUsed(fromInfo),
+                                      vtkInformation* vtkNotUsed(toInfo)) {}
+
 protected:
-  const char* Name;
-  const char* Location;
+  char* Name;
+  char* Location;
+
+#define vtkInformationKeySetStringMacro(name) \
+virtual void Set##name (const char* _arg) \
+  { \
+  if ( this->name == NULL && _arg == NULL) { return;} \
+  if ( this->name && _arg && (!strcmp(this->name,_arg))) { return;} \
+  delete [] this->name; \
+  if (_arg) \
+    { \
+    size_t n = strlen(_arg) + 1; \
+    char *cp1 =  new char[n]; \
+    const char *cp2 = (_arg); \
+    this->name = cp1; \
+    do { *cp1++ = *cp2++; } while ( --n ); \
+    } \
+   else \
+    { \
+    this->name = NULL; \
+    } \
+  }
+
+  vtkInformationKeySetStringMacro(Name);
+  vtkInformationKeySetStringMacro(Location);
 
   // Set/Get the value associated with this key instance in the given
   // information object.
@@ -129,6 +191,13 @@ private:
   {                                                           \
     return CLASS##_##NAME;                                    \
   }
+#define vtkInformationKeySubclassMacro(CLASS, NAME, type, super)    \
+  static vtkInformation##type##Key* CLASS##_##NAME =          \
+    new vtkInformation##type##Key(#NAME, #CLASS);             \
+  vtkInformation##super##Key* CLASS::NAME()                    \
+  {                                                           \
+    return CLASS##_##NAME;                                    \
+  }
 #define vtkInformationKeyRestrictedMacro(CLASS, NAME, type, required)   \
   static vtkInformation##type##Key* CLASS##_##NAME =                    \
     new vtkInformation##type##Key(#NAME, #CLASS, required);             \
@@ -136,5 +205,6 @@ private:
   {                                                                     \
     return CLASS##_##NAME;                                              \
   }
+
 
 #endif

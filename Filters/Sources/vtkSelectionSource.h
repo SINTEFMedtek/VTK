@@ -17,8 +17,8 @@
 // (piece id, cell id) pairs. It will only generate the selection values
 // that match UPDATE_PIECE_NUMBER (i.e. piece == UPDATE_PIECE_NUMBER).
 
-#ifndef __vtkSelectionSource_h
-#define __vtkSelectionSource_h
+#ifndef vtkSelectionSource_h
+#define vtkSelectionSource_h
 
 #include "vtkFiltersSourcesModule.h" // For export macro
 #include "vtkSelectionAlgorithm.h"
@@ -134,9 +134,8 @@ protected:
   ~vtkSelectionSource();
 
   virtual int RequestInformation(vtkInformation* request,
-                                 vtkInformationVector** inputVector,
-                                 vtkInformationVector* outputVector);
-
+                          vtkInformationVector** inputVector,
+                          vtkInformationVector* outputVector);
   virtual int RequestData(vtkInformation* request,
                           vtkInformationVector** inputVector,
                           vtkInformationVector* outputVector);
