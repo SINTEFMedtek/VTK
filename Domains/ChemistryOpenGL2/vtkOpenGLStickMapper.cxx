@@ -13,12 +13,15 @@
 =========================================================================*/
 #include "vtkOpenGLStickMapper.h"
 
-#include "vtkglVBOHelper.h"
+#include "vtkOpenGLHelper.h"
 
 #include "vtkMatrix3x3.h"
 #include "vtkMatrix4x4.h"
 #include "vtkOpenGLActor.h"
 #include "vtkOpenGLCamera.h"
+#include "vtkOpenGLIndexBufferObject.h"
+#include "vtkOpenGLVertexArrayObject.h"
+#include "vtkOpenGLVertexBufferObject.h"
 #include "vtkObjectFactory.h"
 #include "vtkPointData.h"
 #include "vtkPolyData.h"
@@ -29,7 +32,9 @@
 
 #include "vtkStickMapperVS.h"
 
-using vtkgl::substitute;
+#include "vtk_glew.h"
+
+
 
 //-----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkOpenGLStickMapper)
@@ -43,52 +48,50 @@ vtkOpenGLStickMapper::vtkOpenGLStickMapper()
 }
 
 //-----------------------------------------------------------------------------
-void vtkOpenGLStickMapper::GetShaderTemplate(std::string &VSSource,
-                                          std::string &FSSource,
-                                          std::string &GSSource,
-                                          int lightComplexity, vtkRenderer* ren, vtkActor *actor)
+void vtkOpenGLStickMapper::GetShaderTemplate(
+    std::map<vtkShader::Type, vtkShader *> shaders,
+    vtkRenderer *ren, vtkActor *actor)
 {
-  this->Superclass::GetShaderTemplate(VSSource,FSSource,GSSource,lightComplexity,ren,actor);
-
-  VSSource = vtkStickMapperVS;
+  this->Superclass::GetShaderTemplate(shaders,ren,actor);
+  shaders[vtkShader::Vertex]->SetSource(vtkStickMapperVS);
 }
 
-void vtkOpenGLStickMapper::ReplaceShaderValues(std::string &VSSource,
-                                                 std::string &FSSource,
-                                                 std::string &GSSource,
-                                                 int lightComplexity,
-                                                 vtkRenderer* ren,
-                                                 vtkActor *actor)
+void vtkOpenGLStickMapper::ReplaceShaderValues(
+    std::map<vtkShader::Type, vtkShader *> shaders,
+    vtkRenderer *ren, vtkActor *actor)
 {
-  substitute(VSSource,
+  std::string VSSource = shaders[vtkShader::Vertex]->GetSource();
+  std::string FSSource = shaders[vtkShader::Fragment]->GetSource();
+
+  vtkShaderProgram::Substitute(VSSource,
     "//VTK::Camera::Dec",
     "uniform mat4 VCDCMatrix;\n"
     "uniform mat4 MCVCMatrix;");
 
-  substitute(FSSource,
+  vtkShaderProgram::Substitute(FSSource,
     "//VTK::PositionVC::Dec",
-    "varying vec4 vertexVCClose;");
+    "varying vec4 vertexVCVSOutput;");
 
   // for lights kit and positional the VCDC matrix is already defined
   // so don't redefine it
   std::string replacement =
     "uniform int cameraParallel;\n"
-    "varying float radiusVC;\n"
-    "varying vec3 orientVC;\n"
-    "varying float lengthVC;\n"
-    "varying vec3 centerVC;\n"
+    "varying float radiusVCVSOutput;\n"
+    "varying vec3 orientVCVSOutput;\n"
+    "varying float lengthVCVSOutput;\n"
+    "varying vec3 centerVCVSOutput;\n"
     "uniform mat4 VCDCMatrix;\n";
-  substitute(FSSource,"//VTK::Normal::Dec",replacement);
+  vtkShaderProgram::Substitute(FSSource,"//VTK::Normal::Dec",replacement);
 
 
   // see https://www.cl.cam.ac.uk/teaching/1999/AGraphHCI/SMAG/node2.html
-  substitute(FSSource,"//VTK::Normal::Impl",
+  vtkShaderProgram::Substitute(FSSource,"//VTK::Normal::Impl",
     // compute the eye position and unit direction
-    "  vec4 vertexVC = vertexVCClose;\n"
+    "  vec4 vertexVC = vertexVCVSOutput;\n"
     "  vec3 EyePos;\n"
     "  vec3 EyeDir;\n"
     "  if (cameraParallel != 0) {\n"
-    "    EyePos = vec3(vertexVC.x, vertexVC.y, vertexVC.z + 3.0*radiusVC);\n"
+    "    EyePos = vec3(vertexVC.x, vertexVC.y, vertexVC.z + 3.0*radiusVCVSOutput);\n"
     "    EyeDir = vec3(0.0,0.0,-1.0); }\n"
     "  else {\n"
     "    EyeDir = vertexVC.xyz;\n"
@@ -97,55 +100,55 @@ void vtkOpenGLStickMapper::ReplaceShaderValues(std::string &VSSource,
     "    EyeDir = normalize(EyeDir);\n"
     // we adjust the EyePos to be closer if it is too far away
     // to prevent floating point precision noise
-    "    if (lengthED > radiusVC*3.0) {\n"
-    "      EyePos = vertexVC.xyz - EyeDir*3.0*radiusVC; }\n"
+    "    if (lengthED > radiusVCVSOutput*3.0) {\n"
+    "      EyePos = vertexVC.xyz - EyeDir*3.0*radiusVCVSOutput; }\n"
     "    }\n"
 
     // translate to Cylinder center
-    "  EyePos = EyePos - centerVC;\n"
+    "  EyePos = EyePos - centerVCVSOutput;\n"
 
     // rotate to new basis
     // base1, base2, orientVC
     "  vec3 base1;\n"
-    "  if (abs(orientVC.z) < 0.99) {\n"
-    "    base1 = normalize(cross(orientVC,vec3(0.0,0.0,1.0))); }\n"
+    "  if (abs(orientVCVSOutput.z) < 0.99) {\n"
+    "    base1 = normalize(cross(orientVCVSOutput,vec3(0.0,0.0,1.0))); }\n"
     "  else {\n"
-    "    base1 = normalize(cross(orientVC,vec3(0.0,1.0,0.0))); }\n"
-    "  vec3 base2 = cross(orientVC,base1);\n"
-    "  EyePos = vec3(dot(EyePos,base1),dot(EyePos,base2),dot(EyePos,orientVC));\n"
-    "  EyeDir = vec3(dot(EyeDir,base1),dot(EyeDir,base2),dot(EyeDir,orientVC));\n"
+    "    base1 = normalize(cross(orientVCVSOutput,vec3(0.0,1.0,0.0))); }\n"
+    "  vec3 base2 = cross(orientVCVSOutput,base1);\n"
+    "  EyePos = vec3(dot(EyePos,base1),dot(EyePos,base2),dot(EyePos,orientVCVSOutput));\n"
+    "  EyeDir = vec3(dot(EyeDir,base1),dot(EyeDir,base2),dot(EyeDir,orientVCVSOutput));\n"
 
     // scale by radius
-    "  EyePos = EyePos/radiusVC;\n"
+    "  EyePos = EyePos/radiusVCVSOutput;\n"
 
     // find the intersection
     "  float a = EyeDir.x*EyeDir.x + EyeDir.y*EyeDir.y;\n"
     "  float b = 2.0*(EyePos.x*EyeDir.x + EyePos.y*EyeDir.y);\n"
     "  float c = EyePos.x*EyePos.x + EyePos.y*EyePos.y - 1.0;\n"
     "  float d = b*b - 4.0*a*c;\n"
-    "  vec3 normalVC = vec3(0.0,0.0,1.0);\n"
+    "  vec3 normalVCVSOutput = vec3(0.0,0.0,1.0);\n"
     "  if (d < 0.0) { discard; }\n"
     "  else {\n"
     "    float t =  (-b - sqrt(d))/(2.0*a);\n"
     "    float tz = EyePos.z + t*EyeDir.z;\n"
     "    vec3 iPoint = EyePos + t*EyeDir;\n"
-    "    if (abs(iPoint.z)*radiusVC > lengthVC*0.5) {\n"
+    "    if (abs(iPoint.z)*radiusVCVSOutput > lengthVCVSOutput*0.5) {\n"
     // test for end cap
     "      float t2 = (-b + sqrt(d))/(2.0*a);\n"
     "      float tz2 = EyePos.z + t2*EyeDir.z;\n"
-    "      if (tz2*radiusVC > lengthVC*0.5 || tz*radiusVC < -0.5*lengthVC) { discard; }\n"
+    "      if (tz2*radiusVCVSOutput > lengthVCVSOutput*0.5 || tz*radiusVCVSOutput < -0.5*lengthVCVSOutput) { discard; }\n"
     "      else {\n"
-    "        normalVC = orientVC;\n"
-    "        float t3 = (lengthVC*0.5/radiusVC - EyePos.z)/EyeDir.z;\n"
+    "        normalVCVSOutput = orientVCVSOutput;\n"
+    "        float t3 = (lengthVCVSOutput*0.5/radiusVCVSOutput - EyePos.z)/EyeDir.z;\n"
     "        iPoint = EyePos + t3*EyeDir;\n"
-    "        vertexVC.xyz = radiusVC*(iPoint.x*base1 + iPoint.y*base2 + iPoint.z*orientVC) + centerVC;\n"
+    "        vertexVC.xyz = radiusVCVSOutput*(iPoint.x*base1 + iPoint.y*base2 + iPoint.z*orientVCVSOutput) + centerVCVSOutput;\n"
     "        }\n"
     "      }\n"
     "    else {\n"
     // The normal is the iPoint.xy rotated back into VC
-    "      normalVC = iPoint.x*base1 + iPoint.y*base2;\n"
+    "      normalVCVSOutput = iPoint.x*base1 + iPoint.y*base2;\n"
     // rescale rerotate and translate
-    "      vertexVC.xyz = radiusVC*(normalVC + iPoint.z*orientVC) + centerVC;\n"
+    "      vertexVC.xyz = radiusVCVSOutput*(normalVCVSOutput + iPoint.z*orientVCVSOutput) + centerVCVSOutput;\n"
     "      }\n"
     "    }\n"
 
@@ -159,33 +162,33 @@ void vtkOpenGLStickMapper::ReplaceShaderValues(std::string &VSSource,
   bool picking = (ren->GetRenderWindow()->GetIsPicking() || selector != NULL);
   if (picking)
     {
-    substitute(VSSource,
+    vtkShaderProgram::Substitute(VSSource,
       "//VTK::Picking::Dec",
       "attribute vec4 selectionId;\n"
-      "varying vec4 selectionIdFrag;");
-    substitute(VSSource,
+      "varying vec4 selectionIdVSOutput;");
+    vtkShaderProgram::Substitute(VSSource,
       "//VTK::Picking::Impl",
-      "selectionIdFrag = selectionId;");
-    substitute(FSSource,
+      "selectionIdVSOutput = selectionId;");
+    vtkShaderProgram::Substitute(FSSource,
       "//VTK::Picking::Dec",
       "uniform vec3 mapperIndex;\n"
-      "varying vec4 selectionIdFrag;");
-    substitute(FSSource,
+      "varying vec4 selectionIdVSOutput;");
+    vtkShaderProgram::Substitute(FSSource,
       "//VTK::Picking::Impl",
       "if (mapperIndex == vec3(0.0,0.0,0.0))\n"
       "    {\n"
-      "    gl_FragColor = vec4(selectionIdFrag.rgb, 1.0);\n"
+      "    gl_FragData[0] = vec4(selectionIdVSOutput.rgb, 1.0);\n"
       "    }\n"
       "  else\n"
       "    {\n"
-      "    gl_FragColor = vec4(mapperIndex,1.0);\n"
+      "    gl_FragData[0] = vec4(mapperIndex,1.0);\n"
       "    }"
       );
     }
 
   if (ren->GetLastRenderingUsedDepthPeeling())
     {
-    substitute(FSSource,
+    vtkShaderProgram::Substitute(FSSource,
       "//VTK::DepthPeeling::Impl",
       "float odepth = texture2D(opaqueZTexture, gl_FragCoord.xy/screenSize).r;\n"
       "  if (gl_FragDepth >= odepth) { discard; }\n"
@@ -194,9 +197,10 @@ void vtkOpenGLStickMapper::ReplaceShaderValues(std::string &VSSource,
       );
     }
 
+  shaders[vtkShader::Vertex]->SetSource(VSSource);
+  shaders[vtkShader::Fragment]->SetSource(FSSource);
 
-
-  this->Superclass::ReplaceShaderValues(VSSource,FSSource,GSSource,lightComplexity,ren,actor);
+  this->Superclass::ReplaceShaderValues(shaders,ren,actor);
 }
 
 //-----------------------------------------------------------------------------
@@ -209,7 +213,7 @@ vtkOpenGLStickMapper::~vtkOpenGLStickMapper()
 
 
 //-----------------------------------------------------------------------------
-void vtkOpenGLStickMapper::SetCameraShaderParameters(vtkgl::CellBO &cellBO,
+void vtkOpenGLStickMapper::SetCameraShaderParameters(vtkOpenGLHelper &cellBO,
                                                     vtkRenderer* ren, vtkActor *actor)
 {
   vtkShaderProgram *program = cellBO.Program;
@@ -243,47 +247,48 @@ void vtkOpenGLStickMapper::SetCameraShaderParameters(vtkgl::CellBO &cellBO,
 }
 
 //-----------------------------------------------------------------------------
-void vtkOpenGLStickMapper::SetMapperShaderParameters(vtkgl::CellBO &cellBO,
-                                                         vtkRenderer *ren, vtkActor *actor)
+void vtkOpenGLStickMapper::SetMapperShaderParameters(
+  vtkOpenGLHelper &cellBO,
+  vtkRenderer *ren,
+  vtkActor *actor)
 {
-  if (cellBO.indexCount && (this->VBOBuildTime > cellBO.attributeUpdateTime ||
-      cellBO.ShaderSourceTime > cellBO.attributeUpdateTime))
+  if (cellBO.IBO->IndexCount && (this->VBOBuildTime > cellBO.AttributeUpdateTime ||
+      cellBO.ShaderSourceTime > cellBO.AttributeUpdateTime))
     {
     vtkHardwareSelector* selector = ren->GetSelector();
     bool picking = (ren->GetRenderWindow()->GetIsPicking() || selector != NULL);
 
-    vtkgl::VBOLayout &layout = this->Layout;
-    cellBO.vao.Bind();
-    if (!cellBO.vao.AddAttributeArray(cellBO.Program, this->VBO,
-                                    "orientMC", layout.ColorOffset+sizeof(float),
-                                    layout.Stride, VTK_FLOAT, 3, false))
+    cellBO.VAO->Bind();
+    if (!cellBO.VAO->AddAttributeArray(cellBO.Program, this->VBO,
+                                    "orientMC", this->VBO->ColorOffset+sizeof(float),
+                                    this->VBO->Stride, VTK_FLOAT, 3, false))
       {
       vtkErrorMacro(<< "Error setting 'orientMC' in shader VAO.");
       }
-    if (!cellBO.vao.AddAttributeArray(cellBO.Program, this->VBO,
-                                    "offsetMC", layout.ColorOffset+4*sizeof(float),
-                                    layout.Stride, VTK_UNSIGNED_CHAR, 3, false))
+    if (!cellBO.VAO->AddAttributeArray(cellBO.Program, this->VBO,
+                                    "offsetMC", this->VBO->ColorOffset+4*sizeof(float),
+                                    this->VBO->Stride, VTK_UNSIGNED_CHAR, 3, false))
       {
       vtkErrorMacro(<< "Error setting 'offsetMC' in shader VAO.");
       }
-    if (!cellBO.vao.AddAttributeArray(cellBO.Program, this->VBO,
-                                    "radiusMC", layout.ColorOffset+5*sizeof(float),
-                                    layout.Stride, VTK_FLOAT, 1, false))
+    if (!cellBO.VAO->AddAttributeArray(cellBO.Program, this->VBO,
+                                    "radiusMC", this->VBO->ColorOffset+5*sizeof(float),
+                                    this->VBO->Stride, VTK_FLOAT, 1, false))
       {
       vtkErrorMacro(<< "Error setting 'radiusMC' in shader VAO.");
       }
     if (picking)
       {
-      if (!cellBO.vao.AddAttributeArray(cellBO.Program, this->VBO,
-                                      "selectionId", layout.ColorOffset+6*sizeof(float),
-                                      layout.Stride, VTK_UNSIGNED_CHAR, 4, true))
+      if (!cellBO.VAO->AddAttributeArray(cellBO.Program, this->VBO,
+                                      "selectionId", this->VBO->ColorOffset+6*sizeof(float),
+                                      this->VBO->Stride, VTK_UNSIGNED_CHAR, 4, true))
         {
         vtkErrorMacro(<< "Error setting 'selectionId' in shader VAO.");
         }
       }
     else
       {
-      cellBO.vao.RemoveAttributeArray("selectionId");
+      cellBO.VAO->RemoveAttributeArray("selectionId");
       }
     }
 
@@ -300,22 +305,21 @@ void vtkOpenGLStickMapper::PrintSelf(ostream& os, vtkIndent indent)
 namespace
 {
 // internal function called by CreateVBO
-vtkgl::VBOLayout vtkOpenGLStickMapperCreateVBO(float * points, vtkIdType numPts,
+void vtkOpenGLStickMapperCreateVBO(float * points, vtkIdType numPts,
               unsigned char *colors, int colorComponents,
               float *orients,
               float *sizes,
               vtkIdType *selectionIds,
-              vtkgl::BufferObject &vertexBuffer)
+              vtkOpenGLVertexBufferObject *VBO)
 {
-  vtkgl::VBOLayout layout;
   // Figure out how big each block will be, currently 6 or 7 floats.
   int blockSize = 3;
-  layout.VertexOffset = 0;
-  layout.NormalOffset = 0;
-  layout.TCoordOffset = 0;
-  layout.TCoordComponents = 0;
-  layout.ColorComponents = colorComponents;
-  layout.ColorOffset = sizeof(float) * blockSize;
+  VBO->VertexOffset = 0;
+  VBO->NormalOffset = 0;
+  VBO->TCoordOffset = 0;
+  VBO->TCoordComponents = 0;
+  VBO->ColorComponents = colorComponents;
+  VBO->ColorOffset = sizeof(float) * blockSize;
   ++blockSize;
 
   // three more floats for orient + 2 for offset + 1 for radius
@@ -324,20 +328,23 @@ vtkgl::VBOLayout vtkOpenGLStickMapperCreateVBO(float * points, vtkIdType numPts,
     {
     blockSize++;
     }
-  layout.Stride = sizeof(float) * blockSize;
+  VBO->Stride = sizeof(float) * blockSize;
 
   // Create a buffer, and copy the data over.
-  std::vector<float> packedVBO;
-  packedVBO.resize(blockSize * numPts * 6);
-  std::vector<float>::iterator it = packedVBO.begin();
+  VBO->PackedVBO.resize(blockSize * numPts * 6);
+  std::vector<float>::iterator it = VBO->PackedVBO.begin();
 
   float *pointPtr;
   float *orientPtr;
   unsigned char *colorPtr;
 
-  unsigned char offsets[4];
-  offsets[3] = 0;
-  unsigned int selId = 0;
+  vtkucfloat offsets;
+  offsets.c[3] = 0;
+  vtkucfloat selId;
+  selId.c[0] = 0;
+  selId.c[1] = 0;
+  selId.c[2] = 0;
+  selId.c[3] = 0;
 
   for (vtkIdType i = 0; i < numPts; ++i)
     {
@@ -348,7 +355,11 @@ vtkgl::VBOLayout vtkOpenGLStickMapperCreateVBO(float * points, vtkIdType numPts,
     float length = sizes[i*3];
     if (selectionIds)
       {
-      selId = static_cast<unsigned int>(selectionIds[i]) + 1;
+      vtkIdType thisId = selectionIds[i] + 1;
+      selId.c[0] = thisId % 256;
+      selId.c[1] = (thisId >> 8) % 256;
+      selId.c[2] = (thisId >> 16) % 256;
+      selId.c[3] = 0;
       }
 
     // Vertices
@@ -359,14 +370,14 @@ vtkgl::VBOLayout vtkOpenGLStickMapperCreateVBO(float * points, vtkIdType numPts,
     *(it++) = orientPtr[0]*length;
     *(it++) = orientPtr[1]*length;
     *(it++) = orientPtr[2]*length;
-    offsets[0] = 0;
-    offsets[1] = 0;
-    offsets[2] = 0;
-    *(it++) = *reinterpret_cast<float *>(offsets);
+    offsets.c[0] = 0;
+    offsets.c[1] = 0;
+    offsets.c[2] = 0;
+    *(it++) = offsets.f;
     *(it++) = radius;
     if (selectionIds)
       {
-      *(it++) = *reinterpret_cast<float *>(&selId);
+      *(it++) = selId.f;
       }
 
     *(it++) = pointPtr[0];
@@ -376,14 +387,14 @@ vtkgl::VBOLayout vtkOpenGLStickMapperCreateVBO(float * points, vtkIdType numPts,
     *(it++) = orientPtr[0]*length;
     *(it++) = orientPtr[1]*length;
     *(it++) = orientPtr[2]*length;
-    offsets[0] = 1;
-    offsets[1] = 0;
-    offsets[2] = 0;
-    *(it++) = *reinterpret_cast<float *>(offsets);
+    offsets.c[0] = 1;
+    offsets.c[1] = 0;
+    offsets.c[2] = 0;
+    *(it++) = offsets.f;
     *(it++) = radius;
     if (selectionIds)
       {
-      *(it++) = *reinterpret_cast<float *>(&selId);
+      *(it++) = selId.f;
       }
 
     *(it++) = pointPtr[0];
@@ -393,14 +404,14 @@ vtkgl::VBOLayout vtkOpenGLStickMapperCreateVBO(float * points, vtkIdType numPts,
     *(it++) = orientPtr[0]*length;
     *(it++) = orientPtr[1]*length;
     *(it++) = orientPtr[2]*length;
-    offsets[0] = 1;
-    offsets[1] = 0;
-    offsets[2] = 1;
-    *(it++) = *reinterpret_cast<float *>(offsets);
+    offsets.c[0] = 1;
+    offsets.c[1] = 0;
+    offsets.c[2] = 1;
+    *(it++) = offsets.f;
     *(it++) = radius;
     if (selectionIds)
       {
-      *(it++) = *reinterpret_cast<float *>(&selId);
+      *(it++) = selId.f;
       }
 
     *(it++) = pointPtr[0];
@@ -410,14 +421,14 @@ vtkgl::VBOLayout vtkOpenGLStickMapperCreateVBO(float * points, vtkIdType numPts,
     *(it++) = orientPtr[0]*length;
     *(it++) = orientPtr[1]*length;
     *(it++) = orientPtr[2]*length;
-    offsets[0] = 0;
-    offsets[1] = 0;
-    offsets[2] = 1;
-    *(it++) = *reinterpret_cast<float *>(offsets);
+    offsets.c[0] = 0;
+    offsets.c[1] = 0;
+    offsets.c[2] = 1;
+    *(it++) = offsets.f;
     *(it++) = radius;
     if (selectionIds)
       {
-      *(it++) = *reinterpret_cast<float *>(&selId);
+      *(it++) = selId.f;
       }
 
     *(it++) = pointPtr[0];
@@ -427,14 +438,14 @@ vtkgl::VBOLayout vtkOpenGLStickMapperCreateVBO(float * points, vtkIdType numPts,
     *(it++) = orientPtr[0]*length;
     *(it++) = orientPtr[1]*length;
     *(it++) = orientPtr[2]*length;
-    offsets[0] = 1;
-    offsets[1] = 1;
-    offsets[2] = 1;
-    *(it++) = *reinterpret_cast<float *>(offsets);
+    offsets.c[0] = 1;
+    offsets.c[1] = 1;
+    offsets.c[2] = 1;
+    *(it++) = offsets.f;
     *(it++) = radius;
     if (selectionIds)
       {
-      *(it++) = *reinterpret_cast<float *>(&selId);
+      *(it++) = selId.f;
       }
 
     *(it++) = pointPtr[0];
@@ -444,24 +455,24 @@ vtkgl::VBOLayout vtkOpenGLStickMapperCreateVBO(float * points, vtkIdType numPts,
     *(it++) = orientPtr[0]*length;
     *(it++) = orientPtr[1]*length;
     *(it++) = orientPtr[2]*length;
-    offsets[0] = 0;
-    offsets[1] = 1;
-    offsets[2] = 1;
-    *(it++) = *reinterpret_cast<float *>(offsets);
+    offsets.c[0] = 0;
+    offsets.c[1] = 1;
+    offsets.c[2] = 1;
+    *(it++) = offsets.f;
     *(it++) = radius;
     if (selectionIds)
       {
-      *(it++) = *reinterpret_cast<float *>(&selId);
+      *(it++) = selId.f;
       }
     }
-  vertexBuffer.Upload(packedVBO, vtkgl::BufferObject::ArrayBuffer);
-  layout.VertexCount = numPts*6;
-  return layout;
+  VBO->Upload(VBO->PackedVBO, vtkOpenGLBufferObject::ArrayBuffer);
+  VBO->VertexCount = numPts*6;
+  return;
 }
 }
 
 size_t vtkOpenGLStickMapperCreateTriangleIndexBuffer(
-  vtkgl::BufferObject &indexBuffer,
+  vtkOpenGLBufferObject *indexBuffer,
   int numPts)
 {
   std::vector<unsigned int> indexArray;
@@ -482,21 +493,19 @@ size_t vtkOpenGLStickMapperCreateTriangleIndexBuffer(
     indexArray.push_back(i*6+4);
     indexArray.push_back(i*6+5);
     }
-  indexBuffer.Upload(indexArray, vtkgl::BufferObject::ElementArrayBuffer);
+  indexBuffer->Upload(indexArray, vtkOpenGLBufferObject::ElementArrayBuffer);
   return indexArray.size();
 }
 
 //-------------------------------------------------------------------------
-bool vtkOpenGLStickMapper::GetNeedToRebuildBufferObjects(vtkRenderer *ren, vtkActor *act)
+bool vtkOpenGLStickMapper::GetNeedToRebuildBufferObjects(
+  vtkRenderer *vtkNotUsed(ren),
+  vtkActor *act)
 {
-  // picking state changing always requires a rebuild
-  vtkHardwareSelector* selector = ren->GetSelector();
-  bool picking = (ren->GetIsPicking() || selector != NULL);
-
   if (this->VBOBuildTime < this->GetMTime() ||
       this->VBOBuildTime < act->GetMTime() ||
       this->VBOBuildTime < this->CurrentInput->GetMTime() ||
-      this->LastSelectionState || picking)
+      this->VBOBuildTime < this->SelectionStateChanged)
     {
     return true;
     }
@@ -527,43 +536,41 @@ void vtkOpenGLStickMapper::BuildBufferObjects(vtkRenderer *ren,
 
   // Iterate through all of the different types in the polydata, building OpenGLs
   // and IBOs as appropriate for each type.
-  this->Layout =
-    vtkOpenGLStickMapperCreateVBO(static_cast<float *>(poly->GetPoints()->GetVoidPointer(0)),
-              poly->GetPoints()->GetNumberOfPoints(),
-              this->Colors ? (unsigned char *)this->Colors->GetVoidPointer(0) : NULL,
-              this->Colors ? this->Colors->GetNumberOfComponents() : 0,
-              static_cast<float *>(poly->GetPointData()->GetArray(this->OrientationArray)->GetVoidPointer(0)),
-              static_cast<float *>(poly->GetPointData()->GetArray(this->ScaleArray)->GetVoidPointer(0)),
-              picking ?
-                static_cast<vtkIdType *>(poly->GetPointData()->GetArray(this->SelectionIdArray)->GetVoidPointer(0))
-                : NULL,
-              this->VBO);
+  vtkOpenGLStickMapperCreateVBO(
+    static_cast<float *>(poly->GetPoints()->GetVoidPointer(0)),
+    poly->GetPoints()->GetNumberOfPoints(),
+    this->Colors ? (unsigned char *)this->Colors->GetVoidPointer(0) : NULL,
+    this->Colors ? this->Colors->GetNumberOfComponents() : 0,
+    static_cast<float *>(poly->GetPointData()->GetArray(this->OrientationArray)->GetVoidPointer(0)),
+    static_cast<float *>(poly->GetPointData()->GetArray(this->ScaleArray)->GetVoidPointer(0)),
+    picking ?
+      static_cast<vtkIdType *>(poly->GetPointData()->GetArray(this->SelectionIdArray)->GetVoidPointer(0))
+      : NULL,
+    this->VBO);
 
   // create the IBO
-  this->Points.indexCount = 0;
-  this->Lines.indexCount = 0;
-  this->TriStrips.indexCount = 0;
-  this->Tris.indexCount =
-    vtkOpenGLStickMapperCreateTriangleIndexBuffer(this->Tris.ibo,
+  this->Points.IBO->IndexCount = 0;
+  this->Lines.IBO->IndexCount = 0;
+  this->TriStrips.IBO->IndexCount = 0;
+  this->Tris.IBO->IndexCount =
+    vtkOpenGLStickMapperCreateTriangleIndexBuffer(this->Tris.IBO,
       poly->GetPoints()->GetNumberOfPoints());
 }
 
 //-----------------------------------------------------------------------------
 void vtkOpenGLStickMapper::RenderPieceDraw(vtkRenderer* ren, vtkActor *actor)
 {
-  vtkgl::VBOLayout &layout = this->Layout;
-
   // draw polygons
-  if (this->Tris.indexCount)
+  if (this->Tris.IBO->IndexCount)
     {
     // First we do the triangles, update the shader, set uniforms, etc.
-    this->UpdateShader(this->Tris, ren, actor);
-    this->Tris.ibo.Bind();
+    this->UpdateShaders(this->Tris, ren, actor);
+    this->Tris.IBO->Bind();
     glDrawRangeElements(GL_TRIANGLES, 0,
-                        static_cast<GLuint>(layout.VertexCount - 1),
-                        static_cast<GLsizei>(this->Tris.indexCount),
+                        static_cast<GLuint>(this->VBO->VertexCount - 1),
+                        static_cast<GLsizei>(this->Tris.IBO->IndexCount),
                         GL_UNSIGNED_INT,
                         reinterpret_cast<const GLvoid *>(NULL));
-    this->Tris.ibo.Release();
+    this->Tris.IBO->Release();
     }
 }

@@ -13,6 +13,10 @@
 
 =========================================================================*/
 
+#ifdef VTK_OPENGL2
+  #include "vtk_glew.h"
+#endif
+
 #include "vtkExternalOpenGLRenderWindow.h"
 #include "vtkObjectFactory.h"
 #include "vtkRendererCollection.h"
@@ -23,6 +27,7 @@ vtkStandardNewMacro(vtkExternalOpenGLRenderWindow);
 //----------------------------------------------------------------------------
 vtkExternalOpenGLRenderWindow::vtkExternalOpenGLRenderWindow()
 {
+  this->AutomaticWindowPositionAndResize = 1;
 }
 
 //----------------------------------------------------------------------------
@@ -33,6 +38,20 @@ vtkExternalOpenGLRenderWindow::~vtkExternalOpenGLRenderWindow()
 //----------------------------------------------------------------------------
 void vtkExternalOpenGLRenderWindow::Start(void)
 {
+  // Make sure all important OpenGL options are set for VTK
+  this->OpenGLInit();
+
+  // Use hardware acceleration
+  this->SetIsDirect(1);
+
+  if (this->AutomaticWindowPositionAndResize)
+    {
+    int info[4];
+    glGetIntegerv(GL_VIEWPORT, info);
+    this->SetPosition(info[0], info[1]);
+    this->SetSize(info[2], info[3]);
+    }
+
   // For stereo, render the correct eye based on the OpenGL buffer mode
   GLint bufferType;
   glGetIntegerv(GL_DRAW_BUFFER, &bufferType);
@@ -58,6 +77,12 @@ void vtkExternalOpenGLRenderWindow::Start(void)
 void vtkExternalOpenGLRenderWindow::Render()
 {
   this->Superclass::Render();
+}
+
+//----------------------------------------------------------------------------
+bool vtkExternalOpenGLRenderWindow::IsCurrent(void)
+{
+  return true;
 }
 
 //----------------------------------------------------------------------------

@@ -95,11 +95,8 @@ DICOMParser::GetFileName()
 
 bool DICOMParser::OpenFile(const dicom_stl::string& filename)
 {
-  if (this->DataFile)
-    {
-    // Deleting the DataFile closes the file
-    delete this->DataFile;
-    }
+  // Deleting the DataFile closes any previously opened file
+  delete this->DataFile;
   this->DataFile = new DICOMFile();
   bool val = this->DataFile->Open(filename);
 
@@ -126,17 +123,20 @@ bool DICOMParser::OpenFile(const dicom_stl::string& filename)
   return val;
 }
 
+void DICOMParser::CloseFile()
+{
+  // Deleting the DataFile closes any previously opened file
+  delete this->DataFile;
+  this->DataFile = 0;
+}
+
 DICOMParser::~DICOMParser() {
   //
   // Delete the callbacks.
   //
   this->ClearAllDICOMTagCallbacks();
 
-  if (this->DataFile)
-    {
-    delete this->DataFile;
-    }
-
+  delete this->DataFile;
   delete this->TransferSyntaxCB;
   delete this->Implementation;
 
@@ -431,6 +431,26 @@ void DICOMParser::ReadNextRecord(doublebyte& group, doublebyte& element, DICOMPa
           case DICOMParser::VR_AT:
             // dicom_stream::cout << "ATTRIBUTE Byte swap needed!" << dicom_stream::endl;
             break;
+          case VR_UNKNOWN:
+          case VR_DA:
+          case VR_OB:
+          case VR_AE:
+          case VR_SH:
+          case VR_UI:
+          case VR_TM:
+          case VR_PN:
+          case VR_UN:
+          case VR_LO:
+          case VR_SQ:
+          case VR_AS:
+          case VR_CS:
+          case VR_DS:
+          case VR_IS:
+          case VR_DT:
+          case VR_LT:
+          case VR_ST:
+          case VR_UT:
+          case VR_AW:
           default:
             break;
           }

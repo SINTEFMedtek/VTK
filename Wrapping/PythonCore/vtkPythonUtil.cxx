@@ -65,7 +65,7 @@ public:
 // of the vtk/python garbage collection system, because it contains
 // exactly one pointer reference for each VTK object known to python)
 class vtkPythonObjectMap
-  : public std::map<vtkObjectBase*, std::pair<PyObject *, vtkAtomicInt<vtkTypeInt32> > >
+  : public std::map<vtkObjectBase*, std::pair<PyObject *, vtkAtomicInt32> >
 {
 public:
   ~vtkPythonObjectMap();
@@ -181,7 +181,7 @@ public:
 //--------------------------------------------------------------------
 // The singleton for vtkPythonUtil
 
-vtkPythonUtil *vtkPythonMap = NULL;
+static vtkPythonUtil *vtkPythonMap = NULL;
 
 // destructs the singleton when python exits
 void vtkPythonUtilDelete()

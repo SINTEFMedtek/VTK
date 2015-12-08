@@ -47,6 +47,14 @@ public:
   virtual void PrintSelf(ostream &os, vtkIndent indent);
 
   // Description:
+  // Set whether the plot renders an entry in the legend. Default is true.
+  // vtkPlot::PaintLegend will get called to render the legend marker on when
+  // this is true.
+  vtkSetMacro(LegendVisibility, bool);
+  vtkGetMacro(LegendVisibility, bool);
+  vtkBooleanMacro(LegendVisibility, bool);
+
+  // Description:
   // Paint legend event for the plot, called whenever the legend needs the
   // plot items symbol/mark/line drawn. A rect is supplied with the lower left
   // corner of the rect (elements 0 and 1) and with width x height (elements 2
@@ -210,6 +218,19 @@ public:
   // column in the vtkTable.
   virtual void SetInputArray(int index, const vtkStdString &name);
 
+  // Description:
+  // Set whether the plot can be selected. True by default.
+  // If not, then SetSelection(), SelectPoints() or SelectPointsInPolygon()
+  // won't have any effect.
+  // \sa SetSelection(), SelectPoints(), SelectPointsInPolygon()
+  vtkSetMacro(Selectable,bool);
+  vtkGetMacro(Selectable,bool);
+  vtkBooleanMacro(Selectable,bool);
+
+  // Description:
+  // Sets the list of points that must be selected.
+  // If Selectable is false, then this method does nothing.
+  // \sa SetSelectable()
   virtual void SetSelection(vtkIdTypeArray *id);
   vtkGetObjectMacro(Selection, vtkIdTypeArray);
 
@@ -267,6 +288,13 @@ public:
     // subclasses that do no log-scaling or plot orientation.
     return this->GetBounds(bounds);
     }
+
+  // Description:
+  // Subclasses that build data caches to speed up painting should override this
+  // method to update such caches. This is called on each Paint, hence
+  // subclasses must add checks to avoid rebuilding of cache, unless necessary.
+  // Default implementation is empty.
+  virtual void UpdateCache() {}
 
 //BTX
   // Description:
@@ -326,6 +354,10 @@ protected:
   vtkSmartPointer<vtkContextMapper2D> Data;
 
   // Description:
+  // Whether plot points can be selected or not.
+  bool Selectable;
+
+  // Description:
   // Selected indices for the table the plot is rendering
   vtkIdTypeArray *Selection;
 
@@ -353,6 +385,8 @@ protected:
   // Description:
   // The current shift in origin and scaling factor applied to the plot.
   vtkRectd ShiftScale;
+
+  bool LegendVisibility;
 
 private:
   vtkPlot(const vtkPlot &); // Not implemented.

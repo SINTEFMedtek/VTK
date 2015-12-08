@@ -24,6 +24,7 @@
 
 #include <sys/stat.h>
 #include <string>
+#include <algorithm>
 
 extern "C" {
 #include "vtk_tiff.h"
@@ -43,23 +44,75 @@ int GetFileRow(int row, int, FlipFalse)
   return row;
 }
 
+// This is inverse of GetFileRow(), which is same as calling GetFileRow()
+// again.
+template <class Flip>
+int GetImageRow(int file_row, int height, Flip flip)
+{
+  return GetFileRow(file_row, height, flip);
+}
+
+bool SupportsRandomAccess(TIFF* image)
+{
+  unsigned int rowsPerStrip;
+  unsigned short compression;
+  TIFFGetFieldDefaulted(image, TIFFTAG_COMPRESSION, &compression);
+  TIFFGetFieldDefaulted(image, TIFFTAG_ROWSPERSTRIP, &rowsPerStrip);
+  return (compression == COMPRESSION_NONE || rowsPerStrip == 1);
+}
+
+bool PurgeInitialScanLinesIfNeeded(int fileStartRow, TIFF* image)
+{
+  if (fileStartRow == 0 || SupportsRandomAccess(image))
+    {
+    return true;
+    }
+
+  // File doesn't support random access and we want to start at a non-0 row. We
+  // read (and discard) initial scanlines.
+  unsigned int isize = TIFFScanlineSize(image);
+  tdata_t buf = _TIFFmalloc(isize);
+  for (int i = 0; i < fileStartRow; ++i)
+    {
+    if (TIFFReadScanline(image, buf, i, 0) <= 0)
+      {
+      _TIFFfree(buf);
+      return false;
+      }
+    }
+  _TIFFfree(buf);
+  return true;
+}
+
 // Simple scan line copy of a slice in a volume with tightly packed memory.
 template<typename T, typename Flip>
 bool ReadTemplatedImage(T* out, Flip flip,
                         int startCol, int endCol,
                         int startRow, int endRow,
                         int yIncrements,
-                        unsigned int height, TIFF *image)
+                        unsigned int height,
+                        TIFF *image)
 {
+  int fileStartRow = GetFileRow(startRow, height, flip);
+  int fileEndRow = GetFileRow(endRow, height, flip);
+  int minFileRow = std::min(fileStartRow, fileEndRow);
+  int maxFileRow = std::max(fileStartRow, fileEndRow);
+
+  if (!PurgeInitialScanLinesIfNeeded(minFileRow, image))
+    {
+    return false;
+    }
+
   unsigned int isize = TIFFScanlineSize(image);
   size_t scanLineSize = endCol - startCol + 1;
   if (scanLineSize * sizeof(T) == isize)
     {
     // We can copy straight into the image data output.
-    for (int i = startRow; i <= endRow; ++i)
+    for (int fi = minFileRow; fi <= maxFileRow; ++fi)
       {
+      int i = GetImageRow(fi, height, flip);
       T* tmp = out + (i - startRow) * yIncrements;
-      if (TIFFReadScanline(image, tmp, GetFileRow(i, height, flip), 0) <= 0)
+      if (TIFFReadScanline(image, tmp, fi, 0) <= 0)
         {
         return false;
         }
@@ -69,10 +122,11 @@ bool ReadTemplatedImage(T* out, Flip flip,
     {
     // Copy into a buffer of the appropriate size, then subset into the output.
     tdata_t buf = _TIFFmalloc(isize);
-    for (int i = startRow; i <= endRow; ++i)
+    for (int fi = minFileRow; fi <= maxFileRow; ++fi)
       {
+      int i = GetImageRow(fi, height, flip);
       T* tmp = out + (i - startRow) * yIncrements;
-      if (TIFFReadScanline(image, buf, GetFileRow(i, height, flip), 0) <= 0)
+      if (TIFFReadScanline(image, buf, fi, 0) <= 0)
         {
         _TIFFfree(buf);
         return false;
@@ -194,6 +248,7 @@ void vtkTIFFReader::vtkTIFFReaderInternal::Clean()
 vtkTIFFReader::vtkTIFFReaderInternal::vtkTIFFReaderInternal()
 {
   this->Image           = NULL;
+  // Note that this suppresses all error/warning output from libtiff!
   TIFFSetErrorHandler(&vtkTIFFReaderInternalErrorHandler);
   TIFFSetWarningHandler(&vtkTIFFReaderInternalErrorHandler);
   this->Clean();
@@ -808,13 +863,11 @@ void vtkTIFFReader::ReadVolume(T* buffer)
 {
   int width  = this->InternalImage->Width;
   int height = this->InternalImage->Height;
+  int samplesPerPixel = this->InternalImage->SamplesPerPixel;
   unsigned int npages = this->InternalImage->NumberOfPages;
-  if (this->InternalImage->SubFiles > 0)
-    {
-    // See ExecuteInformation
-    npages = this->InternalImage->SubFiles;
-    }
 
+  // counter for slices (not every page is a slice)
+  unsigned int slice = 0;
   for (unsigned int page = 0; page < npages; ++page)
     {
     this->UpdateProgress(static_cast<double>(page + 1) / npages);
@@ -833,10 +886,10 @@ void vtkTIFFReader::ReadVolume(T* buffer)
       }
 
     // if we have a Zeiss image meaning that the SamplesPerPixel is 2
-    if (this->InternalImage->SamplesPerPixel == 2)
+    if (samplesPerPixel == 2)
       {
       T* volume = buffer;
-      volume += width * height * this->InternalImage->SamplesPerPixel * page;
+      volume += width * height * slice * samplesPerPixel;
       this->ReadTwoSamplesPerPixelImage(volume, width, height);
       break;
       }
@@ -854,7 +907,7 @@ void vtkTIFFReader::ReadVolume(T* buffer)
 
       const bool flip = this->InternalImage->Orientation != ORIENTATION_TOPLEFT;
       T* fimage = buffer;
-      fimage += width * height * 4 * page;
+      fimage += width * height * 4 * slice;
       for (int yy = 0; yy < height; ++yy)
         {
         uint32* ssimage;
@@ -890,7 +943,7 @@ void vtkTIFFReader::ReadVolume(T* buffer)
         case vtkTIFFReader::PALETTE_GRAYSCALE:
           {
           T* volume = buffer;
-          volume += width * height * this->InternalImage->SamplesPerPixel * page;
+          volume += width * height * slice * samplesPerPixel;
           this->ReadGenericImage(volume, width, height);
           break;
           }
@@ -898,6 +951,9 @@ void vtkTIFFReader::ReadVolume(T* buffer)
           return;
         }
       }
+
+    // advance to next slice
+    slice++;
     TIFFReadDirectory(this->InternalImage->Image);
     }
 }
@@ -1358,7 +1414,7 @@ void vtkTIFFReader::ReadImageInternal(T* outPtr)
         }
       }
 
-    if (tempImage != 0 && tempImage != reinterpret_cast<uint32*>(outPtr))
+    if (tempImage != reinterpret_cast<uint32*>(outPtr))
       {
       delete [] tempImage;
       }

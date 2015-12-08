@@ -37,10 +37,15 @@ class vtkFloatArray;
 class vtkRenderWindow;
 class vtkFrameBufferObject2;
 class vtkTextureObject;
-class vtkShaderProgram2;
 class vtkPainterCommunicator;
 class vtkPPainterCommunicator;
 class vtkPPixelExtentOps;
+
+#ifdef VTK_OPENGL2
+class vtkOpenGLHelper;
+#else
+class vtkShaderProgram2;
+#endif
 
 class VTKRENDERINGPARALLELLIC_EXPORT vtkPSurfaceLICComposite : public vtkSurfaceLICComposite
 {
@@ -181,7 +186,12 @@ private:
 
   vtkWeakPointer<vtkOpenGLRenderWindow> Context; // rendering context
   vtkFrameBufferObject2 *FBO;                    // buffer object
+
+#ifdef VTK_OPENGL2
+  vtkOpenGLHelper *CompositeShader;
+#else
   vtkShaderProgram2 *CompositeShader;            // shader program for compositing
+#endif
 
   std::deque<vtkPPixelTransfer> GatherProgram;   // ordered steps required to move data to new decomp
   std::deque<vtkPPixelTransfer> ScatterProgram;  // ordered steps required to unmove data from new decomp

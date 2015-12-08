@@ -366,6 +366,48 @@ void vtkAMRBaseReader::GetAMRData(
 }
 
 //------------------------------------------------------------------------------
+void vtkAMRBaseReader::GetAMRPointData(
+    const int blockIdx, vtkUniformGrid *block, const char *fieldName )
+{
+  assert( "pre: AMR block is NULL" && (block != NULL) );
+  assert( "pre: field name is NULL" && (fieldName != NULL) );
+
+  // If caching is disabled load the data from file
+  if( !this->IsCachingEnabled() )
+    {
+    vtkTimerLog::MarkStartEvent( "GetAMRGridPointDataFromFile" );
+    this->GetAMRGridPointData( blockIdx, block, fieldName );
+    vtkTimerLog::MarkEndEvent( "GetAMRGridPointDataFromFile" );
+    return;
+    }
+
+  // Caching is enabled.
+  // Check the cache to see if the data has already been read.
+  // Otherwise, read it and cache it.
+  if( this->Cache->HasAMRBlockPointData( blockIdx, fieldName ) )
+    {
+    vtkTimerLog::MarkStartEvent( "GetAMRGridPointDataFromCache" );
+    vtkDataArray *data =
+       this->Cache->GetAMRBlockPointData( blockIdx, fieldName );
+    assert( "pre: cached data is NULL!" && (data != NULL) );
+    vtkTimerLog::MarkEndEvent( "GetAMRGridPointDataFromCache" );
+
+    block->GetPointData()->AddArray( data );
+    }
+  else
+    {
+    vtkTimerLog::MarkStartEvent( "GetAMRGridPointDataFromFile" );
+    this->GetAMRGridPointData( blockIdx, block, fieldName );
+    vtkTimerLog::MarkEndEvent( "GetAMRGridPointDataFromFile" );
+
+    vtkTimerLog::MarkStartEvent( "CacheAMRPointData" );
+    this->Cache->InsertAMRBlockPointData(
+        blockIdx, block->GetPointData()->GetArray( fieldName ) );
+    vtkTimerLog::MarkEndEvent( "CacheAMRPointData" );
+    }
+}
+
+//------------------------------------------------------------------------------
 vtkUniformGrid* vtkAMRBaseReader::GetAMRBlock( const int blockIdx )
 {
 
@@ -416,10 +458,18 @@ vtkUniformGrid* vtkAMRBaseReader::GetAMRBlock( const int blockIdx )
 
 //------------------------------------------------------------------------------
 void vtkAMRBaseReader::LoadPointData(
-    const int vtkNotUsed(blockIdx), vtkUniformGrid* vtkNotUsed(block) )
+    const int blockIdx, vtkUniformGrid* block )
 {
-  // TODO: implement this
-  //vtkErrorMacro( "Node-centered AMR data are not currently supported" );
+  // Sanity check!
+  assert( "pre: AMR block should not be NULL" && (block != NULL) );
+
+  for( int i=0; i < this->GetNumberOfPointArrays(); ++i )
+    {
+    if( this->GetPointArrayStatus( this->GetPointArrayName( i ) ) )
+      {
+      this->GetAMRPointData( blockIdx, block, this->GetPointArrayName( i ) );
+      }
+    } // END for all point arrays
 }
 
 //------------------------------------------------------------------------------

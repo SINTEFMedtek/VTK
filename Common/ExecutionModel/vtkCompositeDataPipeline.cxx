@@ -333,6 +333,10 @@ void vtkCompositeDataPipeline::ExecuteSimpleAlgorithm(
     {
     outInfo = outInfoVec->GetInformationObject(0);
     }
+  if (!outInfo)
+    {
+    return;
+    }
 
   // Make sure a valid composite data object exists for all output ports.
   for(int i=0; i < this->Algorithm->GetNumberOfOutputPorts(); ++i)
@@ -583,7 +587,7 @@ int vtkCompositeDataPipeline::NeedToExecuteData(
     }
   int dataGhostLevel = dataInfo->Get(vtkDataObject::DATA_NUMBER_OF_GHOST_LEVELS());
   int updateGhostLevel = outInfo->Get(UPDATE_NUMBER_OF_GHOST_LEVELS());
-  if(dataGhostLevel < updateGhostLevel)
+  if(updateNumberOfPieces > 1 && dataGhostLevel < updateGhostLevel)
     {
     return 1;
     }
@@ -1036,15 +1040,6 @@ void vtkCompositeDataPipeline::MarkOutputsGenerated(
   vtkInformationVector* outInfoVec)
 {
   this->Superclass::MarkOutputsGenerated(request,inInfoVec,outInfoVec);
-
-  // Save the information about COMPOSITE_INDICES() as needed in the data
-  // object.
-  int outputPort = 0;
-  if(request->Has(FROM_OUTPUT_PORT()))
-    {
-    outputPort = request->Get(FROM_OUTPUT_PORT());
-    outputPort = (outputPort >= 0 ? outputPort : 0);
-    }
 
   for (int i=0; i < outInfoVec->GetNumberOfInformationObjects(); ++i)
     {

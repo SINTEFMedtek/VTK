@@ -63,6 +63,8 @@ public:
   // Paint event for the chart matrix.
   virtual bool Paint(vtkContext2D *painter);
 
+  virtual void SetScene(vtkContextScene *scene);
+
   // Description:
   // Set the active plot, the one that will be displayed in the top-right.
   // This defaults to (0, n-2), the plot below the first histogram on the left.
@@ -72,12 +74,6 @@ public:
   // Description:
   // Get the position of the active plot.
   virtual vtkVector2i GetActivePlot();
-
-  // Description:
-  // Get the active AnnotationLink from the big chart, which
-  // is the only active AnnotationLink in the matrix.
-  // @deprecated Replaced by GetAnnotationLink(), never in a VTK release.
-  VTK_LEGACY(vtkAnnotationLink* GetActiveAnnotationLink());
 
   // Description:
   // Get the AnnotationLink for the scatter plot matrix, this gives you access

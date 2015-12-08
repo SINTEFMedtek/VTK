@@ -94,6 +94,12 @@ vtkVPICReader::vtkVPICReader()
     }
 
   this->UsedRank = 0;
+
+  this->XExtent[0] = this->XExtent[1] = 0;
+  this->YExtent[0] = this->YExtent[1] = 0;
+  this->ZExtent[0] = this->ZExtent[1] = 0;
+
+  this->Stride[0] = this->Stride[1] = this->Stride[2] = 1;
 }
 
 //----------------------------------------------------------------------------
@@ -101,10 +107,7 @@ vtkVPICReader::vtkVPICReader()
 //----------------------------------------------------------------------------
 vtkVPICReader::~vtkVPICReader()
 {
-  if (this->FileName)
-    {
-    delete [] this->FileName;
-    }
+  delete [] this->FileName;
   this->PointDataArraySelection->Delete();
 
   delete this->vpicData;

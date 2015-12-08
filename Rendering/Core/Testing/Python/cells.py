@@ -619,11 +619,11 @@ class cells(vtk.test.Testing.vtkTest):
             aRIBProperty.SetVariable("veinfreq", "float")
             aRIBProperty.AddVariable("warpfreq", "float")
             aRIBProperty.AddVariable("veincolor", "color")
-            aRIBProperty.AddParameter("veinfreq", " 2")
-            aRIBProperty.AddParameter("veincolor", "1.0000 1.0000 0.9412")
+            aRIBProperty.AddSurfaceShaderParameter("veinfreq", " 2")
+            aRIBProperty.AddSurfaceShaderParameter("veincolor", "1.0000 1.0000 0.9412")
             bRIBProperty = vtk.vtkRIBProperty()
             bRIBProperty.SetVariable("Km", "float")
-            bRIBProperty.SetParameter("Km", "1.0")
+            bRIBProperty.SetSurfaceShaderParameter("Km", "1.0")
             bRIBProperty.SetDisplacementShader("dented")
             bRIBProperty.SetSurfaceShader("plastic")
         aProperty = vtk.vtkProperty()
@@ -653,12 +653,13 @@ class cells(vtk.test.Testing.vtkTest):
 
         if hasattr(vtk, 'vtkRIBLight'):
             aRIBLight = vtk.vtkRIBLight()
-            aRIBLight.ShadowsOn()
+
+        ren.AddLight(aRIBLight)
         aLight = vtk.vtkLight()
 
         aLight.PositionalOn()
-        aLight.SetConeAngle(25)
-
+        aLight.SetConeAngle(10.0)
+        aLight.SetIntensity(20.0)
         ren.AddLight(aLight)
 
         ren.ResetCamera()
@@ -666,9 +667,6 @@ class cells(vtk.test.Testing.vtkTest):
         ren.GetActiveCamera().Elevation(20)
         ren.GetActiveCamera().Dolly(2.8)
         ren.ResetCameraClippingRange()
-
-        aLight.SetFocalPoint(ren.GetActiveCamera().GetFocalPoint())
-        aLight.SetPosition(ren.GetActiveCamera().GetPosition())
 
         # write to the temp directory if possible, otherwise use .
         dir = tempfile.gettempdir()
@@ -680,6 +678,11 @@ class cells(vtk.test.Testing.vtkTest):
         atext.InterpolateOff()
         aTriangleActor.SetTexture(atext)
 
+        aRIBLight.SetFocalPoint(ren.GetActiveCamera().GetFocalPoint())
+        aRIBLight.SetPosition(ren.GetActiveCamera().GetPosition())
+        aLight.SetFocalPoint(ren.GetActiveCamera().GetFocalPoint())
+        aLight.SetPosition(ren.GetActiveCamera().GetPosition())
+
         # bascially have IO/Export ?
         if hasattr(vtk, 'vtkRIBExporter'):
             rib = vtk.vtkRIBExporter()
@@ -687,7 +690,6 @@ class cells(vtk.test.Testing.vtkTest):
             rib.SetFilePrefix(dir + '/cells')
             rib.SetTexturePrefix(dir + '/cells')
             rib.Write()
-            os.remove(dir + '/cells.rib')
 
             iv = vtk.vtkIVExporter()
             iv.SetInput(renWin)

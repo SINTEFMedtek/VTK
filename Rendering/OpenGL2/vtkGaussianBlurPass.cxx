@@ -21,13 +21,13 @@
 #include "vtkFrameBufferObject.h"
 #include "vtkTextureObject.h"
 #include "vtkOpenGLRenderWindow.h"
-#include "vtkTextureUnitManager.h"
 #include "vtkOpenGLError.h"
 #include "vtkShaderProgram.h"
 #include "vtkOpenGLShaderCache.h"
 #include "vtkOpenGLRenderWindow.h"
+#include "vtkOpenGLVertexArrayObject.h"
 
-#include "vtkglVBOHelper.h"
+#include "vtkOpenGLHelper.h"
 
 // to be able to dump intermediate passes into png files for debugging.
 // only for vtkGaussianBlurPass developers.
@@ -270,7 +270,7 @@ void vtkGaussianBlurPass::Render(const vtkRenderState *s)
     // has something changed that would require us to recreate the shader?
     if (!this->BlurProgram)
       {
-      this->BlurProgram = new vtkgl::CellBO;
+      this->BlurProgram = new vtkOpenGLHelper;
       // build the shader source code
       std::string VSSource = vtkGaussianBlurPassVS;
       std::string FSSource = vtkGaussianBlurPassFS;
@@ -278,22 +278,23 @@ void vtkGaussianBlurPass::Render(const vtkRenderState *s)
 
       // compile and bind it if needed
       vtkShaderProgram *newShader =
-        renWin->GetShaderCache()->ReadyShader(VSSource.c_str(),
-                                              FSSource.c_str(),
-                                              GSSource.c_str());
+        renWin->GetShaderCache()->ReadyShaderProgram(
+          VSSource.c_str(),
+          FSSource.c_str(),
+          GSSource.c_str());
 
       // if the shader changed reinitialize the VAO
       if (newShader != this->BlurProgram->Program)
         {
         this->BlurProgram->Program = newShader;
-        this->BlurProgram->vao.ShaderProgramChanged(); // reset the VAO as the shader has changed
+        this->BlurProgram->VAO->ShaderProgramChanged(); // reset the VAO as the shader has changed
         }
 
       this->BlurProgram->ShaderSourceTime.Modified();
       }
     else
       {
-      renWin->GetShaderCache()->ReadyShader(this->BlurProgram->Program);
+      renWin->GetShaderCache()->ReadyShaderProgram(this->BlurProgram->Program);
       }
 
     if(this->BlurProgram->Program->GetCompiled() != true)
@@ -349,7 +350,7 @@ void vtkGaussianBlurPass::Render(const vtkRenderState *s)
     glDisable(GL_DEPTH_TEST);
 
     this->FrameBufferObject->RenderQuad(0,w-1,0,h-1,
-      this->BlurProgram->Program, &this->BlurProgram->vao);
+      this->BlurProgram->Program, this->BlurProgram->VAO);
 
 #ifdef VTK_GAUSSIAN_BLUR_PASS_DEBUG
     cout << "gauss finish3" << endl;
@@ -419,7 +420,8 @@ void vtkGaussianBlurPass::Render(const vtkRenderState *s)
     this->Pass2->CopyToFrameBuffer(extraPixels, extraPixels,
                                   w-1-extraPixels,h-1-extraPixels,
                                   0,0, width, height,
-                                  this->BlurProgram->Program, &this->BlurProgram->vao);
+                                  this->BlurProgram->Program,
+                                  this->BlurProgram->VAO);
 
     this->Pass2->Deactivate();
 

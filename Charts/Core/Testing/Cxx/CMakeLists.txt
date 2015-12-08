@@ -40,6 +40,7 @@ vtk_add_test_cxx(${vtk-module}CxxTests tests
   TestContextScene.cxx,NO_DATA,NO_VALID
   TestControlPointsItem.cxx,NO_DATA,NO_VALID
   TestControlPointsItemEvents.cxx,NO_DATA,NO_VALID
+  TestAreaPlot.cxx
   TestAxes.cxx
   TestBagPlot.cxx
   TestBarGraph.cxx
@@ -51,6 +52,7 @@ vtk_add_test_cxx(${vtk-module}CxxTests tests
   TestChartDouble.cxx
   TestChartDoubleColors.cxx
   TestChartMatrix.cxx
+  TestChartTileScaling.cxx
   TestChartUnicode.cxx
   TestChartsOn3D.cxx
   TestChartXYInvertedAxis.cxx

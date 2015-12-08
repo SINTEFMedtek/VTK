@@ -21,9 +21,10 @@ PURPOSE.  See the above copyright notice for more information.
 #import "vtkIdList.h"
 #import "vtkObjectFactory.h"
 #import "vtkRendererCollection.h"
-#import "vtkIOSGLView.h"
 
 #import <vtksys/ios/sstream>
+
+#include "vtk_glew.h"
 
 vtkStandardNewMacro(vtkIOSRenderWindow);
 

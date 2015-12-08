@@ -9,9 +9,9 @@ vtk_module(vtkFiltersSources
     vtkTestingRendering
     vtkInteractionStyle
     vtkRendering${VTK_RENDERING_BACKEND}
-    vtkRenderingFreeType${VTK_RENDERING_BACKEND}
     vtkFiltersModeling
     vtkIOXML
+    vtkIOParallel
   KIT
     vtkFilters
   )

@@ -15,7 +15,7 @@
 #include "vtkOpenGLTexture.h"
 #include "vtkTextureObject.h"
 
-#include "vtkglVBOHelper.h"
+#include "vtkOpenGLHelper.h"
 
 #include "vtkHomogeneousTransform.h"
 
@@ -67,7 +67,6 @@ void vtkOpenGLTexture::ReleaseGraphicsResources(vtkWindow *win)
   if (this->TextureObject && win)
     {
     this->TextureObject->ReleaseGraphicsResources(win);
-    vtkOpenGLCheckErrorMacro("failed after ReleaseGraphicsResources");
     }
 
   this->RenderWindow = NULL;

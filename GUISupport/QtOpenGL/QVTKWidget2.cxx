@@ -36,7 +36,7 @@
 #endif
 
 QVTKWidget2::QVTKWidget2(QWidget* p, const QGLWidget* shareWidget, Qt::WindowFlags f)
-  : QGLWidget(p, shareWidget, f), mRenWin(NULL)
+  : Superclass(p, shareWidget, f), mRenWin(NULL)
 {
   this->UseTDx=false;
   mIrenAdapter = new QVTKInteractorAdapter(this);
@@ -46,7 +46,7 @@ QVTKWidget2::QVTKWidget2(QWidget* p, const QGLWidget* shareWidget, Qt::WindowFla
 }
 
 QVTKWidget2::QVTKWidget2(QGLContext* ctx, QWidget* p, const QGLWidget* shareWidget, Qt::WindowFlags f)
-  : QGLWidget(ctx, p, shareWidget, f), mRenWin(NULL)
+  : Superclass(ctx, p, shareWidget, f), mRenWin(NULL)
 {
   this->UseTDx=false;
   mIrenAdapter = new QVTKInteractorAdapter(this);
@@ -56,7 +56,7 @@ QVTKWidget2::QVTKWidget2(QGLContext* ctx, QWidget* p, const QGLWidget* shareWidg
 }
 
 QVTKWidget2::QVTKWidget2(const QGLFormat& fmt, QWidget* p, const QGLWidget* shareWidget, Qt::WindowFlags f)
-  : QGLWidget(fmt, p, shareWidget, f), mRenWin(NULL)
+  : Superclass(fmt, p, shareWidget, f), mRenWin(NULL)
 {
   this->UseTDx=false;
   mIrenAdapter = new QVTKInteractorAdapter(this);
@@ -271,6 +271,26 @@ void QVTKWidget2::paintGL()
   iren->Render();
 }
 
+/*! handle touch events
+ */
+bool QVTKWidget2::event(QEvent* e)
+{
+  if(e->type() == QEvent::TouchBegin ||
+          e->type() == QEvent::TouchUpdate ||
+          e->type() == QEvent::TouchEnd)
+    {
+    if(this->mRenWin)
+      {
+      mIrenAdapter->ProcessEvent(e, this->mRenWin->GetInteractor());
+      if (e->isAccepted())
+        {
+        return true;
+        }
+      }
+    }
+  return Superclass::event(e);
+}
+
 /*! handle mouse press event
  */
 void QVTKWidget2::mousePressEvent(QMouseEvent* e)
@@ -470,10 +490,10 @@ int QVTKWidget2::GetMultiSamples() const
 
 void QVTKWidget2::setAutoBufferSwap(bool f)
 {
-  QGLWidget::setAutoBufferSwap(f);
+  Superclass::setAutoBufferSwap(f);
 }
 
 bool QVTKWidget2::autoBufferSwap() const
 {
-  return QGLWidget::autoBufferSwap();
+  return Superclass::autoBufferSwap();
 }

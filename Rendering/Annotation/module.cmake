@@ -8,10 +8,12 @@ vtk_module(vtkRenderingAnnotation
     vtkFiltersSources
   TEST_DEPENDS
     vtkIOGeometry
-    vtkRenderingFreeType${VTK_RENDERING_BACKEND}
+    vtkIOParallel
+    vtkRendering${VTK_RENDERING_BACKEND}
     vtkTestingRendering
     vtkInteractionStyle
     vtkRenderingLOD
+    vtkImagingSources
   KIT
     vtkRendering
   )

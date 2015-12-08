@@ -102,8 +102,8 @@ int vtkLookupTable::IsOpaque()
     if (this->NanColor[3] < 1.0) { opaque = 0; }
     if (this->UseBelowRangeColor && this->BelowRangeColor[3] < 1.0) { opaque = 0; }
     if (this->UseAboveRangeColor && this->AboveRangeColor[3] < 1.0) { opaque = 0; }
-    int size=this->Table->GetNumberOfTuples();
-    int i=0;
+    vtkIdType size=this->Table->GetNumberOfTuples();
+    vtkIdType i=0;
     unsigned char *ptr=this->Table->GetPointer(0);
     while(opaque && i<size)
       {
@@ -195,12 +195,11 @@ int vtkLookupTable::Allocate(int sz, int ext)
 // Force the lookup table to rebuild
 void vtkLookupTable::ForceBuild()
 {
-  int i;
   double hue, sat, val, hinc, sinc, vinc, ainc;
   double rgba[4], alpha;
   unsigned char *c_rgba;
 
-  int maxIndex = this->NumberOfColors - 1;
+  vtkIdType maxIndex = this->NumberOfColors - 1;
 
   if( maxIndex )
     {
@@ -214,7 +213,7 @@ void vtkLookupTable::ForceBuild()
     hinc = sinc = vinc = ainc = 0.0;
     }
 
-  for (i = 0; i <= maxIndex; i++)
+  for (vtkIdType i = 0; i <= maxIndex; i++)
     {
     hue = this->HueRange[0] + i*hinc;
     sat = this->SaturationRange[0] + i*sinc;
@@ -570,6 +569,7 @@ void vtkLookupTable::SetTable(vtkUnsignedCharArray *table)
     this->Table = table;
     this->Table->Register(this);
     this->NumberOfColors = this->Table->GetNumberOfTuples();
+    this->ResizeTableForSpecialColors();
 
     // If InsertTime is not modified the array will be rebuilt.  So we
     // use the same approach that the SetTableValue function does.
@@ -641,8 +641,8 @@ namespace {
 
 //----------------------------------------------------------------------------
 template<class T>
-void vtkLookupTableMapData(vtkLookupTable *self, T *input,
-                           unsigned char *output, int length,
+void vtkLookupTableMapData(vtkLookupTable *self,
+                           T *input, unsigned char *output, int length,
                            int inIncr, int outFormat, TableParameters & p)
 {
   int i = length;
@@ -654,14 +654,10 @@ void vtkLookupTableMapData(vtkLookupTable *self, T *input,
   // end. When this function is called repeatedly with the same size
   // lookup table, memory reallocation will be done only one the first
   // call if at all.
+
   vtkUnsignedCharArray* lookupTable = self->GetTable();
   vtkIdType numberOfColors = lookupTable->GetNumberOfTuples();
-  vtkIdType neededSize = (numberOfColors + vtkLookupTable::NUMBER_OF_SPECIAL_COLORS) *
-    lookupTable->GetNumberOfComponents();
-  if (lookupTable->GetSize() < neededSize)
-    {
-    lookupTable->Resize(numberOfColors + vtkLookupTable::NUMBER_OF_SPECIAL_COLORS);
-    }
+
   unsigned char* table = lookupTable->GetPointer(0);
 
   // Writing directly to the memory location instead of adding them
@@ -1159,8 +1155,7 @@ void vtkLookupTable::MapScalarsThroughTable2(void *input,
           {
           newInput->SetValue(i, bitArray->GetValue(id));
           }
-        vtkLookupTableMapData(this,
-                              static_cast<unsigned char*>(newInput->GetPointer(0)),
+        vtkLookupTableMapData(this, static_cast<unsigned char*>(newInput->GetPointer(0)),
                               output, numberOfValues,
                               inputIncrement, outputFormat, p);
         newInput->Delete();
@@ -1169,7 +1164,7 @@ void vtkLookupTable::MapScalarsThroughTable2(void *input,
         break;
 
       vtkTemplateMacro(
-        vtkLookupTableMapData(this,static_cast<VTK_TT*>(input),output,
+        vtkLookupTableMapData(this, static_cast<VTK_TT*>(input),output,
                               numberOfValues, inputIncrement, outputFormat, p)
         );
       default:
@@ -1192,6 +1187,7 @@ void vtkLookupTable::SetNumberOfTableValues(vtkIdType number)
     }
   this->Modified();
   this->NumberOfColors = number;
+  this->ResizeTableForSpecialColors();
   this->Table->SetNumberOfTuples(number);
 }
 
@@ -1354,6 +1350,7 @@ void vtkLookupTable::DeepCopy(vtkScalarsToColors *obj)
     this->NanColor[i] = lut->NanColor[i];
     }
   this->Table->DeepCopy(lut->Table);
+  this->ResizeTableForSpecialColors();
 
   this->Superclass::DeepCopy(obj);
 }
@@ -1374,4 +1371,14 @@ void vtkLookupTable::GetIndexedColor(vtkIdType idx, double rgba[4])
     return;
     }
   this->GetNanColor(rgba);
+}
+
+//----------------------------------------------------------------------------
+void vtkLookupTable::ResizeTableForSpecialColors()
+{
+  vtkIdType neededColors = this->NumberOfColors + vtkLookupTable::NUMBER_OF_SPECIAL_COLORS;
+  if (this->Table->GetSize() < neededColors*this->Table->GetNumberOfComponents())
+    {
+    this->Table->Resize(neededColors);
+    }
 }

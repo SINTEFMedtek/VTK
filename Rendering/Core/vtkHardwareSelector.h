@@ -134,26 +134,20 @@ public:
   // about pixel locations suing GetPixelInformation(). Use ClearBuffers() to
   // clear buffers after one's done with the scene.
   // The optional final parameter maxDist will look for a cell within the specified
-  // number of pixels from display_position.
+  // number of pixels from display_position. When using the overload with the
+  // optional \c selected_position argument, selected_position is filled with
+  // the position for which the PixelInformation is being returned. This is
+  // useful when maxDist > 0 to determine which position's pixel information is
+  // was returned.
   virtual bool CaptureBuffers();
-  PixelInformation GetPixelInformation(unsigned int display_position[2])
+  PixelInformation GetPixelInformation(const unsigned int display_position[2])
     { return this->GetPixelInformation(display_position, 0); }
-  PixelInformation GetPixelInformation(unsigned int display_position[2],
-    int maxDist);
+  PixelInformation GetPixelInformation(const unsigned int display_position[2], int maxDist)
+    { unsigned int temp[2]; return this->GetPixelInformation(display_position, maxDist, temp); }
+  PixelInformation GetPixelInformation(const unsigned int display_position[2],
+    int maxDist, unsigned int selected_position[2]);
   void ClearBuffers()
     { this->ReleasePixBuffers(); }
-
-  // Description:
-  // @deprecated Replaced by
-  // PixelInformation* GetPixelInformation(unsigned int position[2]);
-  VTK_LEGACY(bool GetPixelInformation(unsigned int display_position[2],
-    int& processId, vtkIdType& attrId, vtkProp*& prop));
-
-  // Description:
-  // @deprecated Replaced by
-  // PixelInformation* GetPixelInformation(unsigned int position[2], int maxDist);
-  VTK_LEGACY(bool GetPixelInformation(unsigned int display_position[2],
-    int& processId, vtkIdType& attrId, vtkProp*& prop, int maxDist));
 
   // Description:
   // Called by any vtkMapper or vtkProp subclass to render a composite-index.
@@ -325,7 +319,7 @@ protected:
   virtual void BeginSelection();
   virtual void EndSelection();
 
-  void SavePixelBuffer(int passNo);
+  virtual void SavePixelBuffer(int passNo);
   void BuildPropHitList(unsigned char* rgbData);
 
   // Description:

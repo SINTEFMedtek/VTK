@@ -44,6 +44,18 @@ set(CMAKE_MODULE_PATH ${VTK_CMAKE_DIR} ${CMAKE_MODULE_PATH})
 include(vtkModuleMacros)
 include(vtkExternalData)
 
+#-----------------------------------------------------------------------------
+# Forbid downloading resources from the network during a build. This helps
+# when building on systems without network connectivity to determine which
+# resources much be obtained manually and made available to the build.
+option(VTK_FORBID_DOWNLOADS "Do not download source code or data from the network" OFF)
+mark_as_advanced(VTK_FORBID_DOWNLOADS)
+macro(vtk_download_attempt_check _name)
+  if(VTK_FORBID_DOWNLOADS)
+    message(SEND_ERROR "Attempted to download ${_name} when VTK_FORBID_DOWNLOADS is ON")
+  endif()
+endmacro()
+
 # Set a default build type if none was specified
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   message(STATUS "Setting build type to 'Debug' as none was specified.")
@@ -194,6 +206,9 @@ else()
   option(BUILD_SHARED_LIBS "Build VTK with shared libraries." ON)
 endif()
 
+# default to not using the system GLEW as ours has fixes in it right now
+set(VTK_USE_SYSTEM_GLEW OFF CACHE BOOL "do not use a system glew" FORCE)
+
 set(VTK_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
 
 #-----------------------------------------------------------------------------
@@ -252,6 +267,10 @@ if (CMAKE_CROSSCOMPILING AND NOT COMPILE_TOOLS_IMPORTED)
 endif()
 
 #-----------------------------------------------------------------------------
+# Add the Remote Subdirectory
+add_subdirectory(Remote)
+
+#-----------------------------------------------------------------------------
 # Do we try to use system libraries by default?
 option(VTK_USE_SYSTEM_LIBRARIES "Use the system's libraries by default." OFF)
 mark_as_advanced(VTK_USE_SYSTEM_LIBRARIES)
@@ -294,8 +313,8 @@ CHECK_CXX_SOURCE_RUNS("${VTK_REQUIRE_LARGE_FILE_SUPPORT_FILE}"
 SET(VTK_REQUIRE_LARGE_FILE_SUPPORT ${CMAKE_REQUIRE_LARGE_FILE_SUPPORT})
 
 #-----------------------------------------------------------------------------
-# Does the const_reverse_iterator have the comparison operators? Before GCC
-# 4.1 they were not present.
+# Does the const_reverse_iterator have the comparison operators? They were not
+# present in older versions of gcc (ex: Apple fork of gcc 4.2).
 include(CheckCXXSourceCompiles)
 set(VTK_CONST_REVERSE_ITERATOR_COMPARISON_FILE
 "#include <vector>
@@ -457,7 +476,6 @@ endif()
 if(VTK_WRAP_PYTHON)
   set(VTK_WRAP_PYTHON_EXE vtkWrapPython)
   set(VTK_WRAP_PYTHON_INIT_EXE vtkWrapPythonInit)
-  set(VTK_PYTHON_EXE vtkpython)
   # Force the WrappingPythonCore module to on if wrapping is on
   set(Module_vtkWrappingPythonCore ON CACHE BOOL "Core Python wrapping library"
     FORCE)

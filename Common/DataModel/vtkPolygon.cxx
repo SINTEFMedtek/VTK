@@ -272,13 +272,14 @@ void vtkPolygon::ComputeNormal (int numPts, double *pts, double n[3])
 
 //----------------------------------------------------------------------------
 int vtkPolygon::EvaluatePosition(double x[3], double* closestPoint,
-                                 int& vtkNotUsed(subId), double pcoords[3],
+                                 int& subId, double pcoords[3],
                                  double& minDist2, double *weights)
 {
   int i;
   double p0[3], p10[3], l10, p20[3], l20, n[3], cp[3];
   double ray[3];
 
+  subId = 0;
   this->ParameterizePolygon(p0, p10, l10, p20, l20, n);
   this->InterpolateFunctions(x,weights);
   vtkPlane::ProjectPoint(x,p0,n,cp);
@@ -289,6 +290,7 @@ int vtkPolygon::EvaluatePosition(double x[3], double* closestPoint,
     }
   pcoords[0] = vtkMath::Dot(ray,p10) / (l10*l10);
   pcoords[1] = vtkMath::Dot(ray,p20) / (l20*l20);
+  pcoords[2] = 0.0;
 
   if ( pcoords[0] >= 0.0 && pcoords[0] <= 1.0 &&
        pcoords[1] >= 0.0 && pcoords[1] <= 1.0 &&
@@ -511,13 +513,6 @@ void vtkPolygon::InterpolateFunctionsUsingMVC(double x[3], double *weights)
 }
 
 //----------------------------------------------------------------------------
-void vtkPolygon::InterpolateDerivs(double pcoords[3], double *derivs)
-{
-  (void)pcoords;
-  (void)derivs;
-}
-
-//----------------------------------------------------------------------------
 // Create a local s-t coordinate system for a polygon. The point p0 is
 // the origin of the local system, p10 is s-axis vector, and p20 is the
 // t-axis vector. (These are expressed in the modelling coordinate system and
@@ -530,6 +525,11 @@ int vtkPolygon::ParameterizePolygon(double *p0, double *p10, double& l10,
   double s, t, p[3], p1[3], p2[3], sbounds[2], tbounds[2];
   int numPts=this->Points->GetNumberOfPoints();
   double x1[3], x2[3];
+
+  if (numPts < 3)
+    {
+    return 0;
+    }
 
   //  This is a two pass process: first create a p' coordinate system
   //  that is then adjusted to insure that the polygon points are all in
@@ -623,7 +623,6 @@ int vtkPolygon::PointInPolygon (double x[3], int numPts, double *pts,
   int iterNumber;
   int maxComp, comps[2];
   int deltaVotes;
-
   // do a quick bounds check
   if ( x[0] < bounds[0] || x[0] > bounds[1] ||
        x[1] < bounds[2] || x[1] > bounds[3] ||
@@ -740,9 +739,18 @@ int vtkPolygon::PointInPolygon (double x[3], int numPts, double *pts,
       //   Fire the ray and compute the number of intersections.  Be careful
       //   of degenerate cases (e.g., ray intersects at vertex).
       //
+
       if ((status=vtkLine::Intersection(x,xray,x1,x2,u,v)) == VTK_POLYGON_INTERSECTION)
         {
-        if ( (VTK_POLYGON_RAY_TOL < v) && (v < 1.0-VTK_POLYGON_RAY_TOL) )
+        // This test checks for vertex and edge intersections
+        // For example
+        //  Vertex intersection
+        //    (u=0 v=0), (u=0 v=1), (u=1 v=0), (u=1 v=0)
+        //  Edge intersection
+        //    (u=0 v!=0 v!=1), (u=1 v!=0 v!=1)
+        //    (u!=0 u!=1 v=0), (u!=0 u!=1 v=1)
+        if ( (VTK_POLYGON_RAY_TOL < u) && (u < 1.0-VTK_POLYGON_RAY_TOL) &&
+             (VTK_POLYGON_RAY_TOL < v) && (v < 1.0-VTK_POLYGON_RAY_TOL) )
           {
           numInts++;
           }
@@ -758,7 +766,7 @@ int vtkPolygon::PointInPolygon (double x[3], int numPts, double *pts,
       }
     if ( testResult == VTK_POLYGON_CERTAIN )
       {
-      if ( (numInts % 2) == 0)
+      if ( numInts % 2 == 0)
           {
           --deltaVotes;
           }

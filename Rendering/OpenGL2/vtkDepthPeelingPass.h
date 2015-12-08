@@ -44,10 +44,7 @@ class vtkTextureObject;
 class vtkOpenGLRenderWindow;
 class vtkInformationIntegerKey;
 class vtkInformationIntegerVectorKey;
-namespace vtkgl
-{
-  class CellBO;
-}
+class vtkOpenGLHelper;
 
 class VTKRENDERINGOPENGL2_EXPORT vtkDepthPeelingPass : public vtkRenderPass
 {
@@ -168,8 +165,8 @@ public:
   // (Used by vtkOpenGLProperty or vtkOpenGLTexture)
   int DepthPeelingHigherLayer;
 
-  vtkgl::CellBO *FinalBlendProgram;
-  vtkgl::CellBO *IntermediateBlendProgram;
+  vtkOpenGLHelper *FinalBlendProgram;
+  vtkOpenGLHelper *IntermediateBlendProgram;
 
   vtkTextureObject *OpaqueZTexture;
   vtkTextureObject *OpaqueRGBATexture;
@@ -178,7 +175,7 @@ public:
   vtkTextureObject *CurrentRGBATexture;
   std::vector<float> *DepthZData;
 
-  void BlendIntermediatePeels(vtkOpenGLRenderWindow *renWin);
+  void BlendIntermediatePeels(vtkOpenGLRenderWindow *renWin, bool);
   void BlendFinalPeel(vtkOpenGLRenderWindow *renWin);
 
  private:

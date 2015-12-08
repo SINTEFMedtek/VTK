@@ -15,6 +15,7 @@ vtk_add_test_cxx(${vtk-module}CxxTests tests
   TestPlaneSource.cxx,NO_VALID
   TestPlatonicSolidSource.cxx,NO_VALID
   TestPointSource.cxx,NO_VALID
+  TestPolyLineSource.cxx,NO_VALID
   TestRectangularButtonSource.cxx,NO_VALID
   TestRegularPolygonSource.cxx,NO_VALID
   TestSphereSource.cxx,NO_VALID
@@ -22,5 +23,6 @@ vtk_add_test_cxx(${vtk-module}CxxTests tests
   TestTessellatedBoxSource.cxx,NO_VALID
   TestTextSource.cxx,NO_VALID
   TestTexturedSphereSource.cxx,NO_VALID
+  TestGlyphSource2DResolution.cxx,
   )
 vtk_test_cxx_executable(${vtk-module}CxxTests tests)

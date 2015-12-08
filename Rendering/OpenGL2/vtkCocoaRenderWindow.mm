@@ -17,6 +17,7 @@ PURPOSE.  See the above copyright notice for more information.
 #import <Cocoa/Cocoa.h>
 #import "vtkCocoaMacOSXSDKCompatibility.h" // Needed to support old SDKs
 
+#import "vtkOpenGL.h"
 #import "vtkCocoaRenderWindow.h"
 #import "vtkRenderWindowInteractor.h"
 #import "vtkCommand.h"
@@ -812,7 +813,7 @@ void vtkCocoaRenderWindow::CreateAWindow()
       [parent addSubview:glView];
       this->SetWindowId(glView);
       this->ViewCreated = 1;
-#if VTK_OBJC_IS_MRR
+#if !VTK_OBJC_IS_ARC
       [glView release];
 #endif
       }
@@ -828,7 +829,7 @@ void vtkCocoaRenderWindow::CreateAWindow()
       this->SetWindowId(glView);
       this->ViewCreated = 1;
       [glView setVTKRenderWindow:this];
-#if VTK_OBJC_IS_MRR
+#if !VTK_OBJC_IS_ARC
       [glView release];
 #endif
       }
@@ -871,7 +872,7 @@ void vtkCocoaRenderWindow::CreateAWindow()
   vtkCocoaServer *server = [[vtkCocoaServer alloc] initWithRenderWindow:this];
   this->SetCocoaServer(reinterpret_cast<void *>(server));
   [server startObservations];
-#if VTK_OBJC_IS_MRR
+#if !VTK_OBJC_IS_ARC
   [server release];
 #endif
 }
@@ -886,7 +887,10 @@ void vtkCocoaRenderWindow::CreateGLContext()
     int i = 0;
     NSOpenGLPixelFormatAttribute attribs[20];
 
-    attribs[i++] = NSOpenGLPFAAccelerated;
+    attribs[i++] = NSOpenGLPFAOpenGLProfile;
+    attribs[i++] = NSOpenGLProfileVersion3_2Core;
+  //  OSX always preferrs an accelerated context
+  //    attribs[i++] = NSOpenGLPFAAccelerated;
     attribs[i++] = NSOpenGLPFADepthSize;
     attribs[i++] = (NSOpenGLPixelFormatAttribute)32;
 
@@ -928,6 +932,10 @@ void vtkCocoaRenderWindow::CreateGLContext()
         this->MultiSamples /= 2;
         }
       }
+    else
+      {
+      this->SetContextSupportsOpenGL32(true);
+      }
     }
 
   NSOpenGLContext *context = [[NSOpenGLContext alloc]
@@ -944,7 +952,7 @@ void vtkCocoaRenderWindow::CreateGLContext()
   [pixelFormat self]; // prevent premature collection under GC.
   [context self]; // prevent premature collection under GC.
 
-#if VTK_OBJC_IS_MRR
+#if !VTK_OBJC_IS_ARC
   [pixelFormat release];
   [context release];
 #endif

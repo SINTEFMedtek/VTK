@@ -41,9 +41,10 @@
 #define vtkObjectBase_h
 
 #include "vtkCommonCoreModule.h" // For export macro
-#include "vtkAtomicInt.h"
 #include "vtkIndent.h"
 #include "vtkSystemIncludes.h"
+#include "vtkAtomicTypes.h" // needs to be included after vtkSystemIncludes.h
+                            // for warning suppressions to work on Visual Studio
 
 class vtkGarbageCollector;
 class vtkGarbageCollectorToObjectBaseFriendship;
@@ -162,7 +163,7 @@ protected:
 
   virtual void CollectRevisions(ostream&) {} // Legacy; do not use!
 
-  vtkAtomicInt<vtkTypeInt32> ReferenceCount;
+  vtkAtomicInt32 ReferenceCount;
   vtkWeakPointerBase **WeakPointers;
 
   // Internal Register/UnRegister implementation that accounts for

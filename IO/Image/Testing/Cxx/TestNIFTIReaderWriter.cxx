@@ -39,9 +39,10 @@ then re-reading it to ensure that the contents are identical.
 
 #include <string>
 
-static const char *testfiles[6][2] = {
+static const char *testfiles[7][2] = {
     { "Data/minimal.nii.gz", "out_minimal.nii.gz" },
     { "Data/minimal.img.gz", "out_minimal.hdr" },
+    { "Data/planar_rgb.nii.gz", "out_planar_rgb.nii" },
     { "Data/nifti_rgb.nii.gz", "out_nifti_rgb.nii" },
     { "Data/filtered_func_data.nii.gz", "out_filtered_func_data.nii.gz" },
     { "Data/minimal.hdr.gz", "out_minimal_2.nii" },
@@ -123,7 +124,8 @@ static void TestDisplay(vtkRenderWindow *renwin, const char *infile)
 };
 
 static double TestReadWriteRead(
-  const char *infile, const char *infile2, const char *outfile)
+  const char *infile, const char *infile2, const char *outfile,
+  bool planarRGB)
 {
   // read a NIFTI file
   vtkNew<vtkNIFTIImageReader> reader;
@@ -139,6 +141,10 @@ static double TestReadWriteRead(
     reader->SetFileNames(filenames.GetPointer());
     }
   reader->TimeAsVectorOn();
+  if (planarRGB)
+    {
+    reader->PlanarRGBOn();
+    }
   reader->Update();
 
   vtkNew<vtkNIFTIImageWriter> writer;
@@ -163,6 +169,10 @@ static double TestReadWriteRead(
     {
     writer->SetSFormMatrix(reader->GetQFormMatrix());
     }
+  if (planarRGB)
+    {
+    writer->PlanarRGBOn();
+    }
   writer->Write();
 
   // to exercise PrintSelf
@@ -174,8 +184,13 @@ static double TestReadWriteRead(
   vtkNew<vtkNIFTIImageReader> reader2;
   reader2->SetFileName(outfile);
   reader2->TimeAsVectorOn();
+  if (planarRGB)
+    {
+    reader2->PlanarRGBOn();
+    }
   reader2->Update();
 
+  // the images should be identical
   vtkNew<vtkImageMathematics> diff;
   diff->SetOperationToSubtract();
   diff->SetInputConnection(0,reader->GetOutputPort());
@@ -184,6 +199,55 @@ static double TestReadWriteRead(
   double diffrange[2];
   diff->GetOutput()->GetScalarRange(diffrange);
   double differr = diffrange[0]*diffrange[0] + diffrange[1]*diffrange[1];
+
+  // the matrices should be within tolerance
+  if (writer->GetQFormMatrix())
+    {
+    vtkNew<vtkMatrix4x4> m;
+    m->DeepCopy(writer->GetQFormMatrix());
+    m->Invert();
+    vtkMatrix4x4::Multiply4x4(m.GetPointer(), reader2->GetQFormMatrix(),
+                              m.GetPointer());
+    double sqdiff = 0.0;
+    for (int i = 0; i < 4; i++)
+      {
+      for (int j = 0; j < 4; j++)
+        {
+        double d = (m->GetElement(i, j) - (i == j));
+        sqdiff += d*d;
+        }
+      }
+    if (sqdiff > 1e-10)
+      {
+      cerr << "Mismatched read/write QFormMatrix:\n";
+      m->Print(cerr);
+      differr = 1.0;
+      }
+    }
+
+  if (writer->GetSFormMatrix())
+    {
+    vtkNew<vtkMatrix4x4> m;
+    m->DeepCopy(writer->GetSFormMatrix());
+    m->Invert();
+    vtkMatrix4x4::Multiply4x4(m.GetPointer(), reader2->GetSFormMatrix(),
+                              m.GetPointer());
+    double sqdiff = 0.0;
+    for (int i = 0; i < 4; i++)
+      {
+      for (int j = 0; j < 4; j++)
+        {
+        double d = (m->GetElement(i, j) - (i == j));
+        sqdiff += d*d;
+        }
+      }
+    if (sqdiff > 1e-10)
+      {
+      cerr << "Mismatched read/write SFormMatrix:\n";
+      m->Print(cerr);
+      differr = 1.0;
+      }
+    }
 
   return differr;
 }
@@ -273,10 +337,11 @@ int TestNIFTIReaderWriter(int argc, char *argv[])
     char *infile2 = 0;
     char *infile =
       vtkTestUtilities::ExpandDataFileName(argc, argv, testfiles[i][0]);
-    if (i == 4)
+    bool planarRGB = (i == 2);
+    if (i == 5)
       {
       infile2 =
-        vtkTestUtilities::ExpandDataFileName(argc, argv, testfiles[5][0]);
+        vtkTestUtilities::ExpandDataFileName(argc, argv, testfiles[6][0]);
       }
     if (!infile)
       {
@@ -306,7 +371,8 @@ int TestNIFTIReaderWriter(int argc, char *argv[])
       return 1;
       }
 
-    double err = TestReadWriteRead(infile, infile2, outpath.c_str());
+    double err = TestReadWriteRead(infile, infile2, outpath.c_str(),
+                                   planarRGB);
     if (err != 0.0)
       {
       cerr << "Input " << infile << " differs from output " << outpath.c_str()

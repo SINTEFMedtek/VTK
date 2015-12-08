@@ -39,6 +39,7 @@ class vtkTDxDevice;
 class VTKGUISUPPORTQTOPENGL_EXPORT QVTKWidget2 : public QGLWidget
 {
   Q_OBJECT
+  typedef QGLWidget Superclass;
 public:
   //! constructor
   QVTKWidget2(QWidget* parent = NULL, const QGLWidget* shareWidget=0, Qt::WindowFlags f = 0);
@@ -120,6 +121,8 @@ protected:
   // overloaded move handler
   virtual void moveEvent(QMoveEvent* event);
 
+  // overloaded touch events
+  virtual bool event(QEvent* e);
   // overloaded mouse press handler
   virtual void mousePressEvent(QMouseEvent* event);
   // overloaded mouse move handler

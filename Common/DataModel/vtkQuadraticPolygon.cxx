@@ -323,7 +323,7 @@ void vtkQuadraticPolygon::GetPermutationFromPolygon(vtkIdType nb,
   permutation->SetNumberOfIds(nb);
   for (vtkIdType i = 0; i < nb; i++)
     {
-    permutation->SetId(i, (i % 2 ? (i + nb)/2 : i/2));
+    permutation->SetId(i, ((i % 2) ? (i + nb)/2 : i/2));
     }
 }
 
@@ -484,10 +484,9 @@ void vtkQuadraticPolygon::ConvertFromPolygon(vtkIdList *ids)
 
 //----------------------------------------------------------------------------
 void vtkQuadraticPolygon::Derivatives(int vtkNotUsed(subId),
-                                      double pcoords[3],
+                                      double vtkNotUsed(pcoords)[3],
                                       double *vtkNotUsed(values),
                                       int vtkNotUsed(dim),
                                       double *vtkNotUsed(derivs))
 {
-  pcoords[0] = pcoords[1] = pcoords[2] = 0.0;
 }

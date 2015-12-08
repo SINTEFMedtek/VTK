@@ -176,10 +176,7 @@ vtkPExodusIIReader::~vtkPExodusIIReader()
     {
     for (int i=0; i<this->NumberOfFileNames; i++)
       {
-      if ( this->FileNames[i] )
-        {
-        delete [] this->FileNames[i];
-        }
+      delete [] this->FileNames[i];
       }
       delete [] this->FileNames;
     }
@@ -749,10 +746,7 @@ void vtkPExodusIIReader::SetFileNames( int nfiles, const char** names )
     {
     for ( int i = 0; i < this->NumberOfFileNames; ++ i )
       {
-      if ( this->FileNames[i] )
-        {
-        delete [] this->FileNames[i];
-        }
+      delete [] this->FileNames[i];
       }
     delete [] this->FileNames;
     this->FileNames = NULL;
@@ -1001,37 +995,6 @@ vtkIdType vtkPExodusIIReader::GetTotalNumberOfNodes()
     total += (*it)->GetTotalNumberOfNodes();
     }
   return total;
-}
-
-void vtkPExodusIIReader::UpdateTimeInformation()
-{
-  // Before we start, make sure that we have readers to read (i.e. that
-  // RequestData() has been called.
-  if ( this->ReaderList.size() == 0 )
-    {
-    return;
-    }
-
-  int lastTimeStep = VTK_INT_MAX;
-  int numTimeSteps = 0;
-  for ( size_t reader_idx = 0; reader_idx < this->ReaderList.size(); ++ reader_idx )
-    {
-    vtkExodusIIReader *reader = this->ReaderList[reader_idx];
-
-    // In order to get an up-to-date number of timesteps, update the reader's
-    // time information first
-    reader->UpdateTimeInformation();
-    numTimeSteps = reader->GetNumberOfTimeSteps();
-
-    // if this reader's last time step is less than the one we have, use it instead
-    lastTimeStep = numTimeSteps-1 < lastTimeStep ? numTimeSteps-1 : lastTimeStep;
-    }
-
-  this->LastCommonTimeStep = lastTimeStep;
-
-  this->Superclass::UpdateTimeInformation();
-  this->Modified();
-  this->UpdateInformation();
 }
 
 static void BroadcastXmitString( vtkMultiProcessController* ctrl, char* str )

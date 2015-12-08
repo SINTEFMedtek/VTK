@@ -1,7 +1,9 @@
 vtk_add_test_python(
   NO_DATA NO_VALID NO_OUTPUT
   PythonSmoke.py
+  TestArrays.py
   TestArrayArguments.py
+  TestEmptyInput.py
   TestEnums.py
   TestExecuteMethodFinalizeCrash.py
   TestGhost.py
@@ -12,6 +14,7 @@ vtk_add_test_python(
   TestOperators.py
   TestOverloads.py
   TestPointers.py
+  TestSetGet.py
   TestStrings.py
   TestSubClass.py
   TestSwigPointer.py

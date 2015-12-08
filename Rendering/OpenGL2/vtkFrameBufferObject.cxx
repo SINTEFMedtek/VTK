@@ -17,12 +17,12 @@
 #include "vtk_glew.h"
 
 #include "vtkObjectFactory.h"
+#include "vtkOpenGLRenderUtilities.h"
 #include "vtkOpenGLRenderWindow.h"
 #include "vtkTextureObject.h"
 #include "vtkPixelBufferObject.h"
+#include "vtkOpenGLBufferObject.h"
 #include "vtkOpenGLError.h"
-
-#include "vtkglBufferObject.h"
 
 #include <cassert>
 #include <vector>
@@ -84,6 +84,11 @@ void vtkFrameBufferObject::DestroyFBO()
 //----------------------------------------------------------------------------
 bool vtkFrameBufferObject::IsSupported(vtkOpenGLRenderWindow *)
 {
+  if (vtkOpenGLRenderWindow::GetContextSupportsOpenGL32())
+    {
+    return true;
+    }
+
 #if GL_ES_VERSION_3_0 == 1
   bool fbo = true;
   bool fboBlit = true;
@@ -96,8 +101,13 @@ bool vtkFrameBufferObject::IsSupported(vtkOpenGLRenderWindow *)
 }
 
 //----------------------------------------------------------------------------
-bool vtkFrameBufferObject::LoadRequiredExtensions(vtkOpenGLRenderWindow *vtkNotUsed(win))
+bool vtkFrameBufferObject::LoadRequiredExtensions(vtkOpenGLRenderWindow *)
 {
+   if (vtkOpenGLRenderWindow::GetContextSupportsOpenGL32())
+    {
+    return true;
+    }
+
 #if GL_ES_VERSION_3_0 == 1
   bool fbo = true;
   bool fboBlit = true;
@@ -836,7 +846,7 @@ void vtkFrameBufferObject::DisplayBuffer(int value)
 // a program must be bound
 // a VAO must be bound
 void vtkFrameBufferObject::RenderQuad(int minX, int maxX, int minY, int maxY,
-        vtkShaderProgram *program, vtkgl::VertexArrayObject *vao)
+        vtkShaderProgram *program, vtkOpenGLVertexArrayObject *vao)
 {
   assert("pre positive_minX" && minX>=0);
   assert("pre increasing_x" && minX<=maxX);
@@ -881,7 +891,7 @@ void vtkFrameBufferObject::RenderQuad(int minX, int maxX, int minY, int maxY,
     1.0, 0,
     1.0, maxYTexCoord,
     0, maxYTexCoord};
-  vtkOpenGLRenderWindow::RenderQuad(verts, tcoords, program, vao);
+  vtkOpenGLRenderUtilities::RenderQuad(verts, tcoords, program, vao);
 
   vtkOpenGLCheckErrorMacro("failed after Render");
 
@@ -912,10 +922,6 @@ void vtkFrameBufferObject::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "NumberOfRenderTargets:" << this->NumberOfRenderTargets
      << endl;
 }
-
-// Description:
-// Common switch for parsing fbo status return.
-#define vtkFBOStrErrorMacro(status, str, ok) \
 
 // ----------------------------------------------------------------------------
 int vtkFrameBufferObject::CheckFrameBufferStatus(unsigned int mode)

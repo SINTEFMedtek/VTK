@@ -44,17 +44,19 @@ public:
 
   static vtkMatplotlibMathTextUtilities *New();
 
+  virtual bool IsAvailable();
+
   // Description:
   // Given a text property and a string, get the bounding box {xmin, xmax,
   // ymin, ymax} of the rendered string in pixels. The origin of the bounding
   // box is the anchor point described by the horizontal and vertical
   // justification text property variables.
   // Returns true on success, false otherwise.
-  bool GetBoundingBox(vtkTextProperty *tprop, const char *str,
-                      unsigned int dpi, int bbox[4]);
+  bool GetBoundingBox(vtkTextProperty *tprop, const char *str, int dpi,
+                      int bbox[4]);
 
-  bool GetMetrics(vtkTextProperty *tprop, const char *str,
-                  unsigned int dpi, vtkTextRenderer::Metrics &metrics);
+  bool GetMetrics(vtkTextProperty *tprop, const char *str, int dpi,
+                  vtkTextRenderer::Metrics &metrics);
 
   // Description:
   // Render the given string @a str into the vtkImageData @a data with a
@@ -66,14 +68,15 @@ public:
   // described by the text property's vertical and horizontal justification
   // options.
   bool RenderString(const char *str, vtkImageData *data, vtkTextProperty *tprop,
-                    unsigned int dpi, int textDims[2] = NULL);
+                    int dpi, int textDims[2] = NULL);
 
   // Description:
   // Parse the MathText expression in str and fill path with a contour of the
   // glyphs. The origin of the path coordinates is aligned with the anchor point
   // described by the text property's horizontal and vertical justification
   // options.
-  bool StringToPath(const char *str, vtkPath *path, vtkTextProperty *tprop);
+  bool StringToPath(const char *str, vtkPath *path, vtkTextProperty *tprop,
+                    int dpi);
 
   // Description:
   // Set to true if the graphics implmentation requires texture image dimensions
@@ -117,28 +120,33 @@ protected:
   static void RotateCorners(double angleDeg, double corners[4][2],
                             double bbox[4]);
 
+  bool ScaleToPowerOfTwo;
+  bool PrepareImageData(vtkImageData *data, int bbox[4]);
+
+private:
+  vtkMatplotlibMathTextUtilities(const vtkMatplotlibMathTextUtilities&); // Not implemented.
+  void operator=(const vtkMatplotlibMathTextUtilities&); // Not implemented.
+
   // Description:
   // Used for runtime checking of matplotlib's mathtext availability.
-  enum Availablity
+  // @sa IsAvailable
+  enum Availability
     {
     NOT_TESTED = 0,
     AVAILABLE,
     UNAVAILABLE
     };
 
-  bool ScaleToPowerOfTwo;
-  bool PrepareImageData(vtkImageData *data, int bbox[4]);
-
+  // Description:
   // Function used to check MPL availability and update MPLMathTextAvailable.
-  // This will do tests only the first time this method is called.
-  static void CheckMPLAvailability();
+  // This will do tests only the first time this method is called. This method
+  // is called internally when matplotlib rendering is first needed and is used
+  // to implement IsAvailable.
+  static Availability CheckMPLAvailability();
 
-private:
-  vtkMatplotlibMathTextUtilities(const vtkMatplotlibMathTextUtilities&); // Not implemented.
-  void operator=(const vtkMatplotlibMathTextUtilities&); // Not implemented.
-
-
-  static Availablity MPLMathTextAvailable;
+  // Description:
+  // Cache the availability of matplotlib in the current python session.
+  static Availability MPLMathTextAvailable;
 };
 
 #endif

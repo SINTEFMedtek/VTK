@@ -16,6 +16,7 @@
 #include "vtkWrap.h"
 #include "vtkParseData.h"
 #include "vtkParseExtras.h"
+#include "vtkParseMerge.h"
 #include "vtkParseString.h"
 #include <stdlib.h>
 #include <string.h>
@@ -452,8 +453,9 @@ int vtkWrap_IsVTKObjectBaseType(
       }
     }
 
-  /* fallback if no HierarchyInfo */
-  if (strncmp("vtk", classname, 3) == 0)
+  /* fallback if no HierarchyInfo, but skip smart pointers */
+  if (strncmp("vtk", classname, 3) == 0 &&
+      strncmp("vtkSmartPointer", classname, 15) != 0)
     {
     return 1;
     }
@@ -844,6 +846,34 @@ void vtkWrap_ExpandTypedefs(
     }
 }
 
+/* -------------------------------------------------------------------- */
+/* Merge superclass methods according to using declarations */
+void vtkWrap_ApplyUsingDeclarations(
+  ClassInfo *data, FileInfo *finfo, HierarchyInfo *hinfo)
+{
+  int i, n;
+
+  /* first, check if there are any declarations to apply */
+  n = data->NumberOfUsings;
+  for (i = 0; i < n; i++)
+    {
+    if (data->Usings[i]->Name)
+      {
+      break;
+      }
+    }
+  /* if using declarations found, read superclass headers */
+  if (i < n)
+    {
+    n = data->NumberOfSuperClasses;
+    for (i = 0; i < n; i++)
+      {
+      vtkParseMerge_MergeHelper(
+        finfo, finfo->Contents, hinfo, data->SuperClasses[i],
+        NULL, NULL, data);
+      }
+    }
+}
 
 /* -------------------------------------------------------------------- */
 /* get the type name */

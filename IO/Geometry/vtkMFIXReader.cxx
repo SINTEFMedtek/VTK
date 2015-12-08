@@ -734,20 +734,6 @@ void vtkMFIXReader::EnableAllCellArrays()
   this->CellDataArraySelection->EnableAllArrays();
 }
 
-#if !defined(VTK_LEGACY_REMOVE)
-//----------------------------------------------------------------------------
-void vtkMFIXReader::GetCellDataRange(int cellComp, int /* index */,
-     float *min, float *max)
-{
-#if !defined(VTK_LEGACY_SILENT)
-  vtkGenericWarningMacro("vtkMFIXReader::GetCellDataRange with \"index\" was deprecated in VTK 6.0");
-#endif
-
-  *min = this->Minimum->GetValue(cellComp);
-  *max = this->Maximum->GetValue(cellComp);
-}
-#endif
-
 //----------------------------------------------------------------------------
 void vtkMFIXReader::GetCellDataRange(int cellComp, float *min, float *max)
 {
@@ -1609,7 +1595,7 @@ void vtkMFIXReader::ReadRestartFile()
 //----------------------------------------------------------------------------
 void vtkMFIXReader::CreateVariableNames()
 {
-  char fileName[256];
+  char fileName[VTK_MAXPATH];
   int cnt = 0;
   char uString[120];
   char vString[120];
@@ -1933,7 +1919,7 @@ void vtkMFIXReader::CreateVariableNames()
 void vtkMFIXReader::GetTimeSteps()
 {
   int nextRecord, numberOfRecords;
-  char fileName[256];
+  char fileName[VTK_MAXPATH];
   int cnt = 0;
 
   for (int i=0; i<this->NumberOfSPXFilesUsed; ++i)
@@ -2129,7 +2115,7 @@ void vtkMFIXReader::GetVariableAtTimestep(int vari , int tstep,
   char variableName[256];
   strcpy(variableName, this->VariableNames->GetValue(vari));
   int spx = this->VariableIndexToSPX->GetValue(vari);
-  char fileName[256];
+  char fileName[VTK_MAXPATH];
 
   for(int k=0;k<(int)sizeof(fileName);k++)
     {
@@ -2324,7 +2310,7 @@ void vtkMFIXReader::GetAllTimes(vtkInformationVector *outputVector)
       }
     }
 
-  char fileName[256];
+  char fileName[VTK_MAXPATH];
 
   for(int k=0;k<(int)sizeof(fileName);k++)
     {

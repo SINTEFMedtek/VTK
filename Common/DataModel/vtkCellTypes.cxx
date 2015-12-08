@@ -57,7 +57,7 @@ static const char* vtkCellTypesStrings[] = {
   "vtkBiQuadraticQuadraticHexahedron",
   "vtkBiQuadraticTriangle",
   "vtkCubicLine",
-  "UnknownClass",
+  "vtkQuadraticPolygon",
   "UnknownClass",
   "UnknownClass",
   "UnknownClass",
@@ -277,7 +277,7 @@ unsigned long vtkCellTypes::GetActualMemorySize()
     size += this->LocationArray->GetActualMemorySize();
     }
 
-  return static_cast<unsigned long>(ceil(size/1024.0)); //kilobytes
+  return static_cast<unsigned long>(ceil(size/1024.0)); // kibibytes
 }
 
 

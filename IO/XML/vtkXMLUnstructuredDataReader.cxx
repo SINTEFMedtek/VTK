@@ -548,7 +548,7 @@ int vtkXMLUnstructuredDataReader::ReadCellArray(vtkIdType numberOfCells,
   // connectivity array ahead of time to calculate the real fraction.
   float progressRange[2] = {0,0};
   this->GetProgressRange(progressRange);
-  float fractions[3] = {0, 0.2, 1};
+  float fractions[3] = {0, 0.2f, 1};
 
   // Set range of progress for offsets array.
   this->SetProgressRange(progressRange, 0, fractions);
@@ -578,7 +578,7 @@ int vtkXMLUnstructuredDataReader::ReadCellArray(vtkIdType numberOfCells,
     }
   c1->SetNumberOfTuples(numberOfCells);
   if(!this->ReadArrayValues(eOffsets, 0, c1,
-      0, numberOfCells))
+                            0, numberOfCells, CELL_DATA))
     {
     vtkErrorMacro("Cannot read cell offsets from " << eCells->GetName()
                   << " in piece " << this->Piece
@@ -641,7 +641,7 @@ int vtkXMLUnstructuredDataReader::ReadCellArray(vtkIdType numberOfCells,
     return 0;
     }
   c0->SetNumberOfTuples(cpLength);
-  if(!this->ReadArrayValues(eConn, 0, c0, 0, cpLength))
+  if(!this->ReadArrayValues(eConn, 0, c0, 0, cpLength, CELL_DATA))
     {
     vtkErrorMacro("Cannot read cell connectivity from " << eCells->GetName()
                   << " in piece " << this->Piece
@@ -726,7 +726,7 @@ int vtkXMLUnstructuredDataReader::ReadFaceArray(vtkIdType numberOfCells,
   // to calculate the real fraction.
   float progressRange[2] = {0,0};
   this->GetProgressRange(progressRange);
-  float fractions[3] = {0, 0.2, 1};
+  float fractions[3] = {0, 0.2f, 1};
 
   // Set range of progress for offsets array.
   this->SetProgressRange(progressRange, 0, fractions);
@@ -925,7 +925,7 @@ int vtkXMLUnstructuredDataReader::ReadArrayForPoints(vtkXMLDataElement* da,
   vtkIdType numPoints = this->NumberOfPoints[this->Piece];
   vtkIdType components = outArray->GetNumberOfComponents();
   return this->ReadArrayValues(da, startPoint*components,outArray,
-    0, numPoints*components);
+                               0, numPoints*components, POINT_DATA);
 }
 
 //----------------------------------------------------------------------------
