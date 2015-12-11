@@ -2143,7 +2143,7 @@ void vtkOpenGLGPUVolumeRayCastMapper::LoadExtensions(
   // There is a bug in the OpenGL driver with an error in the
   // Cg compiler about an infinite loop.
 
-#if defined(__APPLE__) && !defined(APPLE_SNOW_LEOPARD_BUG)
+//#if defined(__APPLE__) && !defined(APPLE_SNOW_LEOPARD_BUG)
   // hack: removed by CA/SINTEF/2012.09.25
   // this renderer now works on MacOSX 10.7+
 //  (void)window;
@@ -2152,7 +2152,7 @@ void vtkOpenGLGPUVolumeRayCastMapper::LoadExtensions(
 //  this->LoadExtensionsSucceeded=0;
 //  return;
 
-#else
+//#else
 
   // Assume success
   this->LoadExtensionsSucceeded=1;
@@ -2434,7 +2434,7 @@ void vtkOpenGLGPUVolumeRayCastMapper::LoadExtensions(
     vtkOpenGLGPUVolumeRayCastMapperComponentNotInitialized;
   this->LastShade=vtkOpenGLGPUVolumeRayCastMapperShadeNotInitialized;
 
-#endif
+//#endif
 }
 
 //-----------------------------------------------------------------------------
