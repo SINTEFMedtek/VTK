@@ -51,6 +51,9 @@ class VTKRENDERINGFREETYPE_EXPORT vtkFreeTypeToolsCleanup
 public:
   vtkFreeTypeToolsCleanup();
   ~vtkFreeTypeToolsCleanup();
+private:
+  vtkFreeTypeToolsCleanup(const vtkFreeTypeToolsCleanup&);
+  vtkFreeTypeToolsCleanup& operator=(const vtkFreeTypeToolsCleanup&);
 };
 
 //----------------------------------------------------------------------------
@@ -150,6 +153,11 @@ public:
   // Turn a string into a hash. This is not a general purpose hash
   // function, and is only used to generate identifiers for cached fonts.
   static vtkTypeUInt16 HashString(const char *str);
+
+  // Description:
+  // Hash a string of a given length. This function hashes n chars and does
+  // not depend on a terminating null character.
+  static vtkTypeUInt32 HashBuffer(const void* str, size_t n, vtkTypeUInt32 hash = 0);
 
   // Description:
   // Given a text property 'tprop', get its unique ID in our cache framework.
@@ -296,13 +304,16 @@ protected:
                          FT_OutlineGlyph &outline_glyph);
 
   // Description:
-  // The singleton instance and the singleton cleanup instance
+  // The singleton instance
   static vtkFreeTypeTools* Instance;
-  static vtkFreeTypeToolsCleanup Cleanup;
 
   // Description:
   // Lookup table that maps free type font cache face ids to vtkTextProperties
   vtkTextPropertyLookup *TextPropertyLookup;
+
+  // Description:
+  // FreeType library instance.
+  FT_Library *Library;
 
   // Description:
   // The cache manager, image cache and charmap cache
@@ -390,5 +401,8 @@ private:
   void GetLineMetrics(T begin, T end, MetaData &metaData, int &width,
                       int bbox[4]);
 };
+
+// This is here to implement the Schwarz counter idiom.
+static vtkFreeTypeToolsCleanup vtkFreeTypeToolsCleanupInstance;
 
 #endif

@@ -1,3 +1,5 @@
+//VTK::System::Dec
+
 /*=========================================================================
 
   Program:   Visualization Toolkit
@@ -12,9 +14,6 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-// The following line handle system declarations such a
-// default precisions, or defining precisions to null
-//VTK::System::Dec
 
 //////////////////////////////////////////////////////////////////////////////
 ///
@@ -88,6 +87,7 @@ void main()
   /// Initialize g_fragColor (output) to 0
   g_fragColor = vec4(0.0);
   g_dirStep = vec3(0.0);
+  g_srcColor = vec4(0.0);
 
   //VTK::Base::Init
 
@@ -99,12 +99,12 @@ void main()
 
   //VTK::Clipping::Init
 
+  //VTK::RenderToImage::Depth::Init
+
   /// For all samples along the ray
   while (true)
     {
     //VTK::Base::Impl
-
-    //VTK::Terminate::Impl
 
     //VTK::Cropping::Impl
 
@@ -116,8 +116,12 @@ void main()
 
     //VTK::Shading::Impl
 
+    //VTK::RenderToImage::Depth::Impl
+
     /// Advance ray
     g_dataPos += g_dirStep;
+
+    //VTK::Terminate::Impl
     }
 
   //VTK::Base::Exit
@@ -134,4 +138,6 @@ void main()
   g_fragColor.g = g_fragColor.g * in_scale + in_bias * g_fragColor.a;
   g_fragColor.b = g_fragColor.b * in_scale + in_bias * g_fragColor.a;
   gl_FragData[0] = g_fragColor;
+
+  //VTK::RenderToImage::Depth::Exit
   }

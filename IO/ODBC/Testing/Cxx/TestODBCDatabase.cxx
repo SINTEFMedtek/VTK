@@ -31,7 +31,7 @@
 #include "vtkToolkits.h"
 #include "vtkIOODBCTestingCxxConfigure.h"
 
-#include <vtksys/ios/sstream>
+#include <sstream>
 
 #define LONGSTRING "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
 
@@ -63,7 +63,7 @@ int TestODBCDatabase( int, char ** const )
   int i;
   for ( i = 0; i < 20; ++ i )
     {
-    vtksys_ios::ostringstream queryBuf;
+    std::ostringstream queryBuf;
 
     queryBuf << "INSERT INTO people VALUES('John Doe "
              << i

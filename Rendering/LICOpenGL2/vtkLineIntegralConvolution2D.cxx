@@ -713,10 +713,10 @@ public:
       computeBounds[0], computeBounds[3]};
 
     float verts[] = {
-      computeBounds[0]*2.0-1.0, computeBounds[2]*2.0-1.0, 0.0f,
-      computeBounds[1]*2.0-1.0, computeBounds[2]*2.0-1.0, 0.0f,
-      computeBounds[1]*2.0-1.0, computeBounds[3]*2.0-1.0, 0.0f,
-      computeBounds[0]*2.0-1.0, computeBounds[3]*2.0-1.0, 0.0f};
+      computeBounds[0]*2.0f-1.0f, computeBounds[2]*2.0f-1.0f, 0.0f,
+      computeBounds[1]*2.0f-1.0f, computeBounds[2]*2.0f-1.0f, 0.0f,
+      computeBounds[1]*2.0f-1.0f, computeBounds[3]*2.0f-1.0f, 0.0f,
+      computeBounds[0]*2.0f-1.0f, computeBounds[3]*2.0f-1.0f, 0.0f};
 
     vtkOpenGLRenderUtilities::RenderQuad(verts, tcoords,
       cbo->Program, cbo->VAO);
@@ -1582,7 +1582,7 @@ vtkTextureObject *vtkLineIntegralConvolution2D::Execute(
     }
 
   #if (vtkLineIntegralConvolution2DDEBUG >= 2)
-  bufs.WriteBuffers(rank,"lic2d_licib_a.vtm", "lic2d_licib_s.vtm", computeExten ts1);
+  bufs.WriteBuffers(rank,"lic2d_licib_a.vtm", "lic2d_licib_s.vtm", computeExtents1);
   #endif
 
   // initialize seeds

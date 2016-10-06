@@ -1,7 +1,7 @@
 /*=========================================================================
 
 Program:   Visualization Toolkit
-Module:    $RCSfile: vtkCellDistanceFilter,v $
+Module:    vtkLinearSelector.h
 
 Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
 All rights reserved.
@@ -25,8 +25,8 @@ PURPOSE.  See the above copyright notice for more information.
 // Modified and integrated into VTK, Kitware SAS 2012
 // This class was implemented by Thierry Carrard, Charles Pignerol, and Philippe Pebay.
 
-#ifndef VTK_LINEAR_SELECTOR_H
-#define VTK_LINEAR_SELECTOR_H
+#ifndef vtkLinearSelector_h
+#define vtkLinearSelector_h
 
 #include "vtkFiltersSelectionModule.h" // For export macro
 #include "vtkSelectionAlgorithm.h"
@@ -122,4 +122,4 @@ class VTKFILTERSSELECTION_EXPORT vtkLinearSelector : public vtkSelectionAlgorith
 };
 
 
-#endif	// VTK_LINEAR_SELECTOR_H
+#endif // vtkLinearSelector_h

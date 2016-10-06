@@ -1014,6 +1014,7 @@ int vtkMath::SolveLeastSquares(int numberOfSamples, double **xt, int xOrder,
   double **hmt = NULL;
   int homogRC = 0;
   int *homogenFlags = new int[yOrder];
+  int successFlag;
 
   // Ok, first init some flags check and see if all the systems are homogeneous
   if (checkHomogeneous)
@@ -1138,22 +1139,20 @@ int vtkMath::SolveLeastSquares(int numberOfSamples, double **xt, int xOrder,
       }
     }
 
-  // next get the inverse of XXt
-  if (!(vtkMath::InvertMatrix(XXt, XXtI, xOrder)))
-    {
-    delete [] homogenFlags;
-    return 0;
-    }
+  successFlag = vtkMath::InvertMatrix(XXt, XXtI, xOrder);
 
-  // next get m
-  for (i = 0; i < xOrder; i++)
+  // next get the inverse of XXt
+  if (successFlag)
     {
-    for (j = 0; j < yOrder; j++)
+    for (i = 0; i < xOrder; i++)
       {
-      mt[i][j] = 0.0;
-      for (k = 0; k < xOrder; k++)
+      for (j = 0; j < yOrder; j++)
         {
-        mt[i][j] += XXtI[i][k] * XYt[k][j];
+        mt[i][j] = 0.0;
+        for (k = 0; k < xOrder; k++)
+          {
+          mt[i][j] += XXtI[i][k] * XYt[k][j];
+          }
         }
       }
     }
@@ -1198,11 +1197,11 @@ int vtkMath::SolveLeastSquares(int numberOfSamples, double **xt, int xOrder,
 
   if (someHomogeneous)
     {
-    return homogRC;
+    return homogRC && successFlag;
     }
   else
     {
-    return 1;
+    return successFlag;
     }
 }
 
@@ -2851,28 +2850,13 @@ int vtkMath::GetScalarTypeFittingRange(
         static_cast<double>(VTK_LONG_MAX) },
       { VTK_UNSIGNED_LONG,
         static_cast<double>(VTK_UNSIGNED_LONG_MIN),
-        static_cast<double>(VTK_UNSIGNED_LONG_MAX) }
-#if defined(VTK_TYPE_USE_LONG_LONG)
-      ,
+        static_cast<double>(VTK_UNSIGNED_LONG_MAX) },
       { VTK_LONG_LONG,
         static_cast<double>(VTK_LONG_LONG_MIN),
         static_cast<double>(VTK_LONG_LONG_MAX) },
       { VTK_UNSIGNED_LONG_LONG,
         static_cast<double>(VTK_UNSIGNED_LONG_LONG_MIN),
         static_cast<double>(VTK_UNSIGNED_LONG_LONG_MAX) }
-#endif
-#if defined(VTK_TYPE_USE___INT64)
-      ,
-      { VTK___INT64,
-        static_cast<double>(VTK___INT64_MIN),
-        static_cast<double>(VTK___INT64_MAX) }
-# if defined(VTK_TYPE_CONVERT_UI64_TO_DOUBLE)
-      ,
-      { VTK_UNSIGNED___INT64,
-        static_cast<double>(VTK_UNSIGNED___INT64_MIN),
-        static_cast<double>(VTK_UNSIGNED___INT64_MAX) }
-# endif
-#endif
     };
 
   // If the range, scale or shift are decimal number, just browse

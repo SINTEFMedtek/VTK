@@ -285,6 +285,9 @@ bool vtkShaderProgram::Link()
     return false;
     }
 
+  // clear out the list of uniforms used
+  this->UniformsUsed.clear();
+
 #if GL_ES_VERSION_2_0 != 1
   // bind the outputs if specified
   if (this->NumberOfOutputs)
@@ -548,13 +551,21 @@ bool vtkShaderProgram::SetUniformMatrix3x3(const char *name,
 bool vtkShaderProgram::SetUniformMatrix4x4(const char *name,
                                            float *matrix)
 {
+  return this->SetUniformMatrix4x4v(name,1,matrix);
+}
+
+bool vtkShaderProgram::SetUniformMatrix4x4v(
+  const char *name,
+  const int count,
+  float *matrix)
+{
   GLint location = static_cast<GLint>(this->FindUniform(name));
   if (location == -1)
     {
     this->Error = "Could not set uniform " + std::string(name) + ". No such uniform.";
     return false;
     }
-  glUniformMatrix4fv(location, 1, GL_FALSE, matrix);
+  glUniformMatrix4fv(location, count, GL_FALSE, matrix);
   return true;
 }
 
@@ -772,6 +783,36 @@ inline int vtkShaderProgram::FindUniform(const char *name)
 
   return location;
 }
+
+
+bool vtkShaderProgram::IsUniformUsed(const char *name)
+{
+  if (name == NULL)
+    {
+    return false;
+    }
+
+    // see if we have cached the result
+  typedef std::map<std::string, bool>::iterator iter;
+  iter found = this->UniformsUsed.find(name);
+  // if not, go query openGL
+  if (found == this->UniformsUsed.end())
+    {
+    if (!this->Linked)
+      {
+      vtkErrorMacro("attempt to find uniform when the shader program is not linked");
+      return false;
+      }
+    GLint location =
+      static_cast<int>(glGetUniformLocation(static_cast<GLuint>(Handle),
+                                            (const GLchar *)name));
+    this->UniformsUsed[name] = (location == -1 ? false : true);
+    return (location == -1 ? false : true);
+    }
+
+  return found->second;
+}
+
 
 // ----------------------------------------------------------------------------
 void vtkShaderProgram::PrintSelf(ostream& os, vtkIndent indent)

@@ -89,7 +89,6 @@ SCALAR_FUNC(TestCosh,cosh,std::cosh);
 SCALAR_FUNC(TestExp,exp,std::exp);
 SCALAR_FUNC(TestFloor,floor,std::floor);
 SCALAR_FUNC(TestLn,ln,std::log);
-SCALAR_FUNC(TestLog,log,std::log);
 SCALAR_FUNC(TestLog10,log10,std::log10);
 SCALAR_FUNC(TestSin,sin,std::sin);
 SCALAR_FUNC(TestSinh,sinh,std::sinh);
@@ -97,6 +96,8 @@ SCALAR_FUNC(TestSqrt,sqrt,std::sqrt);
 SCALAR_FUNC(TestTan,tan,std::tan);
 SCALAR_FUNC(TestTanh,tanh,std::tanh);
 static int TestScalars();
+static int TestUnaryOperations();
+static int TestScientificNotation();
 static int TestVectors();
 static int TestMinMax();
 static int TestScalarLogic();
@@ -118,7 +119,6 @@ int UnitTestFunctionParser(int,char *[])
   status += TestExp(0, 2.0);
   status += TestFloor(-1000.0, 1000.0);
   status += TestLn(0.0, 1000.0);
-  status += TestLog(0.0, 1000.0);
   status += TestLog10(0.0, 1000.0);
   status += TestSin(-1000.0, 1000.0);
   status += TestSinh(-1.0, 1.0);
@@ -127,6 +127,8 @@ int UnitTestFunctionParser(int,char *[])
   status += TestTanh(-1.0, 1.0);
 
   status += TestScalars();
+  status += TestUnaryOperations();
+  status += TestScientificNotation();
   status += TestVectors();
   status += TestMinMax();
   status += TestScalarLogic();
@@ -148,6 +150,56 @@ int UnitTestFunctionParser(int,char *[])
   return EXIT_SUCCESS;
 }
 
+int TestUnaryOperations()
+{
+  std::cout << "Testing Scalar Unary" << "...";
+  std::string formula[4] = {
+    "-x * +y",
+    "+x + +y",
+    "+x - -y",
+    "-x - +y"};
+  double expected[4] = {-2.,3.,3.,-3.};
+
+  vtkSmartPointer<vtkFunctionParser> parser =
+    vtkSmartPointer<vtkFunctionParser>::New();
+  parser->SetScalarVariableValue("x", 1.0);
+  parser->SetScalarVariableValue("y", 2.0);
+  for (unsigned i=0;i<4;i++)
+    {
+    parser->SetFunction(&formula[i][0]);
+    double result = parser->GetScalarResult();
+    if (!vtkMathUtilities::FuzzyCompare(
+          result, expected[i],
+          std::numeric_limits<double>::epsilon() * 1.0))
+      {
+      std::cout << "FAILED\n";
+      return 1;
+      }
+    }
+
+  parser->SetScalarVariableValue("x", 3);
+  parser->SetScalarVariableValue("y", 2);
+  parser->SetFunction("-x ^ +y");
+  int result = parser->GetScalarResult();
+  std::cout<<"result: "<<result<<std::endl;
+  if (result != 9)
+    {
+    std::cout << "FAILED\n";
+    return 1;
+    }
+
+  parser->SetFunction("(-x)");
+  result = parser->GetScalarResult();
+  if (result != -3)
+    {
+    std::cout << "FAILED\n";
+    return 1;
+    }
+
+  std::cout << "PASSED\n";
+  return 0;
+}
+
 int TestScalars()
 {
   std::cout << "Testing Scalar Add / Subtract / Multiply / Divide" << "...";
@@ -155,10 +207,36 @@ int TestScalars()
     vtkSmartPointer<vtkFunctionParser>::New();
   parser->SetScalarVariableValue("x", 1.0);
   parser->SetScalarVariableValue("y", 2.0);
-  parser->SetFunction( "(x-y)/(x-y) * -(x-y)/(x-y) + (x - x)");
+  parser->SetFunction( "+(x-y)/(x-y) * -(x-y)/(x-y) + (x - x)");
   double result = parser->GetScalarResult();
   if (result != -1.0)
     {
+    std::cout << "FAILED\n";
+    return 1;
+    }
+  else
+    {
+    std::cout << "PASSED\n";
+    return 0;
+    }
+}
+
+int TestScientificNotation()
+{
+  std::cout << "Testing Scientific notation" << "...";
+  vtkSmartPointer<vtkFunctionParser> parser =
+    vtkSmartPointer<vtkFunctionParser>::New();
+  parser->SetFunction( "3.0e+01");
+  double expected = 3.0e+01;
+  double result = parser->GetScalarResult();
+  if (!vtkMathUtilities::FuzzyCompare(
+        result, expected,
+        std::numeric_limits<double>::epsilon() * 1.0))
+    {
+    std::cout << " Scientific notation expected " << expected
+              << " but got " << result;
+    std::cout << "eps ratio is: " << (result - expected)
+      / std::numeric_limits<double>::epsilon() << std::endl;
     std::cout << "FAILED\n";
     return 1;
     }
@@ -765,7 +843,6 @@ int TestMiscFunctions()
   // test functions that can use ReplaceInvalidValue
   std::vector<std::string> testFuncs;
   testFuncs.push_back("sqrt(s)");
-  testFuncs.push_back("log(s)");
   testFuncs.push_back("ln(s)");
   testFuncs.push_back("log10(s)");
   testFuncs.push_back("asin(s)");
@@ -911,11 +988,6 @@ int TestErrors()
   parser->IsScalarResult();
   CHECK_ERROR_MSG("Trying to take a log10 of a negative value");
 
-  // Trying to take a log of a negative value
-  parser->SetFunction("log(s)");
-  parser->IsScalarResult();
-  CHECK_ERROR_MSG("Trying to take a log of a negative value");
-
   // Trying to take a square root of a negative value
   parser->SetFunction("sqrt(s)");
   parser->IsScalarResult();
@@ -966,11 +1038,6 @@ int TestErrors()
   parser->SetFunction("acos()");
   parser->IsScalarResult();
   CHECK_ERROR_MSG("Syntax error: expecting a variable name");
-
-  // The use of log function is being deprecated
-  parser->SetFunction("log(1.0)");
-  parser->IsScalarResult();
-  CHECK_ERROR_MSG("The use of log function is being deprecated");
 
   // Parse errors
   parser->SetFunction("-");

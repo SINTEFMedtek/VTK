@@ -3,8 +3,6 @@
   Program:   Visualization Toolkit
   Module:    vtkXdmf3DataSet.cxx
   Language:  C++
-  Date:      $Date$
-  Version:   $Revision$
 
   Copyright (c) 1993-2002 Ken Martin, Will Schroeder, Bill Lorensen
   All rights reserved.
@@ -663,6 +661,12 @@ void vtkXdmf3DataSet::VTKToXdmfAttributes(
     for (int cc=0; cc < numArrays; cc++)
       {
       vtkDataArray *vArray = fieldData->GetArray(cc);
+      if (!vArray)
+        {
+        // We're skipping non-numerical arrays for now because
+        // we do not support their serialization in the heavy data file.
+        continue;
+        }
       std::string attrName = vArray->GetName();
       if (attrName.length() == 0)
         {
@@ -1216,15 +1220,15 @@ void vtkXdmf3DataSet::VTKToXdmf(
 
   bool OK = true;
   vCoords = dataSet->GetXCoordinates();
-  OK |= vtkXdmf3DataSet::VTKToXdmfArray(vCoords, xZCoords.get());
+  OK &= vtkXdmf3DataSet::VTKToXdmfArray(vCoords, xZCoords.get());
   if (OK)
     {
     vCoords = dataSet->GetYCoordinates();
-    OK |= vtkXdmf3DataSet::VTKToXdmfArray(vCoords, xYCoords.get());
+    OK &= vtkXdmf3DataSet::VTKToXdmfArray(vCoords, xYCoords.get());
     if (OK)
       {
       vCoords = dataSet->GetZCoordinates();
-      OK |= vtkXdmf3DataSet::VTKToXdmfArray(vCoords, xXCoords.get());
+      OK &= vtkXdmf3DataSet::VTKToXdmfArray(vCoords, xXCoords.get());
       }
     }
 

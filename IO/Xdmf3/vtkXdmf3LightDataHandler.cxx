@@ -3,8 +3,6 @@
   Program:   Visualization Toolkit
   Module:    vtkXdmf3LightDataHandler.cxx
   Language:  C++
-  Date:      $Date$
-  Version:   $Revision$
 
   Copyright (c) 1993-2002 Ken Martin, Will Schroeder, Bill Lorensen
   All rights reserved.
@@ -341,7 +339,7 @@ std::string vtkXdmf3LightDataHandler::UniqueName(std::string name, bool ForGrid)
   vtkXdmf3ArraySelection* cache = (ForGrid?this->GridsCache:this->SetsCache);
   while (cache->HasArray(gridName.c_str()))
     {
-    vtksys_ios::ostringstream str;
+    std::ostringstream str;
     str << name << "[" << count << "]";
     gridName = str.str();
     count++;

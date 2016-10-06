@@ -42,8 +42,8 @@ macro(VTK_WRAP_HIERARCHY TARGET OUTPUT_DIR SOURCES)
 
     # file properties to include in the hierarchy file
     get_property(TMP_WRAP_EXCLUDE SOURCE ${FILE} PROPERTY WRAP_EXCLUDE)
-    get_source_file_property(TMP_WRAP_SPECIAL ${FILE} WRAP_SPECIAL)
     get_source_file_property(TMP_ABSTRACT ${FILE} ABSTRACT)
+    get_source_file_property(TMP_EXCLUDE_PYTHON ${FILE} WRAP_EXCLUDE_PYTHON)
 
     # what is the filename without the extension
     get_filename_component(TMP_FILENAME ${FILE} NAME_WE)
@@ -57,11 +57,15 @@ macro(VTK_WRAP_HIERARCHY TARGET OUTPUT_DIR SOURCES)
     # assume header file is in the same directory
     set(TMP_INPUT ${TMP_FILEPATH}/${TMP_FILENAME}.h)
 
-    # default to including all available headers in the hierarchy files
+    # include all non-private headers in the hierarchy files
     set(TMP_EXCLUDE_FROM_HIERARCHY OFF)
+    get_source_file_property(TMP_SKIP ${FILE} SKIP_HEADER_INSTALL)
+    if(TMP_SKIP)
+      set(TMP_EXCLUDE_FROM_HIERARCHY ON)
+    endif()
 
     # ensure that header exists (assume it exists if it is marked as wrapped)
-    if(TMP_WRAP_EXCLUDE AND NOT TMP_WRAP_SPECIAL)
+    if(TMP_WRAP_EXCLUDE)
       if(NOT EXISTS ${TMP_INPUT})
         set(TMP_EXCLUDE_FROM_HIERARCHY ON)
       endif()
@@ -88,8 +92,8 @@ macro(VTK_WRAP_HIERARCHY TARGET OUTPUT_DIR SOURCES)
         set(VTK_WRAPPER_INIT_DATA "${VTK_WRAPPER_INIT_DATA};WRAP_EXCLUDE")
       endif()
 
-      if(TMP_WRAP_SPECIAL)
-        set(VTK_WRAPPER_INIT_DATA "${VTK_WRAPPER_INIT_DATA};WRAP_SPECIAL")
+      if(TMP_EXCLUDE_PYTHON)
+        set(VTK_WRAPPER_INIT_DATA "${VTK_WRAPPER_INIT_DATA};WRAP_EXCLUDE_PYTHON")
       endif()
 
       set(VTK_WRAPPER_INIT_DATA "${VTK_WRAPPER_INIT_DATA}\n")

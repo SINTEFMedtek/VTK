@@ -37,7 +37,7 @@
 #include "vtkStructuredGridOutlineFilter.h"
 #include "vtkTestUtilities.h"
 #include "vtkXMLStructuredGridReader.h"
-#include <vtksys/ios/sstream>
+#include <sstream>
 
 int main(int argc, char* argv[])
 {
@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
     {
     // Here we load the three separate files (each containing
     // a structured grid dataset)
-    vtksys_ios::ostringstream fname;
+    std::ostringstream fname;
     fname << "Data/multicomb_" << i << ".vts" << ends;
     char* cfname =
       vtkTestUtilities::ExpandDataFileName(argc, argv, fname.str().c_str());

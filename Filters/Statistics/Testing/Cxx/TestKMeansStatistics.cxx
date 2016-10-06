@@ -20,7 +20,7 @@
 #include "vtkStdString.h"
 #include "vtkTimerLog.h"
 
-#include <vtksys/ios/sstream>
+#include <sstream>
 
 
 //=============================================================================
@@ -41,7 +41,7 @@ int TestKMeansStatistics( int, char *[] )
   int numComponents = 1;
   for ( int c = 0; c < nDim; ++ c )
     {
-    vtksys_ios::ostringstream colName;
+    std::ostringstream colName;
     colName << "coord " << c;
     doubleArray = vtkDoubleArray::New();
     doubleArray->SetNumberOfComponents( numComponents );
@@ -80,7 +80,7 @@ int TestKMeansStatistics( int, char *[] )
 
   for ( int c = 0; c < 5; ++ c )
     {
-    vtksys_ios::ostringstream colName;
+    std::ostringstream colName;
     colName << "coord " << c;
     paramArray = vtkDoubleArray::New();
     paramArray->SetNumberOfComponents( numComponents );

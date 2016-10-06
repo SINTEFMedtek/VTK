@@ -31,7 +31,7 @@
 #include "vtkUnstructuredGridReader.h"
 #include "vtkUnstructuredGridWriter.h"
 
-#include <vtksys/ios/sstream>
+#include <sstream>
 
 // Reference values
 static vtkIdType cardCellDistanceSelection2D[] =
@@ -101,7 +101,7 @@ static int CheckExtractedUGrid( vtkExtractSelection* extract,
   // If requested, write mesh
   if ( writeGrid )
     {
-    vtksys_ios::ostringstream fileNameSS;
+    std::ostringstream fileNameSS;
     fileNameSS << "./CellDistanceExtraction2D-"
                << testIdx
                << ".vtk";

@@ -28,7 +28,7 @@
 #include "vtkRectilinearGrid.h"
 #include "vtkShortArray.h"
 
-#include <vtksys/ios/sstream>
+#include <sstream>
 
 int TestORG(ostream& strm)
 {
@@ -599,6 +599,6 @@ int TestORG(ostream& strm)
 
 int otherRectilinearGrid(int,char *[])
 {
-  vtksys_ios::ostringstream vtkmsg_with_warning_C4701;
+  std::ostringstream vtkmsg_with_warning_C4701;
   return TestORG(vtkmsg_with_warning_C4701);
 }

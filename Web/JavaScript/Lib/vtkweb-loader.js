@@ -104,7 +104,15 @@
         "lib/css/paraview.ui.opacity.editor.css",
         "lib/js/paraview.ui.color.editor.js",
         "lib/css/paraview.ui.color.editor.css"
-        ]
+        ],
+        "pv-visualizer-main-js": [
+        "apps/Visualizer/main.js"
+        ],
+        "pv-visualizer-main-all": [
+        "apps/Visualizer/main.js",
+        "apps/Visualizer/main.css"
+        ],
+        "pv-visualizer-tpl": "apps/Visualizer/visualizer-tpl.html"
 
     },
     modules = [],
@@ -146,6 +154,21 @@
               var content = templates.innerHTML;
               content += request.responseText;
               templates.innerHTML = content;
+            }
+        };
+    }
+
+    // ---------------------------------------------------------------------
+
+    function loadGlobalTemplate(url) {
+        var request = makeHttpObject();
+        request.open("GET", url, true);
+        request.send(null);
+        request.onreadystatechange = function() {
+            if (request.readyState == 4) {
+              var content = request.responseText,
+                  body = document.getElementsByTagName("body")[0];
+              body.innerHTML += content;
             }
         };
     }
@@ -222,6 +245,18 @@
     var lastSlashIndex = script.getAttribute("src").lastIndexOf('lib/core/vtkweb-loader');
     if(lastSlashIndex != -1) {
         basePath = script.getAttribute("src").substr(0, lastSlashIndex);
+    }
+
+    // ---------------------------------------------------------------------
+    // See if we have a main application template to load
+    // ---------------------------------------------------------------------
+    try {
+        var templateKey = script.getAttribute("app-template");
+        if (templateKey !== null && templateKey !== '') {
+            loadGlobalTemplate(basePath + vtkWebLibs[templateKey]);
+        }
+    } catch (e) {
+        // This is fine, you may have defined your application inline
     }
 
     // ---------------------------------------------------------------------

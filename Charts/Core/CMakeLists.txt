@@ -16,6 +16,7 @@ set(Module_SRCS
   vtkColorTransferFunctionItem.cxx
   vtkCompositeControlPointsItem.cxx
   vtkCompositeTransferFunctionItem.cxx
+  vtkContextArea.cxx
   vtkContextPolygon.cxx
   vtkControlPointsItem.cxx
   vtkLookupTableItem.cxx
@@ -55,11 +56,6 @@ set_source_files_properties(
 set_source_files_properties(
   vtkContextPolygon
   WRAP_EXCLUDE
-)
-
-set_source_files_properties(
-  vtkContextPolygon
-  PROPERTIES WRAP_SPECIAL 1
 )
 
 vtk_module_library(vtkChartsCore ${Module_SRCS})

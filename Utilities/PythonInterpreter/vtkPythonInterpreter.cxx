@@ -27,6 +27,15 @@
 #include <vector>
 #include <signal.h>
 
+#if PY_VERSION_HEX >= 0x03000000
+#if defined(__APPLE__) && PY_VERSION_HEX < 0x03050000
+extern "C" {
+extern wchar_t*
+_Py_DecodeUTF8_surrogateescape(const char *s, Py_ssize_t size);
+}
+#endif
+#endif
+
 namespace
 {
   class StringPool
@@ -60,8 +69,13 @@ namespace
 
   inline void vtkPrependPythonPath(const char* pathtoadd)
     {
+    vtkPythonScopeGilEnsurer gilEnsurer;
     PyObject* path = PySys_GetObject(const_cast<char*>("path"));
+#if PY_VERSION_HEX >= 0x03000000
+    PyObject* newpath = PyUnicode_FromString(pathtoadd);
+#else
     PyObject* newpath = PyString_FromString(pathtoadd);
+#endif
     PyList_Insert(path, 0, newpath);
     Py_DECREF(newpath);
     }
@@ -72,7 +86,6 @@ bool vtkPythonInterpreter::CaptureStdin = false;
 bool vtkPythonInterpreter::ConsoleBuffering = false;
 std::string vtkPythonInterpreter::StdErrBuffer;
 std::string vtkPythonInterpreter::StdOutBuffer;
-
 
 vtkStandardNewMacro(vtkPythonInterpreter);
 //----------------------------------------------------------------------------
@@ -111,7 +124,6 @@ void vtkPythonInterpreter::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 bool vtkPythonInterpreter::Initialize(int initsigs /*=0*/)
 {
-  vtkPythonInterpreter::InitializedOnce = true;
   if (Py_IsInitialized() == 0)
     {
 #if (VTK_PYTHON_MAJOR_VERSION > 2) ||\
@@ -126,6 +138,21 @@ bool vtkPythonInterpreter::Initialize(int initsigs /*=0*/)
     // Put default SIGINT handler back after Py_Initialize/Py_InitializeEx.
     signal(SIGINT, SIG_DFL);
 #endif
+    }
+
+  if (!vtkPythonInterpreter::InitializedOnce)
+    {
+    vtkPythonInterpreter::InitializedOnce = true;
+
+#ifdef VTK_PYTHON_FULL_THREADSAFE
+    int threadInit = PyEval_ThreadsInitialized();
+    PyEval_InitThreads(); // safe to call this multiple time
+    if(!threadInit)
+      {
+      PyEval_SaveThread(); // release GIL
+      }
+#endif
+
     // HACK: Calling PyRun_SimpleString for the first time for some reason results in
     // a "\n" message being generated which is causing the error dialog to
     // popup. So we flush that message out of the system before setting up the
@@ -138,7 +165,9 @@ bool vtkPythonInterpreter::Initialize(int initsigs /*=0*/)
     vtkPythonStdStreamCaptureHelper* wrapperErr =
       NewPythonStdStreamCaptureHelper(true);
 
-    // Redirect Python's stdout and stderr and stdin
+    // Redirect Python's stdout and stderr and stdin - GIL protected operation
+    {
+    vtkPythonScopeGilEnsurer gilEnsurer;
     PySys_SetObject(const_cast<char*>("stdout"),
       reinterpret_cast<PyObject*>(wrapperOut));
     PySys_SetObject(const_cast<char*>("stderr"),
@@ -147,6 +176,7 @@ bool vtkPythonInterpreter::Initialize(int initsigs /*=0*/)
       reinterpret_cast<PyObject*>(wrapperOut));
     Py_DECREF(wrapperOut);
     Py_DECREF(wrapperErr);
+    }
 
     for (size_t cc=0; cc < PythonPaths.size(); cc++)
       {
@@ -166,6 +196,8 @@ void vtkPythonInterpreter::Finalize()
   if (Py_IsInitialized() != 0)
     {
     NotifyInterpreters(vtkCommand::ExitEvent);
+    vtkPythonScopeGilEnsurer gilEnsurer(false, true); 
+    // Py_Finalize will take care of relasing gil
     Py_Finalize();
     }
 }
@@ -188,7 +220,27 @@ void vtkPythonInterpreter::SetProgramName(const char* programname)
     // string in static storage whose contents will not change for the duration of
     // the program's execution. No code in the Python interpreter will change the
     // contents of this storage.
+#if PY_VERSION_HEX >= 0x03000000
+    wchar_t *argv0;
+    const std::string& av0 = pool.Strings.back();
+#if PY_VERSION_HEX >= 0x03050000
+    argv0 = Py_DecodeLocale(av0.c_str(), NULL);
+#elif defined(__APPLE__)
+    argv0 = _Py_DecodeUTF8_surrogateescape(av0.data(), av0.length());
+#else
+    argv0 = _Py_char2wchar(av0.c_str(), NULL);
+#endif
+    if (argv0 == 0)
+      {
+      fprintf(stderr, "Fatal vtkpython error: "
+                      "unable to decode the program name\n");
+      static wchar_t empty[1] = { 0 };
+      argv0 = empty;
+      }
+    Py_SetProgramName(argv0);
+#else
     Py_SetProgramName(pool.Strings.back());
+#endif
     }
 }
 
@@ -225,7 +277,64 @@ int vtkPythonInterpreter::PyMain(int argc, char** argv)
     vtkPythonInterpreter::SetProgramName(argv[0]);
     }
   vtkPythonInterpreter::Initialize(1);
+
+#if PY_VERSION_HEX >= 0x03000000
+  wchar_t *argv0;
+#if PY_VERSION_HEX >= 0x03050000
+  argv0 = Py_DecodeLocale(argv[0], NULL);
+#elif defined(__APPLE__)
+  argv0 = _Py_DecodeUTF8_surrogateescape(argv[0], strlen(argv[0]));
+#else
+  argv0 = _Py_char2wchar(argv[0], NULL);
+#endif
+    if (argv0 == 0)
+      {
+      static wchar_t empty[1] = { 0 };
+      argv0 = empty;
+      }
+  // Need two copies of args, because programs might modify the first
+  wchar_t **argvWide = new wchar_t *[argc];
+  wchar_t **argvWide2 = new wchar_t *[argc];
+  for (int i = 0; i < argc; i++)
+    {
+#if PY_VERSION_HEX >= 0x03050000
+    argvWide[i] = Py_DecodeLocale(argv[i], NULL);
+#elif defined(__APPLE__)
+    argvWide[i] = _Py_DecodeUTF8_surrogateescape(argv[i], strlen(argv[i]));
+#else
+    argvWide[i] = _Py_char2wchar(argv[i], NULL);
+#endif
+    argvWide2[i] = argvWide[i];
+    if (argvWide[i] == 0)
+      {
+      fprintf(stderr, "Fatal vtkpython error: "
+                      "unable to decode the command line argument #%i\n",
+                      i + 1);
+      for (int k = 0; k < i; k++)
+        {
+        PyMem_Free(argvWide2[i]);
+        }
+      PyMem_Free(argv0);
+      delete [] argvWide;
+      delete [] argvWide2;
+      return 1;
+      }
+    }
+  vtkPythonScopeGilEnsurer gilEnsurer;
+  int res = Py_Main(argc, argvWide);
+  PyMem_Free(argv0);
+  for (int i = 0; i < argc; i++)
+    {
+    PyMem_Free(argvWide2[i]);
+    }
+  delete [] argvWide;
+  delete [] argvWide2;
+  return res;
+#else
+
+  vtkPythonScopeGilEnsurer gilEnsurer(false, true);
   return Py_Main(argc, argv);
+#endif
 }
 
 //----------------------------------------------------------------------------
@@ -240,7 +349,12 @@ int vtkPythonInterpreter::RunSimpleString(const char* script)
   buffer.erase(std::remove(buffer.begin(), buffer.end(), '\r'), buffer.end());
 
   // The cast is necessary because PyRun_SimpleString() hasn't always been const-correct
-  int pyReturn = PyRun_SimpleString(const_cast<char*>(buffer.c_str()));
+  int pyReturn;
+    {
+    vtkPythonScopeGilEnsurer gilEnsurer;
+    pyReturn = PyRun_SimpleString(const_cast<char*>(buffer.c_str()));
+    }
+
   vtkPythonInterpreter::ConsoleBuffering = false;
   if (! vtkPythonInterpreter::StdErrBuffer.empty())
     {

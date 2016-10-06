@@ -116,6 +116,16 @@ public:
   static int CeilLog2(vtkTypeUInt64 x);
 
   // Description:
+  // Returns the minimum of the two arguments provided.
+  template<class T>
+  static T Min(const T & a, const T & b);
+
+  // Description:
+  // Returns the maximum of the two arugments provided.
+  template<class T>
+  static T Max(const T & a, const T & b);
+
+  // Description:
   // Returns true if integer is a power of two.
   static bool IsPowerOfTwo(vtkTypeUInt64 x);
 
@@ -661,15 +671,12 @@ public:
   // The output is provided by overwriting the input A with a matrix of the same size as
   // A containing all of the information about L and U. If the output matrix is
   // \f$ A* = \left( \begin{array}{cc}
-  // a & b \\ %
-  // c & d \end{array} \right)\f$
+  // a & b \\ c & d \end{array} \right)\f$
   // then L and U can be obtained as:
   // \f$ L = \left( \begin{array}{cc}
-  // 1 & 0 \\ %
-  // c & 1 \end{array} \right)\f$
+  // 1 & 0 \\ c & 1 \end{array} \right)\f$
   // \f$ U = \left( \begin{array}{cc}
-  // a & b \\ %
-  // 0 & d \end{array} \right)\f$
+  // a & b \\ 0 & d \end{array} \right)\f$
   //
   // That is, the diagonal of the resulting A* is the diagonal of U. The upper right
   // triangle of A is the upper right triangle of U. The lower left triangle of A is
@@ -1022,6 +1029,20 @@ inline int vtkMath::Ceil(double x)
 {
   int i = static_cast<int>(x);
   return i + ( i < x );
+}
+
+//----------------------------------------------------------------------------
+template<class T>
+inline T vtkMath::Min(const T & a, const T & b)
+{
+  return (a < b ? a : b);
+}
+
+//----------------------------------------------------------------------------
+template<class T>
+inline T vtkMath::Max(const T & a, const T & b)
+{
+  return (a > b ? a : b);
 }
 
 //----------------------------------------------------------------------------

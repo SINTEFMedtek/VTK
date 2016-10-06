@@ -29,6 +29,9 @@ Modify vtkParse.tab.c:
   - remove YY_ATTRIBUTE_UNUSED from yyfillin, yyfill, and yynormal
   - remove the "break;" after "return yyreportAmbiguity"
   - replace "(1-yyrhslen)" with "(1-(int)yyrhslen)"
+  - remove dead store "yynewStates = YY_NULLPTR;"
+  - replace "sizeof yynewStates[0] with "sizeof (yyGLRState*)"
+  - remove 'struct yy_trans_info', which is unneeded (despite the comment)
 */
 
 /*
@@ -1172,7 +1175,7 @@ void prepend_scope(char *cp, const char *arg)
   n = strlen(arg);
   i = m;
   while (i > 0 &&
-         (vtkParse_CharType(cp[i-1], CPRE_IDGIT) ||
+         (vtkParse_CharType(cp[i-1], CPRE_XID) ||
           cp[i-1] == ':' || cp[i-1] == '>'))
     {
     i--;
@@ -1291,9 +1294,9 @@ unsigned int add_indirection_to_array(unsigned int type)
 /* Expect five shift-reduce conflicts from opt_final (final classes) */
 %expect 5
 
-/* Expect 120 reduce/reduce conflicts, these can be cleared by removing
+/* Expect 121 reduce/reduce conflicts, these can be cleared by removing
    either '<' or angle_brackets_sig from constant_expression_item. */
-%expect-rr 120
+%expect-rr 121
 
 /* The parser will shift/reduce values <str> or <integer>, where
    <str> is for IDs and <integer> is for types, modifiers, etc. */
@@ -1328,6 +1331,7 @@ unsigned int add_indirection_to_array(unsigned int type)
 %token <str> STRING_LITERAL
 %token <str> INT_LITERAL
 %token <str> HEX_LITERAL
+%token <str> BIN_LITERAL
 %token <str> OCT_LITERAL
 %token <str> FLOAT_LITERAL
 %token <str> CHAR_LITERAL
@@ -1511,6 +1515,7 @@ template_declaration:
   | template_head nested_variable_initialization
   | template_head template_declaration
   | template_head alias_declaration
+  | template_head variable_declaration
 
 explicit_instantiation:
     EXTERN TEMPLATE ignored_item_no_angle ignored_expression ';'
@@ -1649,6 +1654,7 @@ template_member_declaration:
   | template_head method_definition
   | template_head template_member_declaration
   | template_head alias_declaration
+  | template_head variable_declaration
 
 friend_declaration:
     FRIEND ignored_class
@@ -1820,6 +1826,12 @@ typedef_declarator_id:
 
       handle_complex_type(item, getType(), $<integer>1, getSig());
 
+      if (currentTemplate)
+        {
+        item->Template = currentTemplate;
+        currentTemplate = NULL;
+        }
+
       if (getVarName())
         {
         item->Name = getVarName();
@@ -1929,13 +1941,13 @@ template_parameter:
     { add_template_parameter(0, $<integer>3, copySig()); }
     opt_template_parameter_initializer
   | { pushTemplate(); markSig(); }
-    template_head CLASS { postSig("class "); }
+    template_head class_or_typename
     direct_abstract_declarator
     {
       int i;
       TemplateInfo *newTemplate = currentTemplate;
       popTemplate();
-      add_template_parameter(0, $<integer>5, copySig());
+      add_template_parameter(0, $<integer>4, copySig());
       i = currentTemplate->NumberOfParameters-1;
       currentTemplate->Parameters[i]->Template = newTemplate;
     }
@@ -2234,6 +2246,12 @@ init_declarator_id:
 
       handle_complex_type(var, type, $<integer>1, getSig());
 
+      if (currentTemplate)
+        {
+        var->Template = currentTemplate;
+        currentTemplate = NULL;
+        }
+
       var->Name = getVarName();
 
       if (getVarValue())
@@ -2245,7 +2263,11 @@ init_declarator_id:
       if ((type & VTK_PARSE_TYPEDEF) != 0)
         {
         var->ItemType = VTK_TYPEDEF_INFO;
-        if (currentClass)
+        if (var->Class == NULL)
+          {
+          vtkParse_FreeValue(var);
+          }
+        else if (currentClass)
           {
           vtkParse_AddTypedefToClass(currentClass, var);
           }
@@ -2393,6 +2415,7 @@ bitfield_size:
     OCT_LITERAL
   | INT_LITERAL
   | HEX_LITERAL
+  | BIN_LITERAL
 
 opt_array_decorator_seq:
     { clearArray(); }
@@ -3134,6 +3157,7 @@ literal:
     OCT_LITERAL
   | INT_LITERAL
   | HEX_LITERAL
+  | BIN_LITERAL
   | FLOAT_LITERAL
   | CHAR_LITERAL
   | STRING_LITERAL
@@ -3181,7 +3205,7 @@ common_bracket_item_no_scope_operator:
           postSig(" ");
           }
         postSig($<str>1);
-        if (vtkParse_CharType(c1, (CPRE_IDGIT|CPRE_QUOTE)) ||
+        if (vtkParse_CharType(c1, (CPRE_XID|CPRE_QUOTE)) ||
             c1 == ')' || c1 == ']')
           {
           postSig(" ");
@@ -3206,7 +3230,7 @@ common_bracket_item_no_scope_operator:
       cp = getSig();
       l = getSigLength();
       if (l != 0) { c1 = cp[l-1]; }
-      while (vtkParse_CharType(c1, CPRE_IDGIT) && l != 0)
+      while (vtkParse_CharType(c1, CPRE_XID) && l != 0)
         {
         --l;
         c1 = cp[l-1];
@@ -3798,13 +3822,7 @@ unsigned int guess_constant_type(const char *valstring)
           }
         else
           {
-#if defined(VTK_TYPE_USE_LONG_LONG)
           return VTK_PARSE_UNSIGNED_LONG_LONG;
-#elif defined(VTK_TYPE_USE___INT64)
-          return VTK_PARSE_UNSIGNED___INT64;
-#else
-          return VTK_PARSE_UNSIGNED_LONG;
-#endif
           }
         }
       else
@@ -3815,13 +3833,7 @@ unsigned int guess_constant_type(const char *valstring)
           }
         else
           {
-#if defined(VTK_TYPE_USE_LONG_LONG)
           return VTK_PARSE_LONG_LONG;
-#elif defined(VTK_TYPE_USE___INT64)
-          return VTK_PARSE___INT64;
-#else
-          return VTK_PARSE_LONG;
-#endif
           }
         }
       }

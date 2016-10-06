@@ -24,7 +24,7 @@ PURPOSE.  See the above copyright notice for more information.
 #import "vtkRendererCollection.h"
 #import "vtkCocoaGLView.h"
 
-#import <vtksys/ios/sstream>
+#import <sstream>
 
 static NSOpenGLContext* cx_shared_context = nil;
 
@@ -436,7 +436,7 @@ const char* vtkCocoaRenderWindow::ReportCapabilities()
   const char* glVersion = (const char*) glGetString(GL_VERSION);
   const char* glExtensions = (const char*) glGetString(GL_EXTENSIONS);
 
-  vtksys_ios::ostringstream strm;
+  std::ostringstream strm;
   strm << "OpenGL vendor string:  " << glVendor
        << "\nOpenGL renderer string:  " << glRenderer
        << "\nOpenGL version string:  " << glVersion
@@ -725,11 +725,10 @@ void vtkCocoaRenderWindow::CreateAWindow()
   //
   // So here we call +sharedApplication which will create the NSApplication
   // if it does not exist.  If it does exist, this does nothing.
-  // We are not actually interested in the return value.
   // This call is intentionally delayed until this CreateAWindow call
   // to prevent Cocoa-window related stuff from happening in scenarios
   // where vtkRenderWindows are created but never shown.
-  (void)[NSApplication sharedApplication];
+  NSApplication* app = [NSApplication sharedApplication];
 
   // create an NSWindow only if neither an NSView nor an NSWindow have
   // been specified already.  This is the case for a 'pure vtk application'.
@@ -737,6 +736,11 @@ void vtkCocoaRenderWindow::CreateAWindow()
   // SetRootWindow() and SetWindowId() so that a window is not created here.
   if (!this->GetRootWindow() && !this->GetWindowId() && !this->GetParentId())
     {
+    // Ordinarily, only .app bundles get proper mouse and keyboard interaction,
+    // but here we change the 'activation policy' to behave as if we were a
+    // .app bundle (which we may or may not be).
+    (void)[app setActivationPolicy:NSApplicationActivationPolicyRegular];
+
     NSWindow* theWindow = nil;
 
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
@@ -923,6 +927,12 @@ void vtkCocoaRenderWindow::CreateGLContext()
     if (this->DoubleBuffer != 0)
       {
       attribs[i++] = NSOpenGLPFADoubleBuffer;
+      }
+
+    if (this->StencilCapable)
+      {
+      attribs[i++] = NSOpenGLPFAStencilSize;
+      attribs[i++] = (NSOpenGLPixelFormatAttribute)8;
       }
 
     attribs[i++] = (NSOpenGLPixelFormatAttribute)0;

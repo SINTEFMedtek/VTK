@@ -52,6 +52,9 @@ vtkActor::vtkActor()
   this->BackfaceProperty = NULL;
   this->Texture = NULL;
 
+  this->ForceOpaque = false;
+  this->ForceTranslucent = false;
+
   // The mapper bounds are cache to know when the bounds must be recomputed
   // from the mapper bounds.
   vtkMath::UninitializeBounds(this->MapperBounds);
@@ -107,6 +110,16 @@ void vtkActor::GetActors(vtkPropCollection *ac)
 // should be called from the render methods only
 int vtkActor::GetIsOpaque()
 {
+  if (this->ForceOpaque)
+    {
+    return 1;
+    }
+
+  if (this->ForceTranslucent)
+    {
+    return 0;
+    }
+
   // make sure we have a property
   if(!this->Property)
     {
@@ -118,11 +131,6 @@ int vtkActor::GetIsOpaque()
   // are we using an opaque texture, if any?
   is_opaque = is_opaque &&
     (this->Texture ==NULL || this->Texture->IsTranslucent() == 0);
-
-  // are we using an opaque LUT, if any?
-  is_opaque = is_opaque &&
-    (this->Mapper == NULL || this->Mapper->GetLookupTable() == NULL ||
-     this->Mapper->GetLookupTable()->IsOpaque() == 1);
 
   // are we using an opaque scalar array, if any?
   is_opaque = is_opaque &&
@@ -516,6 +524,9 @@ void vtkActor::PrintSelf(ostream& os, vtkIndent indent)
     {
     os << indent << "Texture: (none)\n";
     }
+
+  os << indent << "ForceOpaque: " << (this->ForceOpaque ? "true" : "false") << "\n";
+  os << indent << "ForceTranslucent: " << (this->ForceTranslucent ? "true" : "false") << "\n";
 
 }
 

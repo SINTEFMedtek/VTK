@@ -29,7 +29,30 @@ vtk_add_test_cxx(${vtk-module}CxxTests tests
   TestTecplotReader.cxx
   TestAMRReadWrite.cxx,NO_VALID
   TestSimplePointsReaderWriter.cxx,NO_VALID
+  UnitTestSTLWriter.cxx,NO_VALID
   )
+
+vtk_add_test_cxx(${vtk-module}CxxTests tests
+  TestSTLReaderSinglePatch,TestSTLReader.cxx DATA{${VTK_TEST_INPUT_DIR}/42400-IDGH.stl}
+)
+
+vtk_add_test_cxx(${vtk-module}CxxTests tests
+  TestSTLReaderMultiplePatches,TestSTLReader.cxx DATA{${VTK_TEST_INPUT_DIR}/multiple_patches.stl}
+)
+
+vtk_add_test_cxx(${vtk-module}CxxTests tests
+  TestPTSReader,TestPTSReader.cxx DATA{${VTK_TEST_INPUT_DIR}/samplePTS.pts}
+)
+
+vtk_add_test_cxx(${vtk-module}CxxTests tests
+  TestAVSucdReaderContiguousASCII,TestAVSucdReader.cxx DATA{${VTK_TEST_INPUT_DIR}/cellsnd.ascii.inp}
+)
+vtk_add_test_cxx(${vtk-module}CxxTests tests
+  TestAVSucdReaderNonContiguousASCII,TestAVSucdReader.cxx DATA{${VTK_TEST_INPUT_DIR}/cellsnd.noncontiguous.ascii.inp}
+)
+vtk_add_test_cxx(${vtk-module}CxxTests tests
+  TestAVSucdReaderBinary,TestAVSucdReader.cxx DATA{${VTK_TEST_INPUT_DIR}/cellsnd.bin.inp}
+)
 
 set(_known_little_endian FALSE)
 if (DEFINED CMAKE_WORDS_BIGENDIAN)

@@ -1,15 +1,15 @@
 /*=========================================================================
 
-Program:   Visualization Toolkit
-Module:    vtkParticlePathFilter.cxx
+  Program:   Visualization Toolkit
+  Module:    vtkParticlePathFilter.cxx
 
-Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
-All rights reserved.
-See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
+  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+  All rights reserved.
+  See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
 
-This software is distributed WITHOUT ANY WARRANTY; without even
-the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-PURPOSE.  See the above copyright notice for more information.
+     This software is distributed WITHOUT ANY WARRANTY; without even
+     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+     PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
 #include "vtkParticlePathFilter.h"
@@ -35,6 +35,7 @@ void ParticlePathFilterInternal::Initialize(vtkParticleTracerBase* filter)
   this->Filter = filter;
   this->Filter->SetForceReinjectionEveryNSteps(0);
   this->Filter->SetIgnorePipelineTime(1);
+  this->ClearCache = false;
 }
 
 void ParticlePathFilterInternal::Reset()
@@ -45,12 +46,17 @@ void ParticlePathFilterInternal::Reset()
 
 int ParticlePathFilterInternal::OutputParticles(vtkPolyData* particles)
 {
-  if(!this->Filter->Output)
+  if(!this->Filter->Output || this->ClearCache)
     {
     this->Filter->Output = vtkSmartPointer<vtkPolyData>::New();
     this->Filter->Output->SetPoints(vtkSmartPointer<vtkPoints>::New());
     this->Filter->Output->GetPointData()->CopyAllocate(particles->GetPointData());
     }
+  if(this->ClearCache)
+    { // clear cache no matter what
+    this->Paths.clear();
+    }
+
   vtkPoints* pts = particles->GetPoints();
   if(!pts || pts->GetNumberOfPoints()==0)
     {
@@ -90,6 +96,7 @@ int ParticlePathFilterInternal::OutputParticles(vtkPolyData* particles)
 
     vtkIdList* path = this->Paths[pid];
 
+#ifdef DEBUG
     if(path->GetNumberOfIds()>0)
       {
       vtkFloatArray* outParticleAge = vtkFloatArray::SafeDownCast(outPd->GetArray("ParticleAge"));
@@ -100,6 +107,7 @@ int ParticlePathFilterInternal::OutputParticles(vtkPolyData* particles)
                << "\n" << "): " <<" new particles have wrong ages"<< "\n\n";
         }
       }
+#endif
     path->InsertNextId(outId);
     }
 

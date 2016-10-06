@@ -1,7 +1,7 @@
 #include <vtkArrayPrint.h>
 #include <vtkSparseArray.h>
 
-#include <vtksys/ios/sstream>
+#include <sstream>
 
 int main(int argc, char* argv[])
 {
@@ -12,7 +12,7 @@ int main(int argc, char* argv[])
     }
 
   int size = 0;
-  vtksys_ios::istringstream buffer(argv[1]);
+  std::istringstream buffer(argv[1]);
   buffer >> size;
 
   if(size < 1)

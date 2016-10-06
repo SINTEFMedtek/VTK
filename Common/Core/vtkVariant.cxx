@@ -17,24 +17,7 @@
   Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
   the U.S. Government retains certain rights in this software.
 -------------------------------------------------------------------------*/
-#ifdef VTK_VARIANT_IMPL
-/*
-All code in this source file is conditionally compiled to work-around
-a build problem on the SGI with MIPSpro 7.4.4.  The prelinker loads
-vtkVariant.cxx while looking for the template definition of
-vtkVariant::ToNumeric<> declared in the vtkVariant.h header.  It wants
-the definition in order to instantiate it in vtkCharArray.o or some
-other object to which the instantiation has been assigned.  For some
-reason providing the explicit instantiation in vtkVariant.o is not
-enough to prevent the prelinker from assigning the instantiation to
-another object.  When vtkVariant.cxx is included in the translation
-unit by the prelinker, it causes additional instantiations of other
-templates, like vtkVariantStringToNumeric.  This sends the prelinker
-into an infinite loop of instantiation requests.  By placing all the
-code in this preprocessing condition, we hide it from the prelinker.
-The CMakeLists.txt file defines the macro to compile this code when
-really building the vtkVariant.o object.
-*/
+
 #include "vtkVariant.h"
 
 #include "vtkStdString.h"
@@ -49,7 +32,7 @@ really building the vtkVariant.o object.
 #include "vtkStringArray.h"
 #include "vtkMath.h"
 
-#include "vtksys/ios/sstream"
+#include <sstream>
 #include "vtksys/SystemTools.hxx"
 #include <locale> // C++ locale
 
@@ -120,21 +103,11 @@ bool vtkVariantStrictWeakOrder::operator()(const vtkVariant& s1, const vtkVarian
     case VTK_UNSIGNED_LONG:
       return (s1.Data.UnsignedLong < s2.Data.UnsignedLong);
 
-#if defined(VTK_TYPE_USE___INT64)
-    case VTK___INT64:
-      return (s1.Data.__Int64 < s2.Data.__Int64);
-
-    case VTK_UNSIGNED___INT64:
-      return (s1.Data.Unsigned__Int64 < s2.Data.Unsigned__Int64);
-#endif
-
-#if defined(VTK_TYPE_USE_LONG_LONG)
     case VTK_LONG_LONG:
       return (s1.Data.LongLong < s2.Data.LongLong);
 
     case VTK_UNSIGNED_LONG_LONG:
       return (s1.Data.UnsignedLongLong < s2.Data.UnsignedLongLong);
-#endif
 
     case VTK_FLOAT:
       return (s1.Data.Float < s2.Data.Float);
@@ -214,21 +187,11 @@ vtkVariantStrictEquality::operator()(const vtkVariant &s1, const vtkVariant &s2)
     case VTK_UNSIGNED_LONG:
       return (s1.Data.UnsignedLong == s2.Data.UnsignedLong);
 
-#if defined(VTK_TYPE_USE___INT64)
-    case VTK___INT64:
-      return (s1.Data.__Int64 == s2.Data.__Int64);
-
-    case VTK_UNSIGNED___INT64:
-      return (s1.Data.Unsigned__Int64 == s2.Data.Unsigned__Int64);
-#endif
-
-#if defined(VTK_TYPE_USE_LONG_LONG)
     case VTK_LONG_LONG:
       return (s1.Data.LongLong == s2.Data.LongLong);
 
     case VTK_UNSIGNED_LONG_LONG:
       return (s1.Data.UnsignedLongLong == s2.Data.UnsignedLongLong);
-#endif
 
     case VTK_FLOAT:
       return (s1.Data.Float == s2.Data.Float);
@@ -351,17 +314,6 @@ vtkVariant::vtkVariant(const vtkVariant &s2, unsigned int type)
         this->Data.UnsignedLong = s2.ToUnsignedLong(&valid);
         break;
 
-#if defined(VTK_TYPE_USE___INT64)
-      case VTK___INT64:
-        this->Data.__Int64 = s2.To__Int64(&valid);
-        break;
-
-      case VTK_UNSIGNED___INT64:
-        this->Data.Unsigned__Int64 = s2.ToUnsigned__Int64(&valid);
-        break;
-#endif
-
-#if defined(VTK_TYPE_USE_LONG_LONG)
       case VTK_LONG_LONG:
         this->Data.LongLong = s2.ToLongLong(&valid);
         break;
@@ -369,7 +321,6 @@ vtkVariant::vtkVariant(const vtkVariant &s2, unsigned int type)
       case VTK_UNSIGNED_LONG_LONG:
         this->Data.UnsignedLongLong = s2.ToUnsignedLongLong(&valid);
         break;
-#endif
 
       case VTK_FLOAT:
         this->Data.Float = s2.ToFloat(&valid);
@@ -521,22 +472,6 @@ vtkVariant::vtkVariant(unsigned long value)
   this->Type = VTK_UNSIGNED_LONG;
 }
 
-#if defined(VTK_TYPE_USE___INT64)
-vtkVariant::vtkVariant(__int64 value)
-{
-  this->Data.__Int64 = value;
-  this->Valid = 1;
-  this->Type = VTK___INT64;
-}
-
-vtkVariant::vtkVariant(unsigned __int64 value)
-{
-  this->Data.Unsigned__Int64 = value;
-  this->Valid = 1;
-  this->Type = VTK_UNSIGNED___INT64;
-}
-#endif
-#if defined(VTK_TYPE_USE_LONG_LONG)
 vtkVariant::vtkVariant(long long value)
 {
   this->Data.LongLong = value;
@@ -550,7 +485,6 @@ vtkVariant::vtkVariant(unsigned long long value)
   this->Valid = 1;
   this->Type = VTK_UNSIGNED_LONG_LONG;
 }
-#endif
 
 vtkVariant::vtkVariant(float value)
 {
@@ -633,8 +567,6 @@ bool vtkVariant::IsNumeric() const
     || this->IsUnsignedInt()
     || this->IsLong()
     || this->IsUnsignedLong()
-    || this->Is__Int64()
-    || this->IsUnsigned__Int64()
     || this->IsLongLong()
     || this->IsUnsignedLongLong();
 }
@@ -696,12 +628,12 @@ bool vtkVariant::IsUnsignedLong() const
 
 bool vtkVariant::Is__Int64() const
 {
-  return this->Type == VTK___INT64;
+  return false;
 }
 
 bool vtkVariant::IsUnsigned__Int64() const
 {
-  return this->Type == VTK_UNSIGNED___INT64;
+  return false;
 }
 
 bool vtkVariant::IsLongLong() const
@@ -744,7 +676,7 @@ template <typename iterT>
 vtkStdString vtkVariantArrayToString(iterT* it)
 {
   vtkIdType maxInd = it->GetNumberOfValues();
-  vtksys_ios::ostringstream ostr;
+  std::ostringstream ostr;
   for (vtkIdType i = 0; i < maxInd; i++)
     {
     if (i > 0)
@@ -772,108 +704,90 @@ vtkStdString vtkVariant::ToString() const
     }
   if (this->IsFloat())
     {
-    vtksys_ios::ostringstream ostr;
+    std::ostringstream ostr;
     ostr.imbue(std::locale::classic());
     ostr << this->Data.Float;
     return vtkStdString(ostr.str());
     }
   if (this->IsDouble())
     {
-    vtksys_ios::ostringstream ostr;
+    std::ostringstream ostr;
     ostr.imbue(std::locale::classic());
     ostr << this->Data.Double;
     return vtkStdString(ostr.str());
     }
   if (this->IsChar())
     {
-    vtksys_ios::ostringstream ostr;
+    std::ostringstream ostr;
     ostr << this->Data.Char;
     return vtkStdString(ostr.str());
     }
   if (this->IsUnsignedChar())
     {
-    vtksys_ios::ostringstream ostr;
+    std::ostringstream ostr;
     ostr << static_cast<unsigned int>(this->Data.UnsignedChar);
     return vtkStdString(ostr.str());
     }
   if (this->IsSignedChar())
     {
-    vtksys_ios::ostringstream ostr;
+    std::ostringstream ostr;
     ostr << this->Data.SignedChar;
     return vtkStdString(ostr.str());
     }
   if (this->IsShort())
     {
-    vtksys_ios::ostringstream ostr;
+    std::ostringstream ostr;
     ostr << this->Data.Short;
     return vtkStdString(ostr.str());
     }
   if (this->IsUnsignedShort())
     {
-    vtksys_ios::ostringstream ostr;
+    std::ostringstream ostr;
     ostr << this->Data.UnsignedShort;
     return vtkStdString(ostr.str());
     }
   if (this->IsInt())
     {
-    vtksys_ios::ostringstream ostr;
+    std::ostringstream ostr;
     ostr.imbue(std::locale::classic());
     ostr << this->Data.Int;
     return vtkStdString(ostr.str());
     }
   if (this->IsUnsignedInt())
     {
-    vtksys_ios::ostringstream ostr;
+    std::ostringstream ostr;
     ostr.imbue(std::locale::classic());
     ostr << this->Data.UnsignedInt;
     return vtkStdString(ostr.str());
     }
   if (this->IsLong())
     {
-    vtksys_ios::ostringstream ostr;
+    std::ostringstream ostr;
     ostr.imbue(std::locale::classic());
     ostr << this->Data.Long;
     return vtkStdString(ostr.str());
     }
   if (this->IsUnsignedLong())
     {
-    vtksys_ios::ostringstream ostr;
+    std::ostringstream ostr;
     ostr.imbue(std::locale::classic());
     ostr << this->Data.UnsignedLong;
     return vtkStdString(ostr.str());
     }
-#if defined(VTK_TYPE_USE___INT64)
-  if (this->Is__Int64())
-    {
-    vtksys_ios::ostringstream ostr;
-    ostr.imbue(std::locale::classic());
-    ostr << this->Data.__Int64;
-    return vtkStdString(ostr.str());
-    }
-  if (this->IsUnsigned__Int64())
-    {
-    vtksys_ios::ostringstream ostr;
-    ostr.imbue(std::locale::classic());
-    ostr << this->Data.Unsigned__Int64;
-    return vtkStdString(ostr.str());
-    }
-#endif
-#if defined(VTK_TYPE_USE_LONG_LONG)
   if (this->IsLongLong())
     {
-    vtksys_ios::ostringstream ostr;
+    std::ostringstream ostr;
     ostr.imbue(std::locale::classic());
     ostr << this->Data.LongLong;
     return vtkStdString(ostr.str());
     }
   if (this->IsUnsignedLongLong())
     {
-    vtksys_ios::ostringstream ostr;
+    std::ostringstream ostr;
     ostr.imbue(std::locale::classic());
     ostr << this->Data.UnsignedLongLong;
     return vtkStdString(ostr.str());
     }
-#endif
   if (this->IsArray())
     {
     vtkAbstractArray* arr = vtkAbstractArray::SafeDownCast(this->Data.VTKObject);
@@ -973,7 +887,7 @@ template<> float vtkVariantStringToNonFiniteNumeric<float>(vtkStdString str,
 template <typename T>
 T vtkVariantStringToNumeric(vtkStdString str, bool* valid, T* vtkNotUsed(ignored) = 0)
 {
-  vtksys_ios::istringstream vstr(str);
+  std::istringstream vstr(str);
   T data = 0;
   vstr >> data;
   if(!vstr.eof())
@@ -1016,16 +930,8 @@ vtkVariantToNumericInstantiateMacro(int);
 vtkVariantToNumericInstantiateMacro(unsigned int);
 vtkVariantToNumericInstantiateMacro(long);
 vtkVariantToNumericInstantiateMacro(unsigned long);
-
-#if defined(VTK_TYPE_USE___INT64)
-vtkVariantToNumericInstantiateMacro(__int64);
-vtkVariantToNumericInstantiateMacro(unsigned __int64);
-#endif
-
-#if defined(VTK_TYPE_USE_LONG_LONG)
 vtkVariantToNumericInstantiateMacro(long long);
 vtkVariantToNumericInstantiateMacro(unsigned long long);
-#endif
 
 #endif
 
@@ -1087,19 +993,6 @@ unsigned long vtkVariant::ToUnsignedLong(bool *valid) const
   return this->ToNumeric(valid, static_cast<unsigned long *>(0));
 }
 
-#if defined(VTK_TYPE_USE___INT64)
-__int64 vtkVariant::To__Int64(bool *valid) const
-{
-  return this->ToNumeric(valid, static_cast<__int64 *>(0));
-}
-
-unsigned __int64 vtkVariant::ToUnsigned__Int64(bool *valid) const
-{
-  return this->ToNumeric(valid, static_cast<unsigned __int64 *>(0));
-}
-#endif
-
-#if defined(VTK_TYPE_USE_LONG_LONG)
 long long vtkVariant::ToLongLong(bool *valid) const
 {
   return this->ToNumeric(valid, static_cast<long long *>(0));
@@ -1109,7 +1002,6 @@ unsigned long long vtkVariant::ToUnsignedLongLong(bool *valid) const
 {
   return this->ToNumeric(valid, static_cast<unsigned long long *>(0));
 }
-#endif
 
 vtkTypeInt64 vtkVariant::ToTypeInt64(bool *valid) const
 {
@@ -1188,22 +1080,12 @@ ostream& operator << ( ostream& os, const vtkVariant& val )
   case VTK_UNSIGNED_LONG:
     os << val.Data.UnsignedLong;
     break;
-#if defined(VTK_TYPE_USE___INT64)
-  case VTK___INT64:
-    os << val.Data.__Int64;
-    break;
-  case VTK_UNSIGNED___INT64:
-    os << val.Data.Unsigned__Int64;
-    break;
-#endif
-#if defined(VTK_TYPE_USE_LONG_LONG)
   case VTK_LONG_LONG:
     os << val.Data.LongLong;
     break;
   case VTK_UNSIGNED_LONG_LONG:
     os << val.Data.UnsignedLongLong;
     break;
-#endif
   case VTK_OBJECT:
     if ( val.Data.VTKObject )
       {
@@ -1217,5 +1099,3 @@ ostream& operator << ( ostream& os, const vtkVariant& val )
     }
   return os;
 }
-
-#endif

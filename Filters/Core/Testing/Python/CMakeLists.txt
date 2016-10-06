@@ -15,26 +15,35 @@ vtk_add_test_python(
   Delaunay3DAlphaTest.py
   QuadricDecimation.py
   StreamPolyData.py
+  TestElevationFilter.py
+  TestFlyingEdges2D.py
+  TestFlyingEdges3D.py
+  TestFlyingEdgesExtents.py
+  TestFlyingEdgesPlaneCutter.py
   TestGridSynchronizedTemplates3D.py
   TestMarchingSquares.py
+  TestProbeFilterImageInput.py
   TestRectilinearSynchronizedTemplates.py
+  TestScalarTrees.py
   TestSynchronizedTemplates2D.py
   TestSynchronizedTemplates3D.py
   TestContourGrid.py,NO_VALID
   TestTensorGlyph.py,NO_RT
   TestTextureGlyph.py
   TestTriangleFilter.py
+  TestVectorDotNorm.py
   capCow.py
   capSphere.py
   clipArt.py
   combStreamers.py
-  combStreamers2.py
   constrainedDelaunay.py
   contourCells.py
   contourQuadraticCells.py
   contourQuadraticTetra.py,NO_RT
   createBFont.py
   cutLoop.py
+  cutPolygons.py
+  cutter.py
   dispPlot.py
   fieldToPolyData.py
   fieldToRGrid.py

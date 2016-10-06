@@ -14,6 +14,8 @@
 =========================================================================*/
 #include "vtkVolumeRayCastIsosurfaceFunction.h"
 
+#if !defined(VTK_LEGACY_REMOVE)
+
 #include "vtkCamera.h"
 #include "vtkColorTransferFunction.h"
 #include "vtkMath.h"
@@ -709,13 +711,14 @@ void vtkCastRay_Trilin ( vtkVolumeRayCastIsosurfaceFunction *cast_function,
         for (loop=0;  loop<line_info.num_intersections;
              loop++)
           {
-          point_x = line_info.local_position[loop][0] + voxel_x;
-          point_y = line_info.local_position[loop][1] + voxel_y;
-          point_z = line_info.local_position[loop][2] + voxel_z;
+          float* pos = line_info.local_position[loop];
+          point_x = pos[0] + voxel_x;
+          point_y = pos[1] + voxel_y;
+          point_z = pos[2] + voxel_z;
 
-          if ((VTK_In_Range(point_x, ((float)(voxel_x) - 0.001 ), ((float)(voxel_x) + 1.001))) &&
-              (VTK_In_Range(point_y, ((float)(voxel_y) - 0.001 ), ((float)(voxel_y) + 1.001))) &&
-              (VTK_In_Range(point_z, ((float)(voxel_z) - 0.001 ), ((float)(voxel_z) + 1.001))))
+          if ((VTK_In_Range(point_x, (static_cast<double>(voxel_x) - 0.001), (static_cast<double>(voxel_x) + 1.001))) &&
+              (VTK_In_Range(point_y, (static_cast<double>(voxel_y) - 0.001), (static_cast<double>(voxel_y) + 1.001))) &&
+              (VTK_In_Range(point_z, (static_cast<double>(voxel_z) - 0.001), (static_cast<double>(voxel_z) + 1.001))))
             {
             break;
             }
@@ -1038,6 +1041,7 @@ void vtkCastRay_Trilin ( vtkVolumeRayCastIsosurfaceFunction *cast_function,
 vtkVolumeRayCastIsosurfaceFunction::vtkVolumeRayCastIsosurfaceFunction()
 {
   this->IsoValue                = 0;
+  VTK_LEGACY_BODY(vtkVolumeRayCastIsosurfaceFunction::vtkVolumeRayCastIsosurfaceFunction,"VTK 7.0");
 }
 
 // Destruct the vtkVolumeRayCastIsosurfaceFunction
@@ -1137,4 +1141,5 @@ void vtkVolumeRayCastIsosurfaceFunction::PrintSelf(ostream& os, vtkIndent indent
   os << indent << "Isosurface Value: " << this->IsoValue << "\n";
 }
 
+#endif // VTK_LEGACY_REMOVE
 

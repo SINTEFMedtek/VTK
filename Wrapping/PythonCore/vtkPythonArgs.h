@@ -28,7 +28,7 @@ resulting in wrapper code that is faster and more compact.
 
 #include "vtkWrappingPythonCoreModule.h" // For export macro
 #include "vtkPythonUtil.h"
-#include "PyVTKClass.h"
+#include "PyVTKObject.h"
 #include "PyVTKTemplate.h"
 
 #include "vtkConfigure.h"
@@ -45,7 +45,7 @@ public:
   vtkPythonArgs(PyObject *self, PyObject *args, const char *methodname) :
       Args(args), MethodName(methodname) {
       this->N = PyTuple_GET_SIZE(args);
-      this->M = PyVTKClass_Check(self);
+      this->M = PyType_Check(self);
       this->I = this->M;
     }
 
@@ -65,13 +65,19 @@ public:
   // Description:
   // Get a pointer to the self object, converted to its C++ type.
   // Returns NULL and sets a TypeError if the type is wrong.
-  // If "self" is a PyVTKClass, pull the object from the first arg.
+  // If "self" is a class type, pull the object from the first arg.
   static vtkObjectBase *GetSelfPointer(PyObject *self, PyObject *args);
 
   // Description:
   // Get a pointer to the self object, converted to its C++ type.
+  // Returns NULL and sets a TypeError if the type is wrong.
+  // If "self" is a type, pull the object from the first arg.
+  static void *GetSelfSpecialPointer(PyObject *self, PyObject *args);
+
+  // Description:
+  // Get a pointer to the self object, converted to its C++ type.
   // Always succeeds.
-  static void *GetSelfPointer(PyObject *self);
+  static void *GetSelfSpecialPointer(PyObject *self);
 
   // Description:
   // Verify the arg count for a method with optional arguments.
@@ -162,14 +168,14 @@ public:
   // Description:
   // Get the next argument as an enum value.
   template<class T>
-  bool GetEnumValue(T &v, PyTypeObject *enumtype) {
+  bool GetEnumValue(T &v, const char *enumname) {
     bool r;
-    v = static_cast<T>(this->GetArgAsEnum(enumtype, r));
+    v = static_cast<T>(this->GetArgAsEnum(enumname, r));
     return r; }
   template<class T>
-  static bool GetEnumValue(PyObject *o, T &v, PyTypeObject *enumtype) {
+  static bool GetEnumValue(PyObject *o, T &v, const char *enumname) {
     bool r;
-    v = static_cast<T>(vtkPythonArgs::GetArgAsEnum(o, enumtype, r));
+    v = static_cast<T>(vtkPythonArgs::GetArgAsEnum(o, enumname, r));
     return r; }
 
   // Description:
@@ -205,10 +211,10 @@ public:
   static bool GetFunction(PyObject *arg, PyObject *&o);
 
   // Get the next arg as a void pointer (to a buffer object).
-  bool GetValue(void *&v);
-  static bool GetValue(PyObject *o, void *&v);
-  bool GetValue(const void *&v);
-  static bool GetValue(PyObject *o, const void *&v);
+  bool GetBuffer(void *&v, Py_buffer *buf);
+  static bool GetBuffer(PyObject *o, void *&v, Py_buffer *buf);
+  bool GetBuffer(const void *&v, Py_buffer *buf);
+  static bool GetBuffer(PyObject *o, const void *&v, Py_buffer *buf);
 
   // Description:
   // Get the next argument as a string.
@@ -250,18 +256,10 @@ public:
   static bool GetValue(PyObject *o, long &v);
   bool GetValue(unsigned long &v);
   static bool GetValue(PyObject *o, unsigned long &v);
-#ifdef VTK_TYPE_USE_LONG_LONG
   bool GetValue(long long &v);
   static bool GetValue(PyObject *o, long long &v);
   bool GetValue(unsigned long long &v);
   static bool GetValue(PyObject *o, unsigned long long &v);
-#endif
-#ifdef VTK_TYPE_USE___INT64
-  bool GetValue(__int64 &v);
-  static bool GetValue(PyObject *o, __int64 &v);
-  bool GetValue(unsigned __int64 &v);
-  static bool GetValue(PyObject *o, unsigned __int64 &v);
-#endif
 
   // Description:
   // Get the next argument as an array.
@@ -277,14 +275,8 @@ public:
   bool GetArray(unsigned int *v, int n);
   bool GetArray(long *v, int n);
   bool GetArray(unsigned long *v, int n);
-#ifdef VTK_TYPE_USE_LONG_LONG
   bool GetArray(long long *v, int n);
   bool GetArray(unsigned long long *v, int n);
-#endif
-#ifdef VTK_TYPE_USE___INT64
-  bool GetArray(__int64 *v, int n);
-  bool GetArray(unsigned __int64 *v, int n);
-#endif
 
   // Description:
   // Get the next argument as a multi-dimensional array.
@@ -300,14 +292,8 @@ public:
   bool GetNArray(unsigned int *v, int ndims, const int *dims);
   bool GetNArray(long *v, int ndims, const int *dims);
   bool GetNArray(unsigned long *v, int ndims, const int *dims);
-#ifdef VTK_TYPE_USE_LONG_LONG
   bool GetNArray(long long *v, int ndims, const int *dims);
   bool GetNArray(unsigned long long *v, int ndims, const int *dims);
-#endif
-#ifdef VTK_TYPE_USE___INT64
-  bool GetNArray(__int64 *v, int ndims, const int *dims);
-  bool GetNArray(unsigned __int64 *v, int ndims, const int *dims);
-#endif
 
   // Description:
   // Set the value of an argument if it is an assignable type.
@@ -325,14 +311,8 @@ public:
   bool SetArgValue(int i, unsigned int v);
   bool SetArgValue(int i, long v);
   bool SetArgValue(int i, unsigned long v);
-#ifdef VTK_TYPE_USE_LONG_LONG
   bool SetArgValue(int i, long long v);
   bool SetArgValue(int i, unsigned long long v);
-#endif
-#ifdef VTK_TYPE_USE___INT64
-  bool SetArgValue(int i, __int64 v);
-  bool SetArgValue(int i, unsigned __int64 v);
-#endif
 
   // Description:
   // Set the values in an array argument.
@@ -348,14 +328,8 @@ public:
   bool SetArray(int i, const unsigned int *v, int n);
   bool SetArray(int i, const long *v, int n);
   bool SetArray(int i, const unsigned long *v, int n);
-#ifdef VTK_TYPE_USE_LONG_LONG
   bool SetArray(int i, const long long *v, int n);
   bool SetArray(int i, const unsigned long long *v, int n);
-#endif
-#ifdef VTK_TYPE_USE___INT64
-  bool SetArray(int i, const __int64 *v, int n);
-  bool SetArray(int i, const unsigned __int64 *v, int n);
-#endif
 
   // Description:
   // Set the values in a multi-dimensional array argument.
@@ -371,14 +345,8 @@ public:
   bool SetNArray(int i, const unsigned int *v, int n, const int *d);
   bool SetNArray(int i, const long *v, int n, const int *d);
   bool SetNArray(int i, const unsigned long *v, int n, const int *d);
-#ifdef VTK_TYPE_USE_LONG_LONG
   bool SetNArray(int i, const long long *v, int n, const int *d);
   bool SetNArray(int i, const unsigned long long *v, int n, const int *d);
-#endif
-#ifdef VTK_TYPE_USE___INT64
-  bool SetNArray(int i, const __int64 *v, int n, const int *d);
-  bool SetNArray(int i, const unsigned __int64 *v, int n, const int *d);
-#endif
 
   // Description:
   // Build a value of None.
@@ -413,6 +381,7 @@ public:
 
   // Description:
   // Build a string return value.
+  static PyObject *BuildValue(const char *v, size_t l);
   static PyObject *BuildValue(const char *v);
   static PyObject *BuildValue(const std::string &v);
   static PyObject *BuildValue(const vtkUnicodeString &v);
@@ -429,14 +398,8 @@ public:
   static PyObject *BuildValue(unsigned int v);
   static PyObject *BuildValue(long v);
   static PyObject *BuildValue(unsigned long v);
-#ifdef VTK_TYPE_USE_LONG_LONG
   static PyObject *BuildValue(long long v);
   static PyObject *BuildValue(unsigned long long v);
-#endif
-#ifdef VTK_TYPE_USE___INT64
-  static PyObject *BuildValue(__int64 v);
-  static PyObject *BuildValue(unsigned __int64 v);
-#endif
 
   // Description:
   // Build a bytes object (or string).
@@ -455,14 +418,8 @@ public:
   static PyObject *BuildTuple(const unsigned int *v, int n);
   static PyObject *BuildTuple(const long *v, int n);
   static PyObject *BuildTuple(const unsigned long *v, int n);
-#ifdef VTK_TYPE_USE_LONG_LONG
   static PyObject *BuildTuple(const long long *v, int n);
   static PyObject *BuildTuple(const unsigned long long *v, int n);
-#endif
-#ifdef VTK_TYPE_USE___INT64
-  static PyObject *BuildTuple(const __int64 *v, int n);
-  static PyObject *BuildTuple(const unsigned __int64 *v, int n);
-#endif
 
   // Description:
   // Copy an array.
@@ -488,7 +445,7 @@ public:
   // Get the argument count for a method that might be unbound.
   static int GetArgCount(PyObject *self, PyObject *args) {
     return (static_cast<int>(PyTuple_GET_SIZE(args)) -
-            PyVTKClass_Check(self)); }
+            PyType_Check(self)); }
 
   // Description:
   // Raise a type error just saying that the arg count is wrong.
@@ -499,7 +456,7 @@ protected:
 
   // Description:
   // Get the "self" object from the first argument.
-  static vtkObjectBase *GetSelfFromFirstArg(PyObject *self, PyObject *args);
+  static PyObject *GetSelfFromFirstArg(PyObject *self, PyObject *args);
 
   // Description:
   // Get the next argument as an object of the given type.
@@ -521,9 +478,9 @@ protected:
 
   // Description:
   // Get the next argument as an object of the given type.
-  int GetArgAsEnum(PyTypeObject *enumtype, bool &valid);
+  int GetArgAsEnum(const char *enumname, bool &valid);
   static int GetArgAsEnum(
-    PyObject *o, PyTypeObject *enumtype, bool &valid);
+    PyObject *o, const char *enumname, bool &valid);
 
   // Description:
   // Get the next argument as an object of the given type.
@@ -566,16 +523,27 @@ private:
 inline
 vtkObjectBase *vtkPythonArgs::GetSelfPointer(PyObject *self, PyObject *args)
 {
-  if (PyVTKClass_Check(self))
+  if (PyType_Check(self))
     {
-    return vtkPythonArgs::GetSelfFromFirstArg(self, args);
+    self = vtkPythonArgs::GetSelfFromFirstArg(self, args);
     }
-  return ((PyVTKObject *)self)->vtk_ptr;
+  return (self ? ((PyVTKObject *)self)->vtk_ptr : NULL);
 }
 
 // Get "self" from a PyVTKSpecialObject.
 inline
-void *vtkPythonArgs::GetSelfPointer(PyObject *self)
+void *vtkPythonArgs::GetSelfSpecialPointer(PyObject *self, PyObject *args)
+{
+  if (PyType_Check(self))
+    {
+    self = vtkPythonArgs::GetSelfFromFirstArg(self, args);
+    }
+  return (self ? ((PyVTKSpecialObject *)self)->vtk_ptr : NULL);
+}
+
+// Get "self" from a PyVTKSpecialObject (for methods with no args).
+inline
+void *vtkPythonArgs::GetSelfSpecialPointer(PyObject *self)
 {
   return ((PyVTKSpecialObject *)self)->vtk_ptr;
 }
@@ -690,11 +658,31 @@ PyObject *vtkPythonArgs::BuildValue(const void *a)
 }
 
 inline
+PyObject *vtkPythonArgs::BuildValue(const char *a, size_t l)
+{
+#if PY_VERSION_HEX < 0x03000000
+  return PyString_FromStringAndSize(a, static_cast<Py_ssize_t>(l));
+#else
+#if PY_VERSION_HEX >= 0x03030000
+  PyObject *o = PyUnicode_FromStringAndSize(a, static_cast<Py_ssize_t>(l));
+#else
+  PyObject *o = PyUnicode_Decode(a, static_cast<Py_ssize_t>(l), NULL, NULL);
+#endif
+  if (o == NULL)
+    {
+    PyErr_Clear();
+    o = PyBytes_FromStringAndSize(a, static_cast<Py_ssize_t>(l));
+    }
+  return o;
+#endif
+}
+
+inline
 PyObject *vtkPythonArgs::BuildValue(const char *a)
 {
   if (a)
     {
-    return PyString_FromString(a);
+    return vtkPythonArgs::BuildValue(a, strlen(a));
     }
   Py_INCREF(Py_None);
   return Py_None;
@@ -703,7 +691,7 @@ PyObject *vtkPythonArgs::BuildValue(const char *a)
 inline
 PyObject *vtkPythonArgs::BuildValue(const std::string &a)
 {
-  return PyString_FromStringAndSize(a.c_str(), static_cast<Py_ssize_t>(a.size()));
+  return vtkPythonArgs::BuildValue(a.data(), a.size());
 }
 
 inline
@@ -736,11 +724,7 @@ PyObject *vtkPythonArgs::BuildValue(double a)
 inline
 PyObject *vtkPythonArgs::BuildValue(bool a)
 {
-#if PY_VERSION_HEX >= 0x02030000
   return PyBool_FromLong((long)a);
-#else
-  return PyInt_FromLong((long)a);
-#endif
 }
 
 inline
@@ -779,54 +763,22 @@ PyObject *vtkPythonArgs::BuildValue(unsigned long a)
   return PyLong_FromUnsignedLong(a);
 }
 
-#if defined(VTK_TYPE_USE_LONG_LONG)
 inline
 PyObject *vtkPythonArgs::BuildValue(long long a)
 {
-#if defined(PY_LONG_LONG)
   return PyLong_FromLongLong(a);
-#else
-  return PyLong_FromLong((long)(a));
-#endif
 }
 
 inline
 PyObject *vtkPythonArgs::BuildValue(unsigned long long a)
 {
-#if defined(PY_LONG_LONG)
   return PyLong_FromUnsignedLongLong(a);
-#else
-  return PyLong_FromUnsignedLong((unsigned long)(a));
-#endif
 }
-#endif
-
-#if defined(VTK_TYPE_USE___INT64)
-inline
-PyObject *vtkPythonArgs::BuildValue(__int64 a)
-{
-#if defined(PY_LONG_LONG)
-  return PyLong_FromLongLong(a);
-#else
-  return PyLong_FromLong((long)(a));
-#endif
-}
-
-inline
-PyObject *vtkPythonArgs::BuildValue(unsigned __int64 a)
-{
-#if defined(PY_LONG_LONG)
-  return PyLong_FromUnsignedLongLong(a);
-#else
-  return PyLong_FromUnsignedLong((unsigned long)(a));
-#endif
-}
-#endif
 
 inline
 PyObject *vtkPythonArgs::BuildBytes(const char *a, int n)
 {
-  return PyString_FromStringAndSize(a, n);
+  return PyBytes_FromStringAndSize(a, n);
 }
 
 #endif

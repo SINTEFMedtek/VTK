@@ -32,7 +32,7 @@
 #include "vtkObjectFactory.h"
 #include "vtkInteractorObserver.h"
 
-#include <vtksys/ios/sstream>
+#include <sstream>
 
 vtkStandardNewMacro(vtkBiDimensionalRepresentation2D);
 
@@ -657,7 +657,7 @@ void vtkBiDimensionalRepresentation2D::BuildRepresentation()
       {
       line2Dist = sqrt(vtkMath::Distance2BetweenPoints(wp3, wp4));
       }
-    vtksys_ios::ostringstream label;
+    std::ostringstream label;
     if (this->IDInitialized)
       {
       label << this->ID << ": ";

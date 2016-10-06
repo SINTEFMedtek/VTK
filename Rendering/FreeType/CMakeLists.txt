@@ -2,7 +2,6 @@ include(vtkObjectFactory)
 
 set(Module_SRCS
   vtkFreeTypeStringToImage.cxx
-  vtkFreeTypeUtilities.cxx
   vtkFreeTypeTools.cxx
   vtkMathTextFreeTypeTextRenderer.cxx
   vtkMathTextUtilities.cxx
@@ -28,7 +27,10 @@ set(Module_SRCS
 
 set_source_files_properties(
   vtkFreeTypeTools
-  vtkFreeTypeUtilities
+  WRAP_EXCLUDE
+)
+
+set_source_files_properties(
   fonts/face_arial_bold
   fonts/face_arial_bold_italic
   fonts/face_arial
@@ -42,7 +44,9 @@ set_source_files_properties(
   fonts/face_times
   fonts/face_times_italic
   ${CMAKE_CURRENT_BINARY_DIR}/${vtk-module}ObjectFactory.cxx
-  WRAP_EXCLUDE
+  PROPERTIES
+    WRAP_EXCLUDE 1
+    WRAP_EXCLUDE_PYTHON 1
   )
 
 # Override some rendering classes. Create object factory:

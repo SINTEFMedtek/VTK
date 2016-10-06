@@ -111,6 +111,8 @@ vtkRenderer::vtkRenderer()
 
   this->GL2PSSpecialPropCollection = NULL;
 
+  this->UseShadows = 0;
+
   this->UseDepthPeeling=0;
   this->OcclusionRatio=0.0;
   this->MaximumNumberOfPeels=4;
@@ -158,6 +160,23 @@ vtkRenderer::~vtkRenderer()
   if(this->BackgroundTexture != NULL)
     {
     this->BackgroundTexture->Delete();
+    }
+}
+
+void vtkRenderer::ReleaseGraphicsResources(vtkWindow *renWin)
+{
+  if(this->BackgroundTexture != 0)
+    {
+    this->BackgroundTexture->ReleaseGraphicsResources(renWin);
+    }
+  vtkProp *aProp;
+  vtkCollectionSimpleIterator pit;
+  this->Props->InitTraversal(pit);
+  for ( aProp = this->Props->GetNextProp(pit);
+        aProp != NULL;
+        aProp = this->Props->GetNextProp(pit) )
+    {
+    aProp->ReleaseGraphicsResources(renWin);
     }
 }
 

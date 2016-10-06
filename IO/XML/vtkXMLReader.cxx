@@ -33,10 +33,13 @@
 #include "vtkQuadratureSchemeDefinition.h"
 #include "vtkInformationStringKey.h"
 
-#include <vtksys/ios/sstream>
+#include <sstream>
 #include <sys/stat.h>
 #include <cassert>
 #include <locale> // C++ locale
+
+vtkCxxSetObjectMacro(vtkXMLReader,ReaderErrorObserver,vtkCommand);
+vtkCxxSetObjectMacro(vtkXMLReader,ParserErrorObserver,vtkCommand);
 
 //-----------------------------------------------------------------------------
 static void ReadStringVersion(const char* version, int& major, int& minor)
@@ -60,7 +63,7 @@ static void ReadStringVersion(const char* version, int& major, int& minor)
 
   if (s > begin)
     {
-    vtksys_ios::stringstream str;
+    std::stringstream str;
     str.write(begin, s-begin);
     str >> major;
     if (!str)
@@ -70,7 +73,7 @@ static void ReadStringVersion(const char* version, int& major, int& minor)
     }
   if (++s < end)
     {
-    vtksys_ios::stringstream str;
+    std::stringstream str;
     str.write(s, end-s);
     str >> minor;
     if (!str)
@@ -89,6 +92,8 @@ vtkXMLReader::vtkXMLReader()
   this->ReadFromInputString = 0;
   this->InputString = "";
   this->XMLParser = 0;
+  this->ReaderErrorObserver = 0;
+  this->ParserErrorObserver = 0;
   this->FieldDataElement = 0;
   this->PointDataArraySelection = vtkDataArraySelection::New();
   this->CellDataArraySelection = vtkDataArraySelection::New();
@@ -144,6 +149,14 @@ vtkXMLReader::~vtkXMLReader()
   this->SelectionObserver->Delete();
   this->CellDataArraySelection->Delete();
   this->PointDataArraySelection->Delete();
+  if (this->ReaderErrorObserver)
+    {
+    this->ReaderErrorObserver->Delete();
+    }
+  if (this->ParserErrorObserver)
+    {
+    this->ParserErrorObserver->Delete();
+    }
   delete[] this->TimeSteps;
 }
 
@@ -786,7 +799,7 @@ vtkAbstractArray* vtkXMLReader::CreateArray(vtkXMLDataElement* da)
 
   //determine what component names have been saved in the file.
   const char* compName = 0;
-  vtksys_ios::ostringstream buff;
+  std::ostringstream buff;
   for (int i = 0; i < components && i < 10; ++i)
     {
     //get the component names
@@ -1024,7 +1037,7 @@ void vtkXMLReader::SetDataArraySelections(
       }
     else
       {
-      vtksys_ios::ostringstream s;
+      std::ostringstream s;
       s << "Array " << i;
       sel->AddArray(s.str().c_str());
       }

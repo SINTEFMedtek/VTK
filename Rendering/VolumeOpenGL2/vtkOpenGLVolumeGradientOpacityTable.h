@@ -13,8 +13,8 @@
 
 =========================================================================*/
 
-#ifndef vtkOpenGLVolumeGradientOpacityTable_h_
-#define vtkOpenGLVolumeGradientOpacityTable_h_
+#ifndef vtkOpenGLVolumeGradientOpacityTable_h
+#define vtkOpenGLVolumeGradientOpacityTable_h
 
 #include <vtkPiecewiseFunction.h>
 #include <vtkTextureObject.h>
@@ -109,8 +109,7 @@ public:
                               (this->LastRange[1] - this->LastRange[0]) * 0.25,
                               this->TextureWidth, this->Table);
 
-      this->TextureObject->CreateAlphaFromRaw(this->TextureWidth,
-                                              vtkTextureObject::alpha16,
+      this->TextureObject->Create2DFromRaw(this->TextureWidth,1,1,
                                               VTK_FLOAT,
                                               this->Table);
 
@@ -222,5 +221,5 @@ private:
   vtkOpenGLVolumeGradientOpacityTables &operator=(const vtkOpenGLVolumeGradientOpacityTables &other);
 };
 
-#endif // vtkOpenGLVolumeGradientOpacityTable_h_
+#endif // vtkOpenGLVolumeGradientOpacityTable_h
 // VTK-HeaderTest-Exclude: vtkOpenGLVolumeGradientOpacityTable.h

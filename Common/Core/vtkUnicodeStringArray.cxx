@@ -3,8 +3,6 @@
   Program:   Visualization Toolkit
   Module:    vtkUnicodeStringArray.cxx
   Language:  C++
-  Date:      $Date$
-  Version:   $Revision$
 
   Copyright 2004 Sandia Corporation.
   Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive
@@ -361,6 +359,11 @@ void vtkUnicodeStringArray::LookupValue(vtkVariant value, vtkIdList* ids)
 void vtkUnicodeStringArray::SetVariantValue(vtkIdType id, vtkVariant value)
 {
   this->SetValue( id, value.ToUnicodeString() );
+}
+
+void vtkUnicodeStringArray::InsertVariantValue(vtkIdType id, vtkVariant value)
+{
+  this->InsertValue( id, value.ToUnicodeString() );
 }
 
 void vtkUnicodeStringArray::DataChanged()

@@ -58,7 +58,7 @@
 #include "vtkVertexListIterator.h"
 #include "vtkViewTheme.h"
 
-#include <vtksys/ios/sstream>
+#include <sstream>
 
 #include <boost/graph/use_mpi.hpp>
 #include <boost/graph/distributed/mpi_process_group.hpp>
@@ -182,7 +182,7 @@ int TestPBGLPipeline(int argc, char* argv[])
   else
     {
     // Create an in-memory database containing a cycle graph.
-    vtksys_ios::ostringstream oss;
+    std::ostringstream oss;
     int vertices = 10000;
     db = vtkSmartPointer<vtkSQLiteDatabase>::New();
     vtkSQLiteDatabase::SafeDownCast(db)->SetDatabaseFileName(":memory:");

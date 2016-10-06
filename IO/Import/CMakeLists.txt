@@ -6,6 +6,10 @@ set(Module_SRCS
   vtkOBJImporterInternals.cxx
 )
 
+set (${vtk-module}_HDRS
+  vtk3DS.h
+)
+
 set_source_files_properties(
   vtkImporter
   ABSTRACT
@@ -13,7 +17,9 @@ set_source_files_properties(
 
 set_source_files_properties(
   vtkOBJImporterInternals
-  WRAP_EXCLUDE
+  PROPERTIES
+    WRAP_EXCLUDE 1
+    WRAP_EXCLUDE_PYTHON 1
   )
 
 vtk_module_library(vtkIOImport ${Module_SRCS})

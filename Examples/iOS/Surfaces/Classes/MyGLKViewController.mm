@@ -379,7 +379,7 @@ PURPOSE.  See the above copyright notice for more information.
     location.x *= scale;
     location.y *= scale;
 
-    int index = interactor->GetContactIndex((__bridge void *)touch);
+    int index = interactor->GetPointerIndexForContact((size_t)(__bridge void *)touch);
     if (index < VTKI_MAX_POINTERS)
       {
       interactor->SetEventInformation((int)round(location.x),
@@ -392,7 +392,7 @@ PURPOSE.  See the above copyright notice for more information.
   // handle begin events
   for (UITouch *touch in touches)
     {
-    int index = interactor->GetContactIndex((__bridge void *)touch);
+    int index = interactor->GetPointerIndexForContact((size_t)(__bridge void *)touch);
     interactor->SetPointerIndex(index);
     interactor->InvokeEvent(vtkCommand::LeftButtonPressEvent,NULL);
     //NSLog(@"Starting left mouse");
@@ -433,7 +433,7 @@ PURPOSE.  See the above copyright notice for more information.
     location.x *= scale;
     location.y *= scale;
 
-    index = interactor->GetContactIndex((__bridge void *)touch);
+    index = interactor->GetPointerIndexForContact((size_t)(__bridge void *)touch);
     if (index < VTKI_MAX_POINTERS)
       {
       interactor->SetEventInformation((int)round(location.x),
@@ -482,7 +482,7 @@ PURPOSE.  See the above copyright notice for more information.
     location.x *= scale;
     location.y *= scale;
 
-    int index = interactor->GetContactIndex((__bridge void *)touch);
+    int index = interactor->GetPointerIndexForContact((size_t)(__bridge void *)touch);
     if (index < VTKI_MAX_POINTERS)
       {
       interactor->SetEventInformation((int)round(location.x),
@@ -495,10 +495,10 @@ PURPOSE.  See the above copyright notice for more information.
   // handle begin events
   for (UITouch *touch in touches)
     {
-    int index = interactor->GetContactIndex((__bridge void *)touch);
+    int index = interactor->GetPointerIndexForContact((size_t)(__bridge void *)touch);
     interactor->SetPointerIndex(index);
     interactor->InvokeEvent(vtkCommand::LeftButtonReleaseEvent,NULL);
-    interactor->ClearContactIndex((__bridge void *)touch);
+    interactor->ClearContact((size_t)(__bridge void *)touch);
       //NSLog(@"lifting left mouse");
     }
 

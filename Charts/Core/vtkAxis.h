@@ -273,6 +273,11 @@ public:
   vtkGetMacro(LabelsVisible, bool);
 
   // Description:
+  // Get/set whether the labels for the range should be visible.
+  vtkSetMacro(RangeLabelsVisible, bool);
+  vtkGetMacro(RangeLabelsVisible, bool);
+
+  // Description:
   // Get/set whether the tick marks should be visible.
   vtkSetMacro(TicksVisible, bool);
   vtkGetMacro(TicksVisible, bool);
@@ -283,7 +288,8 @@ public:
   vtkGetMacro(AxisVisible, bool);
 
   // Description:
-  // Get/set the numerical precision to use, default is 2.
+  // Get/set the numerical precision to use, default is 2. This is ignored
+  // when Notation is STANDARD_NOTATION or PRINTF_NOTATION.
   virtual void SetPrecision(int precision);
   vtkGetMacro(Precision, int);
 
@@ -293,10 +299,26 @@ public:
     STANDARD_NOTATION = 0,
     SCIENTIFIC_NOTATION,
     FIXED_NOTATION,
+    PRINTF_NOTATION
   };
 
   // Description:
-  // Get/set the numerical notation, standard, scientific or mixed (0, 1, 2).
+  // Get/Set the printf-style format string used when TickLabelAlgorithm is
+  // TICK_SIMPLE and Notation is PRINTF_NOTATION. The default is "%g".
+  virtual void SetLabelFormat(const std::string &fmt);
+  vtkGetMacro(LabelFormat, std::string);
+
+  // Description:
+  // Get/Set the printf-style format string used for range labels.
+  // This format is always used regardless of TickLabelAlgorithm and
+  // Notation. Default is "%g".
+  vtkSetMacro(RangeLabelFormat, std::string);
+  vtkGetMacro(RangeLabelFormat, std::string);
+
+  // Description:
+  // Get/set the numerical notation, standard, scientific, fixed, or a
+  // printf-style format string.
+  // \sa SetPrecision SetLabelFormat
   virtual void SetNotation(int notation);
   vtkGetMacro(Notation, int);
 
@@ -401,6 +423,11 @@ public:
   static double NiceMinMax(double &min, double &max, float pixelRange,
                            float tickPixelSpacing);
 
+  // Description:
+  // Generate a single label using the current settings when TickLabelAlgorithm
+  // is TICK_SIMPLE.
+  vtkStdString GenerateSimpleLabel(double val);
+
 //BTX
 protected:
   vtkAxis();
@@ -424,6 +451,10 @@ protected:
   void GenerateTickLabels();
 
   void GenerateLabelFormat(int notation, double n);
+
+  // Description:
+  // Generate label using a printf-style format string.
+  vtkStdString GenerateSprintfLabel(double value, const std::string & format);
 
   // Description:
   // Calculate the next "nicest" numbers above and below the current minimum.
@@ -493,10 +524,13 @@ protected:
   bool LogScaleActive; // *Is* the axis using a log scale?
   bool GridVisible;    // Whether the grid for the axis should be drawn
   bool LabelsVisible;  // Should the axis labels be visible
+  bool RangeLabelsVisible; // Should range labels be visible?
   bool TicksVisible;   // Should the tick marks be visible.
   bool AxisVisible;    // Should the axis line be visible.
   int Precision;       // Numerical precision to use, defaults to 2.
   int Notation;        // The notation to use (standard, scientific, mixed)
+  std::string LabelFormat; // The printf-style format string used for labels.
+  std::string RangeLabelFormat; // The printf-style format string used for range labels.
   int Behavior;        // The behaviour of the axis (auto, fixed, custom).
   float MaxLabel[2];   // The widest/tallest axis label.
   bool TitleAppended;  // Track if the title is updated when the label formats
@@ -561,6 +595,7 @@ private:
   // Description:
   // Return true if the value is in range, false otherwise.
   bool InRange(double value);
+
 //ETX
 };
 

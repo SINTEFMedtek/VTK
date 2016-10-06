@@ -28,6 +28,7 @@
 
 #include "vtkRenderingCoreModule.h" // For export macro
 #include "vtkObject.h"
+#include "vtkRect.h" // for ivar
 
 class vtkHomogeneousTransform;
 class vtkMatrix4x4;
@@ -235,7 +236,7 @@ public:
 
   // Description:
   // Get the ViewPlaneNormal.  This vector will point opposite to
-  // the direction of projection, unless you have created an sheared output
+  // the direction of projection, unless you have created a sheared output
   // view using SetViewShear/SetObliqueAngles.
   vtkGetVector3Macro(ViewPlaneNormal, double);
 
@@ -493,6 +494,16 @@ public:
   vtkSetMacro(FreezeFocalPoint, bool);
   vtkGetMacro(FreezeFocalPoint, bool);
 
+  // Description:
+  // Enable/Disable the scissor
+  vtkSetMacro(UseScissor, bool);
+  vtkGetMacro(UseScissor, bool);
+
+  // Description:
+  // Set/Get the vtkRect value of the scissor
+  void SetScissorRect(vtkRecti scissorRect);
+  void GetScissorRect(vtkRecti& scissorRect);
+
 protected:
   vtkCamera();
   ~vtkCamera();
@@ -592,6 +603,10 @@ protected:
   // transformed to the camera's location and orientation.
   vtkTimeStamp ViewingRaysMTime;
   bool FreezeFocalPoint;
+  bool UseScissor;
+
+  vtkRecti ScissorRect;
+
 
 private:
   vtkCamera(const vtkCamera&);  // Not implemented.

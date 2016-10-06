@@ -10,12 +10,15 @@ vtk_add_test_cxx(${vtk-module}CxxTests tests
   TestClipPolyData.cxx,NO_VALID
   TestConnectivityFilter.cxx,NO_VALID
   TestCutter.cxx,NO_VALID
-  TestDecimatePolylineFilter.cxx,NO_VALID
+  TestDecimatePolylineFilter.cxx
   TestDecimatePro.cxx,NO_VALID
   TestDelaunay2D.cxx
+  TestDelaunay2DFindTriangle.cxx,NO_VALID
+  TestDelaunay2DMeshes.cxx,NO_VALID
   TestDelaunay3D.cxx,NO_VALID
   TestExecutionTimer.cxx,NO_VALID
   TestFeatureEdges.cxx,NO_VALID
+  TestFlyingEdges.cxx
   TestGlyph3D.cxx
   TestHedgeHog.cxx,NO_VALID
   TestImplicitPolyDataDistance.cxx
@@ -23,12 +26,15 @@ vtk_add_test_cxx(${vtk-module}CxxTests tests
   TestNamedComponents.cxx,NO_VALID
   TestPolyDataConnectivityFilter.cxx,NO_VALID
   TestProbeFilter.cxx,NO_VALID
+  TestProbeFilterImageInput.cxx
   TestSmoothPolyDataFilter.cxx,NO_VALID
   TestSMPPipelineContour.cxx,NO_VALID
+  TestStripper.cxx,NO_VALID
   TestStructuredGridAppend.cxx,NO_VALID
   TestThreshold.cxx,NO_VALID
   TestThresholdPoints.cxx,NO_VALID
   TestTransposeTable.cxx,NO_VALID
   TestTubeFilter.cxx,NO_VALID
+  UnitTestMergeFilter.cxx,NO_VALID
   )
 vtk_test_cxx_executable(${vtk-module}CxxTests tests)

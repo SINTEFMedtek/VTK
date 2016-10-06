@@ -42,6 +42,7 @@ struct vtkOpenGLBufferObject::Private
   Private()
     {
     this->Handle = 0;
+    this->Type = GL_ARRAY_BUFFER;
     }
   GLenum Type;
   GLuint Handle;
@@ -121,8 +122,7 @@ bool vtkOpenGLBufferObject::Release()
   return true;
 }
 
-bool vtkOpenGLBufferObject::UploadInternal(
-  const void *buffer, size_t size,
+bool vtkOpenGLBufferObject::GenerateBuffer(
   vtkOpenGLBufferObject::ObjectType objectType)
 {
   GLenum objectTypeGL = convertType(objectType);
@@ -131,11 +131,20 @@ bool vtkOpenGLBufferObject::UploadInternal(
     glGenBuffers(1, &this->Internal->Handle);
     this->Internal->Type = objectTypeGL;
     }
-  else if (this->Internal->Type != objectTypeGL)
+  return (this->Internal->Type == objectTypeGL);
+}
+
+bool vtkOpenGLBufferObject::UploadInternal(
+  const void *buffer, size_t size,
+  vtkOpenGLBufferObject::ObjectType objectType)
+{
+  const bool generated = this->GenerateBuffer(objectType);
+  if (!generated)
     {
     this->Error = "Trying to upload array buffer to incompatible buffer.";
     return false;
     }
+
   glBindBuffer(this->Internal->Type, this->Internal->Handle);
   glBufferData(this->Internal->Type, size, static_cast<const GLvoid *>(buffer),
                GL_STATIC_DRAW);

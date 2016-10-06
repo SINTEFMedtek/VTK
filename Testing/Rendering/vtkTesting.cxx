@@ -39,7 +39,7 @@
 
 #include <sys/stat.h>
 
-#include <vtksys/ios/sstream>
+#include <sstream>
 #include <vtksys/SystemTools.hxx>
 
 vtkStandardNewMacro(vtkTesting);
@@ -408,7 +408,24 @@ int vtkTesting::RegressionTest(double thresh, ostream &os)
       rtW2if->ReadFrontBufferOn();
       rtW2if->Update();
       res = this->RegressionTest(rtW2if.Get(), thresh, out2);
-      os << out2.str();
+      // If both tests fail, rerun the backbuffer tests to recreate the test
+      // image. Otherwise an incorrect image will be uploaded to CDash.
+      if (res == PASSED)
+        {
+        os << out2.str();
+        }
+      else
+        {
+        // we failed both back and front buffers so
+        // to help us debug, write out renderwindow capabilities
+        if (this->RenderWindow)
+          {
+          os << this->RenderWindow->ReportCapabilities();
+          }
+        rtW2if->ReadFrontBufferOff();
+        rtW2if->Update();
+        return this->RegressionTest(rtW2if.Get(), thresh, os);
+        }
     }
   else
     {

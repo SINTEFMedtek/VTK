@@ -91,6 +91,11 @@ void vtkXMLDataReader::CreateXMLParser()
   this->Superclass::CreateXMLParser();
   this->XMLParser->AddObserver(vtkCommand::ProgressEvent,
                                this->DataProgressObserver);
+  if (this->GetParserErrorObserver())
+    {
+    this->XMLParser->AddObserver(vtkCommand::ErrorEvent,
+                                 this->GetParserErrorObserver());
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -585,7 +590,7 @@ int vtkXMLDataReaderReadArrayValues(vtkXMLDataElement* da,
 }
 
 //----------------------------------------------------------------------------
-VTK_TEMPLATE_SPECIALIZE
+template<>
 int vtkXMLDataReaderReadArrayValues(
   vtkXMLDataElement* da,
   vtkXMLDataParser* xmlparser, vtkIdType arrayIndex,

@@ -1,3 +1,5 @@
+//VTK::System::Dec
+
 /*=========================================================================
 
   Program:   Visualization Toolkit
@@ -13,10 +15,6 @@
 
 =========================================================================*/
 // Template for the polydata mappers fragment shader
-
-// The following line handle system declarations such a
-// default precisions, or defining precisions to null
-//VTK::System::Dec
 
 uniform int PrimitiveIDOffset;
 
@@ -50,6 +48,9 @@ uniform int PrimitiveIDOffset;
 // Apple Bug
 //VTK::PrimID::Dec
 
+// handle coincident offsets
+//VTK::Coincident::Dec
+
 void main()
 {
   // Apple Bug
@@ -58,6 +59,9 @@ void main()
   //VTK::Clip::Impl
 
   //VTK::Color::Impl
+
+  // VC position of this fragment
+  //VTK::PositionVC::Impl
 
   // Generate the normal if we are not passed in one
   //VTK::Normal::Impl
@@ -75,4 +79,6 @@ void main()
 
   //VTK::Picking::Impl
 
+  // handle coincident offsets
+  //VTK::Coincident::Impl
 }

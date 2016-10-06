@@ -3,8 +3,6 @@
   Program:   Visualization Toolkit
   Module:    vtkStringArray.h
   Language:  C++
-  Date:      $Date$
-  Version:   $Revision$
 
   Copyright 2004 Sandia Corporation.
   Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive
@@ -185,6 +183,11 @@ public:
   // Set a value in the array form a variant.
   // Insert a value into the array from a variant.
   void SetVariantValue(vtkIdType idx, vtkVariant value);
+
+  // Description:
+  // Safely set a value in the array form a variant.
+  // Safely insert a value into the array from a variant.
+  void InsertVariantValue(vtkIdType idx, vtkVariant value);
 
 //BTX
   // Description:

@@ -1171,10 +1171,10 @@ public:
       quadTCoords[0], quadTCoords[3]};
 
     float verts[] = {
-      quadTCoords[0]*2.0-1.0, quadTCoords[2]*2.0-1.0, 0.0f,
-      quadTCoords[1]*2.0-1.0, quadTCoords[2]*2.0-1.0, 0.0f,
-      quadTCoords[1]*2.0-1.0, quadTCoords[3]*2.0-1.0, 0.0f,
-      quadTCoords[0]*2.0-1.0, quadTCoords[3]*2.0-1.0, 0.0f};
+      quadTCoords[0]*2.0f-1.0f, quadTCoords[2]*2.0f-1.0f, 0.0f,
+      quadTCoords[1]*2.0f-1.0f, quadTCoords[2]*2.0f-1.0f, 0.0f,
+      quadTCoords[1]*2.0f-1.0f, quadTCoords[3]*2.0f-1.0f, 0.0f,
+      quadTCoords[0]*2.0f-1.0f, quadTCoords[3]*2.0f-1.0f, 0.0f};
 
     vtkOpenGLRenderUtilities::RenderQuad(verts, tcoords,
       cbo->Program, cbo->VAO);
@@ -2507,8 +2507,6 @@ void vtkSurfaceLICMapper::ReplaceShaderValues(
     "    }\n"
  //   "  gl_FragData[2] = vec4(19.0, 19.0, tcoordVC.x, gl_FragCoord.z);\n"
     , false);
-
-  this->ShaderVariablesUsed.push_back("normalMatrix");
 
   shaders[vtkShader::Vertex]->SetSource(VSSource);
   shaders[vtkShader::Fragment]->SetSource(FSSource);

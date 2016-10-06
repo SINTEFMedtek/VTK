@@ -321,32 +321,32 @@ function(vtk_module_export sources)
     get_filename_component(src "${arg}" ABSOLUTE)
 
     string(REGEX REPLACE "\\.(cxx|txx|mm)$" ".h" hdr "${src}")
-    if("${hdr}" MATCHES "\\.h$")
+    get_source_file_property(_skip_install ${src} SKIP_HEADER_INSTALL)
+
+    if("${hdr}" MATCHES "\\.h$" AND NOT _skip_install)
       if(EXISTS "${hdr}")
         get_filename_component(_filename "${hdr}" NAME)
         string(REGEX REPLACE "\\.h$" "" _cls "${_filename}")
 
         get_source_file_property(_wrap_exclude ${src} WRAP_EXCLUDE)
+        get_source_file_property(_wrap_exclude_python ${src} WRAP_EXCLUDE_PYTHON)
         get_source_file_property(_abstract ${src} ABSTRACT)
-        get_source_file_property(_wrap_special ${src} WRAP_SPECIAL)
 
-        if(_wrap_special OR NOT _wrap_exclude)
-          list(APPEND vtk-module-HEADERS ${_cls})
+        list(APPEND vtk-module-HEADERS ${_cls})
 
-          if(_abstract)
-            set(vtk-module-ABSTRACT
-              "${vtk-module-ABSTRACT}set(${vtk-module}_HEADER_${_cls}_ABSTRACT 1)\n")
-          endif()
+        if(_abstract)
+          set(vtk-module-ABSTRACT
+            "${vtk-module-ABSTRACT}set(${vtk-module}_HEADER_${_cls}_ABSTRACT 1)\n")
+        endif()
 
-          if(_wrap_exclude)
-            set(vtk-module-WRAP_EXCLUDE
-              "${vtk-module-WRAP_EXCLUDE}set(${vtk-module}_HEADER_${_cls}_WRAP_EXCLUDE 1)\n")
-          endif()
+        if(_wrap_exclude)
+          set(vtk-module-WRAP_EXCLUDE
+            "${vtk-module-WRAP_EXCLUDE}set(${vtk-module}_HEADER_${_cls}_WRAP_EXCLUDE 1)\n")
+        endif()
 
-          if(_wrap_special)
-            set(vtk-module-WRAP_SPECIAL
-              "${vtk-module-WRAP_SPECIAL}set(${vtk-module}_HEADER_${_cls}_WRAP_SPECIAL 1)\n")
-          endif()
+        if(_wrap_exclude_python)
+          set(vtk-module-WRAP_EXCLUDE_PYTHON
+            "${vtk-module-WRAP_EXCLUDE_PYTHON}set(${vtk-module}_HEADER_${_cls}_WRAP_EXCLUDE_PYTHON 1)\n")
         endif()
       endif()
     endif()
@@ -374,7 +374,8 @@ function(vtk_module_warnings_disable)
   foreach(lang IN LISTS ARGN)
     if(MSVC)
       string(REGEX REPLACE "(^| )[/-]W[0-4]( |$)" " "
-        CMAKE_${lang}_FLAGS "${CMAKE_${lang}_FLAGS} -w")
+        CMAKE_${lang}_FLAGS "${CMAKE_${lang}_FLAGS}")
+      set(CMAKE_${lang}_FLAGS "${CMAKE_${lang}_FLAGS} /W0")
     elseif(BORLAND)
       set(CMAKE_${lang}_FLAGS "${CMAKE_${lang}_FLAGS} -w-")
     else()
@@ -556,7 +557,6 @@ function(vtk_module_library name)
 
   set(vtk-module-HEADERS)
   set(vtk-module-ABSTRACT)
-  set(vtk-module-WRAP_SPECIAL)
 
   # Collect header files matching sources.
   set(_hdrs ${${vtk-module}_HDRS})
@@ -749,7 +749,7 @@ VTK_AUTOINIT(${vtk-module})
   vtk_module_export("${ARGN}")
 
   # Figure out which headers to install.
-  if(NOT VTK_INSTALL_NO_DEVELOPMENT AND _hdrs)
+  if(NOT VTK_INSTALL_NO_DEVELOPMENT AND NOT VTK_INSTALL_NO_HEADERS AND _hdrs)
     install(FILES ${_hdrs}
       DESTINATION ${VTK_INSTALL_INCLUDE_DIR}
       COMPONENT Development

@@ -23,7 +23,7 @@
 #include "vtkXMLDataElement.h"
 #include "vtkXMLStructuredDataReader.h"
 
-#include <vtksys/ios/sstream>
+#include <sstream>
 
 
 //----------------------------------------------------------------------------
@@ -441,7 +441,7 @@ int vtkXMLPStructuredDataReader::ComputePieceSubExtents()
   if(!this->ExtentSplitter->ComputeSubExtents())
     {
     // A portion of the extent is not available.
-    vtksys_ios::ostringstream e_with_warning_C4701;
+    std::ostringstream e_with_warning_C4701;
     e_with_warning_C4701
       << "No available piece provides data for the following extents:\n";
     for(i=0; i < this->ExtentSplitter->GetNumberOfSubExtents(); ++i)

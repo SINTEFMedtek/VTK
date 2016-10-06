@@ -19,7 +19,7 @@
 #include "vtkErrorCode.h"
 #include "vtkMultiProcessController.h"
 
-#include <vtksys/ios/sstream>
+#include <sstream>
 
 vtkCxxSetObjectMacro(vtkXMLPDataWriter,
                      Controller,
@@ -278,7 +278,7 @@ void vtkXMLPDataWriter::SplitFileName()
 //----------------------------------------------------------------------------
 char* vtkXMLPDataWriter::CreatePieceFileName(int index, const char* path)
 {
-  vtksys_ios::ostringstream s;
+  std::ostringstream s;
   if (path)
     {
     s << path;

@@ -1,4 +1,5 @@
 set(Module_SRCS
+  vtkAbstractCellLinks.cxx
   vtkAbstractCellLocator.cxx
   vtkAbstractPointLocator.cxx
   vtkAdjacentVertexIterator.cxx
@@ -116,6 +117,7 @@ set(Module_SRCS
   vtkPiecewiseFunction.cxx
   vtkPixel.cxx
   vtkPixelExtent.cxx
+  vtkPixelTransfer.cxx
   vtkPlaneCollection.cxx
   vtkPlane.cxx
   vtkPlanes.cxx
@@ -155,6 +157,9 @@ set(Module_SRCS
   vtkSmoothErrorMetric.cxx
   vtkSphere.cxx
   vtkSpline.cxx
+  vtkStaticCellLinks.cxx
+  vtkStaticCellLinksTemplate.txx
+  vtkStaticPointLocator.cxx
   vtkStructuredData.cxx
   vtkStructuredExtent.cxx
   vtkStructuredGrid.cxx
@@ -211,9 +216,11 @@ set(${vtk-module}_HDRS
   vtkCellType.h
   vtkMappedUnstructuredGrid.h
   vtkMappedUnstructuredGridCellIterator.h
+  vtkStaticCellLinksTemplate.h
   )
 
 set_source_files_properties(
+  vtkAbstractCellLinks
   vtkAbstractCellLocator
   vtkAbstractPointLocator
   vtkCell
@@ -268,6 +275,8 @@ set_source_files_properties(
   vtkImageIterator
   vtkImageProgressIterator
   vtkPixelExtent.cxx
+  vtkPixelTransfer.cxx
+  vtkStaticCellLinksTemplate.txx
   vtkVector
   vtkColor
   vtkRect
@@ -277,12 +286,8 @@ set_source_files_properties(
   )
 
 set_source_files_properties(
-  vtkCellType.h
-  vtkBoundingBox.cxx
-  vtkColor.h
-  vtkRect.h
-  vtkVector.h
-  PROPERTIES WRAP_SPECIAL 1
+  vtkDispatcher_Private
+  PROPERTIES WRAP_EXCLUDE_PYTHON 1
   )
 
 vtk_module_library(vtkCommonDataModel ${Module_SRCS})

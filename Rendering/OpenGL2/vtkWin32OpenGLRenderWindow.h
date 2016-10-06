@@ -18,8 +18,8 @@ PURPOSE.  See the above copyright notice for more information.
 // class vtkRenderWindow. vtkWin32OpenGL2Renderer interfaces to the standard
 // OpenGL graphics library in the Windows/NT environment..
 
-#ifndef vtkWin32OpenGL2RenderWindow_h
-#define vtkWin32OpenGL2RenderWindow_h
+#ifndef vtkWin32OpenGLRenderWindow_h
+#define vtkWin32OpenGLRenderWindow_h
 
 #include "vtkRenderingOpenGL2Module.h" // For export macro
 #include "vtkOpenGLRenderWindow.h"
@@ -178,7 +178,7 @@ public:
   int IsDirect();
 
   // Description:
-  // Check to see if a mouse button has been pressed.
+  // Check to see if a mouse button has been pressed or mouse wheel activated.
   // All other events are ignored by this method.
   // This is a useful check to abort a long render.
   virtual  int GetEventPending();
@@ -275,6 +275,7 @@ protected:
   void CreateOffScreenWindow(int width,int height);
   void SaveScreenRendering();
   void CleanUpRenderers();
+  void VTKRegisterClass();
 
 private:
   vtkWin32OpenGLRenderWindow(const vtkWin32OpenGLRenderWindow&);  // Not implemented.

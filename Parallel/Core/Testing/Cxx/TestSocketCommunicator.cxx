@@ -21,7 +21,7 @@
 #include "vtkPolyData.h"
 #include "vtkDoubleArray.h"
 
-#include <vtksys/ios/sstream>
+#include <sstream>
 
 #define MESSAGE(x)\
   cout << (is_server? "SERVER" : "CLIENT") << ":" x << endl;
@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
       }
     }
 
-  vtksys_ios::ostringstream stream;
+  std::ostringstream stream;
   stream << testing->GetTempDirectory() << "/TestSocketCommunicator."
     << (is_server? "server" : "client") << ".log";
   // initialize the socket controller.

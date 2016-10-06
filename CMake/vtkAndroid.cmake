@@ -17,9 +17,31 @@ set(OPENGL_ES_VERSION "2.0" CACHE STRING "OpenGL ES version (2.0 or 3.0)")
 set_property(CACHE OPENGL_ES_VERSION PROPERTY STRINGS 2.0 3.0)
 
 # Android options
-set(ANDROID_NDK "/opt/android-ndk" CACHE PATH "Path to the Android NDK")
+# Android options
+if (DEFINED ENV{ANDROID_NDK})
+  set(ANDROID_NDK "$ENV{ANDROID_NDK}" CACHE PATH "Path to the Android NDK")
+else()
+  set(ANDROID_NDK "/opt/android-ndk" CACHE PATH "Path to the Android NDK")
+endif()
 set(ANDROID_NATIVE_API_LEVEL "21" CACHE STRING "Android Native API Level")
 set(ANDROID_ARCH_NAME "arm" CACHE STRING "Target Android architecture")
+
+# find android
+find_program(ANDROID_EXECUTABLE
+  NAMES android
+  DOC   "The android command-line tool")
+if(NOT ANDROID_EXECUTABLE)
+  message(FATAL_ERROR "Can not find android command line tool: android")
+endif()
+
+#find ant
+find_program(ANT_EXECUTABLE
+  NAMES ant
+  DOC   "The ant build tool")
+if(NOT ANT_EXECUTABLE)
+  message(FATAL_ERROR "Can not find ant build tool: ant")
+endif()
+
 
 # Fail if the install path is invalid
 if (NOT EXISTS ${CMAKE_INSTALL_PREFIX})
@@ -36,6 +58,11 @@ else()
   set(VTK_BUILD_COMMAND BUILD_COMMAND make)
 endif()
 
+set(BUILD_ALWAYS_STRING)
+if(${CMAKE_VERSION} GREATER 3.0)
+  set(BUILD_ALWAYS_STRING BUILD_ALWAYS 1)
+endif()
+
 # Compile a minimal VTK for its compile tools
 macro(compile_vtk_tools)
   ExternalProject_Add(
@@ -44,6 +71,8 @@ macro(compile_vtk_tools)
     PREFIX ${PREFIX_DIR}/vtk-compile-tools
     BINARY_DIR ${BUILD_DIR}/vtk-compile-tools
     ${VTK_BUILD_COMMAND} vtkCompileTools
+    ${BUILD_ALWAYS_STRING}
+    INSTALL_DIR ${INSTALL_DIR}/vtk-compile-tools
     CMAKE_ARGS
       -DCMAKE_BUILD_TYPE:STRING=Release
       -DVTK_BUILD_ALL_MODULES:BOOL=OFF
@@ -52,6 +81,7 @@ macro(compile_vtk_tools)
       -DBUILD_SHARED_LIBS:BOOL=ON
       -DBUILD_EXAMPLES:BOOL=OFF
       -DBUILD_TESTING:BOOL=OFF
+      -DCMAKE_INSTALL_PREFIX:PATH=${INSTALL_DIR}/vtk-compile-tools
   )
 endmacro()
 compile_vtk_tools()
@@ -71,10 +101,13 @@ mark_as_advanced(
 set(android_cmake_flags
   -DANDROID_NDK:PATH=${ANDROID_NDK}
   -DANDROID_NATIVE_API_LEVEL:STRING=${ANDROID_NATIVE_API_LEVEL}
+  -DANDROID_DEFAULT_NDK_API_LEVEL:STRING=${ANDROID_NATIVE_API_LEVEL}
   -DANDROID_ARCH_NAME:STRING=${ANDROID_ARCH_NAME}
+  -DANDROID_EXECUTABLE:FILE=${ANDROID_EXECUTABLE}
+  -DANT_EXECUTABLE:FILE=${ANT_EXECUTABLE}
   -DBUILD_SHARED_LIBS:BOOL=OFF
   -DBUILD_TESTING:BOOL=OFF
-  -DBUILD_EXAMPLES:BOOL=OFF
+  -DBUILD_EXAMPLES:BOOL=${BUILD_EXAMPLES}
   -DVTK_RENDERING_BACKEND:STRING=OpenGL2
   -DOPENGL_ES_VERSION:STRING=${OPENGL_ES_VERSION}
   -DVTK_Group_Rendering:BOOL=OFF
@@ -98,8 +131,15 @@ set(android_cmake_flags
   -DModule_vtkInteractionStyle:BOOL=ON
   -DModule_vtkParallelCore:BOOL=ON
   -DModule_vtkRenderingCore:BOOL=ON
-  -DModule_vtkRenderingFreeType:BOOL=OFF
+  -DModule_vtkRenderingFreeType:BOOL=ON
 )
+
+# add volume rendering for ES 3.0
+if (OPENGL_ES_VERSION STREQUAL "3.0")
+  set(android_cmake_flags ${android_cmake_flags}
+    -DModule_vtkRenderingVolumeOpenGL2:BOOL=ON
+    )
+endif()
 
 macro(crosscompile target toolchain_file)
   ExternalProject_Add(
@@ -109,6 +149,7 @@ macro(crosscompile target toolchain_file)
     BINARY_DIR ${BUILD_DIR}/${target}
     INSTALL_DIR ${INSTALL_DIR}/${target}
     DEPENDS vtk-compile-tools
+    ${BUILD_ALWAYS_STRING}
     CMAKE_ARGS
       -DCMAKE_INSTALL_PREFIX:PATH=${INSTALL_DIR}/${target}
       -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}

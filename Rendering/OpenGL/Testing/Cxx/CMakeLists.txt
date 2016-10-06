@@ -3,6 +3,8 @@ INCLUDE_DIRECTORIES(
   ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
+include(vtkOpenGL)
+
 # For tests that actually use a vtkRenderWindow
 vtk_add_test_cxx(${vtk-module}CxxTests render_window_tests
   LoadOpenGLExtension.cxx
@@ -37,8 +39,6 @@ if(WIN32 AND NOT VTK_USE_X)
     TestWin32OpenGLRenderWindow.cxx NO_VALID)
 endif()
 
-include_directories(${OPENGL_INCLUDE_DIR})
-
 vtk_add_test_cxx(${vtk-module}CxxTests ogl_tests
   TestScenePicker.cxx,NO_VALID
   TestMultiblockDisplayProperties.cxx
@@ -61,6 +61,16 @@ set(all_tests
   ${render_window_tests}
   ${ogl_tests})
 vtk_test_cxx_executable(${vtk-module}CxxTests all_tests)
+# LoadOpenGLExtension and TestGenericVertexAttributesGLSLDepthPeelingPass
+# requires OpenGL
+vtk_opengl_link(${vtk-module}CxxTests)
+
+if (WIN32 AND NOT VTK_USE_X)
+  # This test should not take more than 5 seconds.
+  set_tests_properties(${vtk-module}Cxx-TestWin32OpenGLRenderWindow
+    PROPERTIES
+      TIMEOUT 5)
+endif ()
 
 set(TEST_FBO_IMPLEMENTATION_EXE
   TestFBOImplementation)
@@ -73,13 +83,10 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/TestFBOInclude.h.in
 # test.
 vtk_module_test_executable(TestFBOImplementation
   TestFBOImplementation.cxx)
+vtk_opengl_link(TestFBOImplementation)
 target_link_libraries(TestFBOImplementation LINK_PRIVATE
-  vtkRenderingOpenGL ${OPENGL_gl_LIBRARY})
+                      vtkRenderingOpenGL)
 
-if(VTK_OPENGL_HAS_OSMESA AND OSMESA_LIBRARY)
-  target_link_libraries(TestFBOImplementation LINK_PRIVATE ${OSMESA_LIBRARY})
-  target_link_libraries(${vtk-module}CxxTests LINK_PRIVATE ${OSMESA_LIBRARY})
-endif()
 
 # Add other odd tests or executables
 foreach(exe
@@ -88,19 +95,16 @@ foreach(exe
   VTKBenchMark
   )
   add_executable(${exe} ${exe}.cxx)
-  target_link_libraries(${exe}
+  vtk_opengl_link(${exe})
+  target_link_libraries(${exe} LINK_PRIVATE
     vtkRenderingOpenGL
     vtkInteractionStyle
     vtkImagingSources
     vtkImagingGeneral
     vtkFiltersSources
-    vtkIOCore
-    ${OPENGL_gl_LIBRARY})
-  if(APPLE)
-    target_link_libraries(${exe} "-framework GLUT")
-  endif()
-  if(VTK_OPENGL_HAS_OSMESA AND OSMESA_LIBRARY)
-    target_link_libraries(${exe} ${OSMESA_LIBRARY})
+    vtkIOCore)
+  if(APPLE AND NOT VTK_USE_OSMESA)
+    target_link_libraries(${exe} LINK_PRIVATE "-framework GLUT")
   endif()
 endforeach()
 

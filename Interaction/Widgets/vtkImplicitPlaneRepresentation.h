@@ -156,11 +156,18 @@ public:
   vtkPolyDataAlgorithm* GetPolyDataAlgorithm();
 
   // Description:
-  // Get the implicit function for the plane. The user must provide the
+  // Get the implicit function for the plane by copying the origin and normal
+  // of the cut plane into the provided vtkPlane. The user must provide the
   // instance of the class vtkPlane. Note that vtkPlane is a subclass of
   // vtkImplicitFunction, meaning that it can be used by a variety of filters
   // to perform clipping, cutting, and selection of data.
   void GetPlane(vtkPlane *plane);
+
+  // Description:
+  // Alternative way to define the cutting plane. The normal and origin of
+  // the plane provided is copied into the internal instance of the class
+  // cutting vtkPlane.
+  void SetPlane(vtkPlane *plane);
 
   // Description:
   // Satisfies the superclass API.  This will change the state of the widget
@@ -233,7 +240,7 @@ public:
   virtual int RenderTranslucentPolygonalGeometry(vtkViewport*);
   virtual int HasTranslucentPolygonalGeometry();
 
-//BTX - manage the state of the widget
+  // Manage the state of the widget
   enum _InteractionState
   {
     Outside=0,
@@ -244,7 +251,6 @@ public:
     Pushing,
     Scaling
   };
-//ETX
 
   // Description:
   // The interaction state may be set from a widget (e.g.,

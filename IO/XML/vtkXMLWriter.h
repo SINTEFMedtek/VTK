@@ -24,7 +24,7 @@
 
 #include "vtkIOXMLModule.h" // For export macro
 #include "vtkAlgorithm.h"
-#include <vtksys/ios/sstream> // For ostringstream ivar
+#include <sstream> // For ostringstream ivar
 
 class vtkAbstractArray;
 class vtkArrayIterator;
@@ -366,10 +366,10 @@ protected:
 
   void WriteArrayHeader(vtkAbstractArray* a, vtkIndent indent,
     const char* alternateName, int writeNumTuples, int timestep);
-  void WriteArrayFooter(ostream &os, vtkIndent indent, vtkAbstractArray *a, int shortFormat);
-  void WriteArrayInline(vtkAbstractArray* a, vtkIndent indent,
+  virtual void WriteArrayFooter(ostream &os, vtkIndent indent, vtkAbstractArray *a, int shortFormat);
+  virtual void WriteArrayInline(vtkAbstractArray* a, vtkIndent indent,
     const char* alternateName=0, int writeNumTuples=0);
-  void WriteInlineData(vtkAbstractArray* a, vtkIndent indent);
+  virtual void WriteInlineData(vtkAbstractArray* a, vtkIndent indent);
 
   void WriteArrayAppended(vtkAbstractArray* a, vtkIndent indent,
     OffsetsManager &offs, const char* alternateName=0,  int writeNumTuples=0,
@@ -440,7 +440,7 @@ protected:
   float ProgressRange[2];
 
   ofstream* OutFile;
-  vtksys_ios::ostringstream* OutStringStream;
+  std::ostringstream* OutStringStream;
 
   int OpenStream();
   int OpenFile();

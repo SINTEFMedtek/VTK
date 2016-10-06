@@ -67,14 +67,14 @@ inline void vtkDataArrayRoundIfNecessary(double val, T* retVal)
 }
 
 //--------------------------------------------------------------------------
-VTK_TEMPLATE_SPECIALIZE
+template<>
 inline void vtkDataArrayRoundIfNecessary(double val, double* retVal)
 {
   *retVal = val;
 }
 
 //--------------------------------------------------------------------------
-VTK_TEMPLATE_SPECIALIZE
+template<>
 inline void vtkDataArrayRoundIfNecessary(double val, float* retVal)
 {
   *retVal = static_cast<float>(val);
@@ -106,7 +106,9 @@ void vtkDataArrayInterpolateTuple(Iterator from1, Iterator from2, Scalar* to,
   const double oneMinusT = 1.0 - t;
   while (numComp-- > 0)
     {
-    *(to++) = static_cast<Scalar>(oneMinusT * (*(from1++)) + t * (*(from2++)));
+    double c = oneMinusT * (*(from1++)) + t * (*(from2++));
+    // Round integer types. Don't round floating point types.
+    vtkDataArrayRoundIfNecessary(c, &(*(to++)));
     }
 }
 
@@ -392,7 +394,7 @@ void vtkDataArray::GetData(vtkIdType tupleMin, vtkIdType tupleMax, int compMin,
 void vtkDataArray::InterpolateTuple(vtkIdType i, vtkIdList *ptIndices,
   vtkAbstractArray* source,  double* weights)
 {
-  if (this->GetDataType() != source->GetDataType())
+  if (!vtkDataTypesCompare(this->GetDataType(), source->GetDataType()))
     {
     vtkErrorMacro("Cannot InterpolateValue from array of type "
       << source->GetDataTypeAsString());
@@ -456,9 +458,26 @@ void vtkDataArray::InterpolateTuple(vtkIdType i,
 {
   int type = this->GetDataType();
 
-  if (type != source1->GetDataType() || type != source2->GetDataType())
+  if (!vtkDataTypesCompare(type, source1->GetDataType()) ||
+      !vtkDataTypesCompare(type, source2->GetDataType()))
     {
     vtkErrorMacro("All arrays to InterpolateValue must be of same type.");
+    return;
+    }
+
+  if (id1 >= source1->GetNumberOfTuples())
+    {
+    vtkErrorMacro("Tuple 1 out of range for provided array. "
+                  "Requested tuple: " << id1 << " "
+                  "Tuples: " << source1->GetNumberOfTuples());
+    return;
+    }
+
+  if (id2 >= source2->GetNumberOfTuples())
+    {
+    vtkErrorMacro("Tuple 2 out of range for provided array. "
+                  "Requested tuple: " << id2 << " "
+                  "Tuples: " << source2->GetNumberOfTuples());
     return;
     }
 
@@ -767,6 +786,21 @@ void vtkDataArray::InsertTuple4(vtkIdType i, double val0, double val1,
   tuple[3] = val3;
   this->InsertTuple(i, tuple);
 }
+
+//----------------------------------------------------------------------------
+void vtkDataArray::InsertTuple6(vtkIdType i, double val0, double val1,
+                                double val2, double val3, double val4,
+                                double val5)
+{
+  if (this->NumberOfComponents != 6)
+    {
+    vtkErrorMacro("The number of components do not match the number requested: "
+                  << this->NumberOfComponents << " != 6");
+    }
+  double tuple[6] = {val0, val1, val2, val3, val4, val5};
+  this->InsertTuple(i, tuple);
+}
+
 //----------------------------------------------------------------------------
 void vtkDataArray::InsertTuple9(vtkIdType i, double val0, double val1,
                                 double val2,  double val3, double val4,
@@ -849,6 +883,21 @@ void vtkDataArray::InsertNextTuple4(double val0, double val1,
   tuple[3] = val3;
   this->InsertNextTuple(tuple);
 }
+
+//----------------------------------------------------------------------------
+void vtkDataArray::InsertNextTuple6(double val0, double val1, double val2,
+                                    double val3, double val4, double val5)
+{
+  if (this->NumberOfComponents != 6)
+    {
+    vtkErrorMacro("The number of components do not match the number requested: "
+                  << this->NumberOfComponents << " != 6");
+    }
+
+  double tuple[6] = {val0, val1, val2, val3, val4, val5};
+  this->InsertNextTuple(tuple);
+}
+
 //----------------------------------------------------------------------------
 void vtkDataArray::InsertNextTuple9(double val0, double val1,
                                     double val2,  double val3, double val4,
@@ -1209,16 +1258,8 @@ double vtkDataArray::GetDataTypeMin(int type)
     case VTK_INT:                return static_cast<double>(VTK_INT_MIN);
     case VTK_UNSIGNED_LONG:      return static_cast<double>(VTK_UNSIGNED_LONG_MIN);
     case VTK_LONG:               return static_cast<double>(VTK_LONG_MIN);
-#if defined(VTK_TYPE_USE_LONG_LONG)
     case VTK_UNSIGNED_LONG_LONG: return static_cast<double>(VTK_UNSIGNED_LONG_LONG_MIN);
     case VTK_LONG_LONG:          return static_cast<double>(VTK_LONG_LONG_MIN);
-#endif
-#if defined(VTK_TYPE_USE___INT64)
-    case VTK___INT64:            return static_cast<double>(VTK___INT64_MIN);
-# if defined(VTK_TYPE_CONVERT_UI64_TO_DOUBLE)
-    case VTK_UNSIGNED___INT64:   return static_cast<double>(VTK_UNSIGNED___INT64_MIN);
-# endif
-#endif
     case VTK_FLOAT:              return static_cast<double>(VTK_FLOAT_MIN);
     case VTK_DOUBLE:             return static_cast<double>(VTK_DOUBLE_MIN);
     case VTK_ID_TYPE:            return static_cast<double>(VTK_ID_MIN);
@@ -1241,16 +1282,8 @@ double vtkDataArray::GetDataTypeMax(int type)
     case VTK_INT:                return static_cast<double>(VTK_INT_MAX);
     case VTK_UNSIGNED_LONG:      return static_cast<double>(VTK_UNSIGNED_LONG_MAX);
     case VTK_LONG:               return static_cast<double>(VTK_LONG_MAX);
-#if defined(VTK_TYPE_USE_LONG_LONG)
     case VTK_UNSIGNED_LONG_LONG: return static_cast<double>(VTK_UNSIGNED_LONG_LONG_MAX);
     case VTK_LONG_LONG:          return static_cast<double>(VTK_LONG_LONG_MAX);
-#endif
-#if defined(VTK_TYPE_USE___INT64)
-    case VTK___INT64:            return static_cast<double>(VTK___INT64_MAX);
-# if defined(VTK_TYPE_CONVERT_UI64_TO_DOUBLE)
-    case VTK_UNSIGNED___INT64:   return static_cast<double>(VTK_UNSIGNED___INT64_MAX);
-# endif
-#endif
     case VTK_FLOAT:              return static_cast<double>(VTK_FLOAT_MAX);
     case VTK_DOUBLE:             return static_cast<double>(VTK_DOUBLE_MAX);
     case VTK_ID_TYPE:            return static_cast<double>(VTK_ID_MAX);

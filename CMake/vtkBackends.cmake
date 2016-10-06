@@ -16,9 +16,9 @@ list (FIND _options "${VTK_RENDERING_BACKEND}"  _index)
 if (${_index} EQUAL -1)
 
   # has the application defined a desired default for the backend?
-  # if not, use VTKs default of OpenGL
+  # if not, use VTKs default of OpenGL2
   if(NOT DEFINED VTK_RENDERING_BACKEND_DEFAULT)
-    set(VTK_RENDERING_BACKEND_DEFAULT "OpenGL")
+    set(VTK_RENDERING_BACKEND_DEFAULT "OpenGL2")
   endif()
 
   # if it is in the cache as a bad value we need to reset it
@@ -48,3 +48,15 @@ foreach(backend ${VTK_BACKENDS})
     endforeach()
   endif()
 endforeach()
+
+# check for None with rendering turned on
+if(VTK_RENDERING_BACKEND STREQUAL "None" AND VTK_Group_Rendering)
+  message(FATAL_ERROR "VTK_Group_Rendering is on when the rendering backend is set to None. Please either turn off the rendering group or set the rendering backend to a different value")
+endif()
+
+if (VTK_RENDERING_BACKEND STREQUAL "None")
+  # with no backend make a dummy None modules
+  vtk_module(vtkRenderingNone )
+  vtk_module(vtkRenderingContextNone )
+  vtk_module(vtkRenderingVolumeNone )
+endif()

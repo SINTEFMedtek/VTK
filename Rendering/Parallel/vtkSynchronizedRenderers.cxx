@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Visualization Toolkit
-  Module:    $RCSfile$
+  Module:    vtkSynchronizedRenderers.cxx
 
   Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
   All rights reserved.
@@ -571,8 +571,12 @@ void vtkSynchronizedRenderers::RendererInfo::CopyTo(vtkRenderer* ren)
   cam->SetViewAngle(this->CameraViewAngle);
   cam->SetParallelScale(this->CameraParallelScale);
 
-  vtkMatrix4x4 *eyeTransformationMatrix = vtkMatrix4x4::New();
-  vtkMatrix4x4 *modelTransformationMatrix = vtkMatrix4x4::New();
+  // We reuse vtkMatrix4x4 objects present on the camera and then use
+  // vtkMatrix4x4::SetElement(). This avoids modifying the mtime of the
+  // camera unless anything truly changed.
+  vtkMatrix4x4 *eyeTransformationMatrix = cam->GetEyeTransformMatrix();
+  vtkMatrix4x4 *modelTransformationMatrix = cam->GetModelTransformMatrix();
+  assert(eyeTransformationMatrix && modelTransformationMatrix);
   for(int i=0; i < 4; ++i)
     {
     for(int j=0; j < 4; ++j)
@@ -581,12 +585,7 @@ void vtkSynchronizedRenderers::RendererInfo::CopyTo(vtkRenderer* ren)
       modelTransformationMatrix->SetElement(i, j, this->ModelTransformMatrix[i * 4 + j]);
       }
     }
-  cam->SetEyeTransformMatrix(eyeTransformationMatrix);
-  cam->SetModelTransformMatrix(modelTransformationMatrix);
-  eyeTransformationMatrix->Delete();
-  modelTransformationMatrix->Delete();
 }
-
 
 //****************************************************************************
 // vtkSynchronizedRenderers::vtkRawImage Methods
@@ -685,11 +684,25 @@ bool vtkSynchronizedRenderers::vtkRawImage::PushToFrameBuffer(vtkRenderer *ren)
   vtkOpenGLClearErrorMacro();
 
 #ifdef VTK_OPENGL2
+  GLint blendSrcA = GL_ONE;
+  GLint blendDstA = GL_ONE_MINUS_SRC_ALPHA;
+  GLint blendSrcC = GL_SRC_ALPHA;
+  GLint blendDstC = GL_ONE_MINUS_SRC_ALPHA;
+  glGetIntegerv(GL_BLEND_SRC_ALPHA, &blendSrcA);
+  glGetIntegerv(GL_BLEND_DST_ALPHA, &blendDstA);
+  glGetIntegerv(GL_BLEND_SRC_RGB, &blendSrcC);
+  glGetIntegerv(GL_BLEND_DST_RGB, &blendDstC);
+  // framebuffers have their color premultiplied by alpha.
+  glBlendFuncSeparate(GL_ONE,GL_ONE_MINUS_SRC_ALPHA,
+    GL_ONE,GL_ONE_MINUS_SRC_ALPHA);
+
   // always draw the entire image on the entire viewport
   vtkOpenGLRenderWindow *renWin = vtkOpenGLRenderWindow::SafeDownCast(ren->GetVTKWindow());
   renWin->DrawPixels(this->GetWidth(), this->GetHeight(),
     this->Data->GetNumberOfComponents(), VTK_UNSIGNED_CHAR,
     this->GetRawPtr()->GetVoidPointer(0));
+  // restore the blend state
+  glBlendFuncSeparate(blendSrcC, blendDstC, blendSrcA, blendDstA);
 #else
   (void)ren;
   glPushAttrib(GL_ENABLE_BIT | GL_TRANSFORM_BIT| GL_TEXTURE_BIT);

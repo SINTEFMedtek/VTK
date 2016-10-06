@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Visualization Toolkit
-  Module:    $RCSfile$
+  Module:    vtkCompositeDataReader.cxx
 
   Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
   All rights reserved.
@@ -34,7 +34,7 @@
 
 #include <vtksys/RegularExpression.hxx>
 #include <vtksys/SystemTools.hxx>
-#include <vtksys/ios/sstream>
+#include <sstream>
 
 #include <vector>
 
@@ -585,7 +585,7 @@ vtkDataObject* vtkCompositeDataReader::ReadChild()
 
   unsigned int child_stack_depth = 1;
 
-  vtksys_ios::ostringstream child_data;
+  std::ostringstream child_data;
   char line[512];
   while (child_stack_depth > 0)
     // read until ENDCHILD (passing over any nested CHILD-ENDCHILD correctly).

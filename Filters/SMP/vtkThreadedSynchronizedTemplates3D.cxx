@@ -19,6 +19,7 @@
 #include "vtkCharArray.h"
 #include "vtkDoubleArray.h"
 #include "vtkFloatArray.h"
+#include "vtkIdListCollection.h"
 #include "vtkInformation.h"
 #include "vtkInformationIntegerVectorKey.h"
 #include "vtkInformationVector.h"
@@ -308,7 +309,8 @@ void ContourImage(vtkThreadedSynchronizedTemplates3D *self, int* exExt,
 
   ptr += self->GetArrayComponent();
   vtkPolygonBuilder polyBuilder;
-  vtkSmartPointer<vtkIdList> poly = vtkSmartPointer<vtkIdList>::New();
+  vtkSmartPointer<vtkIdListCollection> polys =
+    vtkSmartPointer<vtkIdListCollection>::New();
 
   newPts = output->GetPoints();
   newPolys = output->GetPolys();
@@ -599,12 +601,19 @@ void ContourImage(vtkThreadedSynchronizedTemplates3D *self, int* exExt,
               }
             if(!outputTriangles)
               {
-              polyBuilder.GetPolygon(poly);
-              if(poly->GetNumberOfIds()>0)
+              polyBuilder.GetPolygons(polys);
+              int nPolys = polys->GetNumberOfItems();
+              for (int polyId = 0; polyId < nPolys; ++polyId)
                 {
-                outCellId = newPolys->InsertNextCell(poly);
-                outCD->CopyData(inCD, inCellId, outCellId);
+                vtkIdList* poly = polys->GetItem(polyId);
+                if(poly->GetNumberOfIds()!=0)
+                  {
+                  outCellId = newPolys->InsertNextCell(poly);
+                  outCD->CopyData(inCD, inCellId, outCellId);
+                  }
+                poly->Delete();
                 }
+              polys->RemoveAllItems();
               }
             }
           inPtrX += xInc;
@@ -843,8 +852,8 @@ void vtkThreadedSynchronizedTemplates3D::ThreadedExecute(vtkImageData *data,
   DoThreadedContour functor(this, exExt, data, inScalars, nPieces);
   vtkSMPTools::For( 0, nPieces, functor );
 
-  int p = 0;
-  for (int i = 0; i < functor.GetNumberOfOutputPieces(); ++i)
+  vtkIdType p = 0;
+  for (vtkIdType i = 0; i < functor.GetNumberOfOutputPieces(); ++i)
     {
     vtkPolyData* piece = functor.GetOutputPiece(i);
     output->SetBlock(p++, piece);

@@ -93,11 +93,6 @@ public:
   vtkGetMacro(MaximumNumberOfPeels,int);
 
   // Description:
-  // Tells if the last time this pass was executed, the depth peeling
-  // algorithm was actually used. Initial value is false.
-  vtkGetMacro(LastRenderingUsedDepthPeeling,bool);
-
-  // Description:
   // Is rendering at translucent geometry stage using depth peeling and
   // rendering a layer other than the first one? (Boolean value)
   // If so, the uniform variables UseTexture and Texture can be set.
@@ -137,11 +132,6 @@ public:
   int ViewportHeight;
 
   // Description:
-  // Actual depth format: vtkgl::DEPTH_COMPONENT16_ARB
-  // or vtkgl::DEPTH_COMPONENT24_ARB
-  unsigned int DepthFormat;
-
-  // Description:
   // In case of use of depth peeling technique for rendering translucent
   // material, define the threshold under which the algorithm stops to
   // iterate over peel layers. This is the ratio of the number of pixels
@@ -156,8 +146,6 @@ public:
   // Initial value is 4. A special value of 0 means no maximum limit.
   // It has to be a positive value.
   int MaximumNumberOfPeels;
-
-  bool LastRenderingUsedDepthPeeling;
 
   // Is rendering at translucent geometry stage using depth peeling and
   // rendering a layer other than the first one? (Boolean value)

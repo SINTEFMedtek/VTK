@@ -32,9 +32,9 @@
 #include "vtkTransform.h"
 #include "vtkXMLImageDataReader.h"
 
-#include <vtksys/ios/fstream>
-#include <vtksys/ios/sstream>
-#include <vtksys/stl/utility>
+#include <fstream>
+#include <sstream>
+#include <utility>
 
 vtkStandardNewMacro(vtkGeoFileImageSource);
 //----------------------------------------------------------------------------
@@ -126,13 +126,13 @@ bool vtkGeoFileImageSource::ReadImage(int level, int id, vtkGeoImageNode* node)
   node->SetId(id);
   node->SetLevel(level);
   vtkSmartPointer<vtkXMLImageDataReader> reader = vtkSmartPointer<vtkXMLImageDataReader>::New();
-  vtksys_ios::stringstream ss;
+  std::stringstream ss;
   ss.str("");
   ss << this->Path << "/tile_" << level << "_" << id << ".vti";
 
   // Check if the file exists
-  vtksys_ios::ifstream in;
-  in.open(ss.str().c_str(), vtksys_ios::ifstream::in);
+  std::ifstream in;
+  in.open(ss.str().c_str(), std::ifstream::in);
   if (in.fail())
     {
     // Make a dummy image

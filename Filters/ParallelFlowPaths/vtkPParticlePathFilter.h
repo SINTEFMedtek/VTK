@@ -15,7 +15,7 @@
 // .NAME vtkPParticlePathFilter - A Parallel Particle tracer for unsteady vector fields
 // .SECTION Description
 // vtkPParticlePathFilter is a filter that integrates a vector field to generate
-//
+// path lines.
 //
 // .SECTION See Also
 // vtkPParticlePathFilterBase has the details of the algorithms
@@ -23,7 +23,6 @@
 
 #ifndef vtkPParticlePathFilter_h
 #define vtkPParticlePathFilter_h
-
 
 #include "vtkPParticleTracerBase.h"
 #include "vtkParticlePathFilter.h" //for utility
@@ -48,13 +47,11 @@ protected:
   void Finalize();
 
   ParticlePathFilterInternal It;
+  vtkDoubleArray* SimulationTime;
+  vtkIntArray* SimulationTimeStep;
+
 private:
   vtkPParticlePathFilter(const vtkPParticlePathFilter&);  // Not implemented.
   void operator=(const vtkPParticlePathFilter&); // Not implemented
-
-  vtkDoubleArray* SimulationTime;
-  vtkIntArray* SimulationTimeStep;
 };
-
-
 #endif

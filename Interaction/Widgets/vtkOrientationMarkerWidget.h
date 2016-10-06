@@ -114,6 +114,7 @@ public:
   // Set/get the viewport to position/size this widget.
   // Default is bottom left corner (0,0,0.2,0.2).
   void SetViewport(double minX, double minY, double maxX, double maxY);
+  void SetViewport(double viewport[4]);
   double* GetViewport();
 
   // Description:
@@ -152,7 +153,7 @@ protected:
   // used to compute relative movements
   int StartPosition[2];
 
-//BTX - manage the state of the widget
+  // Manage the state of the widget
   int State;
   enum WidgetState
   {
@@ -164,7 +165,6 @@ protected:
     AdjustingP3,
     AdjustingP4
   };
-//ETX
 
 
   // use to determine what state the mouse is over, edge1 p1, etc.

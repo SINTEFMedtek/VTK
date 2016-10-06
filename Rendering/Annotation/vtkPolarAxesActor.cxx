@@ -30,7 +30,7 @@
 #include "vtkTextProperty.h"
 #include "vtkViewport.h"
 
-#include <vtksys/ios/sstream>
+#include <sstream>
 
 #define VTK_POLAR_AXES_ACTOR_RTOL ( 1. - 10. * VTK_DBL_EPSILON )
 
@@ -684,7 +684,7 @@ void vtkPolarAxesActor::BuildRadialAxes()
       // Use polar angle as a title for the radial axis
       axis->SetTitleVisibility( this->RadialTitleVisibility );
       axis->GetTitleTextProperty()->SetColor( this->RadialAxesProperty->GetColor() );
-      vtksys_ios::ostringstream title;
+      std::ostringstream title;
       title << alpha
             << ( this->RadialUnits ? " deg" : "" );
       axis->SetTitle( title.str().c_str() );

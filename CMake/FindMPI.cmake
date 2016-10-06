@@ -78,7 +78,6 @@
 
 # include this to handle the QUIETLY and REQUIRED arguments
 include(${CMAKE_CURRENT_LIST_DIR}/FindPackageHandleStandardArgs.cmake)
-include(GetPrerequisites)
 
 #
 # This part detects MPI compilers, attempting to wade through the mess of compiler names in
@@ -136,7 +135,7 @@ set(_MPI_XL_Fortran_COMPILER_NAMES         mpixlf95   mpixlf95_r mpxlf95 mpxlf95
 # or if we know it matches the regular compiler.
 foreach (lang C CXX Fortran)
   foreach (id GNU Intel PGI XL)
-    if (NOT CMAKE_${lang}_COMPILER_ID OR CMAKE_${lang}_COMPILER_ID} STREQUAL id)
+    if (NOT CMAKE_${lang}_COMPILER_ID OR CMAKE_${lang}_COMPILER_ID STREQUAL id)
       list(APPEND _MPI_${lang}_COMPILER_NAMES ${_MPI_${id}_${lang}_COMPILER_NAMES})
     endif()
     unset(_MPI_${id}_${lang}_COMPILER_NAMES)    # clean up the namespace here
@@ -155,6 +154,7 @@ if(WIN32)
   list(APPEND _MPI_PREFIX_PATH "${msmpi_bin_path}")
   unset(msmpi_bin_path)
   list(APPEND _MPI_PREFIX_PATH "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\MPI;InstallRoot]/Bin")
+  list(APPEND _MPI_PREFIX_PATH "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\HPC;HpcMpiInstallDir]/..")
   list(APPEND _MPI_PREFIX_PATH "$ENV{MSMPI_INC}/..") # The SDK is installed separately from the runtime
   # MPICH
   list(APPEND _MPI_PREFIX_PATH "[HKEY_LOCAL_MACHINE\\SOFTWARE\\MPICH\\SMPD;binary]/..")
@@ -560,14 +560,13 @@ foreach (lang C CXX Fortran)
   if (CMAKE_${lang}_COMPILER_WORKS)
     # If the user supplies a compiler *name* instead of an absolute path, assume that we need to find THAT compiler.
     if (MPI_${lang}_COMPILER)
-      is_file_executable(MPI_${lang}_COMPILER MPI_COMPILER_IS_EXECUTABLE)
-      if (NOT MPI_COMPILER_IS_EXECUTABLE)
+      if (NOT IS_ABSOLUTE "${MPI_${lang}_COMPILER}")
         # Get rid of our default list of names and just search for the name the user wants.
         set(_MPI_${lang}_COMPILER_NAMES ${MPI_${lang}_COMPILER})
         set(MPI_${lang}_COMPILER "MPI_${lang}_COMPILER-NOTFOUND" CACHE FILEPATH "Cleared" FORCE)
-        # If the user specifies a compiler, we don't want to try to search libraries either.
-        set(try_libs FALSE)
       endif()
+      # If the user specifies a compiler, we don't want to try to search libraries either.
+      set(try_libs FALSE)
     else()
       set(try_libs TRUE)
     endif()

@@ -23,6 +23,7 @@
 #include "vtkInformation.h"
 #include "vtkIntArray.h"
 #include "vtkLongArray.h"
+#include "vtkLongLongArray.h"
 #include "vtkMath.h"
 #include "vtkMinimalStandardRandomSequence.h"
 #include "vtkShortArray.h"
@@ -32,6 +33,7 @@
 #include "vtkUnsignedCharArray.h"
 #include "vtkUnsignedIntArray.h"
 #include "vtkUnsignedLongArray.h"
+#include "vtkUnsignedLongLongArray.h"
 #include "vtkUnsignedShortArray.h"
 #include "vtkVariantArray.h"
 #include "vtkInformationVector.h"
@@ -41,18 +43,6 @@
 #include "vtkInformationVariantVectorKey.h"
 #include "vtkNew.h"
 #include "vtkUnicodeString.h" // for vtkSuperExtraExtendedTemplateMacro
-
-#if defined(VTK_TYPE_USE_LONG_LONG)
-# include "vtkLongLongArray.h"
-# include "vtkUnsignedLongLongArray.h"
-#endif
-
-#if defined(VTK_TYPE_USE___INT64)
-# include "vtk__Int64Array.h"
-# if defined(VTK_TYPE_CONVERT_UI64_TO_DOUBLE)
-#  include "vtkUnsigned__Int64Array.h"
-# endif
-#endif
 
 #include <algorithm>
 #include <iterator>
@@ -361,23 +351,11 @@ vtkAbstractArray* vtkAbstractArray::CreateArray(int dataType)
     case VTK_UNSIGNED_LONG:
       return vtkUnsignedLongArray::New();
 
-#if defined(VTK_TYPE_USE_LONG_LONG)
     case VTK_LONG_LONG:
       return vtkLongLongArray::New();
 
     case VTK_UNSIGNED_LONG_LONG:
       return vtkUnsignedLongLongArray::New();
-#endif
-
-#if defined(VTK_TYPE_USE___INT64)
-    case VTK___INT64:
-      return vtk__Int64Array::New();
-
-# if defined(VTK_TYPE_CONVERT_UI64_TO_DOUBLE)
-    case VTK_UNSIGNED___INT64:
-      return vtkUnsigned__Int64Array::New();
-# endif
-#endif
 
     case VTK_FLOAT:
       return vtkFloatArray::New();
@@ -457,26 +435,6 @@ void vtkAbstractArray::PrintSelf(ostream& os, vtkIndent indent)
     {
     this->Information->PrintSelf( os, indent.GetNextIndent() );
     }
-}
-
-//--------------------------------------------------------------------------
-void vtkAbstractArray::InsertVariantValue(vtkIdType id, vtkVariant value)
-{
-  if ( id >= this->Size )
-    {
-    int status = this->Resize(id+1);
-    if (!status)
-      {
-      vtkErrorMacro(<<"FAILED to extend array to accommodate new ID "
-                    << id);
-      return;
-      }
-    }
-  if ( id > this->MaxId )
-    {
-    this->MaxId = id;
-    }
-  this->SetVariantValue(id, value);
 }
 
 //--------------------------------------------------------------------------

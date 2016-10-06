@@ -31,7 +31,7 @@
 #include "vtkSmartPointer.h"
 #include "vtkStdString.h"
 
-#include <vtksys/ios/sstream>
+#include <sstream>
 
 #define VTK_CREATE(type, name) \
   vtkSmartPointer<type> name = vtkSmartPointer<type>::New()
@@ -55,7 +55,7 @@ int TestSQLGraphReader(int argc, char* argv[])
   // Build a graph
   vtkSmartPointer<vtkSQLQuery> q;
   q.TakeReference(database->GetQueryInstance());
-  vtksys_ios::ostringstream oss;
+  std::ostringstream oss;
 
   q->SetQuery("DROP TABLE IF EXISTS vertices");
   q->Execute();

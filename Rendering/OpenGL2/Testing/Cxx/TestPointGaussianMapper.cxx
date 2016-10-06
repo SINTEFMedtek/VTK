@@ -16,7 +16,8 @@
 // .SECTION Thanks
 // <verbatim>
 //
-//  This file is part of the PointSprites plugin developed and contributed by
+// This file is based loosely on the PointSprites plugin developed
+// and contributed by
 //
 //  Copyright (c) CSCS - Swiss National Supercomputing Centre
 //                EDF - Electricite de France
@@ -25,8 +26,6 @@
 //  Stephane Ploix (EDF)
 //
 // </verbatim>
-// .SECTION Description
-// this program tests the point sprite support by vtkPointSpriteProperty.
 
 
 #include "vtkActor.h"
@@ -91,7 +90,7 @@ int TestPointGaussianMapper(int argc, char *argv[])
   mapper->SetInputConnection(randomAttr->GetOutputPort());
   mapper->SelectColorArray("RandomPointVectors");
   mapper->SetScalarModeToUsePointFieldData();
-  mapper->SetDefaultRadius(0.0);
+  mapper->SetScaleFactor(0.0);
   mapper->EmissiveOff();
 #endif
 
@@ -103,7 +102,7 @@ int TestPointGaussianMapper(int argc, char *argv[])
   mapper->SetInputConnection(reader->GetOutputPort());
   mapper->SelectColorArray("Color");
   mapper->SetScalarModeToUsePointFieldData();
-  mapper->SetDefaultRadius(0.0);
+  mapper->SetScalefactor(0.0);
   mapper->EmissiveOff();
 
   //actor->GetProperty()->SetPointSize(3.0);

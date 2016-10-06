@@ -121,6 +121,7 @@ SET(CTEST_CUSTOM_WARNING_EXCEPTION
   "[Qq]t([Cc]ore|[Gg]ui).*warning C4127: conditional expression is constant"
   "[Qq]t.*h.*warning.*declaration of .* shadows a member of .this"
   "[Qq]t.*h.*warning.*(copy constructor|assignment operator) could not be generated"
+  "warning C4244: 'initializing' : conversion from 'qint64' to 'int', possible loss of data"
   # gcc -Wstric-aliasing
   "[Qq]t.*q.*h.*warning: dereferencing pointer .* does break strict-aliasing rules"
   "[Qq]t.*q.*h.*note: initialized from here"
@@ -283,16 +284,20 @@ SET(CTEST_CUSTOM_WARNING_EXCEPTION
 
   #ignore clangs documentation warnings from libxml, which uses gtk-doc natively, not doxygen
   "vtklibxml2.*warning: unknown command tag name"
+
+  # Ignore warnings about inheriting std::exception when the dll-interface
+  # doesn't match. There's no other way to really do exceptions properly.
+  "warning C4275: non dll-interface class 'std::exception' used as base"
+
+  # This warning occurs when building Java with -source x.y with compiler a.b's
+  # runtime library (rt.jar).
+  "bootstrap class path not set in conjunction with -source"
   )
 
 IF(APPLE)
 SET(CTEST_CUSTOM_WARNING_EXCEPTION
   ${CTEST_CUSTOM_WARNING_EXCEPTION}
   "warning -.: directory name .* does not exist"
-
-  # Almost all of Carbon is deprecated, so mask deprecation warnings out
-  # of dashboard results for Carbon-specific files.
-  "vtkCarbonRenderWindow.*warning.*is deprecated"
   )
 ENDIF()
 

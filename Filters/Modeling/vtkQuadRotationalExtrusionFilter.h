@@ -1,7 +1,7 @@
 /*=========================================================================
 
 Program:   Visualization Toolkit
-Module:    $RCSfile: vtkQuadRotationalExtrusionFilter.h,v $
+Module:    vtkQuadRotationalExtrusionFilter.h
 
 Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
 All rights reserved.
@@ -60,7 +60,7 @@ PURPOSE.  See the above copyright notice for more information.
 
 #include "vtkFiltersModelingModule.h" // For export macro
 #include "vtkMultiBlockDataSetAlgorithm.h"
-#include <vtksys/stl/map> // STL vector need for per block angles
+#include <map> // STL vector need for per block angles
 
 class vtkPoints;
 class vtkPointData;
@@ -149,7 +149,7 @@ class VTKFILTERSMODELING_EXPORT vtkQuadRotationalExtrusionFilter : public vtkMul
   double DeltaRadius;
 
 //BTX
-  vtksys_stl::map<vtkIdType,double> PerBlockAngles;
+  std::map<vtkIdType,double> PerBlockAngles;
 //ETX
 
  private:

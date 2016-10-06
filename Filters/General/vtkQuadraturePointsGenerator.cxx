@@ -37,8 +37,8 @@
 #include "vtkQuadratureSchemeDefinition.h"
 #include "vtkQuadraturePointsUtilities.hxx"
 
-#include "vtksys/ios/sstream"
-using vtksys_ios::ostringstream;
+#include <sstream>
+using std::ostringstream;
 
 //-----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkQuadraturePointsGenerator);

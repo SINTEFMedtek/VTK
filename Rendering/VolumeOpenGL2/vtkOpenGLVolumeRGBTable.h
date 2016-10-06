@@ -13,8 +13,8 @@
 
 =========================================================================*/
 
-#ifndef vtkOpenGLVolumeRGBTable_h_
-#define vtkOpenGLVolumeRGBTable_h_
+#ifndef vtkOpenGLVolumeRGBTable_h
+#define vtkOpenGLVolumeRGBTable_h
 
 #include <vtkColorTransferFunction.h>
 #include <vtkTextureObject.h>
@@ -105,9 +105,10 @@ public:
       scalarRGB->GetTable(this->LastRange[0], this->LastRange[1],
                           this->TextureWidth, this->Table);
       this->TextureObject->SetWrapS(vtkTextureObject::ClampToEdge);
+      this->TextureObject->SetWrapT(vtkTextureObject::ClampToEdge);
       this->TextureObject->SetMagnificationFilter(filterValue);
       this->TextureObject->SetMinificationFilter(filterValue);
-      this->TextureObject->Create1DFromRaw(this->TextureWidth,
+      this->TextureObject->Create2DFromRaw(this->TextureWidth, 1,
                                            this->NumberOfColorComponents,
                                            VTK_FLOAT,
                                            this->Table);
@@ -215,5 +216,5 @@ private:
   vtkOpenGLVolumeRGBTables &operator=(const vtkOpenGLVolumeRGBTables &other);
 };
 
-#endif // vtkOpenGLVolumeRGBTable_h_
+#endif // vtkOpenGLVolumeRGBTable_h
 // VTK-HeaderTest-Exclude: vtkOpenGLVolumeRGBTable.h

@@ -32,7 +32,7 @@ PURPOSE.  See the above copyright notice for more information.
 #include "vtkStdString.h"
 
 #include <vtksys/SystemTools.hxx>
-#include <vtksys/ios/sstream>
+#include <sstream>
 
 
 class vtkSQLDatabase::vtkCallbackVector :
@@ -132,7 +132,7 @@ vtkStdString vtkSQLDatabase::GetColumnSpecification( vtkSQLDatabaseSchema* schem
                                                      int tblHandle,
                                                      int colHandle )
 {
-  vtksys_ios::ostringstream queryStr;
+  std::ostringstream queryStr;
   queryStr << schema->GetColumnNameFromHandle( tblHandle, colHandle );
 
   // Figure out column type

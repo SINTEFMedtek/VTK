@@ -28,6 +28,7 @@ vtk_add_test_cxx(${vtk-module}CxxTests tests
   TestHandleWidget.cxx
   TestImageActorContourWidget.cxx
   TestImageTracerWidget.cxx
+  TestImplicitCylinderWidget.cxx
   TestImplicitPlaneWidget2b.cxx
   TestImplicitPlaneWidget2.cxx
   TestImplicitPlaneWidget2LockNormalToCamera.cxx
@@ -35,7 +36,9 @@ vtk_add_test_cxx(${vtk-module}CxxTests tests
   TestLogoWidgetAlphaBlending.cxx
   TestLogoWidget.cxx
   TestLogoWidgetDepthPeeling.cxx
+  TestMultipleViewports.cxx
   TestOrientationMarkerWidget.cxx
+  TestOrientationMarkerWidget2.cxx
   TestOrthoPlanes.cxx
   TestParallelopipedWidget.cxx
   TestPickingManagerSeedWidget.cxx
@@ -108,9 +111,14 @@ endif()
 # These tests depend on volume rendering classes not build for OpenGL2
 if(VTK_RENDERING_BACKEND STREQUAL "OpenGL")
   vtk_add_test_cxx(${vtk-module}CxxTests tests
-    TestButtonWidget.cxx
     TestImageCroppingRegionsWidget.cxx
     )
+
+  if(NOT VTK_LEGACY_REMOVE)
+    vtk_add_test_cxx(${vtk-module}CxxTests tests
+      TestButtonWidget.cxx
+      )
+  endif()
 endif()
 
 set(all_tests

@@ -14,6 +14,8 @@
 =========================================================================*/
 #include "vtkVolumeRayCastMapper.h"
 
+#if !defined(VTK_LEGACY_REMOVE)
+
 #include "vtkCamera.h"
 #include "vtkDataArray.h"
 #include "vtkEncodedGradientEstimator.h"
@@ -112,6 +114,8 @@ vtkVolumeRayCastMapper::vtkVolumeRayCastMapper()
   this->ImageDisplayHelper     = vtkRayCastImageDisplayHelper::New();
 
   this->IntermixIntersectingGeometry = 1;
+
+  VTK_LEGACY_BODY(vtkVolumeRayCastMapper::vtkVolumeRayCastMapper,"VTK 7.0");
 }
 
 // Destruct a vtkVolumeRayCastMapper - clean up any memory used
@@ -454,7 +458,10 @@ void vtkVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
     this->VolumeRayCastFunction->FunctionInitialize( ren, vol,
                                                      staticInfo );
 
-    vol->UpdateScalarOpacityforSampleSize( ren, this->SampleDistance );
+    double scalarOpacityUnitDistance =
+      vol->GetProperty()->GetScalarOpacityUnitDistance();
+    vol->UpdateScalarOpacityforSampleSize( ren, this->SampleDistance /
+                                           scalarOpacityUnitDistance);
 
     staticInfo->CameraThickness =
       static_cast<float>(ren->GetActiveCamera()->GetThickness());
@@ -693,9 +700,13 @@ VTK_THREAD_RETURN_TYPE VolumeRayCastMapper_CastRays( void *arg )
   float fullRayEnd[3];
   float fullRayDirection[3];
   int bitLoop, bitFlag;
-  float rgbaArray[40], distanceArray[10], scalarArray[10];
   float tmp, tmpArray[4];
   int arrayCount;
+
+  // Need room for potentially 27 subvolumes.
+  float rgbaArray[27*4] = {};
+  float distanceArray[27] = {};
+  float scalarArray[27] = {};
 
   for ( j = 0; j < imageInUseSize[1]; j++ )
     {
@@ -2014,3 +2025,5 @@ void vtkVolumeRayCastMapper::ReportReferences(vtkGarbageCollector* collector)
   vtkGarbageCollectorReport(collector, this->GradientEstimator,
                             "GradientEstimator");
 }
+
+#endif // VTK_LEGACY_REMOVE

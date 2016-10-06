@@ -8,21 +8,21 @@ set(MocHeaders ${QVTKMocHeaders} vtkQtRichTextView.h)
 
 if(VTK_QT_VERSION VERSION_GREATER "4")
   find_package(Qt5 COMPONENTS WebKitWidgets QUIET)
-    if(Qt5WebKitWidgets_FOUND)
-      include_directories(${Qt5WebKitWidgets_INCLUDE_DIRS})
-      add_definitions(${Qt5WebKitWidgets_DEFINITIONS})
+  if(Qt5WebKitWidgets_FOUND)
+    include_directories(${Qt5WebKitWidgets_INCLUDE_DIRS})
+    add_definitions(${Qt5WebKitWidgets_DEFINITIONS})
 
-      qt5_wrap_ui(UI_FILES vtkQtRichTextView.ui)
-      qt5_wrap_cpp(LibMocSrcs ${MocHeaders})
+    qt5_wrap_ui(UI_FILES vtkQtRichTextView.ui)
+    qt5_wrap_cpp(LibMocSrcs ${MocHeaders})
 
-      set(QT_LIBRARIES ${Qt5WebKitWidgets_LIBRARIES})
+    set(QT_LIBRARIES ${Qt5WebKitWidgets_LIBRARIES})
 
-      # When this module is loaded by an app, load Qt too.
-      vtk_module_export_code_find_package(Qt5WebKitWidgets)
-      set(_FOUND 1)
-    else()
-      message(STATUS "Qt5WebKitWidgets not found. vtkQtRichTextView is disabled.")
-    endif()
+    # When this module is loaded by an app, load Qt too.
+    vtk_module_export_code_find_package(Qt5WebKitWidgets)
+    set(_FOUND 1)
+  else()
+    message(STATUS "Qt5WebKitWidgets not found. vtkQtRichTextView is disabled.")
+  endif()
 else()
   find_package(Qt4 COMPONENTS QtCore QtGui QtWebKit QUIET)
 
@@ -36,9 +36,9 @@ else()
 
   qt4_wrap_ui(UI_FILES vtkQtRichTextView.ui)
   qt4_wrap_cpp(LibMocSrcs ${MocHeaders})
-    if (QT_WEBKIT_FOUND)
-      set(_FOUND 1)
-    endif()
+  if (QT_WEBKIT_FOUND)
+    set(_FOUND 1)
+  endif()
 endif()
 
 if(${_FOUND})

@@ -37,7 +37,7 @@
 #include "vtkVariant.h"
 #include "vtkVariantArray.h"
 
-#include <vtksys/ios/sstream>
+#include <sstream>
 
 #include <boost/graph/use_mpi.hpp>
 #include <boost/graph/distributed/mpi_process_group.hpp>
@@ -56,7 +56,7 @@ namespace
 
 void TestPSQLGraphReader()
 {
-  vtksys_ios::ostringstream oss;
+  std::ostringstream oss;
   // Make a database containing a cycle.
   int vertices = 11;
   vtkSmartPointer<vtkSQLiteDatabase> db =

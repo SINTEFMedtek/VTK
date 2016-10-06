@@ -21,7 +21,7 @@
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 
-#include <vtksys/ios/sstream>
+#include <sstream>
 
 
 // Construct with no start and end write methods or arguments.
@@ -157,7 +157,7 @@ void vtkWriter::EncodeString(char* resname, const char* name, bool doublePercent
     return;
     }
   int cc = 0;
-  vtksys_ios::ostringstream str;
+  std::ostringstream str;
 
   char buffer[10];
 

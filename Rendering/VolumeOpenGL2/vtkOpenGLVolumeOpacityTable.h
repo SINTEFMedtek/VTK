@@ -13,8 +13,8 @@
 
 =========================================================================*/
 
-#ifndef vtkOpenGLVolumeOpacityTable_h_
-#define vtkOpenGLVolumeOpacityTable_h_
+#ifndef vtkOpenGLVolumeOpacityTable_h
+#define vtkOpenGLVolumeOpacityTable_h
 
 #include <vtkPiecewiseFunction.h>
 #include <vtkTextureObject.h>
@@ -156,8 +156,7 @@ public:
       this->TextureObject->SetWrapS(vtkTextureObject::ClampToEdge);
       this->TextureObject->SetMagnificationFilter(filterValue);
       this->TextureObject->SetMinificationFilter(filterValue);
-      this->TextureObject->CreateAlphaFromRaw(this->TextureWidth,
-                                              vtkTextureObject::alpha16,
+      this->TextureObject->Create2DFromRaw(this->TextureWidth, 1, 1,
                                               VTK_FLOAT,
                                               this->Table);
       this->LastInterpolation = filterValue;
@@ -267,5 +266,5 @@ private:
   vtkOpenGLVolumeOpacityTables &operator=(const vtkOpenGLVolumeOpacityTables &other);
 };
 
-#endif // vtkOpenGLVolumeOpacityTable_h_
+#endif // vtkOpenGLVolumeOpacityTable_h
 // VTK-HeaderTest-Exclude: vtkOpenGLVolumeOpacityTable.h

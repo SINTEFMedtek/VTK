@@ -13,6 +13,8 @@ PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
 
+#include "vtk_glew.h"
+
 #include "vtkOpenGLRenderWindow.h"
 #import <Cocoa/Cocoa.h>
 #import "vtkCocoaMacOSXSDKCompatibility.h" // Needed to support old SDKs
@@ -26,7 +28,8 @@ PURPOSE.  See the above copyright notice for more information.
 #import "vtkRendererCollection.h"
 #import "vtkCocoaGLView.h"
 
-#import <vtksys/ios/sstream>
+
+#import <sstream>
 
 vtkStandardNewMacro(vtkCocoaRenderWindow);
 
@@ -274,19 +277,8 @@ void vtkCocoaRenderWindow::DestroyWindow()
   if (this->OwnContext && this->GetContextId())
     {
     this->MakeCurrent();
-
-    // tell each of the renderers that this render window/graphics context
-    // is being removed (the RendererCollection is removed by vtkRenderWindow's
-    // destructor)
-    vtkCollectionSimpleIterator rsit;
-    vtkRenderer *ren;
-    for ( this->Renderers->InitTraversal(rsit);
-          (ren = this->Renderers->GetNextRenderer(rsit));)
-      {
-      ren->SetRenderWindow(NULL);
-      ren->SetRenderWindow(this);
-      }
-  }
+    this->ReleaseGraphicsResources(this);
+    }
   this->SetContextId(NULL);
   this->SetPixelFormat(NULL);
 
@@ -414,13 +406,20 @@ const char* vtkCocoaRenderWindow::ReportCapabilities()
   const char* glVendor = (const char*) glGetString(GL_VENDOR);
   const char* glRenderer = (const char*) glGetString(GL_RENDERER);
   const char* glVersion = (const char*) glGetString(GL_VERSION);
-  const char* glExtensions = (const char*) glGetString(GL_EXTENSIONS);
 
-  vtksys_ios::ostringstream strm;
+  std::ostringstream strm;
   strm << "OpenGL vendor string:  " << glVendor
        << "\nOpenGL renderer string:  " << glRenderer
-       << "\nOpenGL version string:  " << glVersion
-       << "\nOpenGL extensions:  " << glExtensions << endl;
+       << "\nOpenGL version string:  " << glVersion << endl;
+
+  strm << "OpenGL extensions:  " << endl;
+  GLint n, i;
+  glGetIntegerv(GL_NUM_EXTENSIONS, &n);
+  for (i = 0; i < n; i++)
+    {
+    const char *ext = (const char *)glGetStringi(GL_EXTENSIONS, i);
+    strm << "  " << ext << endl;
+    }
 
   // Obtain the OpenGL context in order to keep track of the current screen.
   NSOpenGLContext* context = (NSOpenGLContext*)this->GetContextId();
@@ -471,12 +470,25 @@ const char* vtkCocoaRenderWindow::ReportCapabilities()
 //----------------------------------------------------------------------------
 int vtkCocoaRenderWindow::SupportsOpenGL()
 {
+#ifdef GLEW_OK
+  this->CreateGLContext();
   this->MakeCurrent();
-  if (!this->GetContextId() || !this->GetPixelFormat())
+
+  GLenum result = glewInit();
+  bool m_valid = (result == GLEW_OK);
+  if (!m_valid)
     {
     return 0;
     }
-  return 1;
+
+  if (GLEW_VERSION_3_2 || (GLEW_VERSION_2_1 && GLEW_EXT_gpu_shader4))
+    {
+    return 1;
+    }
+
+#endif
+
+  return 0;
 }
 
 //----------------------------------------------------------------------------
@@ -705,11 +717,10 @@ void vtkCocoaRenderWindow::CreateAWindow()
   //
   // So here we call +sharedApplication which will create the NSApplication
   // if it does not exist.  If it does exist, this does nothing.
-  // We are not actually interested in the return value.
   // This call is intentionally delayed until this CreateAWindow call
   // to prevent Cocoa-window related stuff from happening in scenarios
   // where vtkRenderWindows are created but never shown.
-  (void)[NSApplication sharedApplication];
+  NSApplication* app = [NSApplication sharedApplication];
 
   // create an NSWindow only if neither an NSView nor an NSWindow have
   // been specified already.  This is the case for a 'pure vtk application'.
@@ -717,6 +728,11 @@ void vtkCocoaRenderWindow::CreateAWindow()
   // SetRootWindow() and SetWindowId() so that a window is not created here.
   if (!this->GetRootWindow() && !this->GetWindowId() && !this->GetParentId())
     {
+    // Ordinarily, only .app bundles get proper mouse and keyboard interaction,
+    // but here we change the 'activation policy' to behave as if we were a
+    // .app bundle (which we may or may not be).
+    (void)[app setActivationPolicy:NSApplicationActivationPolicyRegular];
+
     NSWindow* theWindow = nil;
 
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= 1060
@@ -887,8 +903,10 @@ void vtkCocoaRenderWindow::CreateGLContext()
     int i = 0;
     NSOpenGLPixelFormatAttribute attribs[20];
 
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
     attribs[i++] = NSOpenGLPFAOpenGLProfile;
     attribs[i++] = NSOpenGLProfileVersion3_2Core;
+#endif
   //  OSX always preferrs an accelerated context
   //    attribs[i++] = NSOpenGLPFAAccelerated;
     attribs[i++] = NSOpenGLPFADepthSize;
@@ -906,6 +924,12 @@ void vtkCocoaRenderWindow::CreateGLContext()
     if (this->DoubleBuffer != 0)
       {
       attribs[i++] = NSOpenGLPFADoubleBuffer;
+      }
+
+    if (this->StencilCapable)
+      {
+      attribs[i++] = NSOpenGLPFAStencilSize;
+      attribs[i++] = (NSOpenGLPixelFormatAttribute)8;
       }
 
     attribs[i++] = (NSOpenGLPixelFormatAttribute)0;
@@ -934,7 +958,11 @@ void vtkCocoaRenderWindow::CreateGLContext()
       }
     else
       {
+#if defined(MAC_OS_X_VERSION_MIN_REQUIRED) && MAC_OS_X_VERSION_MIN_REQUIRED > MAC_OS_X_VERSION_10_6
       this->SetContextSupportsOpenGL32(true);
+#else
+      this->SetContextSupportsOpenGL32(false);
+#endif
       }
     }
 
@@ -1197,22 +1225,6 @@ void vtkCocoaRenderWindow::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "PixelFormat: " << this->GetPixelFormat() << endl;
   os << indent << "WindowCreated: " << (this->GetWindowCreated() ? "Yes" : "No") << endl;
   os << indent << "ViewCreated: " << (this->GetViewCreated() ? "Yes" : "No") << endl;
-}
-
-//----------------------------------------------------------------------------
-int vtkCocoaRenderWindow::GetDepthBufferSize()
-{
-  if ( this->Mapped )
-    {
-    GLint size = 0;
-    glGetIntegerv( GL_DEPTH_BITS, &size );
-    return (int) size;
-    }
-  else
-    {
-    vtkDebugMacro(<< "Window is not mapped yet!" );
-    return 24;
-    }
 }
 
 //----------------------------------------------------------------------------

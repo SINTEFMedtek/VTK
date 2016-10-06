@@ -177,10 +177,13 @@ struct vtkLabeledContourMapper::Private
                         const vtkIdType *ids, const LabelMetric &metrics);
 
   // Determine the first smooth position on the line defined by ids that is
-  // 1.5x the length of the label (in display coordinates).
+  // 1.2x the length of the label (in display coordinates).
+  // The position will be no less than skipDistance along the line from the
+  // starting location. This can be used to ensure that labels are placed a
+  // minimum distance apart.
   bool NextLabel(vtkPoints *points, vtkIdType &numIds, vtkIdType *&ids,
                  const LabelMetric &metrics, LabelInfo &info,
-                 double targetSmoothness);
+                 double targetSmoothness, double skipDistance);
 
   // Configure the text actor:
   bool BuildLabel(vtkTextActor3D *actor, const LabelMetric &metric,
@@ -199,6 +202,7 @@ vtkObjectFactoryNewMacro(vtkLabeledContourMapper)
 //------------------------------------------------------------------------------
 vtkLabeledContourMapper::vtkLabeledContourMapper()
 {
+  this->SkipDistance = 0.;
   this->LabelVisibility = true;
   this->TextActors = NULL;
   this->NumberOfTextActors = 0;
@@ -233,6 +237,15 @@ vtkLabeledContourMapper::~vtkLabeledContourMapper()
 //------------------------------------------------------------------------------
 void vtkLabeledContourMapper::Render(vtkRenderer *ren, vtkActor *act)
 {
+  if (vtkRenderWindow *renderWindow = ren->GetRenderWindow())
+    {
+    // Is the viewport's RenderWindow capturing GL2PS-special props?
+    if (renderWindow->GetCapturingGL2PSSpecialProps())
+      {
+        ren->CaptureGL2PSSpecialProp(act);
+      }
+    }
+
   // Make sure input data is synced
   if (vtkAlgorithm *inputAlgorithm = this->GetInputAlgorithm())
     {
@@ -409,7 +422,8 @@ void vtkLabeledContourMapper::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 
-  os << indent << "LabelVisiblity: " << (this->LabelVisibility ? "On\n"
+  os << indent << "SkipDistance: " << this->SkipDistance << "\n"
+     << indent << "LabelVisiblity: " << (this->LabelVisibility ? "On\n"
                                                                : "Off\n")
      << indent << "NumberOfTextActors: " << this->NumberOfTextActors << "\n"
      << indent << "NumberOfUsedTextActors: "
@@ -598,6 +612,7 @@ bool vtkLabeledContourMapper::PrepareRender(vtkRenderer *ren, vtkActor *act)
       continue;
       }
     metric.Value = scalars->GetComponent(ids[0], 0);
+    metric.Value = std::fabs(metric.Value) > 1e-6 ? metric.Value : 0.0;
     std::ostringstream str;
     str << metric.Value;
     metric.Text = str.str();
@@ -704,7 +719,8 @@ bool vtkLabeledContourMapper::PlaceLabels()
         {
         vtkIdType nIds = numIds;
         vtkIdType *ids = origIds;
-        while (this->Internal->NextLabel(points, nIds, ids, *metric, info, *it))
+        while (this->Internal->NextLabel(points, nIds, ids, *metric, info, *it,
+                                         this->SkipDistance))
           {
           infos.push_back(info);
           }
@@ -868,6 +884,9 @@ bool vtkLabeledContourMapper::RenderLabels(vtkRenderer *ren, vtkActor *)
 {
   for (vtkIdType i = 0; i < this->NumberOfUsedTextActors; ++i)
     {
+    // Needed for GL2PS capture:
+    this->TextActors[i]->RenderOpaqueGeometry(ren);
+    // Actually draw:
     this->TextActors[i]->RenderTranslucentPolygonalGeometry(ren);
     }
   return true;
@@ -1076,9 +1095,24 @@ bool vtkLabeledContourMapper::Private::SetViewInfo(vtkRenderer *ren,
                           mat->GetElement(2, 1),
                           mat->GetElement(2, 2));
 
+  // figure out the same aspect ratio used by the render engine
+  // (see vtkOpenGLCamera::Render())
+  int  lowerLeft[2];
+  int usize, vsize;
+  double aspect1[2];
+  double aspect2[2];
+  ren->GetTiledSizeAndOrigin(&usize, &vsize, lowerLeft, lowerLeft+1);
+  ren->ComputeAspect();
+  ren->GetAspect(aspect1);
+  ren->vtkViewport::ComputeAspect();
+  ren->vtkViewport::GetAspect(aspect2);
+  double aspectModification = (aspect1[0] * aspect2[1]) /
+                              (aspect1[1] * aspect2[0]);
+  double aspect = aspectModification * usize / vsize;
+
+  // Get the mvp (mcdc) matrix
   double mvp[16];
-  mat = ren->GetActiveCamera()->GetCompositeProjectionTransformMatrix(
-        ren->GetTiledAspectRatio(), 0., 1.);
+  mat = cam->GetCompositeProjectionTransformMatrix(aspect, -1, 1);
   vtkMatrix4x4::DeepCopy(mvp, mat);
 
   // Apply the actor's matrix:
@@ -1185,12 +1219,20 @@ bool vtkLabeledContourMapper::Private::PixelIsVisible(
 //------------------------------------------------------------------------------
 bool vtkLabeledContourMapper::Private::NextLabel(
     vtkPoints *points, vtkIdType &numIds, vtkIdType *&ids,
-    const LabelMetric &metrics, LabelInfo &info, double targetSmoothness)
+    const LabelMetric &metrics, LabelInfo &info, double targetSmoothness,
+    double skipDistance)
 {
   if (numIds < 3)
     {
     return false;
     }
+
+  // First point in this call to NextLabel (index into ids).
+  vtkIdType firstIdx = 0;
+  vtkVector3d firstPoint;
+  vtkVector2d firstPointDisplay;
+  points->GetPoint(ids[firstIdx], firstPoint.GetData());
+  this->ActorToDisplay(firstPoint, firstPointDisplay);
 
   // Start of current smooth run (index into ids).
   vtkIdType startIdx = 0;
@@ -1198,23 +1240,6 @@ bool vtkLabeledContourMapper::Private::NextLabel(
   vtkVector2d startPointDisplay;
   points->GetPoint(ids[startIdx], startPoint.GetData());
   this->ActorToDisplay(startPoint, startPointDisplay);
-
-  // Find the first visible point:
-  while (startIdx + 1 < numIds && !this->PixelIsVisible(startPointDisplay))
-    {
-    ++startIdx;
-    points->GetPoint(ids[startIdx], startPoint.GetData());
-    this->ActorToDisplay(startPoint, startPointDisplay);
-    }
-
-  // Start point in current segment.
-  vtkVector3d prevPoint = startPoint;
-  vtkVector2d prevPointDisplay = startPointDisplay;
-
-  // End point of current segment (index into ids).
-  vtkIdType curIdx = startIdx + 1;
-  vtkVector3d curPoint = prevPoint;
-  vtkVector2d curPointDisplay = prevPointDisplay;
 
   // Accumulated length of segments since startId
   std::vector<double> segmentLengths;
@@ -1241,6 +1266,33 @@ bool vtkLabeledContourMapper::Private::NextLabel(
 
   // Smoothness of start --> current
   double smoothness = 0;
+
+  // Account for skip distance:
+  while (segment.Norm() < skipDistance)
+    {
+    ++startIdx;
+    points->GetPoint(ids[startIdx], startPoint.GetData());
+    this->ActorToDisplay(startPoint, startPointDisplay);
+
+    segment = startPointDisplay - firstPointDisplay;
+    }
+
+  // Find the first visible point
+  while (startIdx + 1 < numIds && !this->PixelIsVisible(startPointDisplay))
+    {
+    ++startIdx;
+    points->GetPoint(ids[startIdx], startPoint.GetData());
+    this->ActorToDisplay(startPoint, startPointDisplay);
+    }
+
+  // Start point in current segment.
+  vtkVector3d prevPoint = startPoint;
+  vtkVector2d prevPointDisplay = startPointDisplay;
+
+  // End point of current segment (index into ids).
+  vtkIdType curIdx = startIdx + 1;
+  vtkVector3d curPoint = prevPoint;
+  vtkVector2d curPointDisplay = prevPointDisplay;
 
   while (curIdx < numIds)
     {

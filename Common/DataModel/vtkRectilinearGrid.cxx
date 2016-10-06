@@ -985,6 +985,16 @@ void vtkRectilinearGrid::DeepCopy(vtkDataObject *dataObject)
 //----------------------------------------------------------------------------
 void vtkRectilinearGrid::Crop(const int* updateExtent)
 {
+  // Do nothing for empty datasets:
+  for (int dim = 0; dim < 3; ++dim)
+    {
+    if (this->Extent[2*dim] > this->Extent[2*dim + 1])
+      {
+      vtkDebugMacro(<<"Refusing to crop empty dataset.");
+      return;
+      }
+    }
+
   int i, j, k;
   // What we want.
   int uExt[6];
@@ -1014,6 +1024,12 @@ void vtkRectilinearGrid::Crop(const int* updateExtent)
   if (ext[0] == uExt[0] && ext[1] == uExt[1]
       && ext[2] == uExt[2] && ext[3] == uExt[3]
       && ext[4] == uExt[4] && ext[5] == uExt[5])
+    {
+    return;
+    }
+  // Invalid extents would lead to unpleasant results:
+  else if (ext[1] < ext[0] || ext[3] < ext[2] || ext[5] < ext[4] ||
+           uExt[1] < uExt[0] || uExt[3] < uExt[2] || uExt[5] < uExt[4])
     {
     return;
     }

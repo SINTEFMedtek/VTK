@@ -191,9 +191,9 @@ SET(Module_SRCS
   vtkInformationVector.cxx
   vtkInstantiator.cxx
   vtkIntArray.cxx
-  vtkIOStream.cxx
   vtkLargeInteger.cxx
   vtkLongArray.cxx
+  vtkLongLongArray.cxx
   vtkLookupTable.cxx
   vtkMappedDataArray.txx
   vtkMath.cxx
@@ -232,6 +232,7 @@ SET(Module_SRCS
   vtkUnsignedCharArray.cxx
   vtkUnsignedIntArray.cxx
   vtkUnsignedLongArray.cxx
+  vtkUnsignedLongLongArray.cxx
   vtkUnsignedShortArray.cxx
   vtkVariantArray.cxx
   vtkVariant.cxx
@@ -271,6 +272,7 @@ set(${vtk-module}_HDRS
   vtkAutoInit.h
   vtkDataArrayIteratorMacro.h
   vtkDataArrayTemplateImplicit.txx
+  vtkIOStream.h
   vtkIOStreamFwd.h
   vtkInformationInternals.h
   vtkMappedDataArray.h
@@ -297,14 +299,6 @@ if(vtkCommonDataModel_ENABLED)
   include_directories(${VTK_BINARY_DIR}/Common/DataModel)
   set_property(SOURCE vtkInformationDataObjectKey.cxx
     PROPERTY COMPILE_DEFINITIONS vtkCommonDataModel_ENABLED)
-endif()
-
-# __int64 seems to be platform specific, turning on if
-if(HAVE_VTK_SIZEOF__INT64)
-  list(APPEND Module_SRCS
-    vtkUnsigned__Int64Array.cxx
-    vtk__Int64Array.cxx
-    )
 endif()
 
 if(WIN32)
@@ -337,11 +331,6 @@ macro(VTK_PREPARE_CMAKEDEFINE not invar outvar)
 endmacro()
 
 vtk_prepare_cmakedefine("" CMAKE_WORDS_BIGENDIAN VTK_WORDS_BIGENDIAN)
-vtk_prepare_cmakedefine("" CMAKE_NO_ANSI_STRING_STREAM VTK_NO_ANSI_STRING_STREAM)
-vtk_prepare_cmakedefine(NOT VTK_EXPLICIT_TEMPLATES
-                  VTK_NO_EXPLICIT_TEMPLATE_INSTANTIATION)
-vtk_prepare_cmakedefine(NOT VTK_COMPILER_HAS_FULL_SPECIALIZATION
-                        VTK_NO_FULL_TEMPLATE_SPECIALIZATION)
 
 # Provide version macros through vtkConfigure.h for compatibility.
 if(VTK_LEGACY_REMOVE)
@@ -354,6 +343,16 @@ endif()
 include(CheckSymbolExists)
 if (WIN32)
   check_symbol_exists(InterlockedAdd "windows.h" VTK_HAS_INTERLOCKEDADD)
+endif()
+
+if (NOT CMAKE_VERSION VERSION_LESS "3.1")
+  option(VTK_USE_CXX11_FEATURES "Build VTK using C++11 features (if available)"
+         OFF)
+else()
+  set(VTK_USE_CXX11_FEATURES OFF)
+endif()
+if (VTK_USE_CXX11_FEATURES)
+  set(CMAKE_CXX_STANDARD_REQUIRED 11)
 endif()
 
 
@@ -372,20 +371,6 @@ set_source_files_properties(
   vtkUnicodeString.cxx
   OBJECT_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/vtkUnicodeCaseFoldData.h
   )
-
-if(VTK_TYPE_USE_LONG_LONG)
-  list(APPEND Module_SRCS
-    vtkLongLongArray.cxx
-    vtkUnsignedLongLongArray.cxx
-    )
-endif()
-
-if(VTK_TYPE_USE___INT64)
-  list(APPEND Module_SRCS vtk__Int64Array.cxx)
-  if(VTK_TYPE_CONVERT_UI64_TO_DOUBLE)
-    list(APPEND Module_SRCS vtkUnsigned__Int64Array.cxx)
-  endif()
-endif()
 
 # Configure data arrays for platform-independent fixed-size types.
 # Match the type selection here to that in vtkType.h.
@@ -407,13 +392,6 @@ else()
   if(VTK_SIZEOF_LONG MATCHES "^8$")
     set(VTK_TYPE_NATIVE_Int64 Long)
     set(VTK_TYPE_NATIVE_UInt64 UnsignedLong)
-  else()
-    if(VTK_SIZEOF___INT64 MATCHES "^8$")
-      set(VTK_TYPE_NATIVE_Int64 __Int64)
-      if(VTK_TYPE_CONVERT_UI64_TO_DOUBLE)
-        set(VTK_TYPE_NATIVE_UInt64 Unsigned__Int64)
-      endif()
-    endif()
   endif()
 endif()
 set(VTK_TYPE_NATIVE_Float32 Float)
@@ -537,7 +515,6 @@ set_source_files_properties(
   vtkEventForwarderCommand.cxx
   vtkFloatingPointExceptions
   vtkGarbageCollectorManager.cxx
-  vtkIOStream.cxx
   vtkIndent.cxx
   vtkLargeInteger.cxx
   vtkOStrStreamWrapper.cxx
@@ -570,6 +547,7 @@ set_source_files_properties(
   vtkDataArrayTemplateHelper.cxx
   vtkDataArrayTemplateImplicit.txx
   vtkDenseArray.txx
+  vtkIOStream.h
   vtkIOStreamFwd.h
   vtkInformationInternals.h
   vtkMathUtilities.h
@@ -603,6 +581,32 @@ set_source_files_properties(
   WRAP_EXCLUDE
   )
 
+# python uses WRAP_EXCLUDE_PYTHON and ignores WRAP_EXCLUDE
+set_source_files_properties(
+  vtkABI.h
+  vtkAtomic.h
+  vtkAutoInit.h
+  vtkDataArrayTemplate.txx
+  vtkDataArrayTemplateHelper.cxx
+  vtkDataArrayTemplateImplicit.txx
+  vtkIOStream.h
+  vtkIOStreamFwd.h
+  vtkLargeInteger.cxx
+  vtkOldStyleCallbackCommand.cxx
+  vtkOStreamWrapper.cxx
+  vtkOStrStreamWrapper.cxx
+  vtkNew.h
+  vtkSetGet.h
+  vtkSmartPointer.h
+  vtkSmartPointerBase.h
+  vtkStdString.cxx
+  vtkUnicodeString.cxx
+  vtkWeakPointer.h
+  vtkWeakPointerBase.cxx
+  vtkWin32Header.h
+  PROPERTIES WRAP_EXCLUDE_PYTHON 1
+)
+
 set_source_files_properties(
   vtkDataArrayTemplate.h
   vtkDenseArray.h
@@ -611,31 +615,6 @@ set_source_files_properties(
   vtkTypeTemplate.h
   HEADER_FILE_ONLY
   )
-
-set_source_files_properties(
-  vtkArrayCoordinates.cxx
-  vtkArrayExtents.cxx
-  vtkArrayExtentsList.cxx
-  vtkArrayRange.cxx
-  vtkArraySort.cxx
-  vtkArrayWeights.cxx
-  vtkTimeStamp.cxx
-  vtkVariant.cxx
-  vtkDenseArray.txx
-  vtkSparseArray.txx
-  vtkTypedArray.txx
-  vtkTypeTemplate.h
-  vtkSystemIncludes.h
-  vtkType.h
-  vtkConfigure.h
-  vtkMathConfigure.h
-  vtkVersionMacros.h
-  PROPERTIES WRAP_SPECIAL 1
-)
-
-# Activate code in "vtkVariant.cxx".  See the comment in the source.
-set_source_files_properties(vtkVariant.cxx PROPERTIES
-  COMPILE_FLAGS -DVTK_VARIANT_IMPL)
 
 # Need nsl to resolve gethostbyname on SunOS-5.8
 # and socket also

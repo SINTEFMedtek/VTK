@@ -13,7 +13,7 @@
 
 #include <map>
 #include <vector>
-#include <vtksys/ios/sstream>
+#include <sstream>
 
 #include "alglib/svd.h"
 
@@ -204,7 +204,7 @@ public:
                              vtkTable* inData, vtkTable* reqModel,
                              int normScheme, int basisScheme, int basisSize, double basisEnergy );
 
-  virtual void operator () ( vtkVariantArray* result, vtkIdType row );
+  virtual void operator () ( vtkDoubleArray* result, vtkIdType row );
 
   std::vector<double> EigenValues;
   std::vector<std::vector<double> > EigenVectors;
@@ -334,7 +334,7 @@ bool vtkPCAAssessFunctor::InitializePCA( vtkTable* inData,
 }
 
 // ----------------------------------------------------------------------
-void vtkPCAAssessFunctor::operator () ( vtkVariantArray* result, vtkIdType row )
+void vtkPCAAssessFunctor::operator () ( vtkDoubleArray* result, vtkIdType row )
 {
   vtkIdType i;
   result->SetNumberOfValues( this->BasisSize );
@@ -531,7 +531,7 @@ static void vtkPCAStatisticsNormalizeSpec( vtkVariantArray* normData,
     factor[std::pair<vtkIdType,vtkIdType>( i, j )] = normSpec->GetValue( r, 2 ).ToDouble();
     }
   // Now normalize cov, recording any missing factors along the way.
-  vtksys_ios::ostringstream missing;
+  std::ostringstream missing;
   bool gotMissing = false;
   std::map<std::pair<vtkIdType,vtkIdType>,double>::iterator fit;
   if ( triangle )
@@ -712,7 +712,7 @@ void vtkPCAStatistics::Derive( vtkMultiBlockDataSet* inMeta )
     row->SetNumberOfTuples( m + 2 );
     for ( i = 0; i < m; ++ i )
       {
-      vtksys_ios::ostringstream pcaCompName;
+      std::ostringstream pcaCompName;
       pcaCompName << VTK_PCA_COMPCOLUMN << " " << i;
       row->SetValue( 0, pcaCompName.str().c_str() );
       row->SetValue( 1, s( i ) );
@@ -731,7 +731,7 @@ void vtkPCAStatistics::Derive( vtkMultiBlockDataSet* inMeta )
       case TRIANGLE_SPECIFIED:
         for ( i = 0; i < m; ++ i )
           {
-          vtksys_ios::ostringstream normCompName;
+          std::ostringstream normCompName;
           normCompName << VTK_PCA_NORMCOLUMN << " " << i;
           row->SetValue( 0, normCompName.str().c_str() );
           row->SetValue( 1, 0. );
@@ -1023,7 +1023,7 @@ void vtkPCAStatistics::Assess( vtkTable* inData,
     int comp;
     for ( comp = 0; comp < pcafunc->BasisSize; ++ comp )
       {
-      vtksys_ios::ostringstream reqNameStr;
+      std::ostringstream reqNameStr;
       reqNameStr << VTK_PCA_COMPCOLUMN << "{";
       for ( int i = 0; i < pcafunc->GetNumberOfColumns(); ++ i )
         {
@@ -1043,14 +1043,14 @@ void vtkPCAStatistics::Assess( vtkTable* inData,
       }
 
     // Something to hold assessed values for a single input datum
-    vtkVariantArray* singleResult = vtkVariantArray::New();
+    vtkDoubleArray* singleResult = vtkDoubleArray::New();
     // Loop over all the input data and assess each datum:
     for ( vtkIdType row = 0; row < nRow; ++ row )
       {
       (*dfunc)( singleResult, row );
       for ( comp = 0; comp < pcafunc->BasisSize; ++ comp )
         {
-        assessValues[comp][row] = singleResult->GetValue( comp ).ToDouble();
+        assessValues[comp][row] = singleResult->GetValue( comp );
         }
       }
     delete dfunc;

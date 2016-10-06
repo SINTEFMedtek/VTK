@@ -779,7 +779,7 @@ size_t vtkParse_ValueInfoFromString(
     pointer_bits = (pointer_bits << 2);
     while (vtkParse_CharType(*cp, CPRE_HSPACE)) { cp++; }
     if (strncmp(cp, "const", 5) == 0 &&
-        !vtkParse_CharType(cp[5], CPRE_IDGIT))
+        !vtkParse_CharType(cp[5], CPRE_XID))
       {
       cp += 5;
       while (vtkParse_CharType(*cp, CPRE_HSPACE)) { cp++; }
@@ -1772,12 +1772,7 @@ const char **vtkParse_GetTemplateMacroTypes()
   static const char *types[] = {
     "char", "signed char", "unsigned char", "short", "unsigned short",
     "int", "unsigned int", "long", "unsigned long",
-#ifdef VTK_TYPE_USE_LONG_LONG
     "long long", "unsigned long long",
-#endif
-#ifdef VTK_TYPE_USE___INT64
-    "__int64", "unsigned __int64",
-#endif
     "float", "double", NULL };
 
   return types;
@@ -1789,12 +1784,7 @@ const char **vtkParse_GetArrayTypes()
   static const char *types[] = {
     "char", "signed char", "unsigned char", "short", "unsigned short",
     "int", "unsigned int", "long", "unsigned long",
-#ifdef VTK_TYPE_USE_LONG_LONG
     "long long", "unsigned long long",
-#endif
-#ifdef VTK_TYPE_USE___INT64
-    "__int64", "unsigned __int64",
-#endif
     "float", "double",
     "vtkStdString", "vtkUnicodeString", "vtkVariant", NULL };
 

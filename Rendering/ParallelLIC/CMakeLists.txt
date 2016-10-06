@@ -19,6 +19,13 @@ set_source_files_properties(
   WRAP_EXCLUDE
   )
 
+set_source_files_properties(
+  vtkMPIPixelTT.cxx
+  vtkPPixelTransfer.cxx
+  vtkPSurfaceLICComposite.cxx
+  PROPERTIES WRAP_EXCLUDE_PYTHON 1
+  )
+
 option(
   VTK_RENDERINGPARALLELLIC_SURFACELICPAINTER_TIMER
   "enable parallel timers for the surface lic painter"
@@ -76,7 +83,11 @@ foreach(file ${shader_files})
     vtkRenderingParallelLICModule.h
     )
   list(APPEND Module_SRCS ${res})
-  set_source_files_properties(${file_we} WRAP_EXCLUDE)
+  set_source_files_properties(${file_we}
+    PROPERTIES
+      WRAP_EXCLUDE 1
+      WRAP_EXCLUDE_PYTHON 1
+    )
 endforeach()
 
 vtk_add_override(vtkLineIntegralConvolution2D vtkPLineIntegralConvolution2D)
@@ -86,4 +97,7 @@ vtk_object_factory_configure("${vtk_module_overrides}")
 include(vtkMPI)
 
 vtk_module_library(${vtk-module} ${Module_SRCS})
+include(vtkOpenGL)
+vtk_opengl_link(${vtk-module})
+
 vtk_mpi_link(${vtk-module})

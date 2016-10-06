@@ -85,7 +85,8 @@ protected:
 
   // Usual data generation method
   virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-
+  virtual int RequestUpdateExtent(vtkInformation *,
+                                  vtkInformationVector **, vtkInformationVector *);
   virtual int FillInputPortInformation(int port, vtkInformation *info);
 
   // list of data sets to append together.
@@ -109,7 +110,8 @@ private:
   void AppendArrays(int attributesType,
                     vtkInformationVector **inputVector,
                     vtkIdType* globalIds,
-                    vtkUnstructuredGrid* output);
+                    vtkUnstructuredGrid* output,
+                    vtkIdType totalNumberOfElements);
 };
 
 

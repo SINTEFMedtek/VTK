@@ -324,6 +324,55 @@ public:
     double& factor, double& units);
 
   // Description:
+  // Used to set the polygon offset values relative to the global
+  // Used when ResolveCoincidentTopology is set to PolygonOffset.
+  void SetRelativeCoincidentTopologyPolygonOffsetParameters(
+    double factor, double units);
+  void GetRelativeCoincidentTopologyPolygonOffsetParameters(
+    double& factor, double& units);
+
+  // Description:
+  // Used to set the line offset scale factor and units.
+  // Used when ResolveCoincidentTopology is set to PolygonOffset.
+  // These are global variables.
+  static void SetResolveCoincidentTopologyLineOffsetParameters(
+    double factor, double units);
+  static void GetResolveCoincidentTopologyLineOffsetParameters(
+    double& factor, double& units);
+
+  // Description:
+  // Used to set the line offset values relative to the global
+  // Used when ResolveCoincidentTopology is set to PolygonOffset.
+  void SetRelativeCoincidentTopologyLineOffsetParameters(
+    double factor, double units);
+  void GetRelativeCoincidentTopologyLineOffsetParameters(
+    double& factor, double& units);
+
+  // Description:
+  // Used to set the point offset value
+  // Used when ResolveCoincidentTopology is set to PolygonOffset.
+  // These are global variables.
+  static void SetResolveCoincidentTopologyPointOffsetParameter(
+    double units);
+  static void GetResolveCoincidentTopologyPointOffsetParameter(
+    double& units);
+
+  // Description:
+  // Used to set the point offset value relative to the global
+  // Used when ResolveCoincidentTopology is set to PolygonOffset.
+  void SetRelativeCoincidentTopologyPointOffsetParameter(double units);
+  void GetRelativeCoincidentTopologyPointOffsetParameter(double& units);
+
+  // Description:
+  // Get the net paramters for handlig coincident topology
+  // obtained by summing the global values with the relative values.
+  void GetCoincidentTopologyPolygonOffsetParameters(
+    double& factor, double& units);
+  void GetCoincidentTopologyLineOffsetParameters(
+    double& factor, double& units);
+  void GetCoincidentTopologyPointOffsetParameter(double& units);
+
+  // Description:
   // Used when ResolveCoincidentTopology is set to PolygonOffset. The polygon
   // offset can be applied either to the solid polygonal faces or the
   // lines/vertices. When set (default), the offset is applied to the faces
@@ -401,8 +450,7 @@ public:
   // component.  Default implementation simply returns true. Note that even if
   // this method returns true, an actor may treat the geometry as translucent
   // since a constant translucency is set on the property, for example.
-  virtual bool GetIsOpaque()
-    { return true; }
+  virtual bool GetIsOpaque();
 
   // Description:
   // WARNING: INTERNAL METHOD - NOT INTENDED FOR GENERAL USE
@@ -421,6 +469,29 @@ public:
   // can be handled if required.
   virtual int CanUseTextureMapForColoring(vtkDataObject* input);
 
+  // Description:
+  // Used internally by vtkValuePass
+  void UseInvertibleColorFor(int scalarMode,
+    int arrayAccessMode,
+    int arrayId,
+    const char *arrayName,
+    int arrayComponent,
+    double *scalarRange);
+
+  // Description:
+  // Used internally by vtkValuePass.
+  void ClearInvertibleColor();
+
+  // Description:
+  // Convert a floating point value to an RGB triplet.
+  static void ValueToColor(double value, double min, double scale,
+    unsigned char *color);
+
+  // Description:
+  // Convert an RGB triplet to a floating point value.
+  static void ColorToValue(unsigned char *color, double min, double scale,
+    double &value);
+
 protected:
   vtkMapper();
   ~vtkMapper();
@@ -434,6 +505,11 @@ protected:
   // 1D ColorMap used for the texture image.
   vtkImageData* ColorTextureMap;
   void MapScalarsToTexture(vtkAbstractArray* scalars, double alpha);
+
+  // Makes a lookup table that can be used for deferred colormaps
+  void AcquireInvertibleLookupTable();
+  bool UseInvertibleColors;
+  static vtkScalarsToColors *InvertibleLookupTable;
 
   vtkScalarsToColors *LookupTable;
   int ScalarVisibility;
@@ -460,6 +536,14 @@ protected:
   int Static;
 
   int ForceCompileOnly;
+
+  vtkAbstractArray *InvertibleScalars;
+
+  double CoincidentPolygonFactor;
+  double CoincidentPolygonOffset;
+  double CoincidentLineFactor;
+  double CoincidentLineOffset;
+  double CoincidentPointOffset;
 
 private:
   vtkMapper(const vtkMapper&);  // Not implemented.

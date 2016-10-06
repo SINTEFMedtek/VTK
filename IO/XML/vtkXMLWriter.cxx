@@ -44,7 +44,7 @@
 #include "vtkQuadratureSchemeDefinition.h"
 #include "vtkInformationStringKey.h"
 
-#include <vtksys/auto_ptr.hxx>
+#include <memory>
 
 #include <cassert>
 #include <string>
@@ -751,7 +751,7 @@ int vtkXMLWriter::OpenFile()
 int vtkXMLWriter::OpenString()
 {
   delete this->OutStringStream;
-  this->OutStringStream = new vtksys_ios::ostringstream();
+  this->OutStringStream = new std::ostringstream();
   this->Stream = this->OutStringStream;
 
   return 1;
@@ -1161,7 +1161,7 @@ int vtkXMLWriter::WriteBinaryData(vtkAbstractArray* a)
       }
 
     // No data compression.  The header is just the length of the data.
-    vtksys::auto_ptr<vtkXMLDataHeader>
+    std::auto_ptr<vtkXMLDataHeader>
       uh(vtkXMLDataHeader::New(this->HeaderType, 1));
     if (!uh->Set(0, data_size*outWordSize))
       {
@@ -1583,16 +1583,8 @@ const char* vtkXMLWriter::GetWordTypeName(int dataType)
     case VTK_UNSIGNED_INT:   isSigned = 0; size = sizeof(unsigned int); break;
     case VTK_UNSIGNED_LONG:  isSigned = 0; size = sizeof(unsigned long); break;
     case VTK_UNSIGNED_SHORT: isSigned = 0; size = sizeof(unsigned short); break;
-#if defined(VTK_TYPE_USE_LONG_LONG)
     case VTK_LONG_LONG:          isSigned = 1; size = sizeof(long long); break;
     case VTK_UNSIGNED_LONG_LONG: isSigned = 0; size = sizeof(unsigned long long); break;
-#endif
-#if defined(VTK_TYPE_USE___INT64)
-    case VTK___INT64:            isSigned = 1; size = sizeof(__int64); break;
-# if defined(VTK_TYPE_CONVERT_UI64_TO_DOUBLE)
-    case VTK_UNSIGNED___INT64:   isSigned = 0; size = sizeof(unsigned __int64); break;
-# endif
-#endif
     default:
     {
     vtkWarningMacro("Unsupported data type: " << dataType); } break;
@@ -1789,7 +1781,7 @@ inline ostream& vtkXMLWriteAsciiValue(ostream& os, const T& value)
 }
 
 //----------------------------------------------------------------------------
-VTK_TEMPLATE_SPECIALIZE
+template<>
 inline ostream& vtkXMLWriteAsciiValue(ostream& os, const char &c)
 {
   os << short(c);
@@ -1797,7 +1789,7 @@ inline ostream& vtkXMLWriteAsciiValue(ostream& os, const char &c)
 }
 
 //----------------------------------------------------------------------------
-VTK_TEMPLATE_SPECIALIZE
+template<>
 inline ostream& vtkXMLWriteAsciiValue(ostream& os, const unsigned char &c)
 {
   os << static_cast<unsigned short>(c);
@@ -1805,7 +1797,7 @@ inline ostream& vtkXMLWriteAsciiValue(ostream& os, const unsigned char &c)
 }
 
 //----------------------------------------------------------------------------
-VTK_TEMPLATE_SPECIALIZE
+template<>
 inline ostream& vtkXMLWriteAsciiValue(ostream& os, const signed char &c)
 {
   os << short(c);
@@ -1813,7 +1805,7 @@ inline ostream& vtkXMLWriteAsciiValue(ostream& os, const signed char &c)
 }
 
 //----------------------------------------------------------------------------
-VTK_TEMPLATE_SPECIALIZE
+template<>
 inline ostream& vtkXMLWriteAsciiValue(ostream& os, const vtkStdString& str)
 {
   vtkStdString::const_iterator iter;
@@ -1994,7 +1986,7 @@ void vtkXMLWriter::WriteArrayHeader(vtkAbstractArray* a,  vtkIndent indent,
   else
     {
     // Generate a name for this array.
-    vtksys_ios::ostringstream name;
+    std::ostringstream name;
     void* p = a;
     name << "Array " << p;
     this->WriteStringAttribute("Name", name.str().c_str());
@@ -2006,7 +1998,7 @@ void vtkXMLWriter::WriteArrayHeader(vtkAbstractArray* a,  vtkIndent indent,
     }
 
   //always write out component names, even if only 1 component
-  vtksys_ios::ostringstream buff;
+  std::ostringstream buff;
   const char* compName = NULL;
   for (int i = 0; i < a->GetNumberOfComponents(); ++i)
     {

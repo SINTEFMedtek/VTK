@@ -235,7 +235,14 @@ like merge requests and commits in other repositories.
 Reviewers may add comments providing feedback or to acknowledge their
 approval.  Lines of specific forms will be extracted during
 [merging](#merge-a-topic) and included as trailing lines of the
-generated merge commit message:
+generated merge commit message.
+
+A commit message consists of up to three parts which must be specified
+in the following order: the [leading line](#leading-line), then
+[middle lines](#middle-lines), then [trailing lines](#trailing-lines).
+Each part is optional, but they must be specified in this order.
+
+#### Leading Line ####
 
 The *leading* line of a comment may optionally be exactly one of the
 following votes followed by nothing but whitespace before the end
@@ -246,11 +253,15 @@ of the line:
 *   `+2` means "The change is ready for integration."
 *   `+3` means "I have tested the change and verified it works."
 
+#### Middle Lines ####
+
 The middle lines of a comment may be free-form [GitLab Flavored Markdown][].
 
-Zero or more *trailing* lines of a comment may each contain exactly one
-of the following votes followed by nothing but whitespace before the end
-of the line:
+#### Trailing Lines ####
+
+Zero or more *trailing* lines in the last section of a comment may
+each contain exactly one of the following votes followed by nothing
+but whitespace before the end of the line:
 
 *   `Rejected-by: me` means "The change is not ready for integration."
 *   `Acked-by: me` means "I like the change but defer to others."
@@ -291,8 +302,8 @@ There are a few options for checking out the changes in a work tree:
 The "Kitware Robot" automatically performs basic checks on the commits
 and adds a comment acknowledging or rejecting the topic.  This will be
 repeated automatically whenever the topic is pushed to your fork again.
-A re-check may be explicitly requested by adding a comment with the
-trailing line:
+A re-check may be explicitly requested by adding a comment with a single
+[*trailing* line](#trailing-lines):
 
     Do: check
 
@@ -304,10 +315,48 @@ succeeds.
 VTK has a [buildbot](http://buildbot.net) instance watching for merge requests
 to test.  A developer must issue a command to buildbot to enable builds:
 
-    @buildbot test
+    Do: test
 
 The buildbot user (@buildbot) will respond with a comment linking to the CDash
 results when it schedules builds.
+
+The `Do: test` command accepts the following arguments:
+
+  * `--oneshot`
+        only build the *current* hash of the branch; updates will not be built
+        using this command
+  * `--stop`
+        clear the list of commands for the merge request
+  * `--superbuild`
+        build the superbuilds related to the project
+  * `--clear`
+        clear previous commands before adding this command
+  * `--regex-include <arg>`
+        only build on builders matching `<arg>` (a Python regular expression)
+  * `--regex-exclude <arg>`
+        excludes builds on builders matching `<arg>` (a Python regular
+        expression)
+
+Multiple `Do: test` commands may be given. Upon each update to the branch,
+buildbot will reconsider all of the active commands to determine which builders
+to schedule.
+
+Builder names always follow this pattern:
+
+        project-host-os-libtype-buildtype+feature1+feature2
+
+  * project: always `vtk` for vtk
+  * host: the buildbot host
+  * os: one of `windows`, `osx`, or `linux`
+  * libtype: `shared` or `static`
+  * buildtype: `release` or `debug`
+  * feature: alphabetical list of features enabled for the build
+
+For a list of all builders, see:
+
+  * [vtk-expected](https://buildbot.kitware.com/builders?category=vtk-expected)
+  * [vtk-superbuild](https://buildbot.kitware.com/builders?category=vtk-superbuild)
+  * [vtk-experimental](https://buildbot.kitware.com/builders?category=vtk-experimental)
 
 Revise a Topic
 --------------
@@ -333,7 +382,8 @@ Merge a Topic
 -------------
 
 After a topic has been reviewed and approved in a GitLab Merge Request,
-authorized developers may add a comment of the form
+authorized developers may add a comment with a single
+[*trailing* line](#trailing-lines):
 
     Do: merge
 

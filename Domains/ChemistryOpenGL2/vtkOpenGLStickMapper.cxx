@@ -15,6 +15,7 @@
 
 #include "vtkOpenGLHelper.h"
 
+#include "vtkHardwareSelector.h"
 #include "vtkMatrix3x3.h"
 #include "vtkMatrix4x4.h"
 #include "vtkOpenGLActor.h"
@@ -71,6 +72,11 @@ void vtkOpenGLStickMapper::ReplaceShaderValues(
   vtkShaderProgram::Substitute(FSSource,
     "//VTK::PositionVC::Dec",
     "varying vec4 vertexVCVSOutput;");
+
+  // we create vertexVC below, so turn off the default
+  // implementation
+  vtkShaderProgram::Substitute(FSSource,
+    "//VTK::PositionVC::Impl","");
 
   // for lights kit and positional the VCDC matrix is already defined
   // so don't redefine it
@@ -162,28 +168,34 @@ void vtkOpenGLStickMapper::ReplaceShaderValues(
   bool picking = (ren->GetRenderWindow()->GetIsPicking() || selector != NULL);
   if (picking)
     {
-    vtkShaderProgram::Substitute(VSSource,
-      "//VTK::Picking::Dec",
-      "attribute vec4 selectionId;\n"
-      "varying vec4 selectionIdVSOutput;");
-    vtkShaderProgram::Substitute(VSSource,
-      "//VTK::Picking::Impl",
-      "selectionIdVSOutput = selectionId;");
-    vtkShaderProgram::Substitute(FSSource,
-      "//VTK::Picking::Dec",
-      "uniform vec3 mapperIndex;\n"
-      "varying vec4 selectionIdVSOutput;");
-    vtkShaderProgram::Substitute(FSSource,
-      "//VTK::Picking::Impl",
-      "if (mapperIndex == vec3(0.0,0.0,0.0))\n"
-      "    {\n"
-      "    gl_FragData[0] = vec4(selectionIdVSOutput.rgb, 1.0);\n"
-      "    }\n"
-      "  else\n"
-      "    {\n"
-      "    gl_FragData[0] = vec4(mapperIndex,1.0);\n"
-      "    }"
-      );
+    if (!selector || (selector &&
+        this->LastSelectionState >= vtkHardwareSelector::ID_LOW24))
+      {
+      vtkShaderProgram::Substitute(VSSource,
+        "//VTK::Picking::Dec",
+        "attribute vec4 selectionId;\n"
+        "varying vec4 selectionIdVSOutput;");
+      vtkShaderProgram::Substitute(VSSource,
+        "//VTK::Picking::Impl",
+        "selectionIdVSOutput = selectionId;");
+      vtkShaderProgram::Substitute(FSSource,
+        "//VTK::Picking::Dec",
+        "varying vec4 selectionIdVSOutput;");
+      vtkShaderProgram::Substitute(FSSource,
+        "//VTK::Picking::Impl",
+        "    gl_FragData[0] = vec4(selectionIdVSOutput.rgb, 1.0);\n"
+        );
+      }
+    else
+      {
+      vtkShaderProgram::Substitute(FSSource,
+        "//VTK::Picking::Dec",
+        "uniform vec3 mapperIndex;");
+      vtkShaderProgram::Substitute(FSSource,
+        "//VTK::Picking::Impl",
+        "  gl_FragData[0] = vec4(mapperIndex,1.0);\n"
+        );
+      }
     }
 
   if (ren->GetLastRenderingUsedDepthPeeling())
@@ -277,7 +289,9 @@ void vtkOpenGLStickMapper::SetMapperShaderParameters(
       {
       vtkErrorMacro(<< "Error setting 'radiusMC' in shader VAO.");
       }
-    if (picking)
+    if (picking &&
+        (!selector || (selector &&
+         this->LastSelectionState >= vtkHardwareSelector::ID_LOW24)))
       {
       if (!cellBO.VAO->AddAttributeArray(cellBO.Program, this->VBO,
                                       "selectionId", this->VBO->ColorOffset+6*sizeof(float),
@@ -555,6 +569,7 @@ void vtkOpenGLStickMapper::BuildBufferObjects(vtkRenderer *ren,
   this->Tris.IBO->IndexCount =
     vtkOpenGLStickMapperCreateTriangleIndexBuffer(this->Tris.IBO,
       poly->GetPoints()->GetNumberOfPoints());
+  this->VBOBuildTime.Modified();
 }
 
 //-----------------------------------------------------------------------------

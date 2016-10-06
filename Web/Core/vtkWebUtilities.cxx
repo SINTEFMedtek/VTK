@@ -24,7 +24,7 @@
 #include "vtkSplitColumnComponents.h"
 #include "vtkTable.h"
 
-#include <vtksys/ios/sstream>
+#include <sstream>
 
 vtkStandardNewMacro(vtkWebUtilities);
 //----------------------------------------------------------------------------
@@ -48,7 +48,7 @@ std::string vtkWebUtilities::WriteAttributesToJavaScript(
     return "[]";
     }
 
-  vtksys_ios::ostringstream stream;
+  std::ostringstream stream;
 
   vtkNew<vtkDataSetAttributes> clone;
   clone->PassData(dataset->GetAttributes(field_type));
@@ -82,7 +82,7 @@ std::string vtkWebUtilities::WriteAttributeHeadersToJavaScript(
     return "[]";
     }
 
-  vtksys_ios::ostringstream stream;
+  std::ostringstream stream;
   stream << "[";
 
   vtkDataSetAttributes* dsa = dataset->GetAttributes(field_type);

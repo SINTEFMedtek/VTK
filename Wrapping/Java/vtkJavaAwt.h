@@ -12,6 +12,10 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
+
+#ifndef vtkJavaAwt_h
+#define vtkJavaAwt_h
+
 // for use with JAWT
 #include "jawt_md.h"
 
@@ -23,8 +27,7 @@
                             ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 6)))
     #pragma GCC diagnostic push
   #endif
-  #if defined(__GNUC__) && ((__GNUC__ > 4) || \
-                            ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 2)))
+  #if defined(__GNUC__)
     #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   #endif
 #endif
@@ -370,4 +373,5 @@ Java_vtk_vtkPanel_UnLock(JNIEnv *env,
   #endif
 #endif
 
+#endif
 // VTK-HeaderTest-Exclude: vtkJavaAwt.h

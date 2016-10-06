@@ -471,9 +471,10 @@ void vtkBorderRepresentation::UpdateShowBorder()
 //-------------------------------------------------------------------------
 void vtkBorderRepresentation::BuildRepresentation()
 {
-  if ( this->GetMTime() > this->BuildTime ||
-       (this->Renderer && this->Renderer->GetVTKWindow() &&
-        this->Renderer->GetVTKWindow()->GetMTime() > this->BuildTime) )
+  if (this->Renderer &&
+      (this->GetMTime() > this->BuildTime ||
+       (this->Renderer->GetVTKWindow() &&
+        this->Renderer->GetVTKWindow()->GetMTime() > this->BuildTime)))
     {
     // Negotiate with subclasses
     if ( ! this->Negotiated )
@@ -484,9 +485,9 @@ void vtkBorderRepresentation::BuildRepresentation()
 
     // Set things up
     int *pos1 = this->PositionCoordinate->
-      GetComputedDisplayValue(this->Renderer);
+      GetComputedViewportValue(this->Renderer);
     int *pos2 = this->Position2Coordinate->
-      GetComputedDisplayValue(this->Renderer);
+      GetComputedViewportValue(this->Renderer);
 
     // If the widget's aspect ratio is to be preserved (ProportionalResizeOn),
     // then (pos1,pos2) are a bounding rectangle.

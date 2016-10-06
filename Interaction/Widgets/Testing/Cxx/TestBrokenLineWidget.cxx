@@ -24,7 +24,7 @@
 
 #include "vtkTestUtilities.h"
 
-#include <vtksys/ios/sstream>
+#include <sstream>
 
 // Callback for the broken line widget interaction
 class vtkBLWCallback : public vtkCommand
@@ -48,7 +48,7 @@ public:
     this->Mapper->SetInputData( selection );
 
     // Update cardinality of selection
-    vtksys_ios::ostringstream txt;
+    std::ostringstream txt;
     txt << "Number of selected elements: " << ( selection ? selection->GetNumberOfCells() : 0 );
     this->Text->SetInput( txt.str().c_str() );
   }
@@ -169,7 +169,7 @@ int TestBrokenLineWidget( int argc, char *argv[] )
 
   // Annotate with number of elements
   vtkSmartPointer<vtkTextActor> txtActor = vtkSmartPointer<vtkTextActor>::New();
-  vtksys_ios::ostringstream txt;
+  std::ostringstream txt;
   txt << "Number of selected elements: " << ( selection ? selection->GetNumberOfCells() : 0 );
   txtActor->SetInput( txt.str().c_str() );
   txtActor->SetTextScaleModeToViewport();

@@ -12,6 +12,7 @@ foreach(p
     CMP0022 # CMake 2.8.12
     CMP0025 # CMake 3.0
     CMP0053 # CMake 3.1
+    CMP0054 # CMake 3.1
     )
   if(POLICY ${p})
     cmake_policy(SET ${p} NEW)
@@ -98,6 +99,10 @@ include(vtkVersion)
 set(VTK_VERSION
     "${VTK_MAJOR_VERSION}.${VTK_MINOR_VERSION}.${VTK_BUILD_VERSION}")
 
+#-----------------------------------------------------------------------------
+# Do we want examples built?
+OPTION(BUILD_EXAMPLES "Build VTK examples." OFF)
+
 option(VTK_IOS_BUILD "Build vtk.framework for iOS" OFF)
 if (VTK_IOS_BUILD)
   include(vtkiOS)
@@ -118,8 +123,6 @@ if (ANDROID OR APPLE_IOS)
   SET( CMAKE_REQUIRE_LARGE_FILE_SUPPORT__TRYRUN_OUTPUT ""
        CACHE STRING "Output from TRY_RUN" FORCE)
   SET( VTK_TYPE_CHAR_IS_SIGNED 1
-     CACHE STRING "Result from TRY_RUN" FORCE)
-  SET( VTK_ANSI_STREAM_EOF_RESULT 0
      CACHE STRING "Result from TRY_RUN" FORCE)
   SET( KWSYS_CHAR_IS_SIGNED 1
      CACHE STRING "Result from TRY_RUN" FORCE)
@@ -301,7 +304,47 @@ if(APPLE)
     CMAKE_OSX_DEPLOYMENT_TARGET
     CMAKE_OSX_SYSROOT
     )
+
+  if (CMAKE_OSX_DEPLOYMENT_TARGET AND
+      CMAKE_OSX_DEPLOYMENT_TARGET VERSION_LESS 10.6)
+    message(FATAL_ERROR "Minimun OS X deployment target is 10.6, please update CMAKE_OSX_DEPLOYMENT_TARGET.")
+  endif ()
 endif()
+
+#-----------------------------------------------------------------------------
+# Minimum compiler version check: GCC >= 4.2
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND
+    CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.2)
+  message(FATAL_ERROR "GCC 4.2 or later is required.")
+endif ()
+
+#-----------------------------------------------------------------------------
+# Minimum compiler version check: LLVM Clang >= 2.8
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND
+    CMAKE_CXX_COMPILER_VERSION VERSION_LESS 2.8)
+  message(FATAL_ERROR "LLVM Clang 2.8 or later is required.")
+endif ()
+
+#-----------------------------------------------------------------------------
+# Minimum compiler version check: Apple Clang >= 2.0 (Xcode 4.0.x)
+if (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" AND
+    CMAKE_CXX_COMPILER_VERSION VERSION_LESS 2.0)
+  message(FATAL_ERROR "Apple Clang 2.0 or later is required.")
+endif ()
+
+#-----------------------------------------------------------------------------
+# Minimum compiler version check: Microsoft C/C++ >= 15.0 (aka VS 2008 aka VS 9.0)
+if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" AND
+    CMAKE_CXX_COMPILER_VERSION VERSION_LESS 15.0)
+  message(FATAL_ERROR "Microsoft Visual Studio 2008 or later is required.")
+endif ()
+
+#-----------------------------------------------------------------------------
+# Minimum compiler version check: Intel C++ (ICC) >= 10.0
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Intel" AND
+    CMAKE_CXX_COMPILER_VERSION VERSION_LESS 10.0)
+  message(FATAL_ERROR "Intel C++ (ICC) 10.0 or later is required.")
+endif ()
 
 #-----------------------------------------------------------------------------
 # Does VTK require support for 64 bit file systems
@@ -401,13 +444,7 @@ set(VTK_MAX_THREADS "64" CACHE STRING
   "Max number of threads vktMultiThreader will allocate.")
 mark_as_advanced(VTK_MAX_THREADS)
 
-include(TestForANSIStreamHeaders)
-include(TestForSTDNamespace)
-include(TestForANSIForScope)
 include(CheckTypeSize)
-
-# Simulate old CMakeBackwardCompatibilityCXX test.
-include(TestForSSTREAM)
 
 # Tests for various integer, bool and float types
 include(vtkTestTypes)
@@ -415,28 +452,12 @@ include(vtkTestTypes)
 # Socket tests etc.
 #INCLUDE(Parallel/VTKParallelCMakeTests.cmake)
 
-# Check for full template specialization support by compiler.
-include(vtkTestFullSpecialization)
-
-# Check for explicit template instantiation support by compiler.
-include(vtkTestExplicitInstantiation)
-
 # Test for atomics and other compiler intrinsics
 include(vtkTestBuiltins)
 
 #-----------------------------------------------------------------------------
-
-# Check the severity of EOF bugs in the streams library.
-# this must be after the test for the long types
-INCLUDE(vtkTestStreamsLibrary)
-
-#-----------------------------------------------------------------------------
 # Dispatch the build into the proper subdirectories.
 SET(VTK_HAS_EXODUS 1)
-
-#-----------------------------------------------------------------------------
-# Provide a few configuration options.
-OPTION(BUILD_EXAMPLES "Build VTK examples." OFF)
 
 #-----------------------------------------------------------------------------
 # Configure files with settings for use by the build.
@@ -448,7 +469,7 @@ include(VTKParallelCMakeTests)
 # Add the option for build the Python wrapping to VTK.
 option(VTK_WRAP_PYTHON "Should VTK Python wrapping be built?" OFF)
 set(VTK_PYTHON_VERSION 2 CACHE STRING
-    "Python version to use: 2, 2.x, or empty")
+    "Python version to use: 2, 2.x, 3, 3.x, or empty")
 
 # Add the option for build the Python wrapping to VTK.
 option(VTK_WRAP_JAVA "Should VTK Java wrapping be built?" OFF)

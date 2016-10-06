@@ -36,12 +36,23 @@ public:
   void Initialize(vtkParticleTracerBase* filter);
   virtual ~ParticlePathFilterInternal(){}
   virtual int OutputParticles(vtkPolyData* poly);
+  void SetClearCache(bool clearCache)
+  {
+    this->ClearCache = clearCache;
+  }
+  bool GetClearCache()
+  {
+    return this->ClearCache;
+  }
   void Finalize();
   void Reset();
 
 private:
   vtkParticleTracerBase* Filter;
+  // Paths doesn't seem to work properly. it is meant to make connecting lines
+  // for the particles
   std::vector<vtkSmartPointer<vtkIdList> > Paths;
+  bool ClearCache; // false by default
 };
 
 class VTKFILTERSFLOWPATHS_EXPORT vtkParticlePathFilter: public vtkParticleTracerBase
@@ -71,6 +82,5 @@ private:
   vtkDoubleArray* SimulationTime;
   vtkIntArray* SimulationTimeStep;
 };
-
 
 #endif

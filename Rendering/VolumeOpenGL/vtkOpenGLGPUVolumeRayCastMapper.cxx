@@ -79,7 +79,7 @@
 #include "vtkCommand.h" // for VolumeMapperRender{Start|End|Progress}Event
 #include "vtkPerlinNoise.h"
 
-#include <vtksys/ios/sstream>
+#include <sstream>
 #include "vtkStdString.h"
 
 #include "vtkShaderProgram2.h"
@@ -1517,7 +1517,7 @@ void vtkOpenGLGPUVolumeRayCastMapper::CheckFrameBufferStatus()
 vtkStdString vtkOpenGLGPUVolumeRayCastMapper::BufferToString(int buffer)
 {
   vtkStdString result;
-  vtksys_ios::ostringstream ost;
+  std::ostringstream ost;
 
   GLint size;
 
@@ -2256,7 +2256,7 @@ void vtkOpenGLGPUVolumeRayCastMapper::LoadExtensions(
     const char *glsl_version=
       reinterpret_cast<const char *>(glGetString(vtkgl::SHADING_LANGUAGE_VERSION));
     int glslMajor, glslMinor;
-    vtksys_ios::istringstream ist(glsl_version);
+    std::istringstream ist(glsl_version);
     ist >> glslMajor;
     char c;
     ist.get(c); // '.'

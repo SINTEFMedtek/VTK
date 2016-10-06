@@ -15,6 +15,7 @@
 #include "vtkGenericCompositePolyDataMapper2.h"
 
 #include "vtkBoundingBox.h"
+#include "vtkCellData.h"
 #include "vtkCommand.h"
 #include "vtkCompositeDataIterator.h"
 #include "vtkCompositeDataPipeline.h"
@@ -32,6 +33,7 @@
 #include "vtkScalarsToColors.h"
 #include "vtkShaderProgram.h"
 #include "vtkUnsignedCharArray.h"
+#include "vtkUnsignedIntArray.h"
 #include "vtkMultiBlockDataSet.h"
 #include "vtkMultiPieceDataSet.h"
 
@@ -53,7 +55,13 @@ public:
   int LastTCoordComponents;
 
 protected:
-  vtkCompositeMapperHelper() {};
+  vtkCompositeMapperHelper()
+    {
+    this->Parent = 0;
+    this->LastColorCoordinates = 0;
+    this->LastNormalsOffset = 0;
+    this->LastTCoordComponents = 0;
+    };
   ~vtkCompositeMapperHelper() {};
 
   // Description:
@@ -213,6 +221,8 @@ vtkStandardNewMacro(vtkGenericCompositePolyDataMapper2);
 vtkGenericCompositePolyDataMapper2::vtkGenericCompositePolyDataMapper2()
 {
   this->LastOpaqueCheckTime = 0;
+  this->CurrentFlatIndex = 0;
+  this->LastOpaqueCheckValue = true;
 }
 
 //----------------------------------------------------------------------------
@@ -274,7 +284,6 @@ vtkExecutive* vtkGenericCompositePolyDataMapper2::CreateDefaultExecutive()
 //Looks at each DataSet and finds the union of all the bounds
 void vtkGenericCompositePolyDataMapper2::ComputeBounds()
 {
-  vtkMath::UninitializeBounds(this->Bounds);
   vtkCompositeDataSet *input = vtkCompositeDataSet::SafeDownCast(
     this->GetInputDataObject(0, 0));
 
@@ -287,21 +296,16 @@ void vtkGenericCompositePolyDataMapper2::ComputeBounds()
     return;
     }
 
-  vtkCompositeDataIterator* iter = input->NewIterator();
-  vtkBoundingBox bbox;
-  for (iter->InitTraversal(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
+  if (input->GetMTime() < this->BoundsMTime &&
+      this->GetMTime() < this->BoundsMTime)
     {
-    vtkPolyData *pd = vtkPolyData::SafeDownCast(iter->GetCurrentDataObject());
-    if (pd)
-      {
-      double bounds[6];
-      pd->GetBounds(bounds);
-      bbox.AddBounds(bounds);
-      }
+    return;
     }
-  iter->Delete();
-  bbox.GetBounds(this->Bounds);
-//  this->BoundsMTime.Modified();
+
+  // computing bounds with only visible blocks
+  vtkCompositeDataDisplayAttributes::ComputeVisibleBounds(
+    this->CompositeAttributes, input, this->Bounds);
+  this->BoundsMTime.Modified();
 }
 
 //-----------------------------------------------------------------------------
@@ -584,7 +588,7 @@ void vtkGenericCompositePolyDataMapper2::RenderBlock(vtkRenderer *renderer,
     // Implies that the block is a non-null leaf node.
     // The top of the "stacks" have the state that this block must be rendered
     // with.
-    if (selector)
+    if (selector && selector->GetCurrentPass() == vtkHardwareSelector::COMPOSITE_INDEX_PASS)
       {
       selector->BeginRenderProp();
       selector->RenderCompositeIndex(my_flat_index);
@@ -614,6 +618,17 @@ void vtkGenericCompositePolyDataMapper2::RenderBlock(vtkRenderer *renderer,
       helper->CurrentInput = ds;
       if (ds && ds->GetPoints())
         {
+        if (selector && selector->GetCurrentPass() == vtkHardwareSelector::COMPOSITE_INDEX_PASS &&
+            (!this->CompositeIdArrayName || !ds->GetCellData() ||
+            vtkUnsignedIntArray::SafeDownCast(
+            ds->GetCellData()->GetArray(this->CompositeIdArrayName)) == NULL))
+          {
+          helper->SetPopulateSelectionSettings(0);
+          }
+        else
+          {
+          helper->SetPopulateSelectionSettings(1);
+          }
         helper->RenderPieceStart(renderer,actor);
         helper->RenderPieceDraw(renderer,actor);
         if (draw_surface_with_edges)
@@ -650,9 +665,16 @@ void vtkGenericCompositePolyDataMapper2::RenderBlock(vtkRenderer *renderer,
 
 void vtkGenericCompositePolyDataMapper2::CopyMapperValuesToHelper(vtkCompositeMapperHelper *helper)
 {
+  // We avoid PolyDataMapper::ShallowCopy because it copies the input
   helper->vtkMapper::ShallowCopy(this);
+  helper->SetPointIdArrayName(this->GetPointIdArrayName());
+  helper->SetCompositeIdArrayName(this->GetCompositeIdArrayName());
+  helper->SetProcessIdArrayName(this->GetProcessIdArrayName());
+  helper->SetCellIdArrayName(this->GetCellIdArrayName());
+  helper->SetVertexShaderCode(this->GetVertexShaderCode());
+  helper->SetGeometryShaderCode(this->GetGeometryShaderCode());
+  helper->SetFragmentShaderCode(this->GetFragmentShaderCode());
   helper->SetStatic(1);
-  helper->SetPopulateSelectionSettings(0);
 }
 
 void vtkGenericCompositePolyDataMapper2::FreeGenericStructures()
@@ -669,6 +691,11 @@ void vtkGenericCompositePolyDataMapper2::FreeGenericStructures()
 //-----------------------------------------------------------------------------
 void vtkGenericCompositePolyDataMapper2::ReleaseGraphicsResources(vtkWindow* win)
 {
+  std::map<const vtkDataSet*, vtkCompositeMapperHelper *>::iterator miter = this->Helpers.begin();
+  for (;miter != this->Helpers.end(); miter++)
+    {
+    miter->second->ReleaseGraphicsResources(win);
+    }
   this->FreeGenericStructures();
   this->Superclass::ReleaseGraphicsResources(win);
 }

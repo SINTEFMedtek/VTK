@@ -33,10 +33,10 @@ PURPOSE.  See the above copyright notice for more information.
 #include "vtkTable.h"
 #include "vtkVariantArray.h"
 
-#include <vtksys/stl/map>
-#include <vtksys/stl/vector>
+#include <map>
+#include <vector>
 
-#include <vtksys/ios/sstream>
+#include <sstream>
 
 
 vtkStandardNewMacro(vtkContingencyStatisticsGnuR);
@@ -74,7 +74,7 @@ void vtkContingencyStatisticsGnuR::CalculatePValues( vtkTable* outTab)
   ri->AssignVTKDataArrayToRVariable( chi2yCol, "chi2y" );
 
   // Now prepare R script and calculate the p-values (in a single R script evaluation for efficiency)
-  vtksys_ios::ostringstream rs;
+  std::ostringstream rs;
   rs << "p<-c();"
      << "py<-c();"
      << "for(i in 1:"

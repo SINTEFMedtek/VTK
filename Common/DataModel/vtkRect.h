@@ -26,6 +26,8 @@
 
 #include "vtkVector.h"
 
+#include "vtkMath.h" // for Min, Max
+
 template<typename T>
 class vtkRect : public vtkVector<T, 4>
 {
@@ -85,6 +87,166 @@ public:
   // Description:
   // Get the height of the rectangle, i.e. element 3.
   const T& GetHeight() const { return this->Data[3]; }
+
+  // Description:
+  // Get the left boundary of the rectangle along the X direction.
+  const T& GetLeft() const { return this->Data[0]; }
+
+  // Description:
+  // Get the right boundary of the rectangle along the X direction.
+  T GetRight() const { return this->Data[0] + this->Data[2]; }
+
+  // Description:
+  // Get the top boundary of the rectangle along the Y direction.
+  T GetTop() const { return this->Data[1] + this->Data[3]; }
+
+  // Description:
+  // Get the bottom boundary of the rectangle along the Y direction.
+  const T& GetBottom() const { return this->Data[1]; }
+
+  // Description:
+  // Get the bottom left corner of the rect as a vtkVector.
+  vtkVector2<T> GetBottomLeft() const
+  {
+    return vtkVector2<T>(this->GetLeft(), this->GetBottom());
+  }
+
+  // Description:
+  // Get the top left corner of the rect as a vtkVector.
+  vtkVector<T, 2> GetTopLeft() const
+  {
+    return vtkVector2<T>(this->GetLeft(), this->GetTop());
+  }
+
+  // Description:
+  // Get the bottom right corner of the rect as a vtkVector.
+  vtkVector<T, 2> GetBottomRight() const
+  {
+    return vtkVector2<T>(this->GetRight(), this->GetBottom());
+  }
+
+  // Description:
+  // Get the bottom left corner of the rect as a vtkVector.
+  vtkVector<T, 2> GetTopRight() const
+  {
+    return vtkVector2<T>(this->GetRight(), this->GetTop());
+  }
+
+  // Description:
+  // Expand this rect to contain the point passed in.
+  void AddPoint(const T point[2])
+  {
+    // This code is written like this to ensure that adding a point gives
+    // exactly the same result as AddRect(vtkRect(x,y,0,0)
+    if (point[0] < this->GetX())
+      {
+      T dx = this->GetX() - point[0];
+      this->SetX(point[0]);
+      this->SetWidth(dx + this->GetWidth());
+      }
+    else if (point[0] > this->GetX())
+      {
+      // this->GetX() is already correct
+      T dx = point[0] - this->GetX();
+      this->SetWidth(vtkMath::Max(dx, this->GetWidth()));
+      }
+
+    if (point[1] < this->GetY())
+      {
+      T dy = this->GetY() - point[1];
+      this->SetY(point[1]);
+      this->SetHeight(dy + this->GetHeight());
+      }
+    else if (point[1] > this->GetY())
+      {
+      // this->GetY() is already correct
+      T dy = point[1] - this->GetY();
+      this->SetHeight(vtkMath::Max(dy, this->GetHeight()));
+      }
+  }
+
+  // Description:
+  // Expand this rect to contain the point passed in.
+  void AddPoint(T x, T y)
+  {
+    T point[2] = {x, y};
+    this->AddPoint(point);
+  }
+
+  // Description:
+  // Expand this rect to contain the rect passed in.
+  void AddRect(const vtkRect<T> & rect)
+  {
+    if (rect.GetX() < this->GetX())
+      {
+      T dx = this->GetX() - rect.GetX();
+      this->SetX(rect.GetX());
+      this->SetWidth(vtkMath::Max(dx + this->GetWidth(), rect.GetWidth()));
+      }
+    else if (rect.GetX() > this->GetX())
+      {
+      T dx = rect.GetX() - this->GetX();
+      // this->GetX() is already correct
+      this->SetWidth(vtkMath::Max(dx + rect.GetWidth(), this->GetWidth()));
+      }
+    else
+      {
+      // this->GetX() is already correct
+      this->SetWidth(vtkMath::Max(rect.GetWidth(), this->GetWidth()));
+      }
+
+    if (rect.GetY() < this->GetY())
+      {
+      T dy = this->GetY() - rect.GetY();
+      this->SetY(rect.GetY());
+      this->SetHeight(vtkMath::Max(dy + this->GetHeight(), rect.GetHeight()));
+      }
+    else if (rect.GetY() > this->GetY())
+      {
+      T dy = rect.GetY() - this->GetY();
+      // this->GetY() is already correct
+      this->SetHeight(vtkMath::Max(dy + rect.GetHeight(), this->GetHeight()));
+      }
+    else
+      {
+      // this->GetY() is already correct
+      this->SetHeight(vtkMath::Max(rect.GetHeight(), this->GetHeight()));
+      }
+  }
+
+  // Description:
+  // Returns true if the rect argument overlaps this rect.
+  // If the upper bound of one rect is equal to the lower bound of
+  // the other rect, then this will return false (in that case, the
+  // rects would be considered to be adjacent but not overlapping).
+  bool IntersectsWith(const vtkRect<T> & rect)
+  {
+    bool intersects = true;
+
+    if (rect.GetX() < this->GetX())
+      {
+      T dx = this->GetX() - rect.GetX();
+      intersects &= (dx < rect.GetWidth());
+      }
+    else if (rect.GetX() > this->GetX())
+      {
+      T dx = rect.GetX() - this->GetX();
+      intersects &= (dx < this->GetWidth());
+      }
+
+    if (rect.GetY() < this->GetY())
+      {
+      T dy = this->GetY() - rect.GetY();
+      intersects &= (dy < rect.GetHeight());
+      }
+    else if (rect.GetY() > this->GetY())
+      {
+      T dy = rect.GetY() - this->GetY();
+      intersects &= (dy < this->GetHeight());
+      }
+
+    return intersects;
+  }
 };
 
 class vtkRecti : public vtkRect<int>

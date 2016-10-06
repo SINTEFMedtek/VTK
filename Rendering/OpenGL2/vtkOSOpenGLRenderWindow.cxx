@@ -42,10 +42,13 @@ PURPOSE.  See the above copyright notice for more information.
 #include "vtkRendererCollection.h"
 
 #include "vtksys/SystemTools.hxx"
-#include "vtksys/ios/sstream"
+#include <sstream>
 
 class vtkOSOpenGLRenderWindow;
 class vtkRenderWindow;
+
+typedef OSMesaContext GLAPIENTRY (*OSMesaCreateContextAttribs_func)( const int *attribList, OSMesaContext sharelist );
+
 
 class vtkOSOpenGLRenderWindowInternal
 {
@@ -153,20 +156,7 @@ void vtkOSOpenGLRenderWindow::CreateAWindow()
 void vtkOSOpenGLRenderWindow::DestroyWindow()
 {
   this->MakeCurrent();
-
-  // tell each of the renderers that this render window/graphics context
-  // is being removed (the RendererCollection is removed by vtkRenderWindow's
-  // destructor)
-  vtkRenderer* ren;
-  this->Renderers->InitTraversal();
-  for ( ren = vtkOpenGLRenderer::SafeDownCast(this->Renderers->GetNextItemAsObject());
-        ren != NULL;
-        ren = vtkOpenGLRenderer::SafeDownCast(this->Renderers->GetNextItemAsObject())  )
-    {
-    ren->SetRenderWindow(NULL);
-    ren->SetRenderWindow(this);
-    }
-
+  this->ReleaseGraphicsResources(this);
 
   delete[] this->Capabilities;
   this->Capabilities = 0;
@@ -189,7 +179,31 @@ void vtkOSOpenGLRenderWindow::CreateOffScreenWindow(int width, int height)
     }
   if (!this->Internal->OffScreenContextId)
     {
-    this->Internal->OffScreenContextId = OSMesaCreateContext(GL_RGBA, NULL);
+#if (OSMESA_MAJOR_VERSION * 100 + OSMESA_MINOR_VERSION >= 1102) && defined(OSMESA_CONTEXT_MAJOR_VERSION)
+    static const int attribs[] = {
+       OSMESA_FORMAT, OSMESA_RGBA,
+       OSMESA_DEPTH_BITS, 32,
+       OSMESA_STENCIL_BITS, 0,
+       OSMESA_ACCUM_BITS, 0,
+       OSMESA_PROFILE, OSMESA_CORE_PROFILE,
+       OSMESA_CONTEXT_MAJOR_VERSION, 3,
+       OSMESA_CONTEXT_MINOR_VERSION, 2,
+       0 };
+
+    OSMesaCreateContextAttribs_func OSMesaCreateContextAttribs =
+       (OSMesaCreateContextAttribs_func)
+       OSMesaGetProcAddress("OSMesaCreateContextAttribs");
+
+    if (OSMesaCreateContextAttribs != NULL)
+      {
+      this->Internal->OffScreenContextId = OSMesaCreateContextAttribs(attribs, NULL);
+      }
+#endif
+    // if we still have no context fall back to the generic signature
+    if (!this->Internal->OffScreenContextId)
+      {
+      this->Internal->OffScreenContextId = OSMesaCreateContext(GL_RGBA, NULL);
+      }
     }
   this->MakeCurrent();
 
@@ -216,17 +230,15 @@ void vtkOSOpenGLRenderWindow::CreateOffScreenWindow(int width, int height)
 
 void vtkOSOpenGLRenderWindow::DestroyOffScreenWindow()
 {
+  // Release graphic resources.
 
-  // release graphic resources.
-  vtkRenderer *ren;
-  vtkCollectionSimpleIterator rit;
-  this->Renderers->InitTraversal(rit);
-  while ( (ren = this->Renderers->GetNextRenderer(rit)) )
-    {
-    ren->SetRenderWindow(NULL);
-    ren->SetRenderWindow(this);
-    }
-
+  // First release graphics resources on the window itself
+  // since call to Renderer's SetRenderWindow(NULL), just
+  // calls ReleaseGraphicsResources on vtkProps. And also
+  // this call invokes Renderer's ReleaseGraphicsResources
+  // method which only invokes ReleaseGraphicsResources on
+  // rendering passes.
+  this->ReleaseGraphicsResources(this);
 
   if (this->Internal->OffScreenContextId)
     {
@@ -466,7 +478,7 @@ const char* vtkOSOpenGLRenderWindow::ReportCapabilities()
   const char *glVersion = (const char *) glGetString(GL_VERSION);
   const char *glExtensions = (const char *) glGetString(GL_EXTENSIONS);
 
-  vtksys_ios::ostringstream strm;
+  std::ostringstream strm;
   strm << "OpenGL vendor string:  " << glVendor << endl;
   strm << "OpenGL renderer string:  " << glRenderer << endl;
   strm << "OpenGL version string:  " << glVersion << endl;

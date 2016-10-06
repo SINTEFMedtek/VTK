@@ -41,7 +41,7 @@
 #include "vtkXMLWriter.h"
 #include "vtkDataObjectTreeIterator.h"
 #include <vtksys/SystemTools.hxx>
-#include <vtksys/ios/sstream>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -586,7 +586,7 @@ vtkStdString vtkXMLCompositeDataWriter::CreatePieceFileName(
     return "";
     }
 
-  vtksys_ios::ostringstream stream;
+  std::ostringstream stream;
   stream << this->Internal->FilePrefix.c_str() << "/"
          << this->Internal->FilePrefix.c_str()
          << "_" << piece << ".";

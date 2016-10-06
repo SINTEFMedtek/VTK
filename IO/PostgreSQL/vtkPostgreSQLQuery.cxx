@@ -29,7 +29,7 @@
 #include <cassert>
 #include <limits> // man, I hope all platforms have this nowadays
 
-#include <vtksys/ios/sstream>
+#include <sstream>
 
 #define BEGIN_TRANSACTION "BEGIN"
 #define COMMIT_TRANSACTION "COMMIT"
@@ -50,10 +50,8 @@ DECLARE_CONVERTER(Float);
 DECLARE_CONVERTER(Double);
 DECLARE_CONVERTER(VtkIdType);
 DECLARE_CONVERTER(String);
-#ifdef VTK_TYPE_USE_LONG_LONG
 DECLARE_CONVERTER(SignedLongLong);
 DECLARE_CONVERTER(UnsignedLongLong);
-#endif
 
 template<typename T>
 void ConvertFromNetworkOrder(T &target, const char *rawBytes)
@@ -163,7 +161,6 @@ vtkVariant vtkPostgreSQLQuery::DataValue( vtkIdType column )
     {
     return ConvertStringToUnsignedLong(isBinary, rawData);
     }
-#ifdef VTK_TYPE_USE_LONG_LONG
     case VTK_LONG_LONG:
     {
     return ConvertStringToSignedLongLong(isBinary, rawData);
@@ -172,7 +169,6 @@ vtkVariant vtkPostgreSQLQuery::DataValue( vtkIdType column )
     {
     return ConvertStringToUnsignedLongLong(isBinary, rawData);
     }
-#endif // VTK_TYPE_USE_LONG_LONG
     case VTK_FLOAT:
     {
     return ConvertStringToFloat(isBinary, rawData);
@@ -315,7 +311,7 @@ bool vtkPostgreSQLQuery::Execute()
     {
     returnStatus = false;
     this->Active = false;
-    vtksys_ios::ostringstream sbuf;
+    std::ostringstream sbuf;
     sbuf << "Unhandled server response: ";
     sbuf << PQresStatus(PQresultStatus(this->QueryInternals->QueryResults));
     this->SetLastErrorText(sbuf.str().c_str());
@@ -783,8 +779,6 @@ vtkVariant ConvertStringToUnsignedLong(bool isBinary, const char *rawData)
 
 // ----------------------------------------------------------------------
 
-#ifdef VTK_TYPE_USE_LONG_LONG
-
 vtkVariant ConvertStringToSignedLongLong(bool isBinary, const char *rawData)
 {
   if (isBinary)
@@ -816,8 +810,6 @@ vtkVariant ConvertStringToUnsignedLongLong(bool isBinary, const char *rawData)
     return vtkVariant(converter.ToUnsignedLongLong());
     }
 }
-
-#endif // VTK_TYPE_USE_LONG_LONG
 
 // ----------------------------------------------------------------------
 
@@ -912,7 +904,7 @@ vtkVariant ConvertStringToVtkIdType(bool isBinary, const char *rawData)
     }
   else
     {
-    vtksys_ios::stringstream convertStream;
+    std::stringstream convertStream;
     convertStream.str(rawData);
     vtkIdType result;
     convertStream >> result;

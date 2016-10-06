@@ -6,6 +6,7 @@ vtk_add_test_cxx(${vtk-module}CxxTests tests
   TestAMRBox.cxx
   TestBiQuadraticQuad.cxx
   TestCompositeDataSets.cxx
+  TestComputeBoundingSphere.cxx
   TestDataArrayDispatcher.cxx
   TestDataObject.cxx
   TestDispatchers.cxx
@@ -28,6 +29,7 @@ vtk_add_test_cxx(${vtk-module}CxxTests tests
   TestPolyhedron0.cxx
   TestPolyhedron1.cxx
   TestQuadraticPolygon.cxx
+  TestRect.cxx
   TestSelectionSubtract.cxx
   TestTable.cxx
   TestTreeBFSIterator.cxx
@@ -46,12 +48,17 @@ vtk_add_test_cxx(${vtk-module}CxxTests tests
   quadraticEvaluation.cxx
   TestBoundingBox.cxx
   TestPlane.cxx
+  TestStaticCellLinks.cxx
   TestStructuredData.cxx
   TestDataObjectTypes.cxx
   TestPolyDataRemoveDeletedCells.cxx
   UnitTestCells.cxx
+  UnitTestImplicitDataSet.cxx
+  UnitTestImplicitVolume.cxx
+  UnitTestPlanesIntersection.cxx
   )
 vtk_add_test_cxx(${vtk-module}CxxTests data_tests
+  quadraticIntersection.cxx
   TestCellIterators.cxx,NO_VALID,NO_OUTPUT
   TestCellLocator.cxx,NO_DATA
   TestMeanValueCoordinatesInterpolation1.cxx

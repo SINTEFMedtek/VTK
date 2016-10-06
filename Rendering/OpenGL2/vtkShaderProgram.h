@@ -174,6 +174,7 @@ public:
   bool SetUniform2fv(const char *name, const int count, const float (*f)[2]);
   bool SetUniform3fv(const char *name, const int count, const float (*f)[3]);
   bool SetUniform4fv(const char *name, const int count, const float (*f)[4]);
+  bool SetUniformMatrix4x4v(const char *name, const int count, float *v);
 
   // How many outputs does this program produce
   // only valid for OpenGL 3.2 or later
@@ -190,7 +191,11 @@ public:
     const std::string replace,
     bool all = true);
 
-
+  // Description:
+  // methods to inquire as to what uniforms/attributes are used by
+  // this shader.  This can save some compute time if the uniforms
+  // or attributes are expensive to compute
+  bool IsUniformUsed(const char *);
 
 protected:
   vtkShaderProgram();
@@ -269,6 +274,9 @@ protected:
   std::string Error;
 
   std::map<std::string, int> Attributes;
+
+
+  std::map<std::string, bool> UniformsUsed;
 
   friend class VertexArrayObject;
 

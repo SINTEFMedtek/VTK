@@ -25,6 +25,9 @@ set(Module_SRCS
   vtkExecutionTimer.cxx
   vtkFeatureEdges.cxx
   vtkFieldDataToAttributeDataFilter.cxx
+  vtkFlyingEdges2D.cxx
+  vtkFlyingEdges3D.cxx
+  vtkFlyingEdgesPlaneCutter.cxx
   vtkGlyph2D.cxx
   vtkGlyph3D.cxx
   vtkHedgeHog.cxx

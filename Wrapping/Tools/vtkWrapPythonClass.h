@@ -13,8 +13,8 @@
 
 =========================================================================*/
 
-#ifndef VTK_WRAP_PYTHON_CLASS_H
-#define VTK_WRAP_PYTHON_CLASS_H
+#ifndef vtkWrapPythonClass_h
+#define vtkWrapPythonClass_h
 
 #include "vtkParse.h"
 #include "vtkParseData.h"
@@ -22,8 +22,9 @@
 
 /* Wrap one class, returns zero if not wrappable */
 int vtkWrapPython_WrapOneClass(
-  FILE *fp, const char *classname, ClassInfo *data,
-  FileInfo *file_info, HierarchyInfo *hinfo, int is_vtkobject);
+  FILE *fp, const char *module, const char *classname,
+  ClassInfo *data, FileInfo *file_info, HierarchyInfo *hinfo,
+  int is_vtkobject);
 
 /* get the true superclass */
 const char *vtkWrapPython_GetSuperClass(
@@ -38,4 +39,4 @@ void vtkWrapPython_ClassDoc(
   FILE *fp, FileInfo *file_info, ClassInfo *data, HierarchyInfo *hinfo,
   int is_vtkobject);
 
-#endif /* VTK_WRAP_PYTHON_CLASS_H */
+#endif /* vtkWrapPythonClass_h */

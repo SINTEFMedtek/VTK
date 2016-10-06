@@ -367,7 +367,7 @@ void vtkTextMapper::RenderOverlay(vtkViewport *viewport, vtkActor2D *actor)
   vtkDebugMacro(<<"RenderOverlay called");
 
   vtkRenderer *ren = NULL;
-  if (this->Input && this->Input[0])
+  if (this->Input)
     {
     vtkWindow *win = viewport->GetVTKWindow();
     if (!win)
@@ -485,7 +485,8 @@ void vtkTextMapper::UpdateQuad(vtkActor2D *actor, int dpi)
     }
 
   if (this->CoordsTime < actor->GetMTime() ||
-      this->CoordsTime < this->TextProperty->GetMTime())
+      this->CoordsTime < this->TextProperty->GetMTime() ||
+      this->CoordsTime < this->TCoordsTime)
     {
     int text_bbox[4];
     vtkTextRenderer *tren = vtkTextRenderer::GetInstance();
@@ -501,6 +502,8 @@ void vtkTextMapper::UpdateQuad(vtkActor2D *actor, int dpi)
     else
       {
       vtkErrorMacro(<<"Could not locate vtkTextRenderer object.");
+      text_bbox[0] = 0;
+      text_bbox[2] = 0;
       }
 
     double x = static_cast<double>(text_bbox[0]);

@@ -1,3 +1,5 @@
+//VTK::System::Dec
+
 /*=========================================================================
 
   Program:   Visualization Toolkit
@@ -12,12 +14,6 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-// this shader is used to implement lighting in the fragment shader
-// it handles setting up the basic varying variables for the fragment shader
-
-// The following line handle system declarations such a
-// default precisions, or defining precisions to null
-//VTK::System::Dec
 
 attribute vec4 vertexMC;
 
@@ -26,6 +22,9 @@ attribute vec4 vertexMC;
 
 // optional normal declaration
 //VTK::Normal::Dec
+
+// extra lighting parameters
+//VTK::Light::Dec
 
 // Texture coordinates
 //VTK::TCoord::Dec
@@ -55,4 +54,6 @@ void main()
   //VTK::PrimID::Impl
 
   //VTK::PositionVC::Impl
+
+  //VTK::Light::Impl
 }

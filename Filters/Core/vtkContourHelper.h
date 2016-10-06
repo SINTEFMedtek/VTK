@@ -32,7 +32,7 @@ class vtkPointData;
 class vtkCellData;
 class vtkCell;
 class vtkDataArray;
-class vtkIdList;
+class vtkIdListCollection;
 
 class VTKFILTERSCORE_EXPORT vtkContourHelper
 {
@@ -51,6 +51,10 @@ public:
   void Contour(vtkCell* cell, double value, vtkDataArray *cellScalars, vtkIdType cellId);
 
  private:
+  // Not implemented
+  vtkContourHelper(const vtkContourHelper&);
+  vtkContourHelper& operator=(const vtkContourHelper&);
+
   vtkIncrementalPointLocator* Locator;
   vtkCellArray* Verts;
   vtkCellArray* Lines;
@@ -63,7 +67,7 @@ public:
 
   vtkCellArray* Tris;
   vtkPolygonBuilder PolyBuilder;
-  vtkIdList* Poly;
+  vtkIdListCollection* PolyCollection;
   bool GenerateTriangles;
 };
 

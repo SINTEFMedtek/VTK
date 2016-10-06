@@ -386,13 +386,12 @@ static void vtkWrapPython_ClassMethodDef(
         comment, maxlen - strlen(signatures));
 
       fprintf(fp,
-              "  {(char*)\"%s\", Py%s_%s, METH_VARARGS%s,\n",
+              "  {\"%s\", Py%s_%s, METH_VARARGS,\n",
               wrappedFunctions[fnum]->Name, classname,
-              wrappedFunctions[fnum]->Name,
-              wrappedFunctions[fnum]->IsStatic ? " | METH_STATIC" : "");
+              wrappedFunctions[fnum]->Name);
 
       fprintf(fp,
-              "   (char*)\"%s\\n\\n%s\"},\n",
+              "   \"%s\\n\\n%s\"},\n",
               signatures, comment);
       }
     if(wrappedFunctions[fnum]->IsLegacy)
@@ -406,8 +405,8 @@ static void vtkWrapPython_ClassMethodDef(
   if (strcmp("vtkObject", data->Name) == 0)
     {
     fprintf(fp,
-            "  {(char*)\"AddObserver\",  Py%s_AddObserver, 1,\n"
-            "   (char*)\"V.AddObserver(int, function) -> int\\nC++: unsigned long AddObserver(const char *event,\\n    vtkCommand *command, float priority=0.0f)\\n\\nAdd an event callback function(vtkObject, int) for an event type.\\nReturns a handle that can be used with RemoveEvent(int).\"},\n",
+            "  {\"AddObserver\",  Py%s_AddObserver, 1,\n"
+            "   \"V.AddObserver(int, function) -> int\\nC++: unsigned long AddObserver(const char *event,\\n    vtkCommand *command, float priority=0.0f)\\n\\nAdd an event callback function(vtkObject, int) for an event type.\\nReturns a handle that can be used with RemoveEvent(int).\"},\n",
             classname);
     }
 
@@ -415,20 +414,20 @@ static void vtkWrapPython_ClassMethodDef(
   else if (strcmp("vtkObjectBase", data->Name) == 0)
     {
     fprintf(fp,
-            "  {(char*)\"GetAddressAsString\",  Py%s_GetAddressAsString, 1,\n"
-            "   (char*)\"V.GetAddressAsString(string) -> string\\nC++: const char *GetAddressAsString()\\n\\nGet address of C++ object in format 'Addr=%%p' after casting to\\nthe specified type.  You can get the same information from o.__this__.\"},\n",
+            "  {\"GetAddressAsString\",  Py%s_GetAddressAsString, 1,\n"
+            "   \"V.GetAddressAsString(string) -> string\\nC++: const char *GetAddressAsString()\\n\\nGet address of C++ object in format 'Addr=%%p' after casting to\\nthe specified type.  You can get the same information from o.__this__.\"},\n",
             classname);
 #ifndef VTK_LEGACY_REMOVE
     fprintf(fp,
-            "  {(char*)\"PrintRevisions\",  Py%s_PrintRevisions, 1,\n"
-            "   (char*)\"V.PrintRevisions() -> string\\nC++: const char *PrintRevisions()\\n\\nPrints the .cxx file CVS revisions of the classes in the\\nobject's inheritance chain.\"},\n",
+            "  {\"PrintRevisions\",  Py%s_PrintRevisions, 1,\n"
+            "   \"V.PrintRevisions() -> string\\nC++: const char *PrintRevisions()\\n\\nPrints the .cxx file CVS revisions of the classes in the\\nobject's inheritance chain.\"},\n",
             classname);
 #endif
     fprintf(fp,
-            "  {(char*)\"Register\", Py%s_Register, 1,\n"
-            "   (char*)\"V.Register(vtkObjectBase)\\nC++: virtual void Register(vtkObjectBase *o)\\n\\nIncrease the reference count by 1.\\n\"},\n"
-            "  {(char*)\"UnRegister\", Py%s_UnRegister, 1,\n"
-            "   (char*)\"V.UnRegister(vtkObjectBase)\\nC++: virtual void UnRegister(vtkObjectBase *o)\\n\\nDecrease the reference count (release by another object). This\\nhas the same effect as invoking Delete() (i.e., it reduces the\\nreference count by 1).\\n\"},\n",
+            "  {\"Register\", Py%s_Register, 1,\n"
+            "   \"V.Register(vtkObjectBase)\\nC++: virtual void Register(vtkObjectBase *o)\\n\\nIncrease the reference count by 1.\\n\"},\n"
+            "  {\"UnRegister\", Py%s_UnRegister, 1,\n"
+            "   \"V.UnRegister(vtkObjectBase)\\nC++: virtual void UnRegister(vtkObjectBase *o)\\n\\nDecrease the reference count (release by another object). This\\nhas the same effect as invoking Delete() (i.e., it reduces the\\nreference count by 1).\\n\"},\n",
             classname, classname);
     }
 
@@ -454,12 +453,7 @@ static int vtkWrapPython_IsValueWrappable(
     VTK_PARSE_ID_TYPE, VTK_PARSE_UNSIGNED_ID_TYPE,
     VTK_PARSE_SSIZE_T, VTK_PARSE_SIZE_T,
     VTK_PARSE_UNKNOWN,
-#ifdef VTK_TYPE_USE_LONG_LONG
     VTK_PARSE_LONG_LONG, VTK_PARSE_UNSIGNED_LONG_LONG,
-#endif
-#ifdef VTK_TYPE_USE___INT64
-    VTK_PARSE___INT64, VTK_PARSE_UNSIGNED___INT64,
-#endif
     VTK_PARSE_OBJECT, VTK_PARSE_QOBJECT, VTK_PARSE_STRING,
 #ifndef VTK_PYTHON_NO_UNICODE
     VTK_PARSE_UNICODE_STRING,
@@ -787,7 +781,7 @@ static void vtkWrapPython_CustomMethods(
             "\n"
             "  if (op && ap.CheckArgCount(0))\n"
             "    {\n"
-            "    vtksys_ios::ostringstream vtkmsg_with_warning_C4701;\n"
+            "    std::ostringstream vtkmsg_with_warning_C4701;\n"
             "    op->PrintRevisions(vtkmsg_with_warning_C4701);\n"
             "    vtkmsg_with_warning_C4701.put('\\0');\n"
             "    tempr = vtkmsg_with_warning_C4701.str().c_str();\n"

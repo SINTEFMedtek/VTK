@@ -56,7 +56,7 @@
 
 #include <vector>
 #include "vtksys/SystemTools.hxx"
-#include <vtksys/ios/sstream>
+#include <sstream>
 #include "vtk_zlib.h"
 
 #include "vtkCellArray.h"
@@ -427,10 +427,10 @@ private:
 
 public:
   // a super-easy way to make use of operator<<()'s defined in
-  // vtksys_ios::ostringstream class
+  // std::ostringstream class
   template <class T> vtkFoamError& operator<<(const T& t)
   {
-    vtksys_ios::ostringstream os;
+    std::ostringstream os;
     os << t;
     this->Superclass::operator+=(os.str());
     return *this;
@@ -542,12 +542,12 @@ public:
   template <typename T> T To() const;
 #if defined(_MSC_VER)
   // workaround for Win32-64ids-nmake70
-  VTK_TEMPLATE_SPECIALIZE bool Is<int>() const;
-  VTK_TEMPLATE_SPECIALIZE bool Is<float>() const;
-  VTK_TEMPLATE_SPECIALIZE bool Is<double>() const;
-  VTK_TEMPLATE_SPECIALIZE int To<int>() const;
-  VTK_TEMPLATE_SPECIALIZE float To<float>() const;
-  VTK_TEMPLATE_SPECIALIZE double To<double>() const;
+  template<> bool Is<int>() const;
+  template<> bool Is<float>() const;
+  template<> bool Is<double>() const;
+  template<> int To<int>() const;
+  template<> float To<float>() const;
+  template<> double To<double>() const;
 #endif
 
   // workaround for SunOS-CC5.6-dbg
@@ -639,7 +639,7 @@ public:
     return !this->operator==(value);
   }
 
-  friend vtksys_ios::ostringstream& operator<<(vtksys_ios::ostringstream& str,
+  friend std::ostringstream& operator<<(std::ostringstream& str,
       const vtkFoamToken& value)
   {
     switch (value.GetType())
@@ -675,32 +675,32 @@ public:
   }
 };
 
-VTK_TEMPLATE_SPECIALIZE inline bool vtkFoamToken::Is<int>() const
+template<> inline bool vtkFoamToken::Is<int>() const
 {
   return this->Type == LABEL;
 }
 
-VTK_TEMPLATE_SPECIALIZE inline bool vtkFoamToken::Is<float>() const
+template<> inline bool vtkFoamToken::Is<float>() const
 {
   return this->Type == LABEL || this->Type == SCALAR;
 }
 
-VTK_TEMPLATE_SPECIALIZE inline bool vtkFoamToken::Is<double>() const
+template<> inline bool vtkFoamToken::Is<double>() const
 {
   return this->Type == SCALAR;
 }
 
-VTK_TEMPLATE_SPECIALIZE inline int vtkFoamToken::To<int>() const
+template<> inline int vtkFoamToken::To<int>() const
 {
   return this->Int;
 }
 
-VTK_TEMPLATE_SPECIALIZE inline float vtkFoamToken::To<float>() const
+template<> inline float vtkFoamToken::To<float>() const
 {
   return this->Type == LABEL ? this->Int : this->Double;
 }
 
-VTK_TEMPLATE_SPECIALIZE inline double vtkFoamToken::To<double>() const
+template<> inline double vtkFoamToken::To<double>() const
 {
   return this->Type == LABEL ? this->Int : this->Double;
 }
@@ -828,7 +828,7 @@ private:
 
   vtkFoamError StackString()
   {
-    vtksys_ios::ostringstream os;
+    std::ostringstream os;
     if (this->StackI > 0)
       {
       os << "\n included";
@@ -2009,12 +2009,12 @@ public:
   static T ReadValue(vtkFoamIOobject &io);
 };
 
-VTK_TEMPLATE_SPECIALIZE inline int vtkFoamReadValue<int>::ReadValue(vtkFoamIOobject& io)
+template<> inline int vtkFoamReadValue<int>::ReadValue(vtkFoamIOobject& io)
 {
   return io.ReadIntValue();
 }
 
-VTK_TEMPLATE_SPECIALIZE inline float vtkFoamReadValue<float>::ReadValue(vtkFoamIOobject& io)
+template<> inline float vtkFoamReadValue<float>::ReadValue(vtkFoamIOobject& io)
 {
   return io.ReadFloatValue();
 }
@@ -2510,7 +2510,7 @@ public:
 
 // specialization for reading double precision binary into vtkFloatArray.
 // Must precede ReadNonuniformList() below (HP-UXia64-aCC).
-VTK_TEMPLATE_SPECIALIZE
+template<>
 void vtkFoamEntryValue::listTraits<vtkFloatArray, float>::ReadBinaryList(
     vtkFoamIOobject& io, const int size)
 {
@@ -4264,31 +4264,31 @@ bool vtkOpenFOAMReaderPrivate::ListTimeDirectoriesByControlDict(
 
   // determine time name based on Foam::Time::timeName()
   // cf. src/OpenFOAM/db/Time/Time.C
-  vtksys_ios::ostringstream parser;
+  std::ostringstream parser;
 #ifdef _MSC_VER
   bool correctExponent = true;
 #endif
   if (timeFormat == "general")
     {
-    parser.setf(vtksys_ios::ios_base::fmtflags(0), vtksys_ios::ios_base::floatfield);
+    parser.setf(std::ios_base::fmtflags(0), std::ios_base::floatfield);
     }
   else if (timeFormat == "fixed")
     {
-    parser.setf(vtksys_ios::ios_base::fmtflags(vtksys_ios::ios_base::fixed),
-        vtksys_ios::ios_base::floatfield);
+    parser.setf(std::ios_base::fmtflags(std::ios_base::fixed),
+        std::ios_base::floatfield);
 #ifdef _MSC_VER
     correctExponent = false;
 #endif
     }
   else if (timeFormat == "scientific")
     {
-    parser.setf(vtksys_ios::ios_base::fmtflags(vtksys_ios::ios_base::scientific),
-        vtksys_ios::ios_base::floatfield);
+    parser.setf(std::ios_base::fmtflags(std::ios_base::scientific),
+        std::ios_base::floatfield);
     }
   else
     {
     vtkWarningMacro("Warning: unsupported time format. Assuming general.");
-    parser.setf(vtksys_ios::ios_base::fmtflags(0), vtksys_ios::ios_base::floatfield);
+    parser.setf(std::ios_base::fmtflags(0), std::ios_base::floatfield);
     }
   parser.precision(timePrecision);
 
@@ -6675,7 +6675,7 @@ void vtkOpenFOAMReaderPrivate::ConstructDimensions(vtkStdString *dimString,
         }
       static const char *units[7] =
       { "kg", "m", "s", "K", "mol", "A", "cd" };
-      vtksys_ios::ostringstream posDim, negDim;
+      std::ostringstream posDim, negDim;
       int posSpc = 0, negSpc = 0;
       if (dimSet[0] == 1 && dimSet[1] == -1 && dimSet[2] == -2)
         {

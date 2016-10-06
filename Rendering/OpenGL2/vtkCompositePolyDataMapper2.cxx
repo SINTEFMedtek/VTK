@@ -47,6 +47,9 @@ vtkStandardNewMacro(vtkCompositePolyDataMapper2);
 vtkCompositePolyDataMapper2::vtkCompositePolyDataMapper2()
 {
   this->UseGeneric = true;
+  this->MaximumFlatIndex = 0;
+  this->CanUseTextureMapForColoringSet = false;
+  this->CanUseTextureMapForColoringValue = false;
 }
 
 //----------------------------------------------------------------------------
@@ -104,8 +107,13 @@ void vtkCompositePolyDataMapper2::Render(
 
   // do we need to do a generic render?
   bool lastUseGeneric = this->UseGeneric;
-  if (this->GenericTestTime < this->GetInputDataObject(0, 0)->GetMTime())
+  int foundScalars = 0;  // 0 = unknown, 1 has 2 doesn't
+  int foundNormals = 0;
+  int foundTCoords = 0;
+  if (this->GenericTestTime < this->GetInputDataObject(0, 0)->GetMTime() ||
+      this->GenericTestTime < this->MTime)
     {
+    int cellFlag = 0;
     this->UseGeneric = false;
 
     // is the data not composite
@@ -128,7 +136,50 @@ void vtkCompositePolyDataMapper2::Render(
         if (!pd ||
             pd->GetVerts()->GetNumberOfCells() ||
             pd->GetLines()->GetNumberOfCells() ||
-            pd->GetStrips()->GetNumberOfCells())
+            pd->GetStrips()->GetNumberOfCells() ||
+            pd->GetPointData()->GetAttribute(
+                        vtkDataSetAttributes::EDGEFLAG))
+          {
+          this->UseGeneric = true;
+          break;
+          }
+        // is the scalar coloring OK?  If some blocks are missing
+        // the scalars we switch to generic
+        if (pd && this->ScalarVisibility)
+          {
+          vtkAbstractArray *scalars =
+            vtkAbstractMapper::GetAbstractScalars(
+              pd, this->ScalarMode, this->ArrayAccessMode,
+              this->ArrayId, this->ArrayName,
+              cellFlag);
+          if (!foundScalars)
+            {
+            foundScalars = scalars ? 1 : 2;
+            }
+          if (foundScalars != (scalars ? 1 : 2))
+            {
+            this->UseGeneric = true;
+            break;
+            }
+          }
+        // watch for heterogeneous normals
+        if (!foundNormals)
+          {
+          foundNormals =
+            (pd->GetPointData()->GetNormals() || pd->GetCellData()->GetNormals()) ? 1 : 2;
+          }
+        if (foundNormals !=
+          ((pd->GetPointData()->GetNormals() || pd->GetCellData()->GetNormals()) ? 1 : 2))
+          {
+          this->UseGeneric = true;
+          break;
+          }
+        // watch for heterogeneous tcoords
+        if (!foundTCoords)
+          {
+          foundTCoords = pd->GetPointData()->GetTCoords() ? 1 : 2;
+          }
+        if (foundTCoords != (pd->GetPointData()->GetTCoords() ? 1 : 2))
           {
           this->UseGeneric = true;
           break;
@@ -301,7 +352,8 @@ void vtkCompositePolyDataMapper2::BuildRenderValues(
     {
     double op = this->BlockState.Opacity.top();
     bool vis = this->BlockState.Visibility.top();
-    vtkColor3d color = this->BlockState.AmbientColor.top();
+    vtkColor3d acolor = this->BlockState.AmbientColor.top();
+    vtkColor3d dcolor = this->BlockState.DiffuseColor.top();
     if (this->RenderValues.size() == 0)
       {
       vtkCompositePolyDataMapper2::RenderValue rv;
@@ -310,7 +362,8 @@ void vtkCompositePolyDataMapper2::BuildRenderValues(
       rv.StartEdgeIndex = 0;
       rv.Opacity = op;
       rv.Visibility = vis;
-      rv.Color = color;
+      rv.AmbientColor = acolor;
+      rv.DiffuseColor = dcolor;
       rv.PickId = my_flat_index;
       rv.OverridesColor = (this->BlockState.AmbientColor.size() > 1);
       this->RenderValues.push_back(rv);
@@ -319,7 +372,8 @@ void vtkCompositePolyDataMapper2::BuildRenderValues(
     // has something changed?
     if (this->RenderValues.back().Opacity != op ||
         this->RenderValues.back().Visibility != vis ||
-        this->RenderValues.back().Color != color ||
+        this->RenderValues.back().AmbientColor != acolor ||
+        this->RenderValues.back().DiffuseColor != dcolor ||
         selector)
       {
       // close old group
@@ -333,7 +387,8 @@ void vtkCompositePolyDataMapper2::BuildRenderValues(
       rv.StartEdgeIndex = lastEdgeIndex;
       rv.Opacity = op;
       rv.Visibility = vis;
-      rv.Color = color;
+      rv.AmbientColor = acolor;
+      rv.DiffuseColor = dcolor;
       rv.PickId = my_flat_index;
       rv.OverridesColor = (this->BlockState.AmbientColor.size() > 1);
       this->RenderValues.push_back(rv);
@@ -377,6 +432,7 @@ void vtkCompositePolyDataMapper2::RenderPieceDraw(
 
   // rebuild the render values if needed
   if (this->RenderValuesBuildTime < this->GetMTime() ||
+      this->RenderValuesBuildTime < actor->GetProperty()->GetMTime() ||
       this->RenderValuesBuildTime < this->VBOBuildTime ||
       this->RenderValuesBuildTime < this->SelectionStateChanged)
     {
@@ -401,6 +457,10 @@ void vtkCompositePolyDataMapper2::RenderPieceDraw(
     {
     // First we do the triangles, update the shader, set uniforms, etc.
     this->UpdateShaders(this->Tris, ren, actor);
+    if (!this->HaveWideLines(ren,actor) && representation == VTK_WIREFRAME)
+      {
+      glLineWidth(actor->GetProperty()->GetLineWidth());
+      }
     this->Tris.IBO->Bind();
     GLenum mode = (representation == VTK_POINTS) ? GL_POINTS :
       (representation == VTK_WIREFRAME) ? GL_LINES : GL_TRIANGLES;
@@ -429,11 +489,11 @@ void vtkCompositePolyDataMapper2::RenderPieceDraw(
           }
         // override the opacity and color
         prog->SetUniformf("opacityUniform", it->Opacity);
-        vtkColor3d &aColor = it->Color;
+        vtkColor3d &aColor = it->AmbientColor;
         float ambientColor[3] = {static_cast<float>(aColor[0] * aIntensity),
           static_cast<float>(aColor[1] * aIntensity),
           static_cast<float>(aColor[2] * aIntensity)};
-        vtkColor3d &dColor = it->Color;
+        vtkColor3d &dColor = it->DiffuseColor;
         float diffuseColor[3] = {static_cast<float>(dColor[0] * dIntensity),
           static_cast<float>(dColor[1] * dIntensity),
           static_cast<float>(dColor[2] * dIntensity)};
@@ -452,8 +512,14 @@ void vtkCompositePolyDataMapper2::RenderPieceDraw(
       this->PrimitiveIDOffset +=
         ((it->EndIndex - it->StartIndex + 1)/modeDenom);
       }
-
     this->Tris.IBO->Release();
+    }
+  if (selector && (
+        selector->GetCurrentPass() == vtkHardwareSelector::ID_LOW24 ||
+        selector->GetCurrentPass() == vtkHardwareSelector::ID_MID24 ||
+        selector->GetCurrentPass() == vtkHardwareSelector::ID_HIGH16))
+    {
+    selector->RenderAttributeId(this->PrimitiveIDOffset);
     }
 
 }
@@ -477,6 +543,10 @@ void vtkCompositePolyDataMapper2::RenderEdges(
     {
     // First we do the triangles, update the shader, set uniforms, etc.
     this->UpdateShaders(this->TrisEdges, ren, actor);
+    if (!this->HaveWideLines(ren,actor))
+      {
+      glLineWidth(actor->GetProperty()->GetLineWidth());
+      }
     this->TrisEdges.IBO->Bind();
     std::vector<
       vtkCompositePolyDataMapper2::RenderValue>::iterator it;
@@ -683,6 +753,7 @@ void vtkCompositePolyDataMapper2::BuildBufferObjects(
       4, VTK_FLOAT,
       this->CellNormalBuffer);
     }
+  this->VBOBuildTime.Modified();
 }
 
 //-------------------------------------------------------------------------

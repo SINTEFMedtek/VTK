@@ -18,6 +18,7 @@
 #include "vtkBoundingBox.h"
 #include "vtkCellData.h"
 #include "vtkIdList.h"
+#include "vtkMath.h"
 #include "vtkNew.h"
 #include "vtkObjectFactory.h"
 #include "vtkPointData.h"
@@ -49,6 +50,8 @@ namespace vtk
 namespace detail
 {
 
+// Index mapping works as:
+// inputExtent = Mapping[dim][outputExtent - this->OutputWholeExtent[2*dim]]
 struct vtkIndexMap
 {
   std::vector<int> Mapping[3];
@@ -104,6 +107,11 @@ void vtkExtractStructuredGridHelper::Invalidate()
   this->OutputWholeExtent[3]=-1;
   this->OutputWholeExtent[4]= 0;
   this->OutputWholeExtent[5]=-1;
+
+  for(int i=0; i < 3; ++i)
+    {
+    this->IndexMap->Mapping[ i ].clear();
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -126,6 +134,17 @@ void vtkExtractStructuredGridHelper::Initialize(
     return;
     }
 
+  // Is the VOI valid?
+  if (voi[1] < voi[0] || voi[3] < voi[2] || voi[5] < voi[4])
+    {
+    this->Invalidate();
+    vtkWarningMacro("Invalid volume of interest: ["
+                    << " [ " << voi[0] << ", " << voi[1] << " ], "
+                    << " [ " << voi[2] << ", " << voi[3] << " ], "
+                    << " [ " << voi[4] << ", " << voi[5] << " ] ]");
+    return;
+    }
+
   // Save the input parameters so we'll know when the map is out of date
   std::copy(voi, voi + 6, this->VOI);
   std::copy(wholeExtent, wholeExtent + 6, this->InputWholeExtent);
@@ -138,10 +157,6 @@ void vtkExtractStructuredGridHelper::Initialize(
 
   if(!wExtB.Intersects(voiB))
     {
-    for(int i=0; i < 3; ++i)
-      {
-      this->IndexMap->Mapping[ i ].clear();
-      }
     this->Invalidate();
     vtkDebugMacro(<< "Extent ["
                   << wholeExtent[0] << ", " << wholeExtent[1] << ", "
@@ -160,6 +175,8 @@ void vtkExtractStructuredGridHelper::Initialize(
   // Compute the output whole extent in the process.
   for(int dim=0; dim < 3; ++dim)
     {
+    // +2: +1 to include start/end points, +1 in case we need to append an
+    // extra point for includeBoundary edge cases.
     this->IndexMap->Mapping[dim].resize(voi[2*dim+1]-voi[2*dim]+2);
 
     int outIdx = 0;
@@ -179,9 +196,13 @@ void vtkExtractStructuredGridHelper::Initialize(
       }
     this->IndexMap->Mapping[dim].resize(outIdx);
 
+    // Preserve the extent range when sample rate is 1, otherwise extents start
+    // at 0 if downsampling.
+    int offset = this->SampleRate[dim] == 1 ? voi[2*dim] : 0;
+
     // Update output whole extent
-    this->OutputWholeExtent[2*dim]   = 0;
-    this->OutputWholeExtent[2*dim+1] =
+    this->OutputWholeExtent[2*dim]   = offset;
+    this->OutputWholeExtent[2*dim+1] = offset +
         static_cast<int>( this->IndexMap->Mapping[dim].size()-1 );
     } // END for all dimensions
 }
@@ -310,8 +331,7 @@ void vtkExtractStructuredGridHelper::ComputeBeginAndEnd(
 void vtkExtractStructuredGridHelper::CopyPointsAndPointData(
           int inExt[6], int outExt[6],
           vtkPointData* pd, vtkPoints* inpnts,
-          vtkPointData* outPD, vtkPoints* outpnts,
-          int sampleRate[3])
+          vtkPointData* outPD, vtkPoints* outpnts)
 {
   assert("pre: NULL input point-data!" && (pd != NULL) );
   assert("pre: NULL output point-data!" && (outPD != NULL) );
@@ -329,8 +349,10 @@ void vtkExtractStructuredGridHelper::CopyPointsAndPointData(
   (void)inSize; // Prevent warnings, this is only used in debug builds.
 
   // Check if we can use some optimizations:
-  bool canCopyRange = sampleRate && I(sampleRate) == 1;
-  bool useMapping = !(canCopyRange && J(sampleRate) == 1 && K(sampleRate) == 1);
+  bool canCopyRange = I(this->SampleRate) == 1;
+  bool useMapping = !(I(this->SampleRate) == 1 &&
+                      J(this->SampleRate) == 1 &&
+                      K(this->SampleRate) == 1);
 
   if( inpnts != NULL )
     {
@@ -425,8 +447,8 @@ void vtkExtractStructuredGridHelper::CopyPointsAndPointData(
 
 //-----------------------------------------------------------------------------
 void vtkExtractStructuredGridHelper::CopyCellData(int inExt[6], int outExt[6],
-           vtkCellData* cd, vtkCellData* outCD,
-           int sampleRate[3])
+                                                  vtkCellData* cd,
+                                                  vtkCellData* outCD)
 {
   assert("pre: NULL input cell-data!" && (cd != NULL) );
   assert("pre: NULL output cell-data!" && (outCD != NULL) );
@@ -445,8 +467,10 @@ void vtkExtractStructuredGridHelper::CopyCellData(int inExt[6], int outExt[6],
   outCD->CopyAllocate(cd,outSize,outSize);
 
   // Check if we can use some optimizations:
-  bool canCopyRange = sampleRate && I(sampleRate) == 1;
-  bool useMapping = !(canCopyRange && J(sampleRate) == 1 && K(sampleRate) == 1);
+  bool canCopyRange = I(this->SampleRate) == 1;
+  bool useMapping = !(I(this->SampleRate) == 1 &&
+                      J(this->SampleRate) == 1 &&
+                      K(this->SampleRate) == 1);
 
   int inpCellExt[6];
   vtkStructuredData::GetCellExtentFromPointExtent(inExt,inpCellExt);
@@ -469,10 +493,18 @@ void vtkExtractStructuredGridHelper::CopyCellData(int inExt[6], int outExt[6],
   for( K(ijk)=KMIN(outCellExt); K(ijk) <= KMAX(outCellExt); ++K(ijk) )
     {
     K(src_ijk) = useMapping ? this->GetMappedExtentValue(2, K(ijk)) : K(ijk);
+    if (K(src_ijk) == KMAX(this->InputWholeExtent) && K(src_ijk) != 0)
+      {
+      --K(src_ijk);
+      }
 
     for( J(ijk)=JMIN(outCellExt); J(ijk) <= JMAX(outCellExt); ++J(ijk) )
       {
       J(src_ijk) = useMapping ? this->GetMappedExtentValue(1, J(ijk)) : J(ijk);
+      if (J(src_ijk) == JMAX(this->InputWholeExtent) && J(src_ijk) != 0)
+        {
+        --J(src_ijk);
+        }
 
       if (canCopyRange)
         {
@@ -502,6 +534,10 @@ void vtkExtractStructuredGridHelper::CopyCellData(int inExt[6], int outExt[6],
           {
           I(src_ijk) = useMapping ? this->GetMappedExtentValue(0, I(ijk))
                                   : I(ijk);
+          if (I(src_ijk) == IMAX(this->InputWholeExtent) && I(src_ijk) != 0)
+            {
+            --I(src_ijk);
+            }
 
           // NOTE: since we are operating on cell extents, ComputePointID below
           // really returns the cell ID
@@ -613,25 +649,37 @@ void vtkExtractStructuredGridHelper::GetPartitionedOutputExtent(
   // cleaned up by the parallel filter using vtkStructuredImplicitConnectivity.
   for (int dim = 0; dim < 3; ++dim)
     {
-    // Ex: 0 | 4
-    EMIN(partitionedOutputExtent, dim) =
-        (EMIN(partitionedVOI, dim) - EMIN(globalVOI, dim)) / sampleRate[dim];
-
-    if (includeBoundary && EMAX(partitionedVOI, dim) == EMAX(globalVOI, dim))
+    if (sampleRate[dim] == 1)
       {
-      int length = EMAX(partitionedVOI, dim) - EMIN(globalVOI, dim);
-      EMAX(partitionedOutputExtent, dim) = length / sampleRate[dim];
-      EMAX(partitionedOutputExtent, dim) +=
-          ((length % sampleRate[dim]) == 0) ? 0 : 1;
+      // If we're not downsampling, just return the partitioned VOI:
+      EMIN(partitionedOutputExtent, dim) = EMIN(partitionedVOI, dim);
+      EMAX(partitionedOutputExtent, dim) = EMAX(partitionedVOI, dim);
       }
-    else {
-      // Ex: 3 | 7
-      EMAX(partitionedOutputExtent, dim) =
-          (EMAX(partitionedVOI, dim) - EMIN(globalVOI, dim)) / sampleRate[dim];
-      }
+    else
+      {
+      // If we downsample, the global output VOI will be offset to start at 0,
+      // so we'll adjust the minimum
+      // Ex: 0 | 4
+      EMIN(partitionedOutputExtent, dim) =
+          (EMIN(partitionedVOI, dim) - EMIN(globalVOI, dim)) / sampleRate[dim];
 
-    // Account for any offsets in the OutputWholeExtent:
-    EMIN(partitionedOutputExtent, dim) += EMIN(outputWholeExtent, dim);
-    EMAX(partitionedOutputExtent, dim) += EMIN(outputWholeExtent, dim);
+      if (includeBoundary && EMAX(partitionedVOI, dim) == EMAX(globalVOI, dim))
+        {
+        int length = EMAX(partitionedVOI, dim) - EMIN(globalVOI, dim);
+        EMAX(partitionedOutputExtent, dim) = length / sampleRate[dim];
+        EMAX(partitionedOutputExtent, dim) +=
+            ((length % sampleRate[dim]) == 0) ? 0 : 1;
+        }
+      else {
+        // Ex: 3 | 7
+        EMAX(partitionedOutputExtent, dim) =
+            (EMAX(partitionedVOI, dim) - EMIN(globalVOI, dim)) /
+            sampleRate[dim];
+        }
+
+      // Account for any offsets in the OutputWholeExtent:
+      EMIN(partitionedOutputExtent, dim) += EMIN(outputWholeExtent, dim);
+      EMAX(partitionedOutputExtent, dim) += EMIN(outputWholeExtent, dim);
+      }
     }
 }

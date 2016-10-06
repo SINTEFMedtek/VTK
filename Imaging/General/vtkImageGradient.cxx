@@ -23,7 +23,7 @@
 #include "vtkStreamingDemandDrivenPipeline.h"
 
 #include <math.h>
-#include <vtksys/ios/sstream>
+#include <sstream>
 
 vtkStandardNewMacro(vtkImageGradient);
 
@@ -281,7 +281,7 @@ int vtkImageGradient::RequestData(
     }
   vtkImageData* output = vtkImageData::GetData(outputVector);
   vtkDataArray* outArray = output->GetPointData()->GetScalars();
-  vtksys_ios::ostringstream newname;
+  std::ostringstream newname;
   newname << (outArray->GetName()?outArray->GetName():"")
     << "Gradient";
   outArray->SetName(newname.str().c_str());

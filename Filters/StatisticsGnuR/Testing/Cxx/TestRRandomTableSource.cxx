@@ -27,9 +27,9 @@ PURPOSE.  See the above copyright notice for more information.
 #include <vtkTable.h>
 #include <vtkVariant.h>
 
-#include <vtksys/ios/iostream>
-#include <vtksys/ios/sstream>
-#include <vtksys/stl/stdexcept>
+#include <iostream>
+#include <sstream>
+#include <stdexcept>
 
 namespace
 {
@@ -38,7 +38,7 @@ namespace
   {                                                                     \
     if(!(expression))                                                   \
       {                                                                 \
-      vtksys_ios::ostringstream buffer;                                 \
+      std::ostringstream buffer;                                 \
       buffer << "Expression failed at line " << __LINE__ << ": " << #expression; \
       throw std::runtime_error(buffer.str());                        \
       }                                                                 \

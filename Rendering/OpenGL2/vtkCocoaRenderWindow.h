@@ -16,7 +16,7 @@ PURPOSE.  See the above copyright notice for more information.
 //
 // .SECTION Description
 // vtkCocoaRenderWindow is a concrete implementation of the abstract
-// class vtkOpenGLRenderWindow. It is only available on Mac OS X 10.5
+// class vtkOpenGLRenderWindow. It is only available on Mac OS X 10.6
 // and later.
 // To use this class, build VTK with VTK_USE_COCOA turned ON (this is
 // the default).
@@ -216,10 +216,6 @@ public:
   // Description:
   // Clean up device contexts, rendering contexts, etc.
   void Finalize();
-
-  // Description:
-  // Get the size of the depth buffer.
-  int GetDepthBufferSize();
 
   // Description:
   // Hide or Show the mouse cursor, it is nice to be able to hide the

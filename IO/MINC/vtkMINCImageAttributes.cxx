@@ -69,7 +69,7 @@ POSSIBILITY OF SUCH DAMAGES.
 #include <float.h>
 #include <string>
 #include <map>
-#include <vtksys/ios/sstream>
+#include <sstream>
 
 //-------------------------------------------------------------------------
 // A container for mapping attribute names to arrays
@@ -302,7 +302,7 @@ const char *vtkMINCImageAttributes::ConvertDataArrayToString(
     return charArray->GetPointer(0);
     }
 
-  vtksys_ios::ostringstream os;
+  std::ostringstream os;
 
   int n = array->GetNumberOfTuples();
   int i = 0;

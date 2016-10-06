@@ -25,6 +25,7 @@
 #include "vtkRenderingOpenGL2Module.h" // For export macro
 #include "vtkRenderWindow.h"
 #include <map> // for ivar
+#include "vtkType.h" // for ivar
 
 class vtkIdList;
 class vtkOpenGLHardwareSupport;
@@ -183,13 +184,6 @@ public:
   unsigned int GetFrontBuffer();
 
   // Description:
-  // @deprecated Replaced by
-  // vtkOpenGLCheckErrorMacro
-  VTK_LEGACY(virtual void CheckGraphicError());
-  VTK_LEGACY(virtual int HasGraphicError());
-  VTK_LEGACY(virtual const char *GetLastGraphicErrorString());
-
-  // Description:
   // Get the time when the OpenGL context was created.
   virtual unsigned long GetContextCreationTime();
 
@@ -231,11 +225,32 @@ public:
   virtual float GetMaximumHardwareLineWidth() {
     return this->MaximumHardwareLineWidth; };
 
+  // Description:
+  // Returns true if driver has an
+  // EGL/OpenGL bug that makes vtkChartsCoreCxx-TestChartDoubleColors and other tests to fail
+  // because point sprites don't work correctly (gl_PointCoord is undefined) unless
+  // glEnable(GL_POINT_SPRITE)
+  virtual bool IsPointSpriteBugPresent()
+  {
+    return 0;
+  }
+
+  // Description:
+  // Get a mapping of vtk data types to native texture formats for this window
+  // we put this on the RenderWindow so that every texture does not have to
+  // build these structures themselves
+  int GetDefaultTextureInternalFormat(
+    int vtktype, int numComponents,
+    bool needInteger, bool needFloat);
+
 protected:
   vtkOpenGLRenderWindow();
   ~vtkOpenGLRenderWindow();
 
   vtkOpenGLShaderCache *ShaderCache;
+
+  int TextureInternalFormats[VTK_UNICODE_STRING][3][5];
+  void InitializeTextureInternalFormats();
 
   long OldMonitorSetting;
 
@@ -283,7 +298,8 @@ protected:
 
   // Description:
   // Free up any graphics resources associated with this window
-  virtual void ReleaseGraphicsResources();
+  // a value of NULL means the context may already be destroyed
+  virtual void ReleaseGraphicsResources(vtkRenderWindow *);
 
   // Description:
   // Set the texture unit manager.

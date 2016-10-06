@@ -17,8 +17,8 @@
  * vtkWrap provides useful functions for generating wrapping code.
 */
 
-#ifndef VTK_WRAP_H
-#define VTK_WRAP_H
+#ifndef vtkWrap_h
+#define vtkWrap_h
 
 #include "vtkParse.h"
 #include "vtkParseHierarchy.h"
@@ -118,7 +118,7 @@ int vtkWrap_IsVTKObjectBaseType(
   HierarchyInfo *hinfo, const char *classname);
 
 /**
- * Check if the WRAP_SPECIAL flag is set for the class.
+ * Check whether the class is not derived from vtkObjectBase.
  * If "hinfo" is NULL, it defaults to just checking if
  * the class starts with "vtk" and returns -1 if so.
  */

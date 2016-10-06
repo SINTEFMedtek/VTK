@@ -3,8 +3,6 @@
   Program:   Visualization Toolkit
   Module:    vtkFixedPointVolumeRayCastCompositeShadeHelper.cxx
   Language:  C++
-  Date:      $Date$
-  Version:   $Revision$
 
   Copyright (c) 1993-2002 Ken Martin, Will Schroeder, Bill Lorensen
   All rights reserved.
@@ -580,7 +578,7 @@ void vtkFixedPointCompositeShadeHelperGenerateImageFourDependentTrilin( T *data,
       }
 
     VTKKWRCHelper_ComputeWeights(pos);
-    VTKKWRCHelper_InterpolateScalarComponent( val, c, components );
+    VTKKWRCHelper_InterpolateScalarComponent( val, c, 4 );
 
     tmp[3] = scalarOpacityTable[0][val[3]];
     if ( !tmp[3] )

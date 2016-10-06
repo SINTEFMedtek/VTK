@@ -28,6 +28,7 @@ vtk_add_test_cxx(${vtk-module}CxxTests tests
   TestConditionVariable.cxx
   # TestCxxFeatures.cxx # This is in its own exe too.
   TestDataArray.cxx
+  TestDataArrayAPI.cxx
   TestDataArrayComponentNames.cxx
   TestDataArrayIterators.cxx
   TestGarbageCollector.cxx
@@ -46,6 +47,7 @@ vtk_add_test_cxx(${vtk-module}CxxTests tests
   TestSortDataArray.cxx
   TestSparseArrayValidation.cxx
   TestSystemInformation.cxx
+  TestTemplateMacro.cxx
   TestTimePointUtility.cxx
   TestUnicodeStringAPI.cxx
   TestUnicodeStringArrayAPI.cxx

@@ -31,7 +31,7 @@
 #include "vtkUnstructuredGridReader.h"
 #include "vtkUnstructuredGridWriter.h"
 
-#include <vtksys/ios/sstream>
+#include <sstream>
 
 // Reference values
 const vtkIdType cardSelection[] =
@@ -101,7 +101,7 @@ static int CheckExtractedUGrid( vtkExtractSelection* extract,
   // If requested, write mesh
   if ( writeGrid )
     {
-    vtksys_ios::ostringstream fileNameSS;
+    std::ostringstream fileNameSS;
     fileNameSS << "./LinearExtraction3D-"
                << testIdx
                << ".vtk";

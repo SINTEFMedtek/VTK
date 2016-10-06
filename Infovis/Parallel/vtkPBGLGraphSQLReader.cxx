@@ -35,7 +35,7 @@
 #include "vtkTimerLog.h"
 #include "vtkVariantArray.h"
 
-#include <vtksys/ios/sstream>
+#include <sstream>
 
 #define VTK_CREATE(type, name) \
   vtkSmartPointer<type> name = vtkSmartPointer<type>::New()
@@ -165,7 +165,7 @@ int vtkPBGLGraphSQLReaderRequestData(
   MutableGraph* builder = MutableGraph::New();
 
   // Set up vertex and edge queries
-  vtksys_ios::ostringstream oss;
+  std::ostringstream oss;
   oss << "select count(*) from " << self->GetVertexTable();
   vtkSmartPointer<vtkSQLQuery> vertex_count;
   vertex_count.TakeReference(self->GetDatabase()->GetQueryInstance());

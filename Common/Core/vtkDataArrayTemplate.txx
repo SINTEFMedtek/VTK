@@ -363,7 +363,7 @@ template <class T>
 void vtkDataArrayTemplate<T>::SetTuple(vtkIdType i, vtkIdType j,
   vtkAbstractArray* source)
 {
-  if (source->GetDataType() != this->GetDataType())
+  if (!vtkDataTypesCompare(source->GetDataType(), this->GetDataType()))
     {
     vtkWarningMacro("Input and output array data types do not match.");
     return;
@@ -393,7 +393,7 @@ template<class T>
 void vtkDataArrayTemplate<T>::InsertTuple(vtkIdType i, vtkIdType j,
   vtkAbstractArray* source)
 {
-  if (source->GetDataType() != this->GetDataType())
+  if (!vtkDataTypesCompare(source->GetDataType(), this->GetDataType()))
     {
     vtkWarningMacro("Input and output array data types do not match.");
     return;
@@ -446,7 +446,7 @@ template<class T>
 void vtkDataArrayTemplate<T>::InsertTuples(vtkIdList *dstIds, vtkIdList *srcIds,
                                         vtkAbstractArray *source)
 {
-  if (source->GetDataType() != this->GetDataType())
+  if (!vtkDataTypesCompare(source->GetDataType(), this->GetDataType()))
     {
     vtkWarningMacro("Input and output array data types do not match.");
     return;
@@ -528,7 +528,7 @@ void vtkDataArrayTemplate<T>::InsertTuples(vtkIdType dstStart, vtkIdType n,
     return;
     }
 
-  if (source->GetDataType() != this->GetDataType())
+  if (!vtkDataTypesCompare(source->GetDataType(), this->GetDataType()))
     {
     vtkWarningMacro("Input and output array data types do not match.");
     return;
@@ -551,7 +551,7 @@ template<class T>
 vtkIdType vtkDataArrayTemplate<T>::InsertNextTuple(vtkIdType j,
   vtkAbstractArray* source)
 {
-  if (source->GetDataType() != this->GetDataType())
+  if (!vtkDataTypesCompare(source->GetDataType(), this->GetDataType()))
     {
     vtkWarningMacro("Input and output array data types do not match.");
     return -1;
@@ -972,6 +972,22 @@ void vtkDataArrayTemplate<T>::SetVariantValue(vtkIdType id, vtkVariant value)
   if (valid)
     {
     this->SetValue(id, toInsert);
+    }
+  else
+    {
+    vtkErrorMacro("unable to set value of type " << value.GetType());
+    }
+}
+
+//----------------------------------------------------------------------------
+template <class T>
+void vtkDataArrayTemplate<T>::InsertVariantValue(vtkIdType id, vtkVariant value)
+{
+  bool valid;
+  T toInsert = vtkVariantCast<T>(value, &valid);
+  if (valid)
+    {
+    this->InsertValue(id, toInsert);
     }
   else
     {

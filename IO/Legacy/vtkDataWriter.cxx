@@ -44,7 +44,7 @@
 #include "vtkUnsignedLongArray.h"
 #include "vtkUnsignedShortArray.h"
 #include "vtkVariantArray.h"
-#include <vtksys/ios/sstream>
+#include <sstream>
 
 
 vtkStandardNewMacro(vtkDataWriter);
@@ -140,7 +140,7 @@ ostream *vtkDataWriter::OpenVTKFile()
     ///   static_cast<int> (500+ 1024 * input->GetActualMemorySize());
     /// this->OutputString = new char[this->OutputStringAllocatedLength];
 
-    fptr = new vtksys_ios::ostringstream;
+    fptr = new std::ostringstream;
     }
   else
     {
@@ -1122,30 +1122,6 @@ int vtkDataWriter::WriteArray(ostream *fp, int dataType, vtkAbstractArray *data,
       }
     break;
 
-#if defined(VTK_TYPE_USE___INT64)
-    case VTK___INT64:
-      {
-      sprintf (str, format, "vtktypeint64"); *fp << str;
-      __int64 *s= static_cast<__int64*>(data->GetVoidPointer(0));
-      strcpy(outputFormat, vtkTypeTraits<__int64>::ParseFormat());
-      strcat(outputFormat, " ");
-      vtkWriteDataArray(fp, s, this->FileType, outputFormat, num, numComp);
-      }
-    break;
-
-    case VTK_UNSIGNED___INT64:
-      {
-      sprintf (str, format, "vtktypeuint64"); *fp << str;
-      unsigned __int64 *s=
-        static_cast<unsigned __int64*>(data->GetVoidPointer(0));
-      strcpy(outputFormat, vtkTypeTraits<unsigned __int64>::ParseFormat());
-      strcat(outputFormat, " ");
-      vtkWriteDataArray(fp, s, this->FileType, outputFormat, num, numComp);
-      }
-    break;
-#endif
-
-#if defined(VTK_TYPE_USE_LONG_LONG)
     case VTK_LONG_LONG:
       {
       sprintf (str, format, "vtktypeint64"); *fp << str;
@@ -1166,7 +1142,6 @@ int vtkDataWriter::WriteArray(ostream *fp, int dataType, vtkAbstractArray *data,
       vtkWriteDataArray(fp, s, this->FileType, outputFormat, num, numComp);
       }
     break;
-#endif
 
     case VTK_FLOAT:
       {
@@ -1931,8 +1906,8 @@ void vtkDataWriter::CloseVTKFile(ostream *fp)
     {
     if (this->WriteToOutputString)
       {
-      vtksys_ios::ostringstream *ostr =
-        static_cast<vtksys_ios::ostringstream*>(fp);
+      std::ostringstream *ostr =
+        static_cast<std::ostringstream*>(fp);
 
       delete [] this->OutputString;
       this->OutputStringLength = static_cast<int>(ostr->str().size());

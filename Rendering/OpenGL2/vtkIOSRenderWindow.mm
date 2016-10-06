@@ -22,7 +22,7 @@ PURPOSE.  See the above copyright notice for more information.
 #import "vtkObjectFactory.h"
 #import "vtkRendererCollection.h"
 
-#import <vtksys/ios/sstream>
+#import <sstream>
 
 #include "vtk_glew.h"
 
@@ -92,19 +92,8 @@ void vtkIOSRenderWindow::DestroyWindow()
   if (this->OwnContext && this->GetContextId())
     {
     this->MakeCurrent();
-
-    // tell each of the renderers that this render window/graphics context
-    // is being removed (the RendererCollection is removed by vtkRenderWindow's
-    // destructor)
-    vtkCollectionSimpleIterator rsit;
-    vtkRenderer *ren;
-    for ( this->Renderers->InitTraversal(rsit);
-          (ren = this->Renderers->GetNextRenderer(rsit));)
-      {
-      ren->SetRenderWindow(NULL);
-      ren->SetRenderWindow(this);
-      }
-  }
+    this->ReleaseGraphicsResources(this);
+    }
   this->SetContextId(NULL);
   this->SetPixelFormat(NULL);
 
@@ -198,7 +187,7 @@ const char* vtkIOSRenderWindow::ReportCapabilities()
   const char* glVersion = (const char*) glGetString(GL_VERSION);
   const char* glExtensions = (const char*) glGetString(GL_EXTENSIONS);
 
-  vtksys_ios::ostringstream strm;
+  std::ostringstream strm;
   strm << "OpenGL vendor string:  " << glVendor
        << "\nOpenGL renderer string:  " << glRenderer
        << "\nOpenGL version string:  " << glVersion
@@ -409,6 +398,8 @@ void vtkIOSRenderWindow::CreateGLContext()
 // Initialize the rendering window.
 void vtkIOSRenderWindow::Initialize ()
 {
+  this->OpenGLInit();
+  this->Mapped = 1;
 }
 
 //-----------------------------------------------------------------------------

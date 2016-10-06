@@ -40,7 +40,11 @@
 #include "vtkTIFFWriter.h"
 #include "vtkTexture.h"
 
-#include <vtksys/ios/sstream>
+#include <sstream>
+
+#if _MSC_VER && !defined(snprintf)
+#define snprintf _snprintf
+#endif
 
 vtkStandardNewMacro(vtkRIBExporter);
 
@@ -832,7 +836,7 @@ void vtkRIBExporter::WritePolygons (vtkPolyData *polyData,
       if ( pointData )
         {
         int cc, aa;
-        vtksys_ios::ostringstream str_with_warning_C4701;
+        std::ostringstream str_with_warning_C4701;
         for ( cc = 0; cc < pointData->GetNumberOfArrays(); cc ++ )
           {
           vtkDataArray *array = pointData->GetArray(cc);
@@ -856,7 +860,7 @@ void vtkRIBExporter::WritePolygons (vtkPolyData *polyData,
       if ( cellData )
         {
         int cc, aa;
-        vtksys_ios::ostringstream str_with_warning_C4701;
+        std::ostringstream str_with_warning_C4701;
         for ( cc = 0; cc < cellData->GetNumberOfArrays(); cc ++ )
           {
           vtkDataArray *array = cellData->GetArray(cc);
@@ -880,7 +884,7 @@ void vtkRIBExporter::WritePolygons (vtkPolyData *polyData,
       if ( fieldData )
         {
         int cc, aa;
-        vtksys_ios::ostringstream str_with_warning_C4701;
+        std::ostringstream str_with_warning_C4701;
 
         for ( cc = 0; cc < fieldData->GetNumberOfArrays(); cc ++ )
           {
@@ -1082,7 +1086,7 @@ void vtkRIBExporter::WriteStrips (vtkPolyData *polyData,
         if ( pointData )
           {
           int cc, aa;
-          vtksys_ios::ostringstream str_with_warning_C4701;
+          std::ostringstream str_with_warning_C4701;
           for ( cc = 0; cc < pointData->GetNumberOfArrays(); cc ++ )
             {
             vtkDataArray *array = pointData->GetArray(cc);
@@ -1106,7 +1110,7 @@ void vtkRIBExporter::WriteStrips (vtkPolyData *polyData,
         if ( cellData )
           {
           int cc, aa;
-          vtksys_ios::ostringstream str_with_warning_C4701;
+          std::ostringstream str_with_warning_C4701;
           for ( cc = 0; cc < cellData->GetNumberOfArrays(); cc ++ )
             {
             vtkDataArray *array = cellData->GetArray(cc);
@@ -1130,7 +1134,7 @@ void vtkRIBExporter::WriteStrips (vtkPolyData *polyData,
         if ( fieldData )
           {
           int cc, aa;
-          vtksys_ios::ostringstream str_with_warning_C4701;
+          std::ostringstream str_with_warning_C4701;
           for ( cc = 0; cc < fieldData->GetNumberOfArrays(); cc ++ )
             {
             vtkDataArray *array = fieldData->GetArray(cc);
@@ -1368,13 +1372,13 @@ static char textureName[4096];
 
 char *vtkRIBExporter::GetTIFFName (vtkTexture *aTexture)
 {
-    sprintf (tiffName, "%s_%p_%d.tif", this->TexturePrefix, (void *) aTexture, (int) aTexture->GetMTime ());
+    snprintf (tiffName, 4096, "%s_%p_%d.tif", this->TexturePrefix, (void *) aTexture, (int) aTexture->GetMTime ());
     return tiffName;
 }
 
 char *vtkRIBExporter::GetTextureName (vtkTexture *aTexture)
 {
-    sprintf (textureName, "%s_%p_%d.txt", this->TexturePrefix, (void *) aTexture, (int) aTexture->GetMTime ());
+    snprintf (textureName, 4096, "%s_%p_%d.txt", this->TexturePrefix, (void *) aTexture, (int) aTexture->GetMTime ());
     return textureName;
 }
 

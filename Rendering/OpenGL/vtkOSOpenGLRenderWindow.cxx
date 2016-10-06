@@ -22,7 +22,7 @@ PURPOSE.  See the above copyright notice for more information.
 #include <GL/gl.h>
 #include "vtkgl.h"
 
-#ifdef VTK_OPENGL_HAS_OSMESA
+#ifdef VTK_USE_OSMESA
 # include <GL/osmesa.h>
 #endif
 
@@ -33,7 +33,7 @@ PURPOSE.  See the above copyright notice for more information.
 #include "vtkOpenGLExtensionManager.h"
 
 #include "vtksys/SystemTools.hxx"
-#include "vtksys/ios/sstream"
+#include <sstream>
 
 class vtkOSOpenGLRenderWindow;
 class vtkRenderWindow;
@@ -455,7 +455,7 @@ const char* vtkOSOpenGLRenderWindow::ReportCapabilities()
   const char *glVersion = (const char *) glGetString(GL_VERSION);
   const char *glExtensions = (const char *) glGetString(GL_EXTENSIONS);
 
-  vtksys_ios::ostringstream strm;
+  std::ostringstream strm;
   strm << "OpenGL vendor string:  " << glVendor << endl;
   strm << "OpenGL renderer string:  " << glRenderer << endl;
   strm << "OpenGL version string:  " << glVersion << endl;

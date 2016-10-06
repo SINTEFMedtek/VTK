@@ -321,6 +321,7 @@ public:
   // Get the data type for the texture as GLenum type.
   int GetDataType(int vtk_scalar_type);
   void SetDataType(unsigned int glType);
+  int GetDefaultDataType(int vtk_scalar_type);
 
   // Description:
   // Get/Set internal format (OpenGL internal format) that should
@@ -329,6 +330,8 @@ public:
   unsigned int GetInternalFormat(int vtktype, int numComps,
                                  bool shaderSupportsTextureInt);
   void SetInternalFormat(unsigned int glInternalFormat);
+  unsigned int GetDefaultInternalFormat(int vtktype, int numComps,
+                                 bool shaderSupportsTextureInt);
 
   // Description:
   // Get/Set format (OpenGL internal format) that should
@@ -337,6 +340,8 @@ public:
   unsigned int GetFormat(int vtktype, int numComps,
                          bool shaderSupportsTextureInt);
   void SetFormat(unsigned int glFormat);
+  unsigned int GetDefaultFormat(int vtktype, int numComps,
+                         bool shaderSupportsTextureInt);
 
   // Description:
   // Reset format, internal format, and type of the texture.
@@ -347,7 +352,6 @@ public:
   // previous set values are used.
   void ResetFormatAndType();
 
-  unsigned int GetDepthTextureModeFormat(int vtktype);
   unsigned int GetMinificationFilterMode(int vtktype);
   unsigned int GetMagnificationFilterMode(int vtktype);
   unsigned int GetWrapSMode(int vtktype);
@@ -629,7 +633,6 @@ protected:
   int WrapR;
   int MinificationFilter;
   int MagnificationFilter;
-  bool LinearMagnification;
 
   float MinLOD;
   float MaxLOD;

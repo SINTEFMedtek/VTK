@@ -33,10 +33,10 @@
 #include "vtkInformationQuadratureSchemeDefinitionVectorKey.h"
 #include "vtkObjectFactory.h"
 
-#include <vtksys/ios/sstream>
+#include <sstream>
 #include <string>
 #include "vtkSmartPointer.h"
-using vtksys_ios::ostringstream;
+using std::ostringstream;
 using std::string;
 
 // Here are some default shape functions weights which

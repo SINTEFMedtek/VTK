@@ -42,6 +42,7 @@
 class vtkIdTypeArray;
 class vtkCharArray;
 class vtkMaskPoints;
+class vtkImageData;
 
 class VTKFILTERSCORE_EXPORT vtkProbeFilter : public vtkDataSetAlgorithm
 {
@@ -51,14 +52,18 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:
-  // Specify the point locations used to probe input. Any geometry
-  // can be used.
+  // Specify the data set that will be probed at the input points.
+  // The Input gives the geometry (the points and cells) for the output,
+  // while the Source is probed (interpolated) to generate the scalars,
+  // vectors, etc. for the output points based on the point locations.
   void SetSourceData(vtkDataObject *source);
   vtkDataObject *GetSource();
 
   // Description:
-  // Specify the point locations used to probe input. Any geometry
-  // can be used. New style. Equivalent to SetInputConnection(1, algOutput).
+  // Specify the data set that will be probed at the input points.
+  // The Input gives the geometry (the points and cells) for the output,
+  // while the Source is probed (interpolated) to generate the scalars,
+  // vectors, etc. for the output points based on the point locations.
   void SetSourceConnection(vtkAlgorithmOutput* algOutput);
 
   // Description:
@@ -150,7 +155,7 @@ protected:
     vtkDataSet* input, vtkDataObject* source, vtkDataSet* output);
 
   // Description:
-  // Equivalent to calling InitializeForProbing(); ProbeEmptyPoints().
+  // Equivalent to calling BuildFieldList(); InitializeForProbing(); DoProbing().
   void Probe(vtkDataSet *input, vtkDataSet *source, vtkDataSet *output);
 
   // Description:
@@ -163,11 +168,10 @@ protected:
   virtual void InitializeForProbing(vtkDataSet *input, vtkDataSet *output);
 
   // Description:
-  // Probe only those points that are marked as not-probed by the MaskPoints
-  // array.
+  // Probe appropriate points
   // srcIdx is the index in the PointList for the given source.
-  void ProbeEmptyPoints(vtkDataSet *input, int srcIdx, vtkDataSet *source,
-    vtkDataSet *output);
+  void DoProbing(vtkDataSet *input, int srcIdx, vtkDataSet *source,
+                 vtkDataSet *output);
 
   char* ValidPointMaskArrayName;
   vtkIdTypeArray *ValidPoints;
@@ -185,6 +189,14 @@ protected:
 private:
   vtkProbeFilter(const vtkProbeFilter&);  // Not implemented.
   void operator=(const vtkProbeFilter&);  // Not implemented.
+
+  // Probe only those points that are marked as not-probed by the MaskPoints
+  // array.
+  void ProbeEmptyPoints(vtkDataSet *input, int srcIdx, vtkDataSet *source,
+    vtkDataSet *output);
+  // A faster implementation for vtkImageData input.
+  void ProbePointsImageData(vtkImageData *input, int srcIdx, vtkDataSet *source,
+    vtkImageData *output);
 
   class vtkVectorOfArrays;
   vtkVectorOfArrays* CellArrays;

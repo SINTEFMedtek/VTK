@@ -36,7 +36,7 @@
 #include "vtkPentagonalPrism.h"
 #include "vtkHexagonalPrism.h"
 
-#include <vtksys/ios/sstream>
+#include <sstream>
 
 int TestOCB(ostream& strm)
 {
@@ -495,6 +495,6 @@ int TestOCB(ostream& strm)
 
 int otherCellBoundaries(int, char *[])
 {
-  vtksys_ios::ostringstream vtkmsg_with_warning_C4701;
+  std::ostringstream vtkmsg_with_warning_C4701;
   return TestOCB(vtkmsg_with_warning_C4701);
 }

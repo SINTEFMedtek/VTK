@@ -138,6 +138,7 @@ vtkCamera::vtkCamera()
   this->ComputeCameraLightTransform();
 
   this->FreezeFocalPoint = false;
+  this->UseScissor = false;
 }
 
 //----------------------------------------------------------------------------
@@ -176,6 +177,17 @@ vtkCamera::~vtkCamera()
 }
 
 //----------------------------------------------------------------------------
+void vtkCamera::SetScissorRect(vtkRecti scissorRect)
+{
+  this->ScissorRect = scissorRect;
+}
+
+//----------------------------------------------------------------------------
+void vtkCamera::GetScissorRect(vtkRecti& scissorRect)
+{
+  scissorRect = this->ScissorRect;
+}
+
 //----------------------------------------------------------------------------
 // The first set of methods deal exclusively with the ViewTransform, which
 // is the only transform which is set up entirely in the camera.  The
@@ -852,14 +864,6 @@ void vtkCamera::SetClippingRange(double nearz, double farz)
     double temp = nearz;
     nearz = farz;
     farz = temp;
-    }
-
-  // front should be greater than 1e-20
-  if (nearz < 1e-20)
-    {
-    farz += 1e-20 - nearz;
-    nearz = 1e-20;
-    vtkDebugMacro(<< " Front clipping range is set to minimum.");
     }
 
   thickness = farz - nearz;
