@@ -28,8 +28,9 @@ PURPOSE.  See the above copyright notice for more information.
 #import "vtkRendererCollection.h"
 #import "vtkCocoaGLView.h"
 
-
 #import <sstream>
+
+static NSOpenGLContext* cx_shared_context = nil;
 
 vtkStandardNewMacro(vtkCocoaRenderWindow);
 
@@ -227,6 +228,8 @@ vtkCocoaRenderWindow::vtkCocoaRenderWindow()
 //----------------------------------------------------------------------------
 vtkCocoaRenderWindow::~vtkCocoaRenderWindow()
 {
+    cx_shared_context = nil;
+
   if (this->CursorHidden)
     {
     this->ShowCursor();
@@ -968,7 +971,16 @@ void vtkCocoaRenderWindow::CreateGLContext()
 
   NSOpenGLContext *context = [[NSOpenGLContext alloc]
                               initWithFormat:pixelFormat
-                                shareContext:nil];
+                                shareContext:cx_shared_context];
+
+  bool first = false;
+  if (cx_shared_context==nil)
+  {
+      first = true;
+    cx_shared_context = context;
+    printf("cx_shared_context:");
+    this->InvokeEvent(vtkCommand::CXSharedContextCreatedEvent,NULL);
+  }
 
   // This syncs the OpenGL context to the VBL to prevent tearing
   GLint one = 1;
@@ -976,6 +988,8 @@ void vtkCocoaRenderWindow::CreateGLContext()
 
   this->SetPixelFormat((void*)pixelFormat);
   this->SetContextId((void*)context);
+  if(first)
+    this->PrintSelf(std::cout, vtkIndent(20));
 
   [pixelFormat self]; // prevent premature collection under GC.
   [context self]; // prevent premature collection under GC.

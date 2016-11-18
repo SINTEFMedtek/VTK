@@ -968,6 +968,8 @@ void vtkCocoaRenderWindow::CreateGLContext()
   if (cx_shared_context==nil)
   {
     cx_shared_context = context;
+    printf("cx_shared_context:");
+    this->PrintSelf(std::cout, vtkIndent(7));
   }
 
   // This syncs the OpenGL context to the VBL to prevent tearing

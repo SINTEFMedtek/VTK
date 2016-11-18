@@ -536,6 +536,7 @@ void vtkTextureObject::Bind()
   assert(this->Context);
   assert(this->Handle);
 
+  //std::cout << "Handle: " << this->Handle << " target " << this->Target << std::endl;
   glBindTexture(this->Target, this->Handle);
   vtkOpenGLCheckErrorMacro("failed at glBindTexture");
 
@@ -1471,9 +1472,9 @@ bool vtkTextureObject::Create3DFromRaw(unsigned int width, unsigned int height,
   this->Depth = depth;
   this->NumberOfDimensions = 3;
 
-  this->Context->ActivateTexture(this);
-  this->CreateTexture();
-  this->Bind();
+  this->Context->ActivateTexture(this); //glActivateTexture
+  this->CreateTexture(); //glGenTexture + glBind
+  this->Bind(); //glBind + send params
 
   // Source texture data from the PBO.
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);

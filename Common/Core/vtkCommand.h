@@ -312,7 +312,8 @@
     _vtk_add_event(WindowIsDirectEvent)\
     _vtk_add_event(UncheckedPropertyModifiedEvent)\
     _vtk_add_event(UpdateShaderEvent)\
-    _vtk_add_event(MessageEvent)
+    _vtk_add_event(MessageEvent)\
+    _vtk_add_event(CXSharedContextCreatedEvent)
 
 #define vtkEventDeclarationMacro(_enum_name)\
   enum _enum_name{\
