@@ -50,6 +50,9 @@ typedef ptrdiff_t GLsizeiptr;
 #include <X11/Xutil.h>
 #include <X11/cursorfont.h>
 
+// CustusX modification: define a shared gl context for all render windows
+static GLXContext cx_shared_context = 0;
+
 #define GLX_CONTEXT_MAJOR_VERSION_ARB       0x2091
 #define GLX_CONTEXT_MINOR_VERSION_ARB       0x2092
 typedef GLXContext (*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXContext, Bool, const int*);
@@ -353,6 +356,10 @@ vtkXOpenGLRenderWindow::~vtkXOpenGLRenderWindow()
   // close-down all system-specific drawing resources
   this->Finalize();
 
+  // CustusX modification: clear the shared gl context
+  //if (this->Internal->ContextId == cx_shared_context) // this line causes a segfault for multiple unit tests in same process
+  cx_shared_context = 0;
+
   vtkRenderer *ren;
   vtkCollectionSimpleIterator rit;
   this->Renderers->InitTraversal(rit);
@@ -596,8 +603,7 @@ void vtkXOpenGLRenderWindow::CreateAWindow()
   // old failsafe
   if (this->Internal->ContextId == NULL)
     {
-    this->Internal->ContextId =
-      glXCreateContext(this->DisplayId, v, 0, GL_TRUE);
+    createContext(v);
     }
 
   if(!this->Internal->ContextId)
@@ -1640,6 +1646,19 @@ const char* vtkXOpenGLRenderWindow::ReportCapabilities()
   return this->Capabilities;
 }
 
+void vtkXOpenGLRenderWindow::createContext(XVisualInfo *v)
+{
+    // CustusX modification: glXCreateContext with share list.
+    // Select the first created context as the shared one.
+    this->Internal->ContextId = glXCreateContext(this->DisplayId, v, cx_shared_context, GL_TRUE);
+    if(!cx_shared_context)
+    {
+      cx_shared_context = this->Internal->ContextId;
+    }
+    this->InvokeEvent(vtkCommand::CXSharedContextCreatedEvent, NULL);
+    this->PrintSelf(std::cout, vtkIndent(20));
+}
+
 int vtkXOpenGLRenderWindow::SupportsOpenGL()
 {
 #ifdef GLEW_OK
@@ -1707,8 +1726,7 @@ int vtkXOpenGLRenderWindow::SupportsOpenGL()
     // old failsafe
     if (this->Internal->ContextId == NULL)
       {
-      this->Internal->ContextId =
-        glXCreateContext(this->DisplayId, v, 0, GL_TRUE);
+      createContext(v);
       }
 
     if(!this->Internal->ContextId)

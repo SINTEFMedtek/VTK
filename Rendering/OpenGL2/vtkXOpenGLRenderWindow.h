@@ -275,6 +275,7 @@ protected:
 private:
   vtkXOpenGLRenderWindow(const vtkXOpenGLRenderWindow&);  // Not implemented.
   void operator=(const vtkXOpenGLRenderWindow&);  // Not implemented.
+  void createContext(XVisualInfo *v);  // CustusX modification
 };
 
 
