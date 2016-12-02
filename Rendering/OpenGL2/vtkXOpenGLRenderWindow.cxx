@@ -576,20 +576,9 @@ void vtkXOpenGLRenderWindow::CreateAWindow()
     glXCreateContextAttribsARB = (glXCreateContextAttribsARBProc)
       glXGetProcAddressARB( (const GLubyte *) "glXCreateContextAttribsARB" );
 
-    int context_attribs[] =
-      {
-      GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
-      GLX_CONTEXT_MINOR_VERSION_ARB, 2,
-      //GLX_CONTEXT_FLAGS_ARB        , GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
-      0
-      };
-
     if (glXCreateContextAttribsARB)
       {
-      this->Internal->ContextId =
-        glXCreateContextAttribsARB( this->DisplayId,
-          this->Internal->FBConfig, 0,
-          GL_TRUE, context_attribs );
+        this->createContextAttribsARB(&this->Internal->FBConfig);
 
       // Sync to ensure any errors generated are processed.
       XSync( this->DisplayId, False );
@@ -805,20 +794,9 @@ void vtkXOpenGLRenderWindow::CreateOffScreenWindow(int width, int height)
           glXCreateContextAttribsARB = (glXCreateContextAttribsARBProc)
             glXGetProcAddressARB( (const GLubyte *) "glXCreateContextAttribsARB" );
 
-          int context_attribs[] =
-            {
-            GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
-            GLX_CONTEXT_MINOR_VERSION_ARB, 2,
-            //GLX_CONTEXT_FLAGS_ARB        , GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
-            0
-            };
-
         if (glXCreateContextAttribsARB)
           {
-          this->Internal->PbufferContextId =
-            glXCreateContextAttribsARB( this->DisplayId,
-              fb, 0,
-              GL_TRUE, context_attribs );
+            this->createContextAttribsARB(&fb);
 
           // Sync to ensure any errors generated are processed.
           XSync( this->DisplayId, False );
@@ -1656,7 +1634,39 @@ void vtkXOpenGLRenderWindow::createContext(XVisualInfo *v)
       cx_shared_context = this->Internal->ContextId;
     }
     this->InvokeEvent(vtkCommand::CXSharedContextCreatedEvent, NULL);
-    this->PrintSelf(std::cout, vtkIndent(20));
+}
+
+void vtkXOpenGLRenderWindow::createContextAttribsARB(void *inFBConfig)
+{
+    // CustusX modification: glXCreateContext with share list.
+    // Select the first created context as the shared one.
+
+    GLXFBConfig* realFBConfig = static_cast<GLXFBConfig*>(inFBConfig);
+
+    // NOTE: It is not necessary to create or make current to a context before
+    // calling glXGetProcAddressARB
+    glXCreateContextAttribsARBProc glXCreateContextAttribsARB = 0;
+    glXCreateContextAttribsARB = (glXCreateContextAttribsARBProc)
+      glXGetProcAddressARB( (const GLubyte *) "glXCreateContextAttribsARB" );
+
+    int context_attribs[] =
+      {
+      GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
+      GLX_CONTEXT_MINOR_VERSION_ARB, 2,
+      //GLX_CONTEXT_FLAGS_ARB        , GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
+      0
+      };
+
+    this->Internal->ContextId =
+      glXCreateContextAttribsARB( this->DisplayId,
+        *realFBConfig, cx_shared_context,
+        GL_TRUE, context_attribs );
+
+    if(!cx_shared_context)
+    {
+      cx_shared_context = this->Internal->ContextId;
+    }
+    this->InvokeEvent(vtkCommand::CXSharedContextCreatedEvent, NULL);
 }
 
 int vtkXOpenGLRenderWindow::SupportsOpenGL()
@@ -1699,21 +1709,9 @@ int vtkXOpenGLRenderWindow::SupportsOpenGL()
       glXCreateContextAttribsARB = (glXCreateContextAttribsARBProc)
         glXGetProcAddressARB( (const GLubyte *) "glXCreateContextAttribsARB" );
 
-      int context_attribs[] =
-        {
-        GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
-        GLX_CONTEXT_MINOR_VERSION_ARB, 2,
-        //GLX_CONTEXT_FLAGS_ARB        , GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
-        0
-        };
-
       if (glXCreateContextAttribsARB)
         {
-        this->Internal->ContextId =
-          glXCreateContextAttribsARB( this->DisplayId,
-            this->Internal->FBConfig, 0,
-            GL_TRUE, context_attribs );
-
+          this->createContextAttribsARB(&this->Internal->FBConfig);
         // Sync to ensure any errors generated are processed.
         XSync( this->DisplayId, False );
         if ( this->Internal->ContextId )
