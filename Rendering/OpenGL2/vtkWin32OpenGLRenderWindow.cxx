@@ -28,6 +28,9 @@ PURPOSE.  See the above copyright notice for more information.
 
 #include "vtkOpenGLError.h"
 
+// CustusX modification: define a shared gl context for all render windows
+static HGLRC cx_shared_context = 0;
+
 // Mouse wheel support
 // In an ideal world we would just have to include <zmouse.h>, but it is not
 // always available with all compilers/headers
@@ -67,6 +70,8 @@ vtkWin32OpenGLRenderWindow::vtkWin32OpenGLRenderWindow()
 vtkWin32OpenGLRenderWindow::~vtkWin32OpenGLRenderWindow()
 {
   this->Finalize();
+
+	cx_shared_context = 0;
 
   vtkRenderer *ren;
   vtkCollectionSimpleIterator rit;
@@ -558,6 +563,15 @@ std::ostringstream strm;
 
 typedef bool (APIENTRY *wglChoosePixelFormatARBType)(HDC, const int*, const float*, unsigned int, int*, unsigned int*);
 
+void vtkWin32OpenGLRenderWindow::setCXSharedContext(HGLRC contextId)
+{
+	if(cx_shared_context)
+		return;
+
+	cx_shared_context = contextId;
+	this->InvokeEvent(vtkCommand::CXSharedContextCreatedEvent, NULL);
+}
+
 void vtkWin32OpenGLRenderWindow::SetupPixelFormatPaletteAndContext(
   HDC hDC, DWORD dwFlags,
   int debug, int bpp,
@@ -695,15 +709,27 @@ void vtkWin32OpenGLRenderWindow::SetupPixelFormatPaletteAndContext(
         0 // End of attributes list
         };
 
-      this->ContextId = wglCreateContextAttribsARB(hDC, 0, iContextAttribs);
+	  this->ContextId = wglCreateContextAttribsARB(hDC, cx_shared_context, iContextAttribs);
       }
     if (this->ContextId)
       {
+	  this->setCXSharedContext(this->ContextId);
       this->SetContextSupportsOpenGL32(true);
       }
     else
       {
-      this->ContextId = wglCreateContext(hDC);
+	  this->ContextId = wglCreateContext(hDC);
+	  if(this->ContextId)
+	  {
+		if(cx_shared_context != 0)
+		{
+			BOOL error = wglShareLists(this->ContextId, cx_shared_context);
+			if(error)
+				std::cout << "Could not set vtkWin32OpenGLRenderWindow to share display list (cx_shared_context)" << std::endl;
+		}
+		else
+			this->setCXSharedContext(this->ContextId);
+	  }
       }
     if (this->ContextId == NULL)
       {

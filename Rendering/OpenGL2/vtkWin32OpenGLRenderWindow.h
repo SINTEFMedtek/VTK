@@ -277,6 +277,8 @@ protected:
   void CleanUpRenderers();
   void VTKRegisterClass();
 
+  void setCXSharedContext(HGLRC contextId); //CustusX modification
+
 private:
   vtkWin32OpenGLRenderWindow(const vtkWin32OpenGLRenderWindow&);  // Not implemented.
   void operator=(const vtkWin32OpenGLRenderWindow&);  // Not implemented.
