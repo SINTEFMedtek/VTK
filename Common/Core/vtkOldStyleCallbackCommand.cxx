@@ -17,8 +17,8 @@
 #include "vtkSetGet.h"
 #include "vtkObject.h"
 
-#include <string.h>
-#include <ctype.h>
+#include <cstring>
+#include <cctype>
 
 //----------------------------------------------------------------
 vtkOldStyleCallbackCommand::vtkOldStyleCallbackCommand()
@@ -31,15 +31,15 @@ vtkOldStyleCallbackCommand::vtkOldStyleCallbackCommand()
 vtkOldStyleCallbackCommand::~vtkOldStyleCallbackCommand()
 {
   if (this->ClientDataDeleteCallback)
-    {
+  {
     this->ClientDataDeleteCallback(this->ClientData);
-    }
+  }
 }
 
 void vtkOldStyleCallbackCommand::Execute(vtkObject *,unsigned long, void *)
 {
   if (this->Callback)
-    {
+  {
     this->Callback(this->ClientData);
-    }
+  }
 }

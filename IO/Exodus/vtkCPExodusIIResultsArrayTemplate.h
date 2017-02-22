@@ -13,46 +13,53 @@
 
 =========================================================================*/
 
-// .NAME vtkCPExodusIIResultsArrayTemplate - Map native Exodus II results arrays
-// into the vtkDataArray interface.
-//
-// .SECTION Description
-// Map native Exodus II results arrays into the vtkDataArray interface. Use
-// the vtkCPExodusIIInSituReader to read an Exodus II file's data into this
-// structure.
+/**
+ * @class   vtkCPExodusIIResultsArrayTemplate
+ * @brief   Map native Exodus II results arrays
+ * into the vtkDataArray interface.
+ *
+ *
+ * Map native Exodus II results arrays into the vtkDataArray interface. Use
+ * the vtkCPExodusIIInSituReader to read an Exodus II file's data into this
+ * structure.
+*/
 
 #ifndef vtkCPExodusIIResultsArrayTemplate_h
 #define vtkCPExodusIIResultsArrayTemplate_h
 
 #include "vtkMappedDataArray.h"
 
-#include "vtkTypeTemplate.h" // For templated vtkObject API
 #include "vtkObjectFactory.h" // for vtkStandardNewMacro
 
 template <class Scalar>
-class vtkCPExodusIIResultsArrayTemplate:
-    public vtkTypeTemplate<vtkCPExodusIIResultsArrayTemplate<Scalar>,
-                           vtkMappedDataArray<Scalar> >
+class vtkCPExodusIIResultsArrayTemplate: public vtkMappedDataArray<Scalar>
 {
 public:
+  vtkAbstractTemplateTypeMacro(vtkCPExodusIIResultsArrayTemplate<Scalar>,
+                               vtkMappedDataArray<Scalar>)
   vtkMappedDataArrayNewInstanceMacro(vtkCPExodusIIResultsArrayTemplate<Scalar>)
   static vtkCPExodusIIResultsArrayTemplate *New();
   virtual void PrintSelf(ostream &os, vtkIndent indent);
 
-  // Description:
-  // Set the arrays to be used and the number of tuples in each array.
-  // The save option can be set to true to indicate that this class
-  // should not delete the actual allocated memory. By default it will
-  // delete the array with the 'delete []' method.
+  typedef typename Superclass::ValueType ValueType;
+
+  //@{
+  /**
+   * Set the arrays to be used and the number of tuples in each array.
+   * The save option can be set to true to indicate that this class
+   * should not delete the actual allocated memory. By default it will
+   * delete the array with the 'delete []' method.
+   */
   void SetExodusScalarArrays(std::vector<Scalar*> arrays, vtkIdType numTuples);
   void SetExodusScalarArrays(std::vector<Scalar*> arrays, vtkIdType numTuples, bool save);
+  //@}
 
   // Reimplemented virtuals -- see superclasses for descriptions:
   void Initialize();
   void GetTuples(vtkIdList *ptIds, vtkAbstractArray *output);
   void GetTuples(vtkIdType p1, vtkIdType p2, vtkAbstractArray *output);
   void Squeeze();
-  vtkArrayIterator *NewIterator();
+  VTK_NEWINSTANCE vtkArrayIterator *NewIterator();
   vtkIdType LookupValue(vtkVariant value);
   void LookupValue(vtkVariant value, vtkIdList *ids);
   vtkVariant GetVariantValue(vtkIdType idx);
@@ -61,13 +68,15 @@ public:
   void GetTuple(vtkIdType i, double *tuple);
   vtkIdType LookupTypedValue(Scalar value);
   void LookupTypedValue(Scalar value, vtkIdList *ids);
-  Scalar GetValue(vtkIdType idx);
-  Scalar& GetValueReference(vtkIdType idx);
-  void GetTupleValue(vtkIdType idx, Scalar *t);
+  ValueType GetValue(vtkIdType idx) const;
+  ValueType& GetValueReference(vtkIdType idx);
+  void GetTypedTuple(vtkIdType idx, Scalar *t) const;
 
-  // Description:
-  // This container is read only -- this method does nothing but print a
-  // warning.
+  //@{
+  /**
+   * This container is read only -- this method does nothing but print a
+   * warning.
+   */
   int Allocate(vtkIdType sz, vtkIdType ext);
   int Resize(vtkIdType numTuples);
   void SetNumberOfTuples(vtkIdType number);
@@ -95,12 +104,13 @@ public:
   void RemoveTuple(vtkIdType id);
   void RemoveFirstTuple();
   void RemoveLastTuple();
-  void SetTupleValue(vtkIdType i, const Scalar *t);
-  void InsertTupleValue(vtkIdType i, const Scalar *t);
-  vtkIdType InsertNextTupleValue(const Scalar *t);
+  void SetTypedTuple(vtkIdType i, const Scalar *t);
+  void InsertTypedTuple(vtkIdType i, const Scalar *t);
+  vtkIdType InsertNextTypedTuple(const Scalar *t);
   void SetValue(vtkIdType idx, Scalar value);
   vtkIdType InsertNextValue(Scalar v);
   void InsertValue(vtkIdType idx, Scalar v);
+  //@}
 
 protected:
   vtkCPExodusIIResultsArrayTemplate();
@@ -109,15 +119,18 @@ protected:
   std::vector<Scalar *> Arrays;
 
 private:
-  vtkCPExodusIIResultsArrayTemplate(const vtkCPExodusIIResultsArrayTemplate &); // Not implemented.
-  void operator=(const vtkCPExodusIIResultsArrayTemplate &); // Not implemented.
+  vtkCPExodusIIResultsArrayTemplate(const vtkCPExodusIIResultsArrayTemplate &) VTK_DELETE_FUNCTION;
+  void operator=(const vtkCPExodusIIResultsArrayTemplate &) VTK_DELETE_FUNCTION;
 
   vtkIdType Lookup(const Scalar &val, vtkIdType startIndex);
   double *TempDoubleArray;
-  // Description: If Save is true then this class won't delete that memory.
-  // By default Save is false.
+  //@{
+  /**
+   * By default Save is false.
+   */
   bool Save;
 };
+  //@}
 
 #include "vtkCPExodusIIResultsArrayTemplate.txx"
 

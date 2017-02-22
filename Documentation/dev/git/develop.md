@@ -43,7 +43,7 @@ Before you begin, perform initial setup:
     "Subscribe to this project" on the right of VTK.
 
 [GitLab Access]: https://gitlab.kitware.com/users/sign_in
-[Fork VTK]: https://gitlab.kitware.com/vtk/vtk/fork/new
+[Fork VTK]: https://gitlab.kitware.com/vtk/vtk/forks/new
 [developer setup script]: /Utilities/SetupForDevelopment.sh
 
 Workflow
@@ -102,6 +102,20 @@ A reader should have a general idea of the feature or fix to be developed given 
 
         $ git checkout -b release-my-topic origin/release
 
+    If backporting a change, you may rebase the branch back onto
+    `origin/release`:
+
+        $ git checkout -b release-my-topic my-topic
+        $ git rebase --onto origin/release origin/master
+
+    Alternatively, for more targeted or aggregate backports, use the `-x` flag
+    when performing `git cherry-pick` so that a reference to the original
+    commit is added to the commit message:
+
+        $ git checkout -b release-my-topic origin/release
+        $ git cherry-pick -x $hash_a $hash_b $hash_c
+        $ git cherry-pick -x $hash_d $hash_e $hash_f
+
 3.  Edit files and create commits (repeat as needed):
 
         $ edit file1 file2 file3
@@ -110,13 +124,33 @@ A reader should have a general idea of the feature or fix to be developed given 
 
     Caveats:
     * To add data follow [these instructions](data.md).
-    * If your change modifies the `Utilities/KWSys/vtksys` directory please
-      contribute directly to [KWSys][] instead.
-    * If your change modifies the `Utilities/MetaIO/vtkmetaio` directory please
-      contribute directly to [MetaIO][] instead.
+    * If your change modifies third party code, see [its
+      documentation](../../../ThirdParty/UPDATING.md).
 
-[KWSys]: http://public.kitware.com/Wiki/KWSys/Git
-[MetaIO]: https://github.com/Kitware/MetaIO
+Guidelines for Commit logs
+--------------------------
+
+Remember to *motivate & summarize*. When writing commit logs, make sure
+that there is enough information there for any developer to read and glean
+relevant information such as:
+
+1.  Is this change important and why?
+2.  If addressing an issue, which issue(s)?
+3.  If a new feature, why is it useful and/or necessary?
+4.  Are there background references or documentation?
+
+A short description of what the issue being addressed and how will go a long way
+towards making the log more readable and the software more maintainable.
+
+Style guidelines for commit logs are as follows:
+
+1. Separate subject from body with a blank line
+2. Limit the subject line to 60 characters
+3. Capitalize the subject line
+4. Use the imperative mood in the subject line e.g. "Refactor foo" or "Fix Issue #12322",
+   instead of "Refactoring foo", or "Fixing issue #12322".
+5. Wrap the body at 80 characters
+6. Use the body to explain `what` and `why` and if applicable a brief `how`.
 
 Share a Topic
 -------------
@@ -175,6 +209,10 @@ Follow these steps:
     select the `master` branch as the target because the change needs
     to end up there too.
 
+    For other `release` branches (e.g., `release-6.3`), merge requests should
+    go directly to the branch (they are not tied with `master` in our
+    workflow).
+
 3.  Use the "**Compare branches**" button to proceed to the next page
     and fill out the merge request creation form.
 
@@ -214,6 +252,30 @@ Follow these steps:
 
 7.  Use the "**Submit merge request**" button to create the merge request
     and visit its page.
+
+Guidelines for Merge Requests
+-----------------------------
+
+Remember to *motivate & summarize*. When creating a merge request, consider the
+reviewers and future perusers of the software. Provide enough information to motivate
+the merge request such as:
+
+1.  Is this merge request important and why?
+2.  If addressing an issue, which issue(s)?
+3.  If a new feature, why is it useful and/or necessary?
+4.  Are there background references or documentation?
+
+Also provide a summary statement expressing what you did and if there is a choice
+in implementation or design pattern, the rationale for choosing a certain path.
+Notable software or data features should be mentioned as well.
+
+A well written merge request will motivate your reviewers, and bring them up
+to speed faster. Future software developers will be able to understand the
+reasons why something was done, and possibly avoid chasing down dead ends,
+Although it may take you a little more time to write a good merge request,
+you’ll likely see payback in faster reviews and better understood and
+maintainable software.
+
 
 Review a Merge Request
 ----------------------
@@ -331,9 +393,9 @@ The `Do: test` command accepts the following arguments:
         build the superbuilds related to the project
   * `--clear`
         clear previous commands before adding this command
-  * `--regex-include <arg>`
+  * `--regex-include <arg>` or `-i <arg>`
         only build on builders matching `<arg>` (a Python regular expression)
-  * `--regex-exclude <arg>`
+  * `--regex-exclude <arg>` or `-e <arg>`
         excludes builds on builders matching `<arg>` (a Python regular
         expression)
 

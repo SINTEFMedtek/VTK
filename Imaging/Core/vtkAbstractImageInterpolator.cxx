@@ -57,20 +57,18 @@ vtkAbstractImageInterpolator::vtkAbstractImageInterpolator()
   this->BorderMode = VTK_IMAGE_BORDER_CLAMP;
 
   for (int i = 0; i < 6; i++)
-    {
+  {
     this->StructuredBoundsDouble[i] = 0.0;
     this->StructuredBoundsFloat[i] = 0.0f;
-    }
+  }
 
   for (int j = 0; j < 3; j++)
-    {
+  {
     this->Extent[2*j] = 0;
     this->Extent[2*j+1] = -1;
-    this->WholeExtent[2*j] = 0;
-    this->WholeExtent[2*j+1] = -1;
     this->Spacing[j] = 1.0;
     this->Origin[j] = 0.0;
-    }
+  }
 
   this->OutValue = 0.0;
   this->Tolerance = 7.62939453125e-06;
@@ -95,9 +93,9 @@ vtkAbstractImageInterpolator::vtkAbstractImageInterpolator()
 vtkAbstractImageInterpolator::~vtkAbstractImageInterpolator()
 {
   if (this->Scalars)
-    {
+  {
     this->Scalars->Delete();
-    }
+  }
   delete this->InterpolationInfo;
 }
 
@@ -110,19 +108,18 @@ void vtkAbstractImageInterpolator::DeepCopy(vtkAbstractImageInterpolator *obj)
   this->SetComponentCount(obj->ComponentCount);
   this->SetBorderMode(obj->BorderMode);
   obj->GetExtent(this->Extent);
-  obj->GetWholeExtent(this->WholeExtent);
   obj->GetOrigin(this->Origin);
   obj->GetSpacing(this->Spacing);
   if (this->Scalars)
-    {
+  {
     this->Scalars->Delete();
     this->Scalars = NULL;
-    }
+  }
   if (obj->Scalars)
-    {
+  {
     this->Scalars = obj->Scalars;
     this->Scalars->Register(this);
-    }
+  }
   *this->InterpolationInfo = *obj->InterpolationInfo;
 }
 
@@ -139,10 +136,6 @@ void vtkAbstractImageInterpolator::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "Extent: " << this->Extent[0] << " " << this->Extent[1]
      << " " << this->Extent[2] << " " << this->Extent[3]
      << " " << this->Extent[4] << " " << this->Extent[5] << "\n";
-  os << indent << "WholeExtent: "
-     << this->WholeExtent[0] << " " << this->WholeExtent[1] << " "
-     << this->WholeExtent[2] << " " << this->WholeExtent[3] << " "
-     << this->WholeExtent[4] << " " << this->WholeExtent[5] << "\n";
   os << indent << "Origin: " << this->Origin[0] << " " << this->Origin[1]
      << " " << this->Origin[2] << "\n";
   os << indent << "Spacing: " << this->Spacing[0] << " " << this->Spacing[1]
@@ -157,24 +150,24 @@ void vtkAbstractImageInterpolator::SetBorderMode(int mode)
   mode = ((mode > minmode) ? mode : minmode);
   mode = ((mode < maxmode) ? mode : maxmode);
   if (this->BorderMode != mode)
-    {
+  {
     this->BorderMode = mode;
     this->Modified();
-    }
+  }
 }
 
 //----------------------------------------------------------------------------
 const char *vtkAbstractImageInterpolator::GetBorderModeAsString()
 {
   switch (this->BorderMode)
-    {
+  {
     case VTK_IMAGE_BORDER_CLAMP:
       return "Clamp";
     case VTK_IMAGE_BORDER_REPEAT:
       return "Repeat";
     case VTK_IMAGE_BORDER_MIRROR:
       return "Mirror";
-    }
+  }
   return "";
 }
 
@@ -182,20 +175,20 @@ const char *vtkAbstractImageInterpolator::GetBorderModeAsString()
 void vtkAbstractImageInterpolator::SetComponentOffset(int offset)
 {
   if (this->ComponentOffset != offset)
-    {
+  {
     this->ComponentOffset = offset;
     this->Modified();
-    }
+  }
 }
 
 //----------------------------------------------------------------------------
 void vtkAbstractImageInterpolator::SetComponentCount(int count)
 {
   if (this->ComponentCount != count)
-    {
+  {
     this->ComponentCount = count;
     this->Modified();
-    }
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -223,20 +216,20 @@ int vtkAbstractImageInterpolator::GetNumberOfComponents()
 void vtkAbstractImageInterpolator::SetOutValue(double value)
 {
   if (this->OutValue != value)
-    {
+  {
     this->OutValue = value;
     this->Modified();
-    }
+  }
 }
 
 //----------------------------------------------------------------------------
 void vtkAbstractImageInterpolator::SetTolerance(double value)
 {
   if (this->Tolerance != value)
-    {
+  {
     this->Tolerance = value;
     this->Modified();
-    }
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -249,15 +242,15 @@ void vtkAbstractImageInterpolator::Initialize(vtkDataObject *o)
   vtkImageData *data = vtkImageData::SafeDownCast(o);
   vtkDataArray *scalars = NULL;
   if (data)
-    {
+  {
     scalars = data->GetPointData()->GetScalars();
-    }
+  }
 
   if (data == NULL || scalars == NULL)
-    {
+  {
     vtkErrorMacro("Initialize(): no image data to interpolate!");
     return;
-    }
+  }
 
   // claim the scalars
   scalars->Register(this);
@@ -266,7 +259,6 @@ void vtkAbstractImageInterpolator::Initialize(vtkDataObject *o)
   // get the image information
   data->GetSpacing(this->Spacing);
   data->GetOrigin(this->Origin);
-  data->GetExtent(this->WholeExtent);
   data->GetExtent(this->Extent);
 
   // call update
@@ -277,10 +269,10 @@ void vtkAbstractImageInterpolator::Initialize(vtkDataObject *o)
 void vtkAbstractImageInterpolator::ReleaseData()
 {
   if (this->Scalars)
-    {
+  {
     this->Scalars->Delete();
     this->Scalars = NULL;
-    }
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -290,7 +282,7 @@ void vtkAbstractImageInterpolator::Update()
 
   // check for scalars
   if (!scalars)
-    {
+  {
     this->InterpolationInfo->Pointer = NULL;
     this->InterpolationInfo->NumberOfComponents = 1;
 
@@ -304,7 +296,7 @@ void vtkAbstractImageInterpolator::Update()
       &(vtkInterpolateNOP<float>::RowInterpolationFunc);
 
     return;
-    }
+  }
 
   // set the InterpolationInfo object
   vtkInterpolationInfo *info = this->InterpolationInfo;
@@ -317,10 +309,9 @@ void vtkAbstractImageInterpolator::Update()
   extent[4] = this->Extent[4];
   extent[5] = this->Extent[5];
 
-  // use the WholeExtent and Tolerance to set the bounds
+  // use the Extent and Tolerance to set the bounds
   double *bounds = this->StructuredBoundsDouble;
   float *fbounds = this->StructuredBoundsFloat;
-  int *wholeExtent = this->WholeExtent;
   double tol = this->Tolerance;
   // always restrict the bounds to the limits of int
   int supportSize[3];
@@ -333,18 +324,18 @@ void vtkAbstractImageInterpolator::Update()
   double maxbound = VTK_INT_MAX - kernelSize/2;
 
   for (int i = 0; i < 3; i++)
-    {
+  {
     // use min tolerance of 0.5 if just one slice thick
-    double newtol = 0.5*(wholeExtent[2*i] == wholeExtent[2*i+1]);
+    double newtol = 0.5*(extent[2*i] == extent[2*i+1]);
     newtol = ((newtol > tol) ? newtol : tol);
 
-    double bound = wholeExtent[2*i] - newtol;
+    double bound = extent[2*i] - newtol;
     bound = ((bound > minbound) ? bound : minbound);
     fbounds[2*i] = bounds[2*i] = bound;
-    bound = wholeExtent[2*i+1] + newtol;
+    bound = extent[2*i+1] + newtol;
     bound = ((bound < maxbound) ? bound : maxbound);
     fbounds[2*i+1] = bounds[2*i+1] = bound;
-    }
+  }
 
   // generate the increments
   int xdim = extent[1] - extent[0] + 1;
@@ -391,16 +382,16 @@ bool vtkAbstractImageInterpolator::Interpolate(
   p[2] = (point[2] - this->Origin[2])/this->Spacing[2];
 
   if (this->CheckBoundsIJK(p))
-    {
+  {
     this->InterpolationFuncDouble(this->InterpolationInfo, p, value);
     return true;
-    }
+  }
 
   int n = this->InterpolationInfo->NumberOfComponents;
   for (int i = 0; i < n; i++)
-    {
+  {
     value[i] = this->OutValue;
-    }
+  }
   return false;
 }
 
@@ -420,7 +411,7 @@ double vtkAbstractImageInterpolator::Interpolate(
   p[2] = (point[2] - this->Origin[2])/this->Spacing[2];
 
   if (this->CheckBoundsIJK(p))
-    {
+  {
     vtkInterpolationInfo iinfo(*this->InterpolationInfo);
     int ncomp = static_cast<int>(iinfo.Increments[0]);
     ncomp -= this->ComponentOffset;
@@ -434,7 +425,7 @@ double vtkAbstractImageInterpolator::Interpolate(
     iinfo.NumberOfComponents = 1;
 
     this->InterpolationFuncDouble(&iinfo, p, &value);
-    }
+  }
 
   return value;
 }
@@ -484,28 +475,47 @@ void vtkAbstractImageInterpolator::FreePrecomputedWeights(
   int *extent = weights->WeightExtent;
 
   for (int k = 0; k < 3; k++)
-    {
+  {
     int step = weights->KernelSize[k];
     weights->Positions[k] += step*extent[2*k];
     delete [] weights->Positions[k];
     if (weights->Weights[k])
-      {
+    {
       if (weights->WeightType == VTK_FLOAT)
-        {
+      {
         float *constants = static_cast<float *>(weights->Weights[k]);
         constants += step*extent[2*k];
         delete [] constants;
-        }
+      }
       else
-        {
+      {
         double *constants = static_cast<double *>(weights->Weights[k]);
         constants += step*extent[2*k];
         delete [] constants;
-        }
       }
     }
+  }
 
   delete weights;
 
   weights = NULL;
 }
+
+//----------------------------------------------------------------------------
+#if !defined(VTK_LEGACY_REMOVE)
+int *vtkAbstractImageInterpolator::GetWholeExtent()
+{
+  VTK_LEGACY_REPLACED_BODY(
+    vtkAbstractImageInterpolator::GetWholeExtent, "VTK 7.1",
+    vtkAbstractImageInterpolator::GetExtent);
+  return this->GetExtent();
+}
+
+void vtkAbstractImageInterpolator::GetWholeExtent(int extent[6])
+{
+  VTK_LEGACY_REPLACED_BODY(
+    vtkAbstractImageInterpolator::GetWholeExtent, "VTK 7.1",
+    vtkAbstractImageInterpolator::GetExtent);
+  this->GetExtent(extent);
+}
+#endif

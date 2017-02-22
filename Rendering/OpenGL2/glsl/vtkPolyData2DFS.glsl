@@ -26,6 +26,9 @@ uniform int PrimitiveIDOffset;
 // Depth Peeling
 //VTK::DepthPeeling::Dec
 
+// picking support
+//VTK::Picking::Dec
+
 // the output of this shader
 //VTK::Output::Dec
 
@@ -39,5 +42,12 @@ void main()
 
   //VTK::Color::Impl
   //VTK::TCoord::Impl
+
   //VTK::DepthPeeling::Impl
+  //VTK::Picking::Impl
+
+  if (gl_FragData[0].a <= 0.0)
+    {
+    discard;
+    }
 }

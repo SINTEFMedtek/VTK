@@ -19,22 +19,28 @@
 
 =========================================================================*/
 
-// .NAME vtkTypeTemplate - Provides the equivalent of vtkTypeMacro
-// for use with template classes
-//
-// .SECTION Thanks
-// Developed by Timothy M. Shead (tshead@sandia.gov) at Sandia National Laboratories.
+/**
+ * @class   vtkTypeTemplate
+ * @brief   Provides the equivalent of vtkTypeMacro
+ * for use with template classes
+ *
+ * @par Thanks:
+ * Developed by Timothy M. Shead (tshead@sandia.gov) at Sandia National Laboratories.
+*/
 
 #ifndef vtkTypeTemplate_h
 #define vtkTypeTemplate_h
 
-#include "vtkObjectBase.h"
+#include "vtkObject.h"
 #include <string>
 #include <typeinfo>
 
+// This class is legacy. See vtkTemplateTypeMacro in vtkSetGet.h for the
+// replacement.
+#ifndef VTK_LEGACY_REMOVE
+
 template<class ThisT, class BaseT>
-class vtkTypeTemplate :
-  public BaseT
+class vtkTypeTemplate : public BaseT
 {
 public:
   typedef BaseT Superclass;
@@ -48,9 +54,9 @@ public:
   {
     if(o &&
        o->IsA(vtkTypeTemplate<ThisT, BaseT>::GetClassNameInternalCachedName()))
-      {
+    {
       return static_cast<ThisT*>(o);
-      }
+    }
 
     return 0;
   }
@@ -64,30 +70,33 @@ protected:
   // We don't expose this publicly, because the typename we generate
   // for our template instantiations isn't human-readable, unlike
   // "normal" VTK classes.
-  static int IsTypeOf(const char* type)
+  static vtkTypeBool IsTypeOf(const char* type)
   {
     if (strcmp(vtkTypeTemplate<ThisT, BaseT>::GetClassNameInternalCachedName(),
                type) == 0)
-      {
+    {
       return 1;
-      }
+    }
     return BaseT::IsTypeOf(type);
   }
 
   // We don't expose this publicly, because the typename we generate
   // for our template instantiations isn't human-readable, unlike
   // "normal" VTK classes.
-  virtual int IsA(const char *type)
+  vtkTypeBool IsA(const char *type) VTK_OVERRIDE
   {
     return this->IsTypeOf(type);
   }
 
-  vtkTypeTemplate() {}
+  vtkTypeTemplate()
+  {
+    VTK_LEGACY_REPLACED_BODY(vtkTypeTemplate, "VTK 7.1",
+                             vtkTemplateTypeMacro (vtkSetGet.h));
+  }
 
 private:
-  // not implemented:
-  vtkTypeTemplate(const vtkTypeTemplate<ThisT, BaseT>&);
-  void operator=(const vtkTypeTemplate<ThisT, BaseT>&);
+  vtkTypeTemplate(const vtkTypeTemplate<ThisT, BaseT>&) VTK_DELETE_FUNCTION;
+  void operator=(const vtkTypeTemplate<ThisT, BaseT>&) VTK_DELETE_FUNCTION;
 
   static const char* GetClassNameInternalCachedName()
   {
@@ -95,12 +104,13 @@ private:
     return thisType.c_str();
   }
 
-  virtual const char* GetClassNameInternal() const
+  const char* GetClassNameInternal() const VTK_OVERRIDE
   {
     return this->GetClassNameInternalCachedName();
   }
 };
 
-#endif
+#endif // VTK_LEGACY_REMOVE
+#endif // header guard
 
 // VTK-HeaderTest-Exclude: vtkTypeTemplate.h

@@ -53,6 +53,7 @@ public:
   bool TestAddPickers();
   bool TestRemovePickers();
   bool TestRemoveObjects();
+  bool TestObjectOwnership();
 
   bool VTKVerify(bool test, const char* errorStr, int line);
   void PrintErrorMessage(int line, const char* errorStr);
@@ -88,6 +89,73 @@ private:
 };
 
 //------------------------------------------------------------------------------
+// Test picking manager client that removes itself from the picking manager
+// in its destructor. This mimics the behavior of the VTK widget framework.
+class PickingManagerClient : public vtkObject
+{
+  public:
+    static PickingManagerClient* New();
+    vtkTypeMacro(PickingManagerClient, vtkObject);
+
+    void SetPickingManager(vtkPickingManager *pm);
+    void RegisterPicker();
+    vtkPicker* GetPicker();
+
+  protected:
+    PickingManagerClient();
+    ~PickingManagerClient() VTK_OVERRIDE;
+
+  private:
+    vtkPickingManager *PickingManager;
+    vtkPicker *Picker;
+
+    PickingManagerClient(const PickingManagerClient&) VTK_DELETE_FUNCTION;
+    void operator=(const PickingManagerClient&) VTK_DELETE_FUNCTION;
+};
+
+vtkStandardNewMacro(PickingManagerClient);
+
+//------------------------------------------------------------------------------
+PickingManagerClient::PickingManagerClient()
+{
+  this->Picker = vtkPicker::New();
+}
+
+//------------------------------------------------------------------------------
+PickingManagerClient::~PickingManagerClient()
+{
+  this->Picker->Delete();
+
+  if (this->PickingManager)
+  {
+    this->PickingManager->RemoveObject(this);
+  }
+}
+
+//------------------------------------------------------------------------------
+void PickingManagerClient::SetPickingManager(vtkPickingManager *pm)
+{
+  this->PickingManager = pm;
+}
+
+//------------------------------------------------------------------------------
+void PickingManagerClient::RegisterPicker()
+{
+  if (!this->PickingManager)
+  {
+    return;
+  }
+
+  this->PickingManager->AddPicker(this->Picker, this);
+}
+
+//------------------------------------------------------------------------------
+vtkPicker* PickingManagerClient::GetPicker()
+{
+  return this->Picker;
+}
+
+//------------------------------------------------------------------------------
 int TestPickingManager(int, char*[])
 {
   PickingManagerTest pickingManagerTest;
@@ -98,6 +166,7 @@ int TestPickingManager(int, char*[])
   res = res && pickingManagerTest.TestAddPickers();
   res = res && pickingManagerTest.TestRemovePickers();
   res = res && pickingManagerTest.TestRemoveObjects();
+  res = res && pickingManagerTest.TestObjectOwnership();
 
   return res ? EXIT_SUCCESS : EXIT_FAILURE;
 }
@@ -254,6 +323,28 @@ bool PickingManagerTest::TestRemoveObjects()
 }
 
 //------------------------------------------------------------------------------
+bool PickingManagerTest::TestObjectOwnership()
+{
+  bool res = true;
+
+  this->PickingManager = vtkSmartPointer<vtkPickingManager>::New();
+  vtkSmartPointer<PickingManagerClient> client =
+    vtkSmartPointer<PickingManagerClient>::New();
+  client->SetPickingManager(this->PickingManager.GetPointer());
+  client->RegisterPicker();
+
+  res = VTK_VERIFY(this->CheckState(1, client->GetPicker(), 1),
+                   "Error after client registers picker:") && res;
+
+  client = NULL;
+
+  res = VTK_VERIFY(this->CheckState(0, NULL, 0),
+                   "Error after setting client object to NULL:") && res;
+
+  return res;
+}
+
+//------------------------------------------------------------------------------
 std::pair<vtkSmartPointer<vtkPicker>, vtkSmartPointer<vtkObject> > PickingManagerTest::
 AddPickerObject(int pickerType, int objectType)
 {
@@ -296,9 +387,9 @@ AddPickerTwice(int pickerType0, int objectType0,
     this->AddPickerObject(pickerType1, objectType1).first;
 
   if (samePicker)
-    {
+  {
     this->PickingManager->AddPicker(picker1.GetPointer());
-    }
+  }
 
   return (this->CheckState(numberOfPickers,
                            picker0.GetPointer(), numberOfObjectsLinked0) &&
@@ -333,9 +424,9 @@ RemoveOneOfPickers(int pickerType0, int objectType0,
     this->AddPickerObject(pickerType1, objectType1).first;
 
   if (samePicker)
-    {
+  {
     this->PickingManager->AddPicker(picker1.GetPointer());
-    }
+  }
 
   this->PickingManager->RemovePicker(picker0.GetPointer());
 
@@ -369,9 +460,9 @@ void PickingManagerTest::PrintErrorMessage(int line, const char* errorStr)
             << errorStr << "\n";
 
   if(PickingManager)
-    {
+  {
     PickingManager->Print(std::cout);
-    }
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -380,9 +471,9 @@ bool PickingManagerTest::VTKVerify(bool test,
                                    int line = -1)
 {
   if (!test)
-    {
+  {
     this->PrintErrorMessage(line, errorStr);
-    }
+  }
 
   return test;
 }

@@ -12,11 +12,14 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-// .NAME vtkSystemIncludes - transition VTK to ANSI C++, centralize
-// inclusion of system files
-// .SECTION Description
-// The vtkSystemIncludes centralizes the inclusion of system include
-// files.
+/**
+ * @class   vtkSystemIncludes
+ * @brief   transition VTK to ANSI C++, centralize
+ * inclusion of system files
+ *
+ * The vtkSystemIncludes centralizes the inclusion of system include
+ * files.
+*/
 
 #ifndef vtkSystemIncludes_h
 #define vtkSystemIncludes_h
@@ -38,6 +41,9 @@
 
 // Setup the basic types to be used by VTK.
 #include "vtkType.h"
+
+// Define some macros to provide wrapping hints
+#include "vtkWrappingHints.h"
 
 // this should be removed at some point
 #define VTK_USE_EXECUTIVES

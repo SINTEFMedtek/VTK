@@ -17,11 +17,11 @@ set (GenericVolumeCxxTests
   TestGPURayCastFourComponentsMinIP.cxx
   TestGPURayCastFourComponentsMIP.cxx
   TestGPURayCastMapperBenchmark.cxx
-  TestGPURayCastMapperSampleDistance.cxx
   TestGPURayCastMIPBinaryMask.cxx
   TestGPURayCastMIPToComposite.cxx
   TestGPURayCastNearestDataTypesMIP.cxx
   TestGPURayCastPerspectiveParallel.cxx
+  TestGPURayCastVolumeOrientation.cxx
   TestGPURayCastVolumeUpdate.cxx
   TestGPUVolumeRayCastMapper.cxx
   TestMinIntensityRendering.cxx
@@ -52,22 +52,47 @@ endif()
 
 # These tests are only built for the OpenGL2 backend
 set (VolumeOpenGL2CxxTests
+  TestGPURayCastBlendModes.cxx
+  TestGPURayCastAverageIP.cxx
   TestGPURayCastCameraInside.cxx
   TestGPURayCastCameraInsideSmallSpacing.cxx
+  TestGPURayCastCameraInsideTransformation.cxx
+  TestGPURayCastCellData.cxx
   TestGPURayCastClipping.cxx
+  TestGPURayCastClippingPolyData.cxx
+  TestGPURayCastClippingUserTransform.cxx
+  TestGPURayCastDependentComponentsLightParameters.cxx
+  TestGPURayCastFourComponentsAdditive.cxx
+  TestGPURayCastFourComponentsAverage.cxx
+  TestGPURayCastFourComponentsDependentGradient.cxx
   TestGPURayCastGradientOpacity.cxx
+  TestGPURayCastGradientOpacityLight.cxx
+  TestGPURayCastIndependentComponentsLightParameters.cxx
+  TestGPURayCastIndependentVectorMode.cxx
+  TestGPURayCastJittering.cxx
+  TestGPURayCastJitteringCustom.cxx
+  TestGPURayCastLargeColorTransferFunction.cxx
+  TestGPURayCastMapperSampleDistance.cxx
   TestGPURayCastPositionalLights.cxx
   TestGPURayCastReleaseResources.cxx
   TestGPURayCastRenderDepthToImage.cxx
   TestGPURayCastRenderDepthToImage2.cxx
   TestGPURayCastRenderToTexture.cxx
+  TestGPURayCastThreeComponentsAdditive.cxx
   TestGPURayCastThreeComponentsIndependent.cxx
   TestGPURayCastTwoComponentsDependent.cxx
+  TestGPURayCastTwoComponentsDependentGradient.cxx
+  TestGPURayCastTwoComponentsGradient.cxx
   TestGPURayCastTwoComponentsIndependent.cxx
+  TestGPURayCastVolumeDepthPass.cxx
   TestGPURayCastVolumeLightKit.cxx
+  TestGPURayCastVolumePicking.cxx
   TestGPURayCastVolumePolyData.cxx
   TestGPURayCastVolumeRotation.cxx
   TestGPURayCastVolumeScale.cxx
+  TestProjectedTetrahedraOffscreen.cxx
+  TestProjectedTetrahedraTransform.cxx
+  TestRemoveVolumeNonCurrentContext.cxx
   )
 
 # everyone gets these tests
@@ -85,9 +110,6 @@ endif ()
 if ("${VTK_RENDERING_BACKEND}" STREQUAL "OpenGL2")
   vtk_test_cxx_executable(${vtk-module}CxxTests tests
     RENDERING_FACTORY
-    )
-  set_target_properties (${vtk-module}CxxTests
-    PROPERTIES COMPILE_FLAGS -DVTK_OPENGL2
     )
   return()
 endif ()

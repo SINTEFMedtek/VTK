@@ -81,7 +81,7 @@ int TestCubeAxesInnerGridFurthest( int argc, char * argv [] )
   axes->SetDrawXGridlines(1);
   axes->SetDrawYGridlines(1);
   axes->SetDrawZGridlines(1);
-  axes->SetGridLineLocation(VTK_GRID_LINES_FURTHEST);
+  axes->SetGridLineLocation(vtkCubeAxesActor::VTK_GRID_LINES_FURTHEST);
   axes->SetCornerOffset( .0 );
 
   // Use red color for X axis
@@ -99,9 +99,9 @@ int TestCubeAxesInnerGridFurthest( int argc, char * argv [] )
 
   int retVal = vtkRegressionTestImage( renWin.GetPointer() );
   if ( retVal == vtkRegressionTester::DO_INTERACTOR)
-    {
+  {
     iren->Start();
-    }
+  }
 
   cout << camera->GetFocalPoint()[0] << ", " << camera->GetFocalPoint()[1] << ", " << camera->GetFocalPoint()[2] << endl;
   cout << camera->GetPosition()[0] << ", " << camera->GetPosition()[1] << ", " << camera->GetPosition()[2] << endl;

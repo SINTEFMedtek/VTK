@@ -12,12 +12,15 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-// .NAME vtkXMLHierarchicalBoxDataWriter - writer for vtkHierarchicalBoxDataSet
-// for backwards compatibility.
-// .SECTION Description
-// vtkXMLHierarchicalBoxDataWriter is an empty subclass of
-// vtkXMLUniformGridAMRWriter for writing vtkUniformGridAMR datasets in
-// VTK-XML format.
+/**
+ * @class   vtkXMLHierarchicalBoxDataWriter
+ * @brief   writer for vtkHierarchicalBoxDataSet
+ * for backwards compatibility.
+ *
+ * vtkXMLHierarchicalBoxDataWriter is an empty subclass of
+ * vtkXMLUniformGridAMRWriter for writing vtkUniformGridAMR datasets in
+ * VTK-XML format.
+*/
 
 #ifndef vtkXMLHierarchicalBoxDataWriter_h
 #define vtkXMLHierarchicalBoxDataWriter_h
@@ -31,20 +34,20 @@ public:
   vtkTypeMacro(vtkXMLHierarchicalBoxDataWriter, vtkXMLUniformGridAMRWriter);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  // Description:
-  // Get the default file extension for files written by this writer.
+  /**
+   * Get the default file extension for files written by this writer.
+   */
   virtual const char* GetDefaultFileExtension()
     { return "vth"; }
 
-//BTX
 protected:
   vtkXMLHierarchicalBoxDataWriter();
   ~vtkXMLHierarchicalBoxDataWriter();
 
 private:
-  vtkXMLHierarchicalBoxDataWriter(const vtkXMLHierarchicalBoxDataWriter&); // Not implemented.
-  void operator=(const vtkXMLHierarchicalBoxDataWriter&); // Not implemented.
-//ETX
+  vtkXMLHierarchicalBoxDataWriter(const vtkXMLHierarchicalBoxDataWriter&) VTK_DELETE_FUNCTION;
+  void operator=(const vtkXMLHierarchicalBoxDataWriter&) VTK_DELETE_FUNCTION;
+
 };
 
 #endif

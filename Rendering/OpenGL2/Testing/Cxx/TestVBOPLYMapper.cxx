@@ -14,7 +14,7 @@
 
 #include "vtkCamera.h"
 #include "vtkRenderer.h"
-#include "vtkRenderWindow.h"
+#include "vtkOpenGLRenderWindow.h"
 #include "vtkActor.h"
 #include "vtkCellArray.h"
 #include "vtkPointData.h"
@@ -30,6 +30,8 @@
 #include "vtkTestUtilities.h"
 
 #include "vtkRenderWindowInteractor.h"
+
+#include "vtkOpenGLRenderWindow.h"
 
 //----------------------------------------------------------------------------
 int TestVBOPLYMapper(int argc, char *argv[])
@@ -48,11 +50,12 @@ int TestVBOPLYMapper(int argc, char *argv[])
   lightKit->AddLightsToRenderer(renderer.Get());
 
   if (!renderWindow->SupportsOpenGL())
-    {
+  {
     cerr << "The platform does not support OpenGL as required\n";
+    cerr << vtkOpenGLRenderWindow::SafeDownCast(renderWindow.Get())->GetOpenGLSupportMessage();
     cerr << renderWindow->ReportCapabilities();
     return 1;
-    }
+  }
 
   const char* fileName = vtkTestUtilities::ExpandDataFileName(argc, argv,
                                                                "Data/dragon.ply");
@@ -85,15 +88,18 @@ int TestVBOPLYMapper(int argc, char *argv[])
   timer->StopTimer();
   double firstRender = timer->GetElapsedTime();
   cerr << "first render time: " << firstRender << endl;
+  int major, minor;
+  vtkOpenGLRenderWindow::SafeDownCast(renderWindow.Get())->GetOpenGLVersion(major,minor);
+  cerr << "opengl version " << major << "." << minor << "\n";
 
   timer->StartTimer();
   int numRenders = 8;
   for (int i = 0; i < numRenders; ++i)
-    {
+  {
     renderer->GetActiveCamera()->Azimuth(10);
     renderer->GetActiveCamera()->Elevation(10);
     renderWindow->Render();
-    }
+  }
   timer->StopTimer();
   double elapsed = timer->GetElapsedTime();
   cerr << "interactive render time: " << elapsed / numRenders << endl;
@@ -111,9 +117,9 @@ int TestVBOPLYMapper(int argc, char *argv[])
 
   int retVal = vtkRegressionTestImage( renderWindow.Get() );
   if ( retVal == vtkRegressionTester::DO_INTERACTOR)
-    {
+  {
     iren->Start();
-    }
+  }
 
   return !retVal;
 }

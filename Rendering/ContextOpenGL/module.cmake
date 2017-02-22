@@ -1,12 +1,19 @@
 vtk_module(vtkRenderingContextOpenGL
-  DEPENDS
-    vtkRenderingOpenGL
   IMPLEMENTS
     vtkRenderingContext2D
   BACKEND
     OpenGL
-  PRIVATE_DEPENDS
-    vtkRenderingFreeType
+  IMPLEMENTATION_REQUIRED_BY_BACKEND
   KIT
     vtkOpenGL
+  DEPENDS
+    vtkCommonCore
+    vtkCommonDataModel
+    vtkRenderingContext2D
+    vtkRenderingCore
+    vtkRenderingFreeType
+    vtkRenderingOpenGL
+  PRIVATE_DEPENDS
+    vtkCommonMath
+    vtkCommonTransforms
   )

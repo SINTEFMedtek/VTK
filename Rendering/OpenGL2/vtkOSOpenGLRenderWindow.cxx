@@ -117,9 +117,9 @@ vtkOSOpenGLRenderWindow::~vtkOSOpenGLRenderWindow()
   vtkCollectionSimpleIterator rit;
   this->Renderers->InitTraversal(rit);
   while ( (ren = this->Renderers->GetNextRenderer(rit)) )
-    {
+  {
     ren->SetRenderWindow(NULL);
-    }
+  }
 
   delete this->Internal;
 }
@@ -128,7 +128,6 @@ vtkOSOpenGLRenderWindow::~vtkOSOpenGLRenderWindow()
 void vtkOSOpenGLRenderWindow::Frame()
 {
   this->MakeCurrent();
-  glFlush();
 }
 
 //
@@ -138,14 +137,14 @@ void vtkOSOpenGLRenderWindow::Frame()
 void vtkOSOpenGLRenderWindow::SetStereoCapableWindow(int capable)
 {
   if (!this->Internal->OffScreenContextId)
-    {
+  {
     vtkOpenGLRenderWindow::SetStereoCapableWindow(capable);
-    }
+  }
   else
-    {
+  {
     vtkWarningMacro(<< "Requesting a StereoCapableWindow must be performed "
                     << "before the window is realized, i.e. before a render.");
-    }
+  }
 }
 
 void vtkOSOpenGLRenderWindow::CreateAWindow()
@@ -173,12 +172,12 @@ void vtkOSOpenGLRenderWindow::CreateOffScreenWindow(int width, int height)
   this->DoubleBuffer = 0;
 
   if (!this->Internal->OffScreenWindow)
-    {
+  {
     this->Internal->OffScreenWindow = vtkOSMesaCreateWindow(width,height);
     this->OwnWindow = 1;
-    }
+  }
   if (!this->Internal->OffScreenContextId)
-    {
+  {
 #if (OSMESA_MAJOR_VERSION * 100 + OSMESA_MINOR_VERSION >= 1102) && defined(OSMESA_CONTEXT_MAJOR_VERSION)
     static const int attribs[] = {
        OSMESA_FORMAT, OSMESA_RGBA,
@@ -195,16 +194,16 @@ void vtkOSOpenGLRenderWindow::CreateOffScreenWindow(int width, int height)
        OSMesaGetProcAddress("OSMesaCreateContextAttribs");
 
     if (OSMesaCreateContextAttribs != NULL)
-      {
+    {
       this->Internal->OffScreenContextId = OSMesaCreateContextAttribs(attribs, NULL);
-      }
+    }
 #endif
     // if we still have no context fall back to the generic signature
     if (!this->Internal->OffScreenContextId)
-      {
+    {
       this->Internal->OffScreenContextId = OSMesaCreateContext(GL_RGBA, NULL);
-      }
     }
+  }
   this->MakeCurrent();
 
   this->Mapped = 0;
@@ -220,10 +219,10 @@ void vtkOSOpenGLRenderWindow::CreateOffScreenWindow(int width, int height)
   vtkRenderer* ren;
   for (this->Renderers->InitTraversal();
        (ren = this->Renderers->GetNextItem());)
-    {
+  {
     ren->SetRenderWindow(0);
     ren->SetRenderWindow(this);
-    }
+  }
 
   this->OpenGLInit();
 }
@@ -241,21 +240,21 @@ void vtkOSOpenGLRenderWindow::DestroyOffScreenWindow()
   this->ReleaseGraphicsResources(this);
 
   if (this->Internal->OffScreenContextId)
-    {
+  {
     OSMesaDestroyContext(this->Internal->OffScreenContextId);
     this->Internal->OffScreenContextId = NULL;
     vtkOSMesaDestroyWindow(this->Internal->OffScreenWindow);
     this->Internal->OffScreenWindow = NULL;
-    }
+  }
 }
 
 void vtkOSOpenGLRenderWindow::ResizeOffScreenWindow(int width, int height)
 {
   if(this->Internal->OffScreenContextId)
-    {
+  {
     this->DestroyOffScreenWindow();
     this->CreateOffScreenWindow(width, height);
-    }
+  }
 }
 
 
@@ -270,10 +269,10 @@ void vtkOSOpenGLRenderWindow::WindowInitialize (void)
   vtkRenderer* ren;
   for (this->Renderers->InitTraversal();
        (ren = this->Renderers->GetNextItem());)
-    {
+  {
     ren->SetRenderWindow(0);
     ren->SetRenderWindow(this);
-    }
+  }
 
   this->OpenGLInit();
 }
@@ -282,12 +281,12 @@ void vtkOSOpenGLRenderWindow::WindowInitialize (void)
 void vtkOSOpenGLRenderWindow::Initialize (void)
 {
   if(! (this->Internal->OffScreenContextId))
-    {
+  {
     // initialize offscreen window
     int width = ((this->Size[0] > 0) ? this->Size[0] : 300);
     int height = ((this->Size[1] > 0) ? this->Size[1] : 300);
     this->CreateOffScreenWindow(width, height);
-    }
+  }
 }
 
 void vtkOSOpenGLRenderWindow::Finalize (void)
@@ -336,12 +335,11 @@ void vtkOSOpenGLRenderWindow::Start(void)
 void vtkOSOpenGLRenderWindow::SetSize(int width,int height)
 {
   if ((this->Size[0] != width)||(this->Size[1] != height))
-    {
-    this->Size[0] = width;
-    this->Size[1] = height;
-    this->ResizeOffScreenWindow(width,height);
+  {
+    this->Superclass::SetSize(width, height);
+    this->ResizeOffScreenWindow(width, height);
     this->Modified();
-    }
+  }
 }
 
 void vtkOSOpenGLRenderWindow::PrintSelf(ostream& os, vtkIndent indent)
@@ -358,14 +356,14 @@ void vtkOSOpenGLRenderWindow::MakeCurrent()
 {
   // set the current window
   if (this->Internal->OffScreenContextId)
-    {
+  {
     if (OSMesaMakeCurrent(this->Internal->OffScreenContextId,
                           this->Internal->OffScreenWindow, GL_UNSIGNED_BYTE,
                           this->Size[0], this->Size[1]) != GL_TRUE)
-      {
+    {
       vtkWarningMacro("failed call to OSMesaMakeCurrent");
-      }
     }
+  }
 }
 
 // ----------------------------------------------------------------------------
@@ -375,9 +373,9 @@ bool vtkOSOpenGLRenderWindow::IsCurrent()
 {
   bool result=false;
   if(this->Internal->OffScreenContextId)
-    {
+  {
     result=this->Internal->OffScreenContextId==OSMesaGetCurrentContext();
-    }
+  }
   return result;
 }
 
@@ -416,9 +414,9 @@ int *vtkOSOpenGLRenderWindow::GetPosition(void)
 void vtkOSOpenGLRenderWindow::SetPosition(int x, int y)
 {
   if ((this->Position[0] != x)||(this->Position[1] != y))
-    {
+  {
     this->Modified();
-    }
+  }
   this->Position[0] = x;
   this->Position[1] = y;
 }
@@ -555,9 +553,9 @@ void vtkOSOpenGLRenderWindow::SetNextWindowId(void *arg)
 void vtkOSOpenGLRenderWindow::SetOffScreenRendering(int i)
 {
   if (this->OffScreenRendering == i)
-    {
+  {
     return;
-    }
+  }
 
   // invoke super
   this->vtkRenderWindow::SetOffScreenRendering(i);
@@ -565,9 +563,9 @@ void vtkOSOpenGLRenderWindow::SetOffScreenRendering(int i)
   this->Internal->ScreenDoubleBuffer = this->DoubleBuffer;
   this->DoubleBuffer = 0;
   if(this->Mapped)
-    {
+  {
     this->DestroyWindow();
-    }
+  }
 
   // delay initialization until Render
 }
@@ -581,8 +579,8 @@ void *vtkOSOpenGLRenderWindow::GetGenericWindowId()
 void vtkOSOpenGLRenderWindow::SetCurrentCursor(int shape)
 {
   if ( this->InvokeEvent(vtkCommand::CursorChangedEvent,&shape) )
-    {
+  {
     return;
-    }
+  }
   this->Superclass::SetCurrentCursor(shape);
 }

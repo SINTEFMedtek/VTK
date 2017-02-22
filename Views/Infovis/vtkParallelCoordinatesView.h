@@ -17,24 +17,27 @@ PURPOSE.  See the above copyright notice for more information.
   Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
   the U.S. Government retains certain rights in this software.
 -------------------------------------------------------------------------*/
-// .NAME vtkParallelCoordinatesView - view to be used with vtkParallelCoordinatesRepresentation
-//
-// .SECTION Description
-//
-// This class manages interaction with the vtkParallelCoordinatesRepresentation.  There are
-// two inspection modes: axis manipulation and line selection.  In axis manipulation mode,
-// PC axes can be dragged and reordered with the LMB, axis ranges can be increased/decreased
-// by dragging up/down with the LMB, and RMB controls zoom and pan.
-//
-// In line selection mode, there are three subclasses of selections: lasso, angle, and
-// function selection.  Lasso selection lets the user brush a line and select all PC lines
-// that pass nearby.  Angle selection lets the user draw a representative line between axes
-// and select all lines that have similar orientation.  Function selection lets the user
-// draw two  representative lines between a pair of axes and select all lines that match
-// the linear interpolation of those lines.
-//
-// There are several self-explanatory operators for combining selections: ADD, SUBTRACT
-// REPLACE, and INTERSECT.
+/**
+ * @class   vtkParallelCoordinatesView
+ * @brief   view to be used with vtkParallelCoordinatesRepresentation
+ *
+ *
+ *
+ * This class manages interaction with the vtkParallelCoordinatesRepresentation.  There are
+ * two inspection modes: axis manipulation and line selection.  In axis manipulation mode,
+ * PC axes can be dragged and reordered with the LMB, axis ranges can be increased/decreased
+ * by dragging up/down with the LMB, and RMB controls zoom and pan.
+ *
+ * In line selection mode, there are three subclasses of selections: lasso, angle, and
+ * function selection.  Lasso selection lets the user brush a line and select all PC lines
+ * that pass nearby.  Angle selection lets the user draw a representative line between axes
+ * and select all lines that have similar orientation.  Function selection lets the user
+ * draw two  representative lines between a pair of axes and select all lines that match
+ * the linear interpolation of those lines.
+ *
+ * There are several self-explanatory operators for combining selections: ADD, SUBTRACT
+ * REPLACE, and INTERSECT.
+*/
 
 #ifndef vtkParallelCoordinatesView_h
 #define vtkParallelCoordinatesView_h
@@ -55,11 +58,9 @@ public:
   static vtkParallelCoordinatesView *New();
   void PrintSelf(ostream &os, vtkIndent indent);
 
-  //BTX
   enum {VTK_BRUSH_LASSO=0,VTK_BRUSH_ANGLE,VTK_BRUSH_FUNCTION,VTK_BRUSH_AXISTHRESHOLD,VTK_BRUSH_MODECOUNT};
   enum {VTK_BRUSHOPERATOR_ADD=0,VTK_BRUSHOPERATOR_SUBTRACT,VTK_BRUSHOPERATOR_INTERSECT,VTK_BRUSHOPERATOR_REPLACE,VTK_BRUSHOPERATOR_MODECOUNT};
   enum {VTK_INSPECT_MANIPULATE_AXES=0, VTK_INSPECT_SELECT_DATA, VTK_INSPECT_MODECOUNT};
-  //ETX
 
   void SetBrushMode(int);
   void SetBrushModeToLasso() { this->SetBrushMode(VTK_BRUSH_LASSO); }
@@ -93,12 +94,11 @@ protected:
   virtual ~vtkParallelCoordinatesView();
 
   int SelectedAxisPosition;
-  //BTX
+
   enum {VTK_HIGHLIGHT_CENTER=0,VTK_HIGHLIGHT_MIN,VTK_HIGHLIGHT_MAX};
   vtkSmartPointer<vtkOutlineSource> HighlightSource;
   vtkSmartPointer<vtkPolyDataMapper2D> HighlightMapper;
   vtkSmartPointer<vtkActor2D> HighlightActor;
-  //ETX
 
   int InspectMode;
   int BrushMode;
@@ -106,11 +106,10 @@ protected:
   int MaximumNumberOfBrushPoints;
   int NumberOfBrushPoints;
   int CurrentBrushClass;
-  //BTX
+
   vtkSmartPointer<vtkPolyData> BrushData;
   vtkSmartPointer<vtkPolyDataMapper2D> BrushMapper;
   vtkSmartPointer<vtkActor2D> BrushActor;
-  //ETX
 
   int FirstFunctionBrushLineDrawn;
   int AxisHighlightPosition;
@@ -123,20 +122,25 @@ protected:
 
   void PrepareForRendering();
 
-  // Description:
-  // Handle axis manipulation
+  //@{
+  /**
+   * Handle axis manipulation
+   */
   void Hover(unsigned long event);
   void ManipulateAxes(unsigned long event);
   void SelectData(unsigned long event);
   void Zoom(unsigned long event);
   void Pan(unsigned long event);
+  //@}
 
-  // Description:
-  // Set/Get the position of axis highlights
+  /**
+   * Set/Get the position of axis highlights
+   */
   int SetAxisHighlightPosition(vtkParallelCoordinatesRepresentation* rep, int position);
 
-  // Description:
-  // Set the highlight position using normalized viewport coordinates
+  /**
+   * Set the highlight position using normalized viewport coordinates
+   */
   int SetAxisHighlightPosition(vtkParallelCoordinatesRepresentation* rep, double position);
 
   int AddLassoBrushPoint(double *p);
@@ -149,8 +153,8 @@ protected:
 
 
 private:
-  vtkParallelCoordinatesView(const vtkParallelCoordinatesView&); // Not implemented
-  void operator=(const vtkParallelCoordinatesView&); // Not implemented
+  vtkParallelCoordinatesView(const vtkParallelCoordinatesView&) VTK_DELETE_FUNCTION;
+  void operator=(const vtkParallelCoordinatesView&) VTK_DELETE_FUNCTION;
 
 };
 

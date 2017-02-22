@@ -12,8 +12,10 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-// .NAME vtkExtractSelectedBlock
-// .SECTION Description
+/**
+ * @class   vtkExtractSelectedBlock
+ *
+*/
 
 #ifndef vtkExtractSelectedBlock_h
 #define vtkExtractSelectedBlock_h
@@ -28,7 +30,6 @@ public:
   vtkTypeMacro(vtkExtractSelectedBlock, vtkExtractSelectionBase);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-//BTX
 protected:
   vtkExtractSelectedBlock();
   ~vtkExtractSelectedBlock();
@@ -37,17 +38,18 @@ protected:
   virtual int RequestData(vtkInformation *,
     vtkInformationVector **, vtkInformationVector *);
 
-  // Description:
-  // Sets up empty output dataset
+  /**
+   * Sets up empty output dataset
+   */
   virtual int RequestDataObject(vtkInformation* request,
                                 vtkInformationVector** inputVector,
                                 vtkInformationVector* outputVector);
 
   virtual int FillInputPortInformation(int port, vtkInformation* info);
 private:
-  vtkExtractSelectedBlock(const vtkExtractSelectedBlock&); // Not implemented.
-  void operator=(const vtkExtractSelectedBlock&); // Not implemented.
-//ETX
+  vtkExtractSelectedBlock(const vtkExtractSelectedBlock&) VTK_DELETE_FUNCTION;
+  void operator=(const vtkExtractSelectedBlock&) VTK_DELETE_FUNCTION;
+
 };
 
 #endif

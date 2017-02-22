@@ -16,6 +16,7 @@
 #define vtkPython_h
 
 #include "vtkPythonConfigure.h"
+#include "vtkConfigure.h"
 #include "vtkABI.h"
 
 /*
@@ -87,7 +88,7 @@ they are system headers.  Do NOT add any #undef lines here.  */
 #endif
 
 #ifdef VTK_PYTHON_UNDEF_DEBUG
-# define _DEBUG
+# define _DEBUG 1
 # undef VTK_PYTHON_UNDEF_DEBUG
 #endif
 
@@ -100,6 +101,14 @@ they are system headers.  Do NOT add any #undef lines here.  */
 #undef isupper
 #undef tolower
 #undef toupper
+#endif
+
+/* This logic is borrowed from mpi4py/vtkmpi4py/src/atimport.h */
+#ifdef VTK_NO_PYTHON_THREADS
+#undef  PyGILState_Ensure
+#define PyGILState_Ensure() ((PyGILState_STATE)0)
+#undef  PyGILState_Release
+#define PyGILState_Release(state) (state)=((PyGILState_STATE)0)
 #endif
 
 // Description:
@@ -144,8 +153,8 @@ private:
   bool Force;
   bool NoRelease;
 
-  vtkPythonScopeGilEnsurer(const vtkPythonScopeGilEnsurer&); // Not implemented.
-  void operator=(const vtkPythonScopeGilEnsurer&); // Not implemented.
+  vtkPythonScopeGilEnsurer(const vtkPythonScopeGilEnsurer&) VTK_DELETE_FUNCTION;
+  void operator=(const vtkPythonScopeGilEnsurer&) VTK_DELETE_FUNCTION;
 };
 
 

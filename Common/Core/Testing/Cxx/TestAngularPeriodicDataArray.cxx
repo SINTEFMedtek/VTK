@@ -43,9 +43,9 @@ int TestAngularPeriodicDataArray(int, char * [])
   angularPeriodicDataArray2->SetAxis(VTK_PERIODIC_ARRAY_AXIS_Y);
 
   double pTmp[3];
-  angularPeriodicDataArray->GetTupleValue(0, pTmp);
+  angularPeriodicDataArray->GetTypedTuple(0, pTmp);
   float pTmp2[3];
-  angularPeriodicDataArray2->GetTupleValue(0, pTmp2);
+  angularPeriodicDataArray2->GetTypedTuple(0, pTmp2);
 
   double dEpsilon = std::numeric_limits<double>::epsilon() * 20.0;
   float fEpsilon = std::numeric_limits<float>::epsilon() * 20.f;
@@ -65,7 +65,7 @@ int TestAngularPeriodicDataArray(int, char * [])
       std::abs(range[2] - 9.1344434349507945825) >= dEpsilon ||
       std::abs(range[4] - 8.29182990260197883) >= dEpsilon
       )
-    {
+  {
     cerr.precision(20);
     cerr << "Error in vtkAngularPeriodicDataArray : " << endl
          << "Double Array : " << endl << std::abs(pTmp[0] - 7.77777777777) << " "
@@ -78,26 +78,26 @@ int TestAngularPeriodicDataArray(int, char * [])
          << std::abs(range[4] - 8.29182990260198) << endl
          << "Epsilon : " << fEpsilon << " " << dEpsilon << endl;
     return 1;
-    }
+  }
 
 
   tmp[0] = 1.;
   tmp[1] = 1.;
   tmp[2] = 1.;
   angularPeriodicDataArray2->SetCenter(tmp);
-  angularPeriodicDataArray2->GetTupleValue(0, pTmp2);
+  angularPeriodicDataArray2->GetTypedTuple(0, pTmp2);
 
   if (std::abs(pTmp2[0] - 4.7902297) >= fEpsilon ||
       std::abs(pTmp2[1] - 12.3) >= fEpsilon ||
       std::abs(pTmp2[2] - -4.6191568) >= fEpsilon
      )
-    {
+  {
     cerr << "Error in vtkAngularPeriodicDataArray : " << endl
          << "Non Zero origin rotation : " << endl << std::abs(pTmp2[0] - 4.7902297) << " "
          << std::abs(pTmp2[1] - 12.3) << " "
          << std::abs(pTmp2[2] - -4.6191568) << endl;
     return 1;
-    }
+  }
 
   vtkNew<vtkDoubleArray> tensorArray;
   vtkNew<vtkAngularPeriodicDataArray<double> > tensorPArray;
@@ -122,7 +122,7 @@ int TestAngularPeriodicDataArray(int, char * [])
   tensorPArray->SetCenter(tmp);
 
   double pTmp3[9];
-  tensorPArray->GetTupleValue(0, pTmp3);
+  tensorPArray->GetTypedTuple(0, pTmp3);
   if (std::abs(pTmp3[0] - 2.0096597239047708783) >= dEpsilon ||
       std::abs(pTmp3[1] - 13.555918489185591724) >= dEpsilon ||
       std::abs(pTmp3[2] - -8.6693107531410973365) >= dEpsilon ||
@@ -132,7 +132,7 @@ int TestAngularPeriodicDataArray(int, char * [])
       std::abs(pTmp3[6] - 3417.4749403678183626) >= dEpsilon ||
       std::abs(pTmp3[7] - 2136.7724473977045818) >= dEpsilon ||
       std::abs(pTmp3[8] - 19.19191919) >= dEpsilon)
-    {
+  {
       cerr.precision(20);
       cerr << "Error while rotating tensor : " << std::abs(pTmp3[0] - 2.0096597239047708783) << " " <<
       std::abs(pTmp3[1] - 13.555918489185591724) << " " <<
@@ -143,6 +143,6 @@ int TestAngularPeriodicDataArray(int, char * [])
       std::abs(pTmp3[6] - 3417.4749403678183626) << " " <<
       std::abs(pTmp3[7] - 2136.7724473977045818) << " " <<
       std::abs(pTmp3[8] - 19.19191919) << " " << dEpsilon << endl;
-    }
+  }
   return 0;
 }

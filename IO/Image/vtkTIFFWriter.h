@@ -12,14 +12,17 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-// .NAME vtkTIFFWriter - write out image data as a TIFF file
-// .SECTION Description
-// vtkTIFFWriter writes image data as a TIFF data file. Data can be written
-// uncompressed or compressed. Several forms of compression are supported
-// including packed bits, JPEG, deflation, and LZW. (Note: LZW compression
-// is currently under patent in the US and is disabled until the patent
-// expires. However, the mechanism for supporting this compression is available
-// for those with a valid license or to whom the patent does not apply.)
+/**
+ * @class   vtkTIFFWriter
+ * @brief   write out image data as a TIFF file
+ *
+ * vtkTIFFWriter writes image data as a TIFF data file. Data can be written
+ * uncompressed or compressed. Several forms of compression are supported
+ * including packed bits, JPEG, deflation, and LZW. (Note: LZW compression
+ * is currently under patent in the US and is disabled until the patent
+ * expires. However, the mechanism for supporting this compression is available
+ * for those with a valid license or to whom the patent does not apply.)
+*/
 
 #ifndef vtkTIFFWriter_h
 #define vtkTIFFWriter_h
@@ -32,13 +35,13 @@ class VTKIOIMAGE_EXPORT vtkTIFFWriter : public vtkImageWriter
 public:
   static vtkTIFFWriter *New();
   vtkTypeMacro(vtkTIFFWriter,vtkImageWriter);
-  virtual void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
-  // Description:
-  // The main interface which triggers the writer to start.
+  /**
+   * The main interface which triggers the writer to start.
+   */
   virtual void Write();
 
-//BTX
   enum { // Compression types
     NoCompression,
     PackBits,
@@ -46,11 +49,12 @@ public:
     Deflate,
     LZW
   };
-//ETX
 
-  // Description:
-  // Set compression type. Sinze LZW compression is patented outside US, the
-  // additional work steps have to be taken in order to use that compression.
+  //@{
+  /**
+   * Set compression type. Sinze LZW compression is patented outside US, the
+   * additional work steps have to be taken in order to use that compression.
+   */
   vtkSetClampMacro(Compression, int, NoCompression, LZW);
   vtkGetMacro(Compression, int);
   void SetCompressionToNoCompression() { this->SetCompression(NoCompression); }
@@ -58,6 +62,7 @@ public:
   void SetCompressionToJPEG()          { this->SetCompression(JPEG); }
   void SetCompressionToDeflate()       { this->SetCompression(Deflate); }
   void SetCompressionToLZW()           { this->SetCompression(LZW); }
+  //@}
 
 protected:
   vtkTIFFWriter();
@@ -76,8 +81,8 @@ protected:
   double YResolution;
 
 private:
-  vtkTIFFWriter(const vtkTIFFWriter&);  // Not implemented.
-  void operator=(const vtkTIFFWriter&);  // Not implemented.
+  vtkTIFFWriter(const vtkTIFFWriter&) VTK_DELETE_FUNCTION;
+  void operator=(const vtkTIFFWriter&) VTK_DELETE_FUNCTION;
 
   template<typename T> void WriteVolume(T *buffer);
 };

@@ -45,8 +45,12 @@ bool vtkRenderbuffer::IsSupported(vtkRenderWindow *win)
 
   vtkOpenGLRenderWindow *glwin = dynamic_cast<vtkOpenGLRenderWindow*>(win);
   if (glwin)
-    {
+  {
 #if GL_ES_VERSION_2_0 != 1
+    if (vtkOpenGLRenderWindow::GetContextSupportsOpenGL32())
+    {
+      return true;
+    }
     bool floatTex = (glewIsSupported("GL_ARB_texture_float") != 0);
     bool floatDepth = (glewIsSupported("GL_ARB_depth_buffer_float") != 0);
 #else
@@ -62,7 +66,7 @@ bool vtkRenderbuffer::IsSupported(vtkRenderWindow *win)
     bool fbo = true;
 
     supported = floatTex && floatDepth && fbo;
-    }
+  }
 
   return supported;
 }
@@ -74,7 +78,7 @@ bool vtkRenderbuffer::LoadRequiredExtensions(vtkRenderWindow *win)
 
   vtkOpenGLRenderWindow *glwin = dynamic_cast<vtkOpenGLRenderWindow*>(win);
   if (glwin)
-    {
+  {
     bool fbo = true;
 
 #if GL_ES_VERSION_2_0 != 1
@@ -91,7 +95,7 @@ bool vtkRenderbuffer::LoadRequiredExtensions(vtkRenderWindow *win)
 #endif
 
     supported = floatTex && fbo;
-    }
+  }
 
   return supported;
 }
@@ -112,10 +116,10 @@ void vtkRenderbuffer::Free()
   // we are(eg smart pointers), in which case we should
   // do nothing.
   if (this->Context && this->Handle)
-    {
+  {
     glDeleteRenderbuffers(1, &this->Handle);
     vtkOpenGLCheckErrorMacro("failed at glDeleteRenderBuffers");
-    }
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -140,10 +144,10 @@ void vtkRenderbuffer::SetContext(vtkRenderWindow *renWin)
   vtkOpenGLRenderWindow *context = dynamic_cast<vtkOpenGLRenderWindow*>(renWin);
   if ( !context
     || !this->LoadRequiredExtensions(renWin) )
-    {
+  {
     vtkErrorMacro("Unsupported render context");
     return;
-    }
+  }
 
   // allocate new fbo
   this->Context=renWin;
@@ -171,12 +175,12 @@ int vtkRenderbuffer::CreateDepthAttachment(
   // to be the case with mesa hence the need to explicitly specify
   // it as such if at all possible.
   if (this->DepthBufferFloat)
-    {
+  {
     return this->Create(
           GL_DEPTH_COMPONENT32F,
           width,
           height);
-    }
+  }
 
   return this->Create(
         GL_DEPTH_COMPONENT,

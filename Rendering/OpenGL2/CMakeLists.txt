@@ -24,19 +24,23 @@ set(Module_SRCS
   vtkEDLShading.cxx
   vtkFrameBufferObject.cxx
   vtkGaussianBlurPass.cxx
-  vtkGenericCompositePolyDataMapper2.cxx
   vtkGenericOpenGLRenderWindow.cxx
+  vtkHiddenLineRemovalPass.cxx
   vtkImageProcessingPass.cxx
   vtkLightingMapPass.cxx
   vtkLightsPass.cxx
   vtkOpaquePass.cxx
   vtkOpenGLActor.cxx
+  vtkOpenGLBillboardTextActor3D.cxx
   vtkOpenGLBufferObject.cxx
   vtkOpenGLCamera.cxx
+  vtkOpenGLFXAAFilter.cxx
+  vtkOpenGLGL2PSHelper.cxx
   vtkOpenGLGlyph3DHelper.cxx
   vtkOpenGLGlyph3DMapper.cxx
   vtkOpenGLHardwareSelector.cxx
   vtkOpenGLHelper.cxx
+  vtkOpenGLImageAlgorithmHelper.cxx
   vtkOpenGLImageMapper.cxx
   vtkOpenGLImageSliceMapper.cxx
   vtkOpenGLIndexBufferObject.cxx
@@ -46,17 +50,23 @@ set(Module_SRCS
   vtkOpenGLPolyDataMapper.cxx
   vtkOpenGLPolyDataMapper2D.cxx
   vtkOpenGLProperty.cxx
-  vtkOpenGLRenderWindow.cxx
+  vtkOpenGLRenderPass.cxx
+  vtkOpenGLRenderTimer.cxx
   vtkOpenGLRenderUtilities.cxx
+  vtkOpenGLRenderWindow.cxx
   vtkOpenGLRenderer.cxx
   vtkOpenGLShaderCache.cxx
+  vtkOpenGLSphereMapper.cxx
+  vtkOpenGLStickMapper.cxx
+  vtkOpenGLTextActor.cxx
+  vtkOpenGLTextActor3D.cxx
+  vtkOpenGLTextMapper.cxx
   vtkOpenGLTexture.cxx
   vtkOpenGLVertexArrayObject.cxx
   vtkOpenGLVertexBufferObject.cxx
   vtkOverlayPass.cxx
-  vtkRenderPass.cxx
+  vtkPointFillPass.cxx
   vtkRenderPassCollection.cxx
-  vtkRenderState.cxx
   vtkRenderStepsPass.cxx
   vtkSSAAPass.cxx
   vtkSequencePass.cxx
@@ -67,24 +77,30 @@ set(Module_SRCS
   vtkSobelGradientMagnitudePass.cxx
   vtkTextureObject.cxx
   vtkTextureUnitManager.cxx
+  vtkTransformFeedback.cxx
   vtkTranslucentPass.cxx
-  vtkValuePass.cxx
   vtkVolumetricPass.cxx
   )
 
 if (NOT DEFINED OPENGL_ES_VERSION)
   set(Module_SRCS ${Module_SRCS}
     vtkDataTransferHelper.cxx
+    vtkDualDepthPeelingPass.cxx # Needs GL_MAX
     vtkFrameBufferObject2.cxx
     vtkPixelBufferObject.cxx
     vtkRenderbuffer.cxx
+    vtkValuePass.cxx
+    vtkValuePassHelper.cxx
     )
 else()
   if (${OPENGL_ES_VERSION} MATCHES 3.0)
     set(Module_SRCS ${Module_SRCS}
+      vtkDualDepthPeelingPass.cxx # Needs GL_MAX
       vtkFrameBufferObject2.cxx
       vtkPixelBufferObject.cxx
       vtkRenderbuffer.cxx
+      vtkValuePass.cxx
+      vtkValuePassHelper.cxx
       )
   endif()
 endif()
@@ -100,30 +116,35 @@ set_source_files_properties(
   ${CMAKE_CURRENT_BINARY_DIR}/${vtk-module}ObjectFactory.cxx
   vtkFrameBufferObject
   vtkOpenGLBufferObject
+  vtkOpenGLGL2PSHelper
   vtkOpenGLGlyph3DHelper
   vtkOpenGLGlyph3DMapper
   vtkOpenGLHelper
   vtkOpenGLIndexBufferObject
+  vtkOpenGLRenderTimer
   vtkOpenGLShaderCache
   vtkOpenGLVertexArrayObject
   vtkOpenGLVertexBufferObject
   vtkPixelBufferObject
-  vtkRenderState
   vtkRenderbuffer
   vtkTextureObject
   vtkTextureUnitManager
+  vtkTransformFeedback
+  vtkValuePassHelper
   WRAP_EXCLUDE)
 
 set_source_files_properties(
   ${CMAKE_CURRENT_BINARY_DIR}/${vtk-module}ObjectFactory.cxx
+  vtkOpenGLGL2PSHelper
   vtkOpenGLGlyph3DHelper
   vtkOpenGLHelper
+  vtkOpenGLRenderTimer
+  vtkValuePassHelper
   PROPERTIES WRAP_EXCLUDE_PYTHON 1)
 
 set_source_files_properties(
+  vtkOpenGLGL2PSHelper
   vtkOpenGLRenderWindow
-  vtkRenderPass
-  vtkRenderState
   ABSTRACT
   )
 
@@ -134,10 +155,12 @@ set(shader_files
   glsl/vtkEDLBilateralFilterFS.glsl
   glsl/vtkEDLComposeFS.glsl
   glsl/vtkEDLShadeFS.glsl
+  glsl/vtkFXAAFilterFS.glsl
   glsl/vtkGaussianBlurPassFS.glsl
   glsl/vtkGaussianBlurPassVS.glsl
   glsl/vtkGlyph3DVS.glsl
   glsl/vtkPointGaussianVS.glsl
+  glsl/vtkPointFillPassFS.glsl
   glsl/vtkPolyData2DFS.glsl
   glsl/vtkPolyData2DVS.glsl
   glsl/vtkPolyDataFS.glsl
@@ -146,6 +169,8 @@ set(shader_files
   glsl/vtkSSAAPassFS.glsl
   glsl/vtkSobelGradientMagnitudePass1FS.glsl
   glsl/vtkSobelGradientMagnitudePass2FS.glsl
+  glsl/vtkSphereMapperVS.glsl
+  glsl/vtkStickMapperVS.glsl
   glsl/vtkTextureObjectFS.glsl
   glsl/vtkTextureObjectVS.glsl
   )
@@ -182,6 +207,7 @@ endif()
 # setup factory overrides
 set(opengl_overrides
   Actor
+  BillboardTextActor3D
   Camera
   LabeledContourMapper
   HardwareSelector
@@ -194,6 +220,9 @@ set(opengl_overrides
   PolyDataMapper2D
   Property
   Renderer
+  TextActor
+  TextActor3D
+  TextMapper
   Texture
   )
 
@@ -281,8 +310,7 @@ elseif(ANDROID)
     vtkEGLRenderWindow.cxx
     )
   include_directories(
-    "${ANDROID_NDK}/platforms/android-${ANDROID_NATIVE_API_LEVEL}/arch-${ANDROID_ARCH_NAME}/usr/include"
-    "${ANDROID_NDK}/sources/android/native_app_glue"
+    "${CMAKE_ANDROID_NDK}/sources/android/native_app_glue"
     )
 elseif(APPLE_IOS)
   # Add some custom overrides
@@ -332,7 +360,9 @@ endif()
 
 if(ANDROID)
   target_link_libraries(${vtk-module}
-    LINK_PUBLIC ${OPENGL_egl_LIBRARY})
+    LINK_PUBLIC ${OPENGL_egl_LIBRARY}
+    LINK_PRIVATE android
+    )
 endif()
 
 if (APPLE_IOS)

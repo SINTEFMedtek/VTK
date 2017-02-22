@@ -29,6 +29,9 @@
 #include <sstream>
 #include <EGL/egl.h>
 
+#if ANDROID
+#include <android/native_window.h>
+#endif
 
 
 namespace
@@ -44,17 +47,18 @@ namespace
     {
       static vtkEGLDeviceExtensions* instance = NULL;
       if (instance == NULL)
-        {
+      {
         instance = new vtkEGLDeviceExtensions();
-        }
+      }
       return instance;
     }
     bool Available()
     {
       return this->Available_;
     }
-    EGLQueryDevicesType eglQueryDevices = NULL;
-    EGLGetPlatformDisplayType eglGetPlatformDisplay = NULL;
+    bool Available_;
+    EGLQueryDevicesType eglQueryDevices;
+    EGLGetPlatformDisplayType eglGetPlatformDisplay;
 
   private:
     vtkEGLDeviceExtensions()
@@ -67,17 +71,16 @@ namespace
       if (platformExtensions.find("EGL_EXT_device_base") != std::string::npos &&
           platformExtensions.find("EGL_EXT_platform_device") != std::string::npos &&
           platformExtensions.find("EGL_EXT_platform_base") != std::string::npos)
-        {
+      {
         this->eglQueryDevices = (EGLQueryDevicesType)eglGetProcAddress("eglQueryDevicesEXT");
         this->eglGetPlatformDisplay = (EGLGetPlatformDisplayType)
             eglGetProcAddress("eglGetPlatformDisplayEXT");
         if(this->eglQueryDevices && this->eglGetPlatformDisplay)
-          {
+        {
           this->Available_ = true;
-          }
         }
+      }
     }
-    bool Available_;
   };
 };
 
@@ -94,8 +97,8 @@ struct vtkEGLRenderWindow::vtkInternals
   EGLContext Context;
   vtkInternals() : Window((EGLNativeWindowType)0),
                    Display(EGL_NO_DISPLAY),
-                   Context(EGL_NO_CONTEXT),
-                   Surface(EGL_NO_SURFACE)
+                   Surface(EGL_NO_SURFACE),
+                   Context(EGL_NO_CONTEXT)
   {
   }
 };
@@ -130,9 +133,9 @@ vtkEGLRenderWindow::~vtkEGLRenderWindow()
   vtkCollectionSimpleIterator rit;
   this->Renderers->InitTraversal(rit);
   while ( (ren = this->Renderers->GetNextRenderer(rit)) )
-    {
+  {
     ren->SetRenderWindow(NULL);
-    }
+  }
   delete this->Internals;
 }
 
@@ -142,30 +145,22 @@ void vtkEGLRenderWindow::Frame()
   vtkInternals* impl = this->Internals;
   this->MakeCurrent();
   if (this->OwnWindow)
-    {
+  {
     if (!this->AbortRender && this->DoubleBuffer && this->SwapBuffers
         && impl->Display != EGL_NO_DISPLAY)
-      {
+    {
       eglSwapBuffers(impl->Display, impl->Surface);
       vtkDebugMacro(<< " eglSwapBuffers\n");
-      }
-    else
-      {
-      glFlush();
-      }
     }
+  }
   else
-    {
+  {
     if (!this->AbortRender && this->DoubleBuffer && this->SwapBuffers)
-      {
+    {
       eglSwapBuffers( eglGetCurrentDisplay(), eglGetCurrentSurface( EGL_DRAW ) );
       vtkDebugMacro(<< " eglSwapBuffers\n");
-      }
-    else
-      {
-      glFlush();
-      }
     }
+  }
 }
 
 //
@@ -176,14 +171,14 @@ void vtkEGLRenderWindow::SetStereoCapableWindow(int capable)
 {
   vtkInternals* impl = this->Internals;
   if (impl->Display == EGL_NO_DISPLAY)
-    {
+  {
     vtkOpenGLRenderWindow::SetStereoCapableWindow(capable);
-    }
+  }
   else
-    {
+  {
     vtkWarningMacro(<< "Requesting a StereoCapableWindow must be performed "
                     << "before the window is realized, i.e. before a render.");
-    }
+  }
 }
 
 
@@ -191,15 +186,15 @@ void vtkEGLRenderWindow::CreateAWindow()
 {
   int s[2];
   if (this->Size[0] != 0 && this->Size[1] != 0)
-    {
+  {
     s[0] = this->Size[0];
     s[1] = this->Size[1];
-    }
+  }
   else
-    {
+  {
     s[0] = this->ScreenSize[0];
     s[1] = this->ScreenSize[1];
-    }
+  }
   this->ResizeWindow(s[0], s[1]);
 }
 
@@ -208,11 +203,11 @@ int vtkEGLRenderWindow::GetNumberOfDevices()
 {
   vtkEGLDeviceExtensions* ext = vtkEGLDeviceExtensions::GetInstance();
   if (ext->Available())
-    {
+  {
       EGLint num_devices = 0;
       ext->eglQueryDevices(num_devices, NULL, &num_devices);
       return num_devices;
-    }
+  }
   vtkWarningMacro("Getting the number of devices (graphics cards) on a system require "
                   "EGL_EXT_device_base, EGL_EXT_platform_device and EGL_EXT_platform_base extensions");
   return 0;
@@ -224,23 +219,23 @@ void vtkEGLRenderWindow::SetDeviceAsDisplay(int deviceIndex)
   vtkInternals* impl = this->Internals;
   vtkEGLDeviceExtensions* ext = vtkEGLDeviceExtensions::GetInstance();
   if (ext->Available())
-    {
+  {
     EGLint num_devices = 0;
     ext->eglQueryDevices(num_devices, NULL, &num_devices);
     if (deviceIndex >= num_devices)
-      {
+    {
       vtkWarningMacro("EGL device index: " << deviceIndex << " is greater than "
                       "the number of supported deviced in the system: " << num_devices <<
                       ". Using device 0 ...");
       return;
-      }
+    }
     EGLDeviceEXT* devices = new EGLDeviceEXT[num_devices];
     ext->eglQueryDevices(num_devices, devices, &num_devices);
     impl->Display =
       ext->eglGetPlatformDisplay(EGL_PLATFORM_DEVICE_EXT, devices[deviceIndex], NULL);
     delete[] devices;
     return;
-    }
+  }
   vtkWarningMacro("Setting an EGL display to device index: " << deviceIndex << " require "
                   "EGL_EXT_device_base EGL_EXT_platform_device EGL_EXT_platform_base extensions");
 }
@@ -257,13 +252,13 @@ void vtkEGLRenderWindow::ResizeWindow(int width, int height)
   EGLint surfaceType, clientAPI;
   const EGLint* contextAttribs;
   if (this->OffScreenRendering)
-    {
+  {
     surfaceType = EGL_PBUFFER_BIT;
     clientAPI = EGL_OPENGL_BIT;
     contextAttribs = NULL;
-    }
+  }
   else
-    {
+  {
     surfaceType = EGL_WINDOW_BIT;
     clientAPI = EGL_OPENGL_ES2_BIT;
     const EGLint contextES2[] =
@@ -272,7 +267,7 @@ void vtkEGLRenderWindow::ResizeWindow(int width, int height)
       EGL_NONE
       };
     contextAttribs = contextES2;
-    }
+  }
   const EGLint configs[] = {
     EGL_SURFACE_TYPE, surfaceType,
     EGL_BLUE_SIZE, 8,
@@ -291,33 +286,32 @@ void vtkEGLRenderWindow::ResizeWindow(int width, int height)
   };
 
 
-  EGLint dummy, format;
-  EGLint numConfigs;
+  EGLint numConfigs = 0;
   EGLConfig config;
 
   if (impl->Display == EGL_NO_DISPLAY)
-    {
+  {
       if (this->DeviceIndex > 0)
-        {
+      {
         this->SetDeviceAsDisplay(this->DeviceIndex);
-        }
+      }
       if (impl->Display == EGL_NO_DISPLAY)
-        {
+      {
         impl->Display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-        }
+      }
     EGLint major = 0, minor = 0;
     eglInitialize(impl->Display, &major, &minor);
     if (this->OffScreenRendering)
-      {
+    {
       if (major <= 1 && minor < 4)
-        {
+      {
         vtkErrorMacro("Only EGL 1.4 and greater allows OpenGL as client API. "
                       "See eglBindAPI for more information.");
         return;
-        }
-      eglBindAPI(EGL_OPENGL_API);
       }
+      eglBindAPI(EGL_OPENGL_API);
     }
+  }
 
 
   /* Here, the application chooses the configuration it desires. In this
@@ -325,12 +319,13 @@ void vtkEGLRenderWindow::ResizeWindow(int width, int height)
    * the first EGLConfig that matches our criteria */
   eglChooseConfig(impl->Display, configs, &config, 1, &numConfigs);
   if (numConfigs == 0)
-    {
+  {
       vtkErrorMacro("No matching EGL configuration found.");
       return;
-    }
+  }
 
 #ifdef ANDROID
+  EGLint format = 0;
   /* EGL_NATIVE_VISUAL_ID is an attribute of the EGLConfig that is
    * guaranteed to be accepted by ANativeWindow_setBuffersGeometry().
    * As soon as we picked a EGLConfig, we can safely reconfigure the
@@ -342,16 +337,16 @@ void vtkEGLRenderWindow::ResizeWindow(int width, int height)
 
 
   if (impl->Context == EGL_NO_CONTEXT)
-    {
+  {
     impl->Context = eglCreateContext(impl->Display, config, EGL_NO_CONTEXT, contextAttribs);
-    }
+  }
 
   if (impl->Surface != EGL_NO_SURFACE)
-    {
+  {
       eglDestroySurface(impl->Display, impl->Surface);
-    }
+  }
   impl->Surface = this->OffScreenRendering ?
-    impl->Surface = eglCreatePbufferSurface(impl->Display, config, surface_attribs):
+    eglCreatePbufferSurface(impl->Display, config, surface_attribs):
     eglCreateWindowSurface(impl->Display, config, impl->Window, NULL);
   this->Mapped = 1;
   this->OwnWindow = 1;
@@ -370,32 +365,32 @@ void vtkEGLRenderWindow::DestroyWindow()
   vtkInternals* impl = this->Internals;
   this->ReleaseGraphicsResources(this);
   if (this->OwnWindow && this->Mapped && impl->Display != EGL_NO_DISPLAY)
-    {
+  {
     // make sure all other code knows we're not mapped anymore
     this->Mapped = 0;
     eglMakeCurrent(impl->Display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     if (impl->Context != EGL_NO_CONTEXT)
-      {
+    {
       eglDestroyContext(impl->Display, impl->Context);
       impl->Context = EGL_NO_CONTEXT;
-      }
+    }
     if (impl->Surface != EGL_NO_SURFACE)
-      {
+    {
       eglDestroySurface(impl->Display, impl->Surface);
       impl->Surface = EGL_NO_SURFACE;
-      }
+    }
     eglTerminate(impl->Display);
     impl->Display = EGL_NO_DISPLAY;
-    }
+  }
 }
 
 // Initialize the window for rendering.
 void vtkEGLRenderWindow::WindowInitialize (void)
 {
   if (this->OwnWindow)
-    {
+  {
     this->CreateAWindow();
-    }
+  }
 
   this->MakeCurrent();
 
@@ -403,12 +398,17 @@ void vtkEGLRenderWindow::WindowInitialize (void)
   vtkRenderer* ren;
   for (this->Renderers->InitTraversal();
        (ren = this->Renderers->GetNextItem());)
-    {
+  {
     ren->SetRenderWindow(0);
     ren->SetRenderWindow(this);
-    }
+  }
 
   this->OpenGLInit();
+
+  // for offscreen EGL always turn on point sprites
+#ifdef VTK_USE_OFFSCREEN_EGL
+  glEnable(GL_POINT_SPRITE);
+#endif
 }
 
 // Initialize the rendering window.
@@ -416,18 +416,19 @@ void vtkEGLRenderWindow::Initialize (void)
 {
   vtkInternals* impl = this->Internals;
   if (impl->Context == EGL_NO_CONTEXT)
-    {
+  {
     this->WindowInitialize();
-    }
+  }
   else
-    {
+  {
     int w, h;
     this->GetEGLSurfaceSize(&w, &h);
     if (w != this->Size[0] || h != this->Size[1])
-      {
+    {
       this->ResizeWindow(this->Size[0], this->Size[1]);
-      }
     }
+  }
+  this->Initialized = true;
 }
 
 void vtkEGLRenderWindow::Finalize (void)
@@ -437,7 +438,7 @@ void vtkEGLRenderWindow::Finalize (void)
 }
 
 // Change the window to fill the entire screen.
-void vtkEGLRenderWindow::SetFullScreen(int arg)
+void vtkEGLRenderWindow::SetFullScreen(int vtkNotUsed(arg))
 {
   // window is always full screen
 }
@@ -472,29 +473,29 @@ void vtkEGLRenderWindow::Start(void)
 void vtkEGLRenderWindow::SetSize(int width, int height)
 {
   if ((this->Size[0] != width)||(this->Size[1] != height))
-    {
+  {
     this->Size[0] = width;
     this->Size[1] = height;
     this->Modified();
-    }
+  }
 }
 
 void vtkEGLRenderWindow::GetEGLSurfaceSize(int* width, int* height)
 {
   vtkInternals* impl = this->Internals;
   if(impl->Display != EGL_NO_DISPLAY && impl->Surface != EGL_NO_SURFACE)
-    {
+  {
     EGLint w, h;
     eglQuerySurface(impl->Display, impl->Surface, EGL_WIDTH, &w);
     eglQuerySurface(impl->Display, impl->Surface, EGL_HEIGHT, &h);
     *width = w;
     *height = h;
-    }
+  }
   else
-    {
+  {
       *width = 0;
       *height = 0;
-    }
+  }
 }
 
 
@@ -517,13 +518,13 @@ void vtkEGLRenderWindow::MakeCurrent()
      impl->Display != EGL_NO_DISPLAY &&
      impl->Context != EGL_NO_CONTEXT &&
      impl->Surface != EGL_NO_SURFACE)
-    {
+  {
     if (eglMakeCurrent(impl->Display, impl->Surface, impl->Surface, impl->Context) == EGL_FALSE)
-      {
-      vtkErrorMacro("Unable to eglMakeCurrent");
+    {
+      vtkWarningMacro("Unable to eglMakeCurrent: " << eglGetError());
       return;
-      }
     }
+  }
 }
 
 // ----------------------------------------------------------------------------
@@ -550,22 +551,11 @@ int *vtkEGLRenderWindow::GetPosition(void)
 void vtkEGLRenderWindow::SetPosition(int x, int y)
 {
   if ((this->Position[0] != x)||(this->Position[1] != y))
-    {
+  {
     this->Modified();
-    }
+  }
   this->Position[0] = x;
   this->Position[1] = y;
-}
-
-int vtkEGLRenderWindow::SupportsOpenGL()
-{
-  vtkInternals* impl = this->Internals;
-  this->MakeCurrent();
-  if(impl->Display == EGL_NO_DISPLAY && this->OwnWindow)
-    {
-    return false;
-    }
-  return true;
 }
 
 // Set this RenderWindow to a pre-existing window.
@@ -574,7 +564,6 @@ void vtkEGLRenderWindow::SetWindowInfo(char *)
   this->OwnWindow = 0;
   this->Mapped = 1;
 }
-
 
 void vtkEGLRenderWindow::SetWindowName(const char *name)
 {
@@ -626,12 +615,20 @@ int vtkEGLRenderWindow::GetOffScreenRendering ()
 //----------------------------------------------------------------------------
 bool vtkEGLRenderWindow::IsPointSpriteBugPresent()
 {
-  if (! this->IsPointSpriteBugTested)
-    {
-    this->IsPointSpriteBugTested = true;
-    this->IsPointSpriteBugPresent_ =
-      (strcmp(reinterpret_cast<const char*>(glGetString(GL_VERSION)), "4.5.0 NVIDIA 355.11") == 0);
-    }
+  // eventually we'll want to check with the NVIDIA EGL version to see if the
+  // point sprite bug is fixed but we don't know yet when it will be fixed
+  // but we do know that it's present in both the 355 and 358 drivers. for
+  // now do the safe thing and just assume the bug isn't fixed until we
+  // find a driver version where it is fixed.
+  this->IsPointSpriteBugTested = true;
+  this->IsPointSpriteBugPresent_ = true;
+  // if (! this->IsPointSpriteBugTested)
+  //   {
+  //   this->IsPointSpriteBugTested = true;
+  //   this->IsPointSpriteBugPresent_ =
+  //     (strcmp(reinterpret_cast<const char*>(glGetString(GL_VERSION)), "4.5.0 NVIDIA 355.11") == 0) ||
+  //     (strcmp(reinterpret_cast<const char*>(glGetString(GL_VERSION)), "4.5.0 NVIDIA 358.16") == 0);
+  //   }
   return this->IsPointSpriteBugPresent_;
 }
 

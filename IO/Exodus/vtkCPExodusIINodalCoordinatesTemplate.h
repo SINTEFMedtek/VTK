@@ -13,13 +13,16 @@
 
 =========================================================================*/
 
-// .NAME vtkCPExodusIINodalCoordinatesTemplate - Map native Exodus II coordinate
-// arrays into the vtkDataArray interface.
-//
-// .SECTION Description
-// Map native Exodus II coordinate arrays into the vtkDataArray interface. Use
-// the vtkCPExodusIIInSituReader to read an Exodus II file's data into this
-// structure.
+/**
+ * @class   vtkCPExodusIINodalCoordinatesTemplate
+ * @brief   Map native Exodus II coordinate
+ * arrays into the vtkDataArray interface.
+ *
+ *
+ * Map native Exodus II coordinate arrays into the vtkDataArray interface. Use
+ * the vtkCPExodusIIInSituReader to read an Exodus II file's data into this
+ * structure.
+*/
 
 #ifndef vtkCPExodusIINodalCoordinatesTemplate_h
 #define vtkCPExodusIINodalCoordinatesTemplate_h
@@ -27,23 +30,25 @@
 #include "vtkMappedDataArray.h"
 #include "vtkIOExodusModule.h" // For export macro
 
-#include "vtkTypeTemplate.h" // For templated vtkObject API
 #include "vtkObjectFactory.h" // for vtkStandardNewMacro
 
 template <class Scalar>
-class vtkCPExodusIINodalCoordinatesTemplate:
-    public vtkTypeTemplate<vtkCPExodusIINodalCoordinatesTemplate<Scalar>,
-                           vtkMappedDataArray<Scalar> >
+class vtkCPExodusIINodalCoordinatesTemplate: public vtkMappedDataArray<Scalar>
 {
 public:
+  vtkAbstractTemplateTypeMacro(vtkCPExodusIINodalCoordinatesTemplate<Scalar>,
+                               vtkMappedDataArray<Scalar>)
   vtkMappedDataArrayNewInstanceMacro(
       vtkCPExodusIINodalCoordinatesTemplate<Scalar>)
   static vtkCPExodusIINodalCoordinatesTemplate *New();
   virtual void PrintSelf(ostream &os, vtkIndent indent);
 
-  // Description:
-  // Set the raw scalar arrays for the coordinate set. This class takes
-  // ownership of the arrays and deletes them with delete[].
+  typedef typename Superclass::ValueType ValueType;
+
+  /**
+   * Set the raw scalar arrays for the coordinate set. This class takes
+   * ownership of the arrays and deletes them with delete[].
+   */
   void SetExodusScalarArrays(Scalar *x, Scalar *y, Scalar *z,
                              vtkIdType numPoints);
 
@@ -52,7 +57,7 @@ public:
   void GetTuples(vtkIdList *ptIds, vtkAbstractArray *output);
   void GetTuples(vtkIdType p1, vtkIdType p2, vtkAbstractArray *output);
   void Squeeze();
-  vtkArrayIterator *NewIterator();
+  VTK_NEWINSTANCE vtkArrayIterator *NewIterator();
   vtkIdType LookupValue(vtkVariant value);
   void LookupValue(vtkVariant value, vtkIdList *ids);
   vtkVariant GetVariantValue(vtkIdType idx);
@@ -61,13 +66,15 @@ public:
   void GetTuple(vtkIdType i, double *tuple);
   vtkIdType LookupTypedValue(Scalar value);
   void LookupTypedValue(Scalar value, vtkIdList *ids);
-  Scalar GetValue(vtkIdType idx);
-  Scalar& GetValueReference(vtkIdType idx);
-  void GetTupleValue(vtkIdType idx, Scalar *t);
+  ValueType GetValue(vtkIdType idx) const;
+  ValueType& GetValueReference(vtkIdType idx);
+  void GetTypedTuple(vtkIdType idx, Scalar *t) const;
 
-  // Description:
-  // This container is read only -- this method does nothing but print a
-  // warning.
+  //@{
+  /**
+   * This container is read only -- this method does nothing but print a
+   * warning.
+   */
   int Allocate(vtkIdType sz, vtkIdType ext);
   int Resize(vtkIdType numTuples);
   void SetNumberOfTuples(vtkIdType number);
@@ -95,12 +102,13 @@ public:
   void RemoveTuple(vtkIdType id);
   void RemoveFirstTuple();
   void RemoveLastTuple();
-  void SetTupleValue(vtkIdType i, const Scalar *t);
-  void InsertTupleValue(vtkIdType i, const Scalar *t);
-  vtkIdType InsertNextTupleValue(const Scalar *t);
+  void SetTypedTuple(vtkIdType i, const Scalar *t);
+  void InsertTypedTuple(vtkIdType i, const Scalar *t);
+  vtkIdType InsertNextTypedTuple(const Scalar *t);
   void SetValue(vtkIdType idx, Scalar value);
   vtkIdType InsertNextValue(Scalar v);
   void InsertValue(vtkIdType idx, Scalar v);
+  //@}
 
 protected:
   vtkCPExodusIINodalCoordinatesTemplate();
@@ -112,9 +120,9 @@ protected:
 
 private:
   vtkCPExodusIINodalCoordinatesTemplate(
-      const vtkCPExodusIINodalCoordinatesTemplate &); // Not implemented.
+      const vtkCPExodusIINodalCoordinatesTemplate &) VTK_DELETE_FUNCTION;
   void operator=(
-      const vtkCPExodusIINodalCoordinatesTemplate &); // Not implemented.
+      const vtkCPExodusIINodalCoordinatesTemplate &) VTK_DELETE_FUNCTION;
 
   vtkIdType Lookup(const Scalar &val, vtkIdType startIndex);
   double *TempDoubleArray;

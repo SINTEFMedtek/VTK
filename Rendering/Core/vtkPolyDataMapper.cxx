@@ -40,28 +40,33 @@ vtkPolyDataMapper::vtkPolyDataMapper()
 void vtkPolyDataMapper::Render(vtkRenderer *ren, vtkActor *act)
 {
   if (this->Static)
-    {
+  {
     this->RenderPiece(ren,act);
     return;
-    }
+  }
 
   vtkInformation *inInfo = this->GetInputInformation();
   if (inInfo == NULL)
-    {
+  {
     vtkErrorMacro("Mapper has no input.");
     return;
-    }
+  }
 
   int nPieces = this->NumberOfPieces * this->NumberOfSubPieces;
   for (int i = 0; i < this->NumberOfSubPieces; i++)
-    {
+  {
     // If more than one pieces, render in loop.
     int currentPiece = this->NumberOfSubPieces * this->Piece + i;
-    vtkStreamingDemandDrivenPipeline::SetUpdateExtent(
-      inInfo,
-      currentPiece, nPieces, this->GhostLevel);
+    this->GetInputAlgorithm()->UpdateInformation();
+    inInfo->Set(
+      vtkStreamingDemandDrivenPipeline::UPDATE_PIECE_NUMBER(), currentPiece);
+    inInfo->Set(
+      vtkStreamingDemandDrivenPipeline::UPDATE_NUMBER_OF_PIECES(), nPieces);
+    inInfo->Set(
+      vtkStreamingDemandDrivenPipeline::UPDATE_NUMBER_OF_GHOST_LEVELS(),
+      this->GhostLevel);
     this->RenderPiece(ren, act);
-    }
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -79,54 +84,23 @@ vtkPolyData *vtkPolyDataMapper::GetInput()
 }
 
 //----------------------------------------------------------------------------
-// Update the network connected to this mapper.
-void vtkPolyDataMapper::Update(int port)
-{
-  if (this->Static)
-    {
-    return;
-    }
-
-  this->UpdateInformation();
-
-  vtkInformation* inInfo = this->GetInputInformation();
-
-  // If the estimated pipeline memory usage is larger than
-  // the memory limit, break the current piece into sub-pieces.
-  if (inInfo)
-    {
-    int currentPiece = this->NumberOfSubPieces * this->Piece;
-    vtkStreamingDemandDrivenPipeline::SetUpdateExtent(
-      inInfo,
-      currentPiece,
-      this->NumberOfSubPieces * this->NumberOfPieces,
-      this->GhostLevel);
-    }
-
-  this->vtkMapper::Update(port);
-}
-
-//----------------------------------------------------------------------------
-void vtkPolyDataMapper::Update()
-{
-  this->Superclass::Update();
-}
-
-//----------------------------------------------------------------------------
 int vtkPolyDataMapper::ProcessRequest(vtkInformation* request,
                                       vtkInformationVector** inputVector,
                                       vtkInformationVector*)
 {
   if(request->Has(vtkStreamingDemandDrivenPipeline::REQUEST_UPDATE_EXTENT()))
-    {
+  {
     vtkInformation* inInfo = inputVector[0]->GetInformationObject(0);
     int currentPiece = this->NumberOfSubPieces * this->Piece;
-    vtkStreamingDemandDrivenPipeline::SetUpdateExtent(
-      inInfo,
-      currentPiece,
-      this->NumberOfSubPieces * this->NumberOfPieces,
+    inInfo->Set(
+      vtkStreamingDemandDrivenPipeline::UPDATE_PIECE_NUMBER(), currentPiece);
+    inInfo->Set(
+      vtkStreamingDemandDrivenPipeline::UPDATE_NUMBER_OF_PIECES(),
+      this->NumberOfSubPieces * this->NumberOfPieces);
+    inInfo->Set(
+      vtkStreamingDemandDrivenPipeline::UPDATE_NUMBER_OF_GHOST_LEVELS(),
       this->GhostLevel);
-    }
+  }
   return 1;
 }
 
@@ -137,38 +111,35 @@ double *vtkPolyDataMapper::GetBounds()
 {
   // do we have an input
   if ( !this->GetNumberOfInputConnections(0))
-    {
+  {
       vtkMath::UninitializeBounds(this->Bounds);
       return this->Bounds;
-    }
+  }
   else
-    {
+  {
     if (!this->Static)
-      {
+    {
       vtkInformation* inInfo = this->GetInputInformation();
       if (inInfo)
-        {
+      {
         this->GetInputAlgorithm()->UpdateInformation();
         int currentPiece = this->NumberOfSubPieces * this->Piece;
-        vtkStreamingDemandDrivenPipeline::SetUpdateExtent(
-          inInfo,
-          currentPiece,
+        this->GetInputAlgorithm()->UpdatePiece(currentPiece,
           this->NumberOfSubPieces * this->NumberOfPieces,
           this->GhostLevel);
-        this->GetInputAlgorithm()->Update();
-        }
       }
+    }
     this->ComputeBounds();
 
     // if the bounds indicate NAN and subpieces are being used then
     // return NULL
     if (!vtkMath::AreBoundsInitialized(this->Bounds)
         && this->NumberOfSubPieces > 1)
-      {
+    {
       return NULL;
-      }
-    return this->Bounds;
     }
+    return this->Bounds;
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -182,12 +153,12 @@ void vtkPolyDataMapper::ShallowCopy(vtkAbstractMapper *mapper)
 {
   vtkPolyDataMapper *m = vtkPolyDataMapper::SafeDownCast(mapper);
   if (m != NULL)
-    {
+  {
     this->SetInputConnection(m->GetInputConnection(0, 0));
     this->SetGhostLevel(m->GetGhostLevel());
     this->SetNumberOfPieces(m->GetNumberOfPieces());
     this->SetNumberOfSubPieces(m->GetNumberOfSubPieces());
-    }
+  }
 
   // Now do superclass
   this->vtkMapper::ShallowCopy(mapper);
@@ -246,4 +217,45 @@ int vtkPolyDataMapper::FillInputPortInformation(
 {
   info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkPolyData");
   return 1;
+}
+
+
+//----------------------------------------------------------------------------
+void vtkPolyDataMapper::Update(int port)
+{
+  if (this->Static)
+  {
+    return;
+  }
+  this->Superclass::Update(port);
+}
+
+//----------------------------------------------------------------------------
+void vtkPolyDataMapper::Update()
+{
+  if (this->Static)
+  {
+    return;
+  }
+  this->Superclass::Update();
+}
+
+//----------------------------------------------------------------------------
+int vtkPolyDataMapper::Update(int port, vtkInformationVector* requests)
+{
+  if (this->Static)
+  {
+    return 1;
+  }
+  return this->Superclass::Update(port, requests);
+}
+
+//----------------------------------------------------------------------------
+int vtkPolyDataMapper::Update(vtkInformation* requests)
+{
+  if (this->Static)
+  {
+    return 1;
+  }
+  return this->Superclass::Update(requests);
 }

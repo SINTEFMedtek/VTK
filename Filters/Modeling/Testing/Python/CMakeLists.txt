@@ -3,7 +3,9 @@ vtk_add_test_python(
   HyperScalarBar.py
   KlineBottle.py
   TenEllip.py
+  TestAdaptiveSubdivisionFilter.py
   TestBandedContourFilter.py
+  TestBandedContourFilter2.py
   TestBoxFunction.py
   TestImageMarchingCubes.py
   TestRibbonAndTube.py

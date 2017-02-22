@@ -27,10 +27,6 @@
 #include "vtkMath.h"
 #include "vtkGenericCell.h"
 
-#define min(x,y) ((x<y) ? (x) : (y))
-#define max(x,y) ((x>y) ? (x) : (y))
-
-
 //----------------------------------------------------------------------
 vtkTensorProbeRepresentation::vtkTensorProbeRepresentation()
 {
@@ -56,29 +52,29 @@ vtkTensorProbeRepresentation::~vtkTensorProbeRepresentation()
 void vtkTensorProbeRepresentation::SetTrajectory( vtkPolyData * args )
 {
   if (this->Trajectory != args)
-    {
+  {
     vtkPolyData * tempSGMacroVar = this->Trajectory;
     this->Trajectory = args;
     if (this->Trajectory != NULL)
-      {
+    {
       this->Trajectory->Register(this);
-      }
+    }
     if (tempSGMacroVar != NULL)
-      {
+    {
       tempSGMacroVar->UnRegister(this);
-      }
+    }
     this->TrajectoryMapper->SetInputData( this->Trajectory );
     this->Modified();
-    }
+  }
 }
 
 //----------------------------------------------------------------------
 int vtkTensorProbeRepresentation::Move( double motionVector[2] )
 {
   if (motionVector[0] == 0.0 && motionVector[1] == 0.0)
-    {
+  {
     return 0;
-    }
+  }
 
   vtkIdType cellId;
   double displayPos[4], p2[3], p[4];
@@ -97,11 +93,11 @@ int vtkTensorProbeRepresentation::Move( double motionVector[2] )
   this->FindClosestPointOnPolyline( displayPos, p2, cellId );
 
   if (vtkMath::Distance2BetweenPoints(p,p2) > 0.0)
-    {
+  {
     this->SetProbePosition( p2 );
     this->SetProbeCellId( cellId );
     return 1;
-    }
+  }
 
   return 0;
 }
@@ -117,15 +113,15 @@ void vtkTensorProbeRepresentation
   this->Trajectory->GetLines()->GetCell( 0, npts, ptIds );
   vtkPoints *points = this->Trajectory->GetPoints();
 
-  vtkIdType minCellId = max( this->ProbeCellId - maxSpeed, 0 );
-  vtkIdType maxCellId = min( this->ProbeCellId + maxSpeed, npts-1 );
+  vtkIdType minCellId = vtkMath::Max( this->ProbeCellId - maxSpeed, static_cast<vtkIdType>(0) );
+  vtkIdType maxCellId = vtkMath::Min( this->ProbeCellId + maxSpeed, npts-1 );
 
   double closestT=0.0, closestDist = VTK_DOUBLE_MAX,
          pprev[3]= {0.0, 0.0, 0.0}, t, closestPt[3], dist,
          x[3] = { displayPos[0], displayPos[1], 0.0 };
 
   for (vtkIdType id = minCellId; id <= maxCellId; id++)
-    {
+  {
 
     double p[4];
     points->GetPoint(id, p);
@@ -136,39 +132,39 @@ void vtkTensorProbeRepresentation
     this->Renderer->GetDisplayPoint(p);
 
     if (id != minCellId)
-      {
+    {
       p[2] = 0.0;
       dist = vtkLine::DistanceToLine( x, p, pprev, t, closestPt );
       if (t < 0.0 || t > 1.0)
-        {
+      {
         double d1 = vtkMath::Distance2BetweenPoints(x,pprev);
         double d2 = vtkMath::Distance2BetweenPoints(x,p);
         if (d1 < d2)
-          {
+        {
           t = 1.0;
           dist = d1;
-          }
+        }
         else
-          {
+        {
           t = 0.0;
           dist = d2;
-          }
         }
+      }
 
       if (dist < closestDist)
-        {
+      {
         closestDist = dist;
         closestT = t;
         closestPt[0] = p[0];
         closestPt[1] = p[1];
         closestPt[2] = p[2];
         cellId = id-1;
-        }
       }
+    }
 
     pprev[0] = p[0];
     pprev[1] = p[1];
-    }
+  }
 
   double p1[3], p2[3];
   points->GetPoint(cellId, p1);
@@ -184,14 +180,14 @@ void vtkTensorProbeRepresentation
 void vtkTensorProbeRepresentation::Initialize()
 {
   if (this->ProbePosition[0] == VTK_DOUBLE_MAX && this->Trajectory)
-    {
+  {
     double p[3];
     vtkPoints *points = this->Trajectory->GetPoints();
     points->GetPoint(0, p);
 
     this->SetProbeCellId(0);
     this->SetProbePosition(p);
-    }
+  }
 }
 
 //----------------------------------------------------------------------

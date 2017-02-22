@@ -12,9 +12,12 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-// .NAME vtkPipelineGraphSource - a graph constructed from a VTK pipeline
-//
-// .SECTION Description
+/**
+ * @class   vtkPipelineGraphSource
+ * @brief   a graph constructed from a VTK pipeline
+ *
+ *
+*/
 
 #ifndef vtkPipelineGraphSource_h
 #define vtkPipelineGraphSource_h
@@ -35,14 +38,15 @@ public:
   void AddSink(vtkObject* object);
   void RemoveSink(vtkObject* object);
 
-//BTX
-  // Description:
-  // Generates a GraphViz DOT file that describes the VTK pipeline
-  // terminating at the given sink.
+  /**
+   * Generates a GraphViz DOT file that describes the VTK pipeline
+   * terminating at the given sink.
+   */
   static void PipelineToDot(vtkAlgorithm* sink, ostream& output, const vtkStdString& graph_name = "");
-  // Description:
-  // Generates a GraphViz DOT file that describes the VTK pipeline
-  // terminating at the given sinks.
+  /**
+   * Generates a GraphViz DOT file that describes the VTK pipeline
+   * terminating at the given sinks.
+   */
   static void PipelineToDot(vtkCollection* sinks, ostream& output, const vtkStdString& graph_name = "");
 
 protected:
@@ -57,9 +61,9 @@ protected:
   vtkCollection* Sinks;
 
 private:
-  vtkPipelineGraphSource(const vtkPipelineGraphSource&); // Not implemented
-  void operator=(const vtkPipelineGraphSource&);   // Not implemented
-//ETX
+  vtkPipelineGraphSource(const vtkPipelineGraphSource&) VTK_DELETE_FUNCTION;
+  void operator=(const vtkPipelineGraphSource&) VTK_DELETE_FUNCTION;
+
 };
 
 #endif

@@ -13,11 +13,14 @@
 
 =========================================================================*/
 
-// .NAME vtkContextItem - base class for items that are part of a vtkContextScene.
-//
-// .SECTION Description
-// Derive from this class to create custom items that can be added to a
-// vtkContextScene.
+/**
+ * @class   vtkContextItem
+ * @brief   base class for items that are part of a vtkContextScene.
+ *
+ *
+ * Derive from this class to create custom items that can be added to a
+ * vtkContextScene.
+*/
 
 #ifndef vtkContextItem_h
 #define vtkContextItem_h
@@ -31,16 +34,21 @@ public:
   vtkTypeMacro(vtkContextItem, vtkAbstractContextItem);
   virtual void PrintSelf(ostream &os, vtkIndent indent);
 
-  // Description:
-  // Get the opacity of the item.
+  //@{
+  /**
+   * Get the opacity of the item.
+   */
   vtkGetMacro(Opacity, double);
+  //@}
 
-  // Description:
-  // Set the opacity of the item.
-  // 1.0 by default.
+  //@{
+  /**
+   * Set the opacity of the item.
+   * 1.0 by default.
+   */
   vtkSetMacro(Opacity, double);
+  //@}
 
-//BTX
 protected:
   vtkContextItem();
   ~vtkContextItem();
@@ -48,9 +56,9 @@ protected:
   double Opacity;
 
 private:
-  vtkContextItem(const vtkContextItem &); // Not implemented.
-  void operator=(const vtkContextItem &);   // Not implemented.
-//ETX
+  vtkContextItem(const vtkContextItem &) VTK_DELETE_FUNCTION;
+  void operator=(const vtkContextItem &) VTK_DELETE_FUNCTION;
+
 };
 
 #endif //vtkContextItem_h

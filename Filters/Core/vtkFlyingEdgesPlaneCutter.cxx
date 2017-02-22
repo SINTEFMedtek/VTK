@@ -14,6 +14,7 @@
 =========================================================================*/
 #include "vtkFlyingEdgesPlaneCutter.h"
 
+#include "vtkArrayListTemplate.h" // For processing attribute data
 #include "vtkMath.h"
 #include "vtkImageData.h"
 #include "vtkCellArray.h"
@@ -29,12 +30,13 @@
 #include "vtkPlane.h"
 #include "vtkSMPTools.h"
 
-#include <math.h>
+#include <cmath>
 
 vtkStandardNewMacro(vtkFlyingEdgesPlaneCutter);
 vtkCxxSetObjectMacro(vtkFlyingEdgesPlaneCutter,Plane,vtkPlane);
 
 //----------------------------------------------------------------------------
+namespace {
 // This templated class implements the heart of the algorithm.
 // vtkFlyingEdgesPlaneCutter populates the information in this class and
 // then invokes Contour() to actually initiate execution.
@@ -123,17 +125,19 @@ public:
   vtkIdType *NewTris;
   float     *NewPoints;
   float     *NewNormals;
+  bool       InterpolateAttributes;
+  ArrayList  Arrays;
 
   // Setup algorithm
   vtkFlyingEdgesPlaneCutterAlgorithm();
 
   // Adjust the origin to the lower-left corner of the volume (if necessary)
   void AdjustOrigin()
-    {
+  {
     this->Origin[0] = this->Origin[0] + this->Spacing[0]*this->Min0;
     this->Origin[1] = this->Origin[1] + this->Spacing[1]*this->Min1;
     this->Origin[2] = this->Origin[2] + this->Spacing[2]*this->Min2;;
-    }
+  }
 
   // The three main passes of the algorithm.
   void ProcessXEdge(double xL[3], double xR[3], vtkIdType row, vtkIdType slice); //PASS 1
@@ -147,9 +151,9 @@ public:
   // Given the four x-edge cases defining this voxel, return the voxel case
   // number.
   unsigned char GetEdgeCase(unsigned char *ePtr[4])
-    {
+  {
     return (*(ePtr[0]) | ((*(ePtr[1]))<<2) | ((*(ePtr[2]))<<4) | ((*(ePtr[3]))<<6));
-    }
+  }
 
   // Return the number of contouring primitives for a particular edge case number.
   unsigned char GetNumberOfPrimitives(unsigned char eCase)
@@ -170,24 +174,25 @@ public:
   // Produce the output triangles for this voxel cell.
   void GenerateTris(unsigned char eCase, unsigned char numTris, vtkIdType *eIds,
                     vtkIdType &triId)
-    {
+  {
       vtkIdType *tri;
       const unsigned char *edges = this->EdgeCases[eCase] + 1;
       for (int i=0; i < numTris; ++i, edges+=3)
-        {
+      {
         tri = this->NewTris + 4*triId++;
         tri[0] = 3;
         tri[1] = eIds[edges[0]];
         tri[2] = eIds[edges[1]];
         tri[3] = eIds[edges[2]];
-        }
-    }
+      }
+  }
 
   // Interpolate along a voxel axes edge.
-  void InterpolateAxesEdge(double t, vtkIdType vId,
+  void InterpolateAxesEdge(double t, vtkIdType vId, const int incs[3],
                            double x0[3], double x1[3],
-                           const double s0, const double s1)
-    {
+                           const double s0, const double s1,
+                           vtkIdType ijk0[3], vtkIdType ijk1[3])
+  {
       float *x = this->NewPoints + 3*vId;
       x[0] = static_cast<float>(x0[0] + t*(x1[0]-x0[0]));
       x[1] = static_cast<float>(x0[1] + t*(x1[1]-x0[1]));
@@ -197,19 +202,26 @@ public:
       *s = s0 + t * (s1 - s0);
 
       if ( this->NewNormals )
-        {
+      {
         float *n = this->NewNormals + 3*vId;
-        n[0] = this->Normal[0];
-        n[1] = this->Normal[1];
-        n[2] = this->Normal[2];
-        }//if normals
-    }
+        n[0] = -this->Normal[0];
+        n[1] = -this->Normal[1];
+        n[2] = -this->Normal[2];
+      }//if normals
+
+      if ( this->InterpolateAttributes )
+      {
+        vtkIdType v0=ijk0[0] + ijk0[1]*incs[1] + ijk0[2]*incs[2];
+        vtkIdType v1=ijk1[0] + ijk1[1]*incs[1] + ijk1[2]*incs[2];;
+        this->Arrays.InterpolateEdge(v0,v1,t,vId);
+      }
+  }
 
   // Interpolate along an arbitrary edge, typically one that may be on the
   // volume boundary. This means careful computation of stuff requiring
   // neighborhood information.
-  void InterpolateEdge(T const * const s, const int incs[3],
-                       double x[3],
+  void InterpolateEdge(vtkIdType ijk[3], T const * const s,
+                       const int incs[3],double x[3],
                        unsigned char edgeNum,
                        unsigned char const* const edgeUses,
                        vtkIdType *eIds);
@@ -223,7 +235,7 @@ public:
   // Helper function to set up the point ids on voxel edges.
   unsigned char InitVoxelIds(unsigned char *ePtr[4], vtkIdType *eMD[4],
                              vtkIdType *eIds)
-    {
+  {
       unsigned char eCase = GetEdgeCase(ePtr);
       eIds[0] = eMD[0][0]; //x-edges
       eIds[1] = eMD[1][0];
@@ -238,11 +250,11 @@ public:
       eIds[10] = eMD[1][2];
       eIds[11] = eIds[10] + this->EdgeUses[eCase][10];
       return eCase;
-    }
+  }
 
   // Helper function to advance the point ids along voxel rows.
   void AdvanceVoxelIds(unsigned char eCase, vtkIdType *eIds)
-    {
+  {
       eIds[0] += this->EdgeUses[eCase][0]; //x-edges
       eIds[1] += this->EdgeUses[eCase][1];
       eIds[2] += this->EdgeUses[eCase][2];
@@ -255,89 +267,90 @@ public:
       eIds[9] = eIds[8] + this->EdgeUses[eCase][9];
       eIds[10] += this->EdgeUses[eCase][10];
       eIds[11] = eIds[10] + this->EdgeUses[eCase][11];
-    }
+  }
 
   // Threading integration via SMPTools
   template <class TT> class Pass1
-    {
+  {
     public:
       vtkFlyingEdgesPlaneCutterAlgorithm<TT> *Algo;
       Pass1(vtkFlyingEdgesPlaneCutterAlgorithm<TT> *algo)
         {this->Algo = algo;}
       void  operator()(vtkIdType slice, vtkIdType end)
-        {
+      {
         vtkIdType row;
         TT *rowPtr, *slicePtr = this->Algo->Scalars + slice*this->Algo->Inc2;
         double xL[3], xR[3];
         xL[0] = this->Algo->XL;
         xR[0] = this->Algo->XR;
         for ( ; slice < end; ++slice )
-          {
+        {
           xL[2] = this->Algo->Origin[2] + slice*this->Algo->Spacing[2];
           xR[2] = xL[2];
           for (row=0, rowPtr=slicePtr; row < this->Algo->Dims[1]; ++row)
-            {
+          {
             xL[1] = this->Algo->Origin[1] + row*this->Algo->Spacing[1];
             xR[1] = xL[1];
             this->Algo->ProcessXEdge(xL, xR, row, slice);
             rowPtr += this->Algo->Inc1;
-            }//for all rows in this slice
+          }//for all rows in this slice
           slicePtr += this->Algo->Inc2;
-          }//for all slices in this batch
-        }
-    };
+        }//for all slices in this batch
+      }
+  };
   template <class TT> class Pass2
-    {
+  {
     public:
       Pass2(vtkFlyingEdgesPlaneCutterAlgorithm<TT> *algo)
         {this->Algo = algo;}
       vtkFlyingEdgesPlaneCutterAlgorithm<TT> *Algo;
       void  operator()(vtkIdType slice, vtkIdType end)
-        {
+      {
         for ( ; slice < end; ++slice)
-          {
+        {
           for ( vtkIdType row=0; row < (this->Algo->Dims[1]-1); ++row)
-            {
+          {
             this->Algo->ProcessYZEdges(row, slice);
-            }//for all rows in this slice
-          }//for all slices in this batch
-        }
-    };
+          }//for all rows in this slice
+        }//for all slices in this batch
+      }
+  };
   template <class TT> class Pass4
-    {
+  {
     public:
       Pass4(vtkFlyingEdgesPlaneCutterAlgorithm<TT> *algo)
         {this->Algo = algo;}
       vtkFlyingEdgesPlaneCutterAlgorithm<TT> *Algo;
       void  operator()(vtkIdType slice, vtkIdType end)
-        {
+      {
         vtkIdType row;
         vtkIdType *eMD0 = this->Algo->EdgeMetaData + slice*6*this->Algo->Dims[1];
         vtkIdType *eMD1 = eMD0 + 6*this->Algo->Dims[1];
         TT *rowPtr, *slicePtr = this->Algo->Scalars + slice*this->Algo->Inc2;
         for ( ; slice < end; ++slice )
-          {
+        {
           // It's possible to skip entire slices if there is nothing to generate
           if ( eMD1[3] > eMD0[3] ) //there are triangle primitives!
-            {
+          {
             for (row=0, rowPtr=slicePtr; row < this->Algo->Dims[1]-1; ++row)
-              {
+            {
               this->Algo->GenerateOutput(rowPtr, row, slice);
               rowPtr += this->Algo->Inc1;
-              }//for all rows in this slice
-            }//if there are triangles
+            }//for all rows in this slice
+          }//if there are triangles
           slicePtr += this->Algo->Inc2;
           eMD0 = eMD1;
           eMD1 = eMD0 + 6*this->Algo->Dims[1];
-          }//for all slices in this batch
-        }
-    };
+        }//for all slices in this batch
+      }
+  };
 
   // Interface between VTK and templated functions
   static void Contour(vtkFlyingEdgesPlaneCutter *self, vtkImageData *input,
-                      int extent[6], vtkIdType *incs, T *scalars,
-                      vtkPoints *newPts, vtkCellArray *newTris,
-                      vtkDataArray *newScalars, vtkDataArray *newNormals);
+                      vtkDataArray *inScalars, int extent[6], vtkIdType *incs,
+                      T *scalars, vtkPolyData *output, vtkPoints *newPts,
+                      vtkCellArray *newTris, vtkDataArray *newScalars,
+                      vtkDataArray *newNormals);
 };
 
 //----------------------------------------------------------------------------
@@ -375,17 +388,17 @@ vtkFlyingEdgesPlaneCutterAlgorithm():XCases(NULL),EdgeMetaData(NULL),NewScalars(
 
   // Initialize cases, increments, and edge intersection flags
   for (eCase=0; eCase<256; ++eCase)
-    {
+  {
     for (j=0; j<16; ++j)
-      {
+    {
       this->EdgeCases[eCase][j] = 0;
-      }
-    for (j=0; j<12; ++j)
-      {
-      this->EdgeUses[eCase][j] = 0;
-      }
-    this->IncludesAxes[eCase] = 0;
     }
+    for (j=0; j<12; ++j)
+    {
+      this->EdgeUses[eCase][j] = 0;
+    }
+    this->IncludesAxes[eCase] = 0;
+  }
 
   // The voxel, edge-based case table is a function of the four x-edge cases
   // that define the voxel. Here we convert the existing MC vertex-based case
@@ -394,65 +407,65 @@ vtkFlyingEdgesPlaneCutterAlgorithm():XCases(NULL),EdgeMetaData(NULL),NewScalars(
   // y+z, y+x+z; and the four z-edges are ordered (8->11): z, z+x, z+y,
   // z+x+y.
   for (l=0; l<4; ++l)
-    {
+  {
     for (k=0; k<4; ++k)
-      {
+    {
       for (j=0; j<4; ++j)
-        {
+      {
         for (i=0; i<4; ++i)
-          {
+        {
           //yes we could just count to (0->255) but where's the fun in that?
           eCase = i | (j<<2) | (k<<4) | (l<<6);
           for ( ii=0, index = 0; ii < 8; ++ii)
-            {
+          {
             if ( eCase & (1<<vertMap[ii]) ) //map into ancient MC table
-              {
+            {
               index |= CASE_MASK[ii];
-              }
             }
+          }
           //Now build case table
           triCase = vtkMarchingCubesTriangleCases::GetCases() + index;
           edge = triCase->edges;
           for ( numTris=0, edge=triCase->edges; edge[0] > -1; edge += 3 )
-            {//count the number of triangles
+          {//count the number of triangles
             numTris++;
-            }
+          }
           if ( numTris > 0 )
-            {
+          {
             edgeCase = this->EdgeCases[eCase];
             *edgeCase++ = numTris;
             for ( edge = triCase->edges; edge[0] > -1; edge += 3, edgeCase+=3 )
-              {
+            {
               // Build new case table.
               edgeCase[0] = this->EdgeMap[edge[0]];
               edgeCase[1] = this->EdgeMap[edge[1]];
               edgeCase[2] = this->EdgeMap[edge[2]];
-              }
             }
-          }//x-edges
-        }//x+y-edges
-      }//x+z-edges
-    }//x+y+z-edges
+          }
+        }//x-edges
+      }//x+y-edges
+    }//x+z-edges
+  }//x+y+z-edges
 
   // Okay now build the acceleration structure. This is used to generate
   // output points and triangles when processing a voxel x-row as well as to
   // perform other topological reasoning. This structure is a function of the
   // particular case number.
   for (eCase=0; eCase < 256; ++eCase)
-    {
+  {
     edgeCase = this->EdgeCases[eCase];
     numTris = *edgeCase++;
 
     // Mark edges that are used by this case.
     for (i=0; i < numTris*3; ++i) //just loop over all edges
-      {
+    {
       this->EdgeUses[eCase][edgeCase[i]] = 1;
-      }
+    }
 
     this->IncludesAxes[eCase] = this->EdgeUses[eCase][0] |
       this->EdgeUses[eCase][4] | this->EdgeUses[eCase][8];
 
-    }//for all cases
+  }//for all cases
 }
 
 //----------------------------------------------------------------------------
@@ -465,7 +478,7 @@ CountBoundaryYZInts(unsigned char loc, unsigned char *edgeUses,
                     vtkIdType *eMD[4])
 {
   switch (loc)
-    {
+  {
     case 2: //+x boundary
       eMD[0][1] += edgeUses[5];
       eMD[0][2] += edgeUses[9];
@@ -502,25 +515,22 @@ CountBoundaryYZInts(unsigned char loc, unsigned char *edgeUses,
       break;
     default: //uh-oh shouldn't happen
       break;
-    }
+  }
 }
 
 //----------------------------------------------------------------------------
 // Interpolate a new point along a boundary edge. Make sure to consider
 // proximity to the boundary.
 template <class T> void vtkFlyingEdgesPlaneCutterAlgorithm<T>::
-InterpolateEdge(T const * const s,
-                const int incs[3],
-                double x[3],
-                unsigned char edgeNum,
-                unsigned char const * const edgeUses,
-                vtkIdType *eIds)
+InterpolateEdge(vtkIdType ijk[3], T const * const s, const int incs[3],
+                double x[3], unsigned char edgeNum,
+                unsigned char const * const edgeUses, vtkIdType *eIds)
 {
   // if this edge is not used then get out
   if ( ! edgeUses[edgeNum] )
-    {
+  {
     return;
-    }
+  }
 
   // Build the edge information. Note that the information we have is the
   // position of the lower-left corner of the voxel; the offsets tell us how
@@ -528,32 +538,29 @@ InterpolateEdge(T const * const s,
   const unsigned char *vertMap = this->VertMap[edgeNum];
 
   double x0[3], x1[3];
-  vtkIdType vId=eIds[edgeNum];
-  int i;
+  vtkIdType ijk0[3], ijk1[3], vId=eIds[edgeNum];
 
-  const unsigned char *offsets = this->VertOffsets[vertMap[0]];
-  const T *s0 = s + offsets[0]*incs[0] +
-                    offsets[1]*incs[1] +
-                    offsets[2]*incs[2];
-  for (i=0; i<3; ++i)
-    {
-    x0[i] = x[i] + offsets[i]*this->Spacing[i];
-    }
+  const unsigned char *offsets0 = this->VertOffsets[vertMap[0]];
+  const T *s0 = s + offsets0[0]*incs[0] +
+                    offsets0[1]*incs[1] +
+                    offsets0[2]*incs[2];
+  x0[0] = x[0] + offsets0[0]*this->Spacing[0];
+  x0[1] = x[1] + offsets0[1]*this->Spacing[1];
+  x0[2] = x[2] + offsets0[2]*this->Spacing[2];
 
-  offsets = this->VertOffsets[vertMap[1]];
-  const T *s1 = s + offsets[0]*incs[0] +
-                    offsets[1]*incs[1] +
-                    offsets[2]*incs[2];
-  for (i=0; i<3; ++i)
-    {
-    x1[i] = x[i] + offsets[i]*this->Spacing[i];
-    }
+  const unsigned char *offsets1 = this->VertOffsets[vertMap[1]];
+  const T *s1 = s + offsets1[0]*incs[0] +
+                    offsets1[1]*incs[1] +
+                    offsets1[2]*incs[2];
+  x1[0] = x[0] + offsets1[0]*this->Spacing[0];
+  x1[1] = x[1] + offsets1[1]*this->Spacing[1];
+  x1[2] = x[2] + offsets1[2]*this->Spacing[2];
 
-  double sV = vtkPlane::Evaluate(this->Normal,this->Center,x0);
+  double sV0 = vtkPlane::Evaluate(this->Normal,this->Center,x0);
   double sV1 = vtkPlane::Evaluate(this->Normal,this->Center,x1);
 
-  // Okay interpolate. Remember the plane value == 0.0.
-  double t = -(sV) / (sV1 - sV);
+  // Okay interpolate. Remember the plane value = 0.0.
+  double t = -(sV0) / (sV1 - sV0);
   float *xPtr = this->NewPoints + 3*vId;
   xPtr[0] = static_cast<float>(x0[0] + t*(x1[0]-x0[0]));
   xPtr[1] = static_cast<float>(x0[1] + t*(x1[1]-x0[1]));
@@ -563,12 +570,27 @@ InterpolateEdge(T const * const s,
   *sInt = *s0 + t*(*s1-*s0);
 
   if ( this->NewNormals )
-    {
+  {
     float *n = this->NewNormals + 3*vId;
-    n[0] = this->Normal[0];
-    n[1] = this->Normal[1];
-    n[2] = this->Normal[2];
-    }//if normals
+    n[0] = -this->Normal[0];
+    n[1] = -this->Normal[1];
+    n[2] = -this->Normal[2];
+  }//if normals
+
+  if ( this->InterpolateAttributes )
+  {
+    ijk0[0] = ijk[0] + offsets0[0];
+    ijk0[1] = ijk[1] + offsets0[1];
+    ijk0[2] = ijk[2] + offsets0[2];
+
+    ijk1[0] = ijk[0] + offsets1[0];
+    ijk1[1] = ijk[1] + offsets1[1];
+    ijk1[2] = ijk[2] + offsets1[2];
+
+    vtkIdType v0=ijk0[0] + ijk0[1]*incs[1] + ijk0[2]*incs[2];
+    vtkIdType v1=ijk1[0] + ijk1[1]*incs[1] + ijk1[2]*incs[2];
+    this->Arrays.InterpolateEdge(v0,v1,t,vId);
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -576,15 +598,15 @@ InterpolateEdge(T const * const s,
 template <class T> void vtkFlyingEdgesPlaneCutterAlgorithm<T>::
 GeneratePoints(unsigned char loc, vtkIdType ijk[3],
                T const * const sPtr, const int incs[3],
-               double x[3], const double sV,
+               double x[3], const double sV0,
                unsigned char const * const edgeUses, vtkIdType *eIds)
 {
   // Interpolate the three x-y-z cell axes edges.
   double sV1;
   for(int i=0; i < 3; ++i)
-    {
+  {
     if(edgeUses[i*4])
-      {
+    {
       //edgesUses[0] == x axes edge
       //edgesUses[4] == y axes edge
       //edgesUses[8] == z axes edge
@@ -593,10 +615,10 @@ GeneratePoints(unsigned char loc, vtkIdType ijk[3],
 
       T const * const sPtr1 = (sPtr+incs[i]);
       sV1 = vtkPlane::Evaluate(this->Normal,this->Center,x1);
-      double t = -sV / (sV1 - sV);
-      this->InterpolateAxesEdge(t, eIds[i*4], x, x1, *sPtr, *sPtr1);
-      }
+      double t = -sV0 / (sV1 - sV0);
+      this->InterpolateAxesEdge(t, eIds[i*4], incs, x, x1, *sPtr, *sPtr1, ijk, ijk1);
     }
+  }
 
   // On the boundary cells special work has to be done to cover the partial
   // cell axes. These are boundary situations where the voxel axes is not
@@ -607,54 +629,54 @@ GeneratePoints(unsigned char loc, vtkIdType ijk[3],
   // Note that loc is one of 27 regions in the volume, with (0,1,2)
   // indicating (interior, min, max) along coordinate axes.
   switch (loc)
-    {
+  {
     case 2: case 6: case 18: case 22: //+x
-      this->InterpolateEdge(sPtr, incs, x, 5, edgeUses, eIds);
-      this->InterpolateEdge(sPtr, incs, x, 9, edgeUses, eIds);
+      this->InterpolateEdge(ijk, sPtr, incs, x, 5, edgeUses, eIds);
+      this->InterpolateEdge(ijk, sPtr, incs, x, 9, edgeUses, eIds);
       break;
     case 8: case 9: case 24: case 25: //+y
-      this->InterpolateEdge(sPtr, incs, x, 1, edgeUses, eIds);
-      this->InterpolateEdge(sPtr, incs, x, 10, edgeUses, eIds);
+      this->InterpolateEdge(ijk, sPtr, incs, x, 1, edgeUses, eIds);
+      this->InterpolateEdge(ijk, sPtr, incs, x, 10, edgeUses, eIds);
       break;
     case 32: case 33: case 36: case 37: //+z
-      this->InterpolateEdge(sPtr, incs, x, 2, edgeUses, eIds);
-      this->InterpolateEdge(sPtr, incs, x, 6, edgeUses, eIds);
+      this->InterpolateEdge(ijk, sPtr, incs, x, 2, edgeUses, eIds);
+      this->InterpolateEdge(ijk, sPtr, incs, x, 6, edgeUses, eIds);
       break;
     case 10: case 26: //+x +y
-      this->InterpolateEdge(sPtr, incs, x, 1, edgeUses, eIds);
-      this->InterpolateEdge(sPtr, incs, x, 5, edgeUses, eIds);
-      this->InterpolateEdge(sPtr, incs, x, 9, edgeUses, eIds);
-      this->InterpolateEdge(sPtr, incs, x, 10, edgeUses, eIds);
-      this->InterpolateEdge(sPtr, incs, x, 11, edgeUses, eIds);
+      this->InterpolateEdge(ijk, sPtr, incs, x, 1, edgeUses, eIds);
+      this->InterpolateEdge(ijk, sPtr, incs, x, 5, edgeUses, eIds);
+      this->InterpolateEdge(ijk, sPtr, incs, x, 9, edgeUses, eIds);
+      this->InterpolateEdge(ijk, sPtr, incs, x, 10, edgeUses, eIds);
+      this->InterpolateEdge(ijk, sPtr, incs, x, 11, edgeUses, eIds);
       break;
     case 34: case 38: //+x +z
-      this->InterpolateEdge(sPtr, incs, x, 2, edgeUses, eIds);
-      this->InterpolateEdge(sPtr, incs, x, 5, edgeUses, eIds);
-      this->InterpolateEdge(sPtr, incs, x, 9, edgeUses, eIds);
-      this->InterpolateEdge(sPtr, incs, x, 6, edgeUses, eIds);
-      this->InterpolateEdge(sPtr, incs, x, 7, edgeUses, eIds);
+      this->InterpolateEdge(ijk, sPtr, incs, x, 2, edgeUses, eIds);
+      this->InterpolateEdge(ijk, sPtr, incs, x, 5, edgeUses, eIds);
+      this->InterpolateEdge(ijk, sPtr, incs, x, 9, edgeUses, eIds);
+      this->InterpolateEdge(ijk, sPtr, incs, x, 6, edgeUses, eIds);
+      this->InterpolateEdge(ijk, sPtr, incs, x, 7, edgeUses, eIds);
       break;
     case 40: case 41: //+y +z
-      this->InterpolateEdge(sPtr, incs, x, 1, edgeUses, eIds);
-      this->InterpolateEdge(sPtr, incs, x, 2, edgeUses, eIds);
-      this->InterpolateEdge(sPtr, incs, x, 3, edgeUses, eIds);
-      this->InterpolateEdge(sPtr, incs, x, 6, edgeUses, eIds);
-      this->InterpolateEdge(sPtr, incs, x, 10, edgeUses, eIds);
+      this->InterpolateEdge(ijk, sPtr, incs, x, 1, edgeUses, eIds);
+      this->InterpolateEdge(ijk, sPtr, incs, x, 2, edgeUses, eIds);
+      this->InterpolateEdge(ijk, sPtr, incs, x, 3, edgeUses, eIds);
+      this->InterpolateEdge(ijk, sPtr, incs, x, 6, edgeUses, eIds);
+      this->InterpolateEdge(ijk, sPtr, incs, x, 10, edgeUses, eIds);
       break;
     case 42: //+x +y +z happens no more than once per volume
-      this->InterpolateEdge(sPtr, incs, x, 1, edgeUses, eIds);
-      this->InterpolateEdge(sPtr, incs, x, 2, edgeUses, eIds);
-      this->InterpolateEdge(sPtr, incs, x, 3, edgeUses, eIds);
-      this->InterpolateEdge(sPtr, incs, x, 5, edgeUses, eIds);
-      this->InterpolateEdge(sPtr, incs, x, 9, edgeUses, eIds);
-      this->InterpolateEdge(sPtr, incs, x, 10, edgeUses, eIds);
-      this->InterpolateEdge(sPtr, incs, x, 11, edgeUses, eIds);
-      this->InterpolateEdge(sPtr, incs, x, 6, edgeUses, eIds);
-      this->InterpolateEdge(sPtr, incs, x, 7, edgeUses, eIds);
+      this->InterpolateEdge(ijk, sPtr, incs, x, 1, edgeUses, eIds);
+      this->InterpolateEdge(ijk, sPtr, incs, x, 2, edgeUses, eIds);
+      this->InterpolateEdge(ijk, sPtr, incs, x, 3, edgeUses, eIds);
+      this->InterpolateEdge(ijk, sPtr, incs, x, 5, edgeUses, eIds);
+      this->InterpolateEdge(ijk, sPtr, incs, x, 9, edgeUses, eIds);
+      this->InterpolateEdge(ijk, sPtr, incs, x, 10, edgeUses, eIds);
+      this->InterpolateEdge(ijk, sPtr, incs, x, 11, edgeUses, eIds);
+      this->InterpolateEdge(ijk, sPtr, incs, x, 6, edgeUses, eIds);
+      this->InterpolateEdge(ijk, sPtr, incs, x, 7, edgeUses, eIds);
       break;
     default: //interior, or -x,-y,-z boundaries
       return;
-    }
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -684,21 +706,21 @@ ProcessXEdge(double xL[3], double xR[3], vtkIdType row, vtkIdType slice)
   double vL = vtkPlane::Evaluate(this->Normal,this->Center,xL);
   double vR = vtkPlane::Evaluate(this->Normal,this->Center,xR);
   if ( vL >= 0.0 && vR >= 0.0)
-    {//also catches the case where vL=vR==0.0
+  {//also catches the case where vL=vR==0.0
     numInts = 0;
     std::fill_n(ePtr, nxcells, vtkFlyingEdgesPlaneCutterAlgorithm::BothAbove);
     minInt = nxcells;
     maxInt = 0;
-    }
+  }
   else if ( vL < 0.0 && vR < 0.0)
-    {
+  {
     numInts = 0;
     std::fill_n(ePtr, nxcells, vtkFlyingEdgesPlaneCutterAlgorithm::Below);
     minInt = nxcells;
     maxInt = 0;
-    }
+  }
   else
-    {//volume edge intersects plane
+  {//volume edge intersects plane
     numInts = 1;
     a = fabs(vL);
     b = fabs(vR);
@@ -706,18 +728,18 @@ ProcessXEdge(double xL[3], double xR[3], vtkIdType row, vtkIdType slice)
     minInt = minInt >= nxcells ? nxcells-1 : minInt;
     maxInt = minInt + 1;
     if ( vL < 0.0 ) //&& vR >= 0.0
-      {
+    {
       std::fill_n(ePtr,minInt,vtkFlyingEdgesPlaneCutterAlgorithm::Below);
       this->SetXEdge(ePtr+minInt,vtkFlyingEdgesPlaneCutterAlgorithm::RightAbove);
       std::fill_n(ePtr+maxInt,nxcells-maxInt,vtkFlyingEdgesPlaneCutterAlgorithm::BothAbove);
-      }
+    }
     else //vL >= 0.0 && vR < 0.0
-      {
+    {
       std::fill_n(ePtr,minInt,vtkFlyingEdgesPlaneCutterAlgorithm::BothAbove);
       this->SetXEdge(ePtr+minInt,vtkFlyingEdgesPlaneCutterAlgorithm::LeftAbove);
       std::fill_n(ePtr+maxInt,nxcells-maxInt,vtkFlyingEdgesPlaneCutterAlgorithm::Below);
-      }
-    }//volume edge intersects plane
+    }
+  }//volume edge intersects plane
 
   // The beginning and ending of intersections along the edge is used for
   // computational trimming.
@@ -757,17 +779,17 @@ ProcessYZEdges(vtkIdType row, vtkIdType slice)
   // x-edge intersections, and the classification of the four bounding
   // x-edges is the same, then there is no need for processing.
   if ( (eMD[0][0] | eMD[1][0] | eMD[2][0] | eMD[3][0]) == 0 ) //any x-ints?
-    {
+  {
     if ( *(ePtr[0]) == *(ePtr[1]) &&  *(ePtr[1]) == *(ePtr[2]) &&
          *(ePtr[2]) == *(ePtr[3]) )
-      {
+    {
       return; //there are no x-, y- or z-ints, thus no contour, skip voxel row
-      }
-    else
-      {
-      xInts = 0; //there are y- or z- edge ints however
-      }
     }
+    else
+    {
+      xInts = 0; //there are y- or z- edge ints however
+    }
+  }
 
   // Determine proximity to the boundary of volume. This information is used
   // to count edge intersections in boundary situations.
@@ -784,51 +806,52 @@ ProcessYZEdges(vtkIdType row, vtkIdType slice)
   vtkIdType xL=eMD[0][4], xR=eMD[0][5];
   vtkIdType i;
   if ( xInts )
-    {
+  {
     for (i=1; i < 4; ++i)
-      {
+    {
       xL = ( eMD[i][4] < xL ? eMD[i][4] : xL);
       xR = ( eMD[i][5] > xR ? eMD[i][5] : xR);
-      }
+    }
 
     if ( xL > 0 ) //if trimmed in the -x direction
-      {
+    {
       ec0 = *(ePtr[0]+xL); ec1 = *(ePtr[1]+xL);
       ec2 = *(ePtr[2]+xL); ec3 = *(ePtr[3]+xL);
       if ( (ec0 & 0x1) != (ec1 & 0x1) || (ec1 & 0x1) != (ec2 & 0x1) ||
            (ec2 & 0x1) != (ec3 & 0x1) )
-        {
+      {
         xL = eMD[0][4] = 0; //reset left trim
-        }
       }
+    }
 
     if ( xR < (this->Dims[0]-1) ) //if trimmed in the +x direction
-      {
+    {
       ec0 = *(ePtr[0]+xR); ec1 = *(ePtr[1]+xR);
       ec2 = *(ePtr[2]+xR); ec3 = *(ePtr[3]+xR);
       if ( (ec0 & 0x2) != (ec1 & 0x2) || (ec1 & 0x2) != (ec2 & 0x2) ||
            (ec2 & 0x2) != (ec3 & 0x2) )
-        {
+      {
         xR = eMD[0][5] = this->Dims[0]-1; //reset right trim
-        }
       }
     }
+  }
   else //plane cuts through without intersecting x-edges, reset trim edges
-    {
+  {
     xL = eMD[0][4] = 0;
     xR = eMD[0][5] = this->Dims[0]-1;
-    }
+  }
 
   // Okay run along the x-voxels and count the number of y- and
   // z-intersections. Here we are just checking y,z edges that make up the
   // voxel axes. Also check the number of primitives generated.
   unsigned char *edgeUses, eCase, numTris;
   ePtr[0] += xL; ePtr[1] += xL; ePtr[2] += xL; ePtr[3] += xL;
+  const vtkIdType dim0Wall = this->Dims[0]-2;
   for (i=xL; i < xR; ++i) //run along the trimmed x-voxels
-    {
+  {
     eCase = this->GetEdgeCase(ePtr);
     if ( (numTris=this->GetNumberOfPrimitives(eCase)) > 0 )
-      {
+    {
       // Okay let's increment the triangle count.
       eMD[0][3] += numTris;
 
@@ -838,16 +861,16 @@ ProcessYZEdges(vtkIdType row, vtkIdType slice)
       edgeUses = this->GetEdgeUses(eCase);
       eMD[0][1] += edgeUses[4]; //y-voxel axes edge always counted
       eMD[0][2] += edgeUses[8]; //z-voxel axes edge always counted
-      loc = yzLoc | (i >= (this->Dims[0]-2) ? MaxBoundary : Interior);
+      loc = yzLoc | (i >= dim0Wall ? MaxBoundary : Interior);
       if ( loc != 0 )
-        {
+      {
         this->CountBoundaryYZInts(loc,edgeUses,eMD);
-        }
-      }//if cell contains contour
+      }
+    }//if cell contains contour
 
     // advance the four pointers along voxel row
     ePtr[0]++; ePtr[1]++; ePtr[2]++; ePtr[3]++;
-    }//for all voxels along this x-edge
+  }//for all voxels along this x-edge
 }
 
 //----------------------------------------------------------------------------
@@ -866,19 +889,19 @@ GenerateOutput(T* rowPtr, vtkIdType row, vtkIdType slice)
 
   // Return if there is nothing to do (i.e., no triangles to generate)
   if ( eMD[0][3] == eMD[1][3] )
-    {
+  {
     return;
-    }
+  }
 
   // Get the voxel row trim edges and prepare to generate. Find the voxel row
   // trim edges, need to check all four x-edges to compute row trim edge.
   vtkIdType xL=eMD[0][4], xR=eMD[0][5];
   vtkIdType i;
   for (i=1; i < 4; ++i)
-    {
+  {
     xL = ( eMD[i][4] < xL ? eMD[i][4] : xL);
     xR = ( eMD[i][5] > xR ? eMD[i][5] : xR);
-    }
+  }
 
   // Grab the four edge cases bounding this voxel x-row. Begin at left trim edge.
   unsigned char *ePtr[4];
@@ -918,27 +941,29 @@ GenerateOutput(T* rowPtr, vtkIdType row, vtkIdType slice)
   //load the inc0/inc1/inc2 into local memory
   const int incs[3] = { this->Inc0, this->Inc1, this->Inc2 };
   const T* sPtr = rowPtr + xL*incs[0];
+  const double xSpace = this->Spacing[0];
+  const vtkIdType dim0Wall = this->Dims[0]-2;
 
   for (i=xL; i < xR; ++i)
-    {
+  {
     const unsigned char numTris = this->GetNumberOfPrimitives(eCase);
     if ( numTris > 0 )
-      {
+    {
       // Start by generating triangles for this case
       this->GenerateTris(eCase,numTris,eIds,triId);
 
       // Now generate point(s) along voxel axes if needed. Remember to take
       // boundary into account.
       loc = yzLoc | (i < 1 ? MinBoundary :
-          (i >= (this->Dims[0]-2) ? MaxBoundary : Interior));
+                     (i >= dim0Wall ? MaxBoundary : Interior));
       if ( this->CaseIncludesAxes(eCase) || loc != Interior )
-        {
+      {
         unsigned char const * const edgeUses = this->GetEdgeUses(eCase);
         sV = vtkPlane::Evaluate(this->Normal,this->Center,x);
         this->GeneratePoints(loc, ijk, sPtr, incs, x, sV, edgeUses, eIds);
-        }
-      this->AdvanceVoxelIds(eCase,eIds);
       }
+      this->AdvanceVoxelIds(eCase,eIds);
+    }
 
     // advance along voxel row
     ePtr[0]++; ePtr[1]++; ePtr[2]++; ePtr[3]++;
@@ -946,8 +971,8 @@ GenerateOutput(T* rowPtr, vtkIdType row, vtkIdType slice)
 
     ++ijk[0];
     sPtr += incs[0];
-    x[0] += this->Spacing[0];
-    } //for all non-trimmed cells along this x-edge
+    x[0] += xSpace;
+  } //for all non-trimmed cells along this x-edge
 }
 
 //----------------------------------------------------------------------------
@@ -955,9 +980,9 @@ GenerateOutput(T* rowPtr, vtkIdType row, vtkIdType slice)
 // interfaces the vtkFlyingEdgesPlaneCutter class with the templated algorithm
 // class. It also invokes the three passes of the Flying Edges algorithm.
 template <class T> void vtkFlyingEdgesPlaneCutterAlgorithm<T>::
-Contour(vtkFlyingEdgesPlaneCutter *self, vtkImageData *input, int extent[6],
-        vtkIdType *incs, T *scalars, vtkPoints *newPts, vtkCellArray *newTris,
-        vtkDataArray *newScalars, vtkDataArray *newNormals)
+Contour(vtkFlyingEdgesPlaneCutter *self, vtkImageData *input, vtkDataArray *inScalars,
+        int extent[6], vtkIdType *incs, T *scalars, vtkPolyData *output, vtkPoints *newPts,
+        vtkCellArray *newTris, vtkDataArray *newScalars, vtkDataArray *newNormals)
 {
   vtkIdType row, slice, *eMD, zInc;
   vtkIdType numOutXPts, numOutYPts, numOutZPts, numOutTris;
@@ -1006,6 +1031,11 @@ Contour(vtkFlyingEdgesPlaneCutter *self, vtkImageData *input, int extent[6],
   // for computational trimming).
   algo.EdgeMetaData = new vtkIdType [algo.NumberOfEdges*6];
 
+  // Configure the interpolation of attribute data. Scalars are required and
+  // always interpolated, other attributes are optional.
+  algo.InterpolateAttributes = (self->GetInterpolateAttributes() &&
+                                input->GetPointData()->GetNumberOfArrays() > 1) ? true : false;
+
   // PASS 1: Traverse all x-rows building edge cases and counting number of
   // intersections (i.e., accumulate information necessary for later output
   // memory allocation, e.g., the number of output points along the x-rows
@@ -1035,10 +1065,10 @@ Contour(vtkFlyingEdgesPlaneCutter *self, vtkImageData *input, int extent[6],
 
   // Count number of points and tris generate along each cell row
   for (slice=0; slice < algo.Dims[2]; ++slice)
-    {
+  {
     zInc = slice * algo.Dims[1];
     for (row=0; row < algo.Dims[1]; ++row)
-      {
+    {
       eMD = algo.EdgeMetaData + (zInc+row)*6;
       numXPts = eMD[0];
       numYPts = eMD[1];
@@ -1052,29 +1082,38 @@ Contour(vtkFlyingEdgesPlaneCutter *self, vtkImageData *input, int extent[6],
       numOutYPts += numYPts;
       numOutZPts += numZPts;
       numOutTris += numTris;
-      }
     }
+  }
 
   // Output can now be allocated.
   vtkIdType totalPts = numOutXPts + numOutYPts + numOutZPts;
   if ( totalPts > 0 )
-    {
+  {
     newPts->GetData()->WriteVoidPointer(0,3*totalPts);
     algo.NewPoints = static_cast<float*>(newPts->GetVoidPointer(0));
     newTris->WritePointer(numOutTris,4*numOutTris);
     algo.NewTris = static_cast<vtkIdType*>(newTris->GetPointer());
 
     if (newScalars)
-      {
+    {
       newScalars->WriteVoidPointer(0,totalPts);
       algo.NewScalars = static_cast<T*>(newScalars->GetVoidPointer(0));
-      }
+    }
 
     if (newNormals)
-      {
+    {
       newNormals->WriteVoidPointer(0,3*totalPts);
       algo.NewNormals = static_cast<float*>(newNormals->GetVoidPointer(0));
-      }
+    }
+
+    if ( algo.InterpolateAttributes )
+    {
+      // Make sure we don't interpolate the input scalars twice
+      output->GetPointData()->InterpolateAllocate(input->GetPointData(),totalPts);
+      output->GetPointData()->RemoveArray(inScalars->GetName());
+      algo.Arrays.ExcludeArray(inScalars);
+      algo.Arrays.AddArrays(totalPts,input->GetPointData(),output->GetPointData());
+    }
 
     // PASS 4: Fourth and final pass: Process voxel rows and generate output.
     // Note that we are simultaneously generating triangles and interpolating
@@ -1082,12 +1121,14 @@ Contour(vtkFlyingEdgesPlaneCutter *self, vtkImageData *input, int extent[6],
     // maximum performance.
     Pass4<T> pass4(&algo);
     vtkSMPTools::For(0,algo.Dims[2]-1, pass4);
-    }
+  }
 
   // Clean up and return
   delete [] algo.XCases;
   delete [] algo.EdgeMetaData;
 }
+
+}//anonymous namespace
 
 //----------------------------------------------------------------------------
 // Here is the VTK class proper.
@@ -1096,6 +1137,7 @@ vtkFlyingEdgesPlaneCutter::vtkFlyingEdgesPlaneCutter()
 {
   this->Plane = vtkPlane::New();
   this->ComputeNormals = 0;
+  this->InterpolateAttributes = 0;
   this->ArrayComponent = 0;
 
   // by default process active point scalars
@@ -1112,18 +1154,18 @@ vtkFlyingEdgesPlaneCutter::~vtkFlyingEdgesPlaneCutter()
 //----------------------------------------------------------------------------
 // Overload standard modified time function. If the plane definition is modified,
 // then this object is modified as well.
-unsigned long vtkFlyingEdgesPlaneCutter::GetMTime()
+vtkMTimeType vtkFlyingEdgesPlaneCutter::GetMTime()
 {
-  unsigned long mTime=this->Superclass::GetMTime();
+  vtkMTimeType mTime=this->Superclass::GetMTime();
   if ( this->Plane != NULL )
-    {
-    unsigned long mTime2=this->Plane->GetMTime();
+  {
+    vtkMTimeType mTime2=this->Plane->GetMTime();
     return ( mTime2 > mTime ? mTime2 : mTime );
-    }
+  }
   else
-    {
+  {
     return mTime;
-    }
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -1162,43 +1204,43 @@ int vtkFlyingEdgesPlaneCutter::RequestData(
   int exExt[6];
   inInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(), exExt);
   for (int i=0; i<3; i++)
-    {
+  {
     if (inExt[2*i] > exExt[2*i])
-      {
-      exExt[2*i] = inExt[2*i];
-      }
-    if (inExt[2*i+1] < exExt[2*i+1])
-      {
-      exExt[2*i+1] = inExt[2*i+1];
-      }
-    }
-  if ( exExt[0] >= exExt[1] || exExt[2] >= exExt[3] || exExt[4] >= exExt[5] )
     {
+      exExt[2*i] = inExt[2*i];
+    }
+    if (inExt[2*i+1] < exExt[2*i+1])
+    {
+      exExt[2*i+1] = inExt[2*i+1];
+    }
+  }
+  if ( exExt[0] >= exExt[1] || exExt[2] >= exExt[3] || exExt[4] >= exExt[5] )
+  {
     vtkDebugMacro(<<"Cutting requires 3D data");
     return 0;
-    }
+  }
 
   if ( this->Plane == NULL )
-    {
+  {
     vtkDebugMacro(<<"Cutting requires vtkPlane");
     return 0;
-    }
+  }
 
   // Check data type and execute appropriate function
   //
   if (inScalars == NULL)
-    {
+  {
     vtkDebugMacro("No scalars for cutting.");
     return 0;
-    }
+  }
   int numComps = inScalars->GetNumberOfComponents();
 
   if (this->ArrayComponent >= numComps)
-    {
+  {
     vtkErrorMacro("Scalars have " << numComps << " components. "
                   "ArrayComponent must be smaller than " << numComps);
     return 0;
-    }
+  }
 
   // Create necessary objects to hold output. We will defer the
   // actual allocation to a later point.
@@ -1214,20 +1256,20 @@ int vtkFlyingEdgesPlaneCutter::RequestData(
   newScalars->SetName(inScalars->GetName());
 
   if (this->ComputeNormals)
-    {
+  {
     newNormals = vtkFloatArray::New();
     newNormals->SetNumberOfComponents(3);
     newNormals->SetName("Normals");
-    }
+  }
 
   void *ptr = input->GetArrayPointerForExtent(inScalars, exExt);
-  vtkIdType *incs = input->GetIncrements();
+  vtkIdType *incs = input->GetIncrements(inScalars);
   switch (inScalars->GetDataType())
-    {
+  {
     vtkTemplateMacro(vtkFlyingEdgesPlaneCutterAlgorithm<VTK_TT>::
-                     Contour(this, input, exExt, incs, (VTK_TT *)ptr, newPts,
-                             newTris, newScalars, newNormals));
-    }
+                     Contour(this, input, inScalars, exExt, incs, (VTK_TT *)ptr,
+                             output, newPts, newTris, newScalars, newNormals));
+  }
 
   vtkDebugMacro(<<"Created: "
                 << newPts->GetNumberOfPoints() << " points, "
@@ -1245,11 +1287,11 @@ int vtkFlyingEdgesPlaneCutter::RequestData(
   newScalars->Delete();
 
   if (newNormals)
-    {
+  {
     idx = output->GetPointData()->AddArray(newNormals);
     output->GetPointData()->SetActiveAttribute(idx, vtkDataSetAttributes::NORMALS);
     newNormals->Delete();
-    }
+  }
 
   return 1;
 }
@@ -1268,5 +1310,6 @@ void vtkFlyingEdgesPlaneCutter::PrintSelf(ostream& os, vtkIndent indent)
 
   os << indent << "Plane: " << this->Plane << "\n";
   os << indent << "Compute Normals: " << (this->ComputeNormals ? "On\n" : "Off\n");
+  os << indent << "Interpolate Attributes: " << (this->InterpolateAttributes ? "On\n" : "Off\n");
   os << indent << "ArrayComponent: " << this->ArrayComponent << endl;
 }

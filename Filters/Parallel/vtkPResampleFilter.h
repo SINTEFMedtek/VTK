@@ -12,8 +12,11 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-// .NAME vtkPResampleFilter - probe dataset in parallel using a vtkImageData
-// .SECTION Description
+/**
+ * @class   vtkPResampleFilter
+ * @brief   probe dataset in parallel using a vtkImageData
+ *
+*/
 
 #ifndef vtkPResampleFilter_h
 #define vtkPResampleFilter_h
@@ -31,30 +34,41 @@ public:
 
   static vtkPResampleFilter *New();
 
-  // Description:
-  // Set and get the controller.
+  //@{
+  /**
+   * Set and get the controller.
+   */
   virtual void SetController(vtkMultiProcessController*);
   vtkGetObjectMacro(Controller, vtkMultiProcessController);
+  //@}
 
-  // Description:
-  // Set/Get if the filter should use Input bounds to sub-sample the data.
-  // By default it is set to 1.
+  //@{
+  /**
+   * Set/Get if the filter should use Input bounds to sub-sample the data.
+   * By default it is set to 1.
+   */
   vtkSetMacro(UseInputBounds, int);
   vtkGetMacro(UseInputBounds, int);
   vtkBooleanMacro(UseInputBounds, int);
+  //@}
 
-  // Description:
-  // Set/Get sampling bounds. If (UseInputBounds == 1) then the sampling
-  // bounds won't be used.
+  //@{
+  /**
+   * Set/Get sampling bounds. If (UseInputBounds == 1) then the sampling
+   * bounds won't be used.
+   */
   vtkSetVector6Macro(CustomSamplingBounds, double);
   vtkGetVector6Macro(CustomSamplingBounds, double);
+  //@}
 
-  // Description:
-  // Set/Get sampling dimension along each axis. Default will be [10,10,10]
+  //@{
+  /**
+   * Set/Get sampling dimension along each axis. Default will be [10,10,10]
+   */
   vtkSetVector3Macro(SamplingDimension, int);
   vtkGetVector3Macro(SamplingDimension, int);
+  //@}
 
-//BTX
 protected:
   vtkPResampleFilter();
   ~vtkPResampleFilter();
@@ -74,9 +88,9 @@ protected:
   double Bounds[6];
 
 private:
-  vtkPResampleFilter(const vtkPResampleFilter&);  // Not implemented.
-  void operator=(const vtkPResampleFilter&);  // Not implemented.
-//ETX
+  vtkPResampleFilter(const vtkPResampleFilter&) VTK_DELETE_FUNCTION;
+  void operator=(const vtkPResampleFilter&) VTK_DELETE_FUNCTION;
+
 };
 
 #endif

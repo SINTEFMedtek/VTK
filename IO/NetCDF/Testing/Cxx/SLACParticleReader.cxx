@@ -57,10 +57,10 @@ int SLACParticleReader(int argc, char *argv[])
 
   char *modeFileName = new char[strlen(modeFileNamePattern) + 10];
   for (int i = 0; i < 9; i++)
-    {
+  {
     sprintf(modeFileName, modeFileNamePattern, i);
     meshReader->AddModeFileName(modeFileName);
-    }
+  }
   delete[] modeFileName;
   delete[] modeFileNamePattern;
 
@@ -123,18 +123,19 @@ int SLACParticleReader(int argc, char *argv[])
 
   // Change the time to test the time step field load and to have the field
   // match the particles in time.
-  vtkStreamingDemandDrivenPipeline *sdd
-    = vtkStreamingDemandDrivenPipeline::SafeDownCast(geometry->GetExecutive());
-  sdd->SetUpdateTimeStep(0, time);
+  geometry->UpdateInformation();
+  geometry->GetOutputInformation(0)->Set(
+    vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEP(),
+    time);
   renwin->Render();
 
   // Do the test comparison.
   int retVal = vtkRegressionTestImage(renwin);
   if (retVal == vtkRegressionTester::DO_INTERACTOR)
-    {
+  {
     iren->Start();
     retVal = vtkRegressionTester::PASSED;
-    }
+  }
 
   return (retVal == vtkRegressionTester::PASSED) ? 0 : 1;
 }

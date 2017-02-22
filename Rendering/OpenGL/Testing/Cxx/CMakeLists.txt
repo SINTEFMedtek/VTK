@@ -17,6 +17,7 @@ vtk_add_test_cxx(${vtk-module}CxxTests render_window_tests
   TestTDx.cxx
   TestValuePainter.cxx,NO_VALID
   TestValuePasses.cxx
+  TestRenderToImage.cxx
   )
 vtk_add_test_cxx(${vtk-module}CxxTests render_window_tests
   TestScalarsToColorsPainterFieldDataCells,TestScalarsToColorsPainterFieldData.cxx -1
@@ -36,7 +37,7 @@ endif()
 
 if(WIN32 AND NOT VTK_USE_X)
   vtk_add_test_cxx(${vtk-module}CxxTests render_window_tests
-    TestWin32OpenGLRenderWindow.cxx NO_VALID)
+    TestWin32OpenGLRenderWindow.cxx)
 endif()
 
 vtk_add_test_cxx(${vtk-module}CxxTests ogl_tests
@@ -97,12 +98,7 @@ foreach(exe
   add_executable(${exe} ${exe}.cxx)
   vtk_opengl_link(${exe})
   target_link_libraries(${exe} LINK_PRIVATE
-    vtkRenderingOpenGL
-    vtkInteractionStyle
-    vtkImagingSources
-    vtkImagingGeneral
-    vtkFiltersSources
-    vtkIOCore)
+    ${${vtk-module-test}-Cxx_LIBRARIES})
   if(APPLE AND NOT VTK_USE_OSMESA)
     target_link_libraries(${exe} LINK_PRIVATE "-framework GLUT")
   endif()

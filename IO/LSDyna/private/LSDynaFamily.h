@@ -42,7 +42,7 @@
 
 //this is needs to be moved over to fseekpos and ftellpos
 //in the future
-#ifndef WIN32
+#ifndef _WIN32
 #   include <unistd.h>
 typedef off_t vtkLSDynaOff_t; // sanity
 typedef int vtkLSDynaFile_t;
@@ -53,7 +53,7 @@ typedef int vtkLSDynaFile_t;
 #  define VTK_LSDYNA_READ(fid,ptr,cnt) read(fid,ptr,cnt)
 #  define VTK_LSDYNA_ISBADFILE(fid) (fid < 0)
 #  define VTK_LSDYNA_CLOSEFILE(fid) close(fid)
-#else // WIN32
+#else // _WIN32
 typedef long vtkLSDynaOff_t; // insanity
 typedef FILE* vtkLSDynaFile_t;
 #  define VTK_LSDYNA_BADFILE 0
@@ -75,10 +75,10 @@ public:
   ~LSDynaFamily();
 
   struct LSDynaFamilySectionMark
-    {
+  {
     vtkIdType FileNumber;
     vtkIdType Offset;
-    };
+  };
 
   void SetDatabaseDirectory( std::string dd );
   std::string GetDatabaseDirectory();
@@ -122,15 +122,15 @@ public:
     LSDynaFamilySectionMark Marks[NumberOfSectionTypes];
 
     LSDynaFamilyAdaptLevel()
-      {
+    {
       LSDynaFamilySectionMark mark;
       mark.FileNumber = 0;
       mark.Offset = 0;
       for ( int i=0; i<LSDynaFamily::NumberOfSectionTypes; ++i )
-        {
+      {
         this->Marks[i] = mark;
-        }
       }
+    }
   };
 
   static const char* SectionTypeNames[];
@@ -263,57 +263,57 @@ protected:
 
 //-----------------------------------------------------------------------------
 inline char* LSDynaFamily::GetNextWordAsChars()
-  {
+{
   if ( this->ChunkWord >= this->ChunkValid ) fprintf( stderr, "Read char past end of buffer\n" );
   return (char*) (&this->Chunk[ (this->ChunkWord++)*this->WordSize ]);
-  }
+}
 
 //-----------------------------------------------------------------------------
 inline double LSDynaFamily::GetNextWordAsFloat()
-  {
+{
   if ( this->ChunkWord >= this->ChunkValid ) fprintf( stderr, "Read float past end of buffer\n" );
   switch (this->WordSize)
-    {
+  {
   case 4:
-    {
+  {
     vtkTypeFloat32 value;
     memcpy(&value, &this->Chunk[ this->ChunkWord++ << 2 ], sizeof(value));
     return value;
-    }
+  }
   case 8:
   default:
-    {
+  {
     vtkTypeFloat64 value;
     memcpy(&value, &this->Chunk[ this->ChunkWord++ << 3 ], sizeof(value));
     return value;
-    }
-    }
   }
+  }
+}
 
 //-----------------------------------------------------------------------------
 inline vtkIdType LSDynaFamily::GetNextWordAsInt()
-  {
+{
   if ( this->ChunkWord >= this->ChunkValid )
-    {
+  {
     fprintf( stderr, "Read int past end of buffer\n" );
-    }
+  }
   switch (this->WordSize)
-    {
+  {
   case 4:
-    {
+  {
     vtkTypeInt32 value;
     memcpy(&value, &this->Chunk[ this->ChunkWord++ << 2 ], sizeof(value));
     return value;
-    }
+  }
   case 8:
   default:
-    {
+  {
     vtkIdType value;
     memcpy(&value, &this->Chunk[ this->ChunkWord++ << 3 ], sizeof(value));
     return value;
-    }
-    }
   }
+  }
+}
 
 //-----------------------------------------------------------------------------
 template<typename T>

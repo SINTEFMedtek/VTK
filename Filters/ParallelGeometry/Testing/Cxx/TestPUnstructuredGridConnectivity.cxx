@@ -41,7 +41,6 @@
 int TestPUnstructuredGridConnectivity(int argc, char* argv[])
 {
   int rc             = 0;
-  double ellapsed    = 0.0;
   vtkTimerLog* timer = vtkTimerLog::New();
 
   // STEP 0: Initialize
@@ -64,7 +63,7 @@ int TestPUnstructuredGridConnectivity(int argc, char* argv[])
   timer->StartTimer();
   ghostGen->BuildGhostZoneConnectivity();
   timer->StopTimer();
-  ellapsed = timer->GetElapsedTime();
+  double ellapsed = timer->GetElapsedTime();
   vtkMPIUtilities::Printf(cntrl,"[DONE]\n");
 
   // get some performance statistics
@@ -83,7 +82,7 @@ int TestPUnstructuredGridConnectivity(int argc, char* argv[])
   std::ostringstream grdfname;   // input grid name at each iteration for I/O
   std::ostringstream ghostfname; // ghosted grid name at each iteration for I/O
   for(int i=0; i < 2; ++i)
-    {
+  {
     vtkUnstructuredGrid* ghostGrid = vtkUnstructuredGrid::New();
     grdfname.clear();
     grdfname.str("");
@@ -129,7 +128,7 @@ int TestPUnstructuredGridConnectivity(int argc, char* argv[])
 
     rc += CheckGrid(ghostGrid,i);
     ghostGrid->Delete();
-    }
+  }
 
   // STEP 5: Delete the ghost generator
   timer->Delete();

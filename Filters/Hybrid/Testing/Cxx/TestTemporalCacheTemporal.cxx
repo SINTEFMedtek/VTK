@@ -37,7 +37,7 @@ public:
   static vtkTestTemporalCacheTemporalExecuteCallback *New()
   { return new vtkTestTemporalCacheTemporalExecuteCallback; }
 
-  virtual void Execute(vtkObject *caller, unsigned long, void*)
+  void Execute(vtkObject *caller, unsigned long, void*) VTK_OVERRIDE
   {
     // count the number of timesteps requested
     vtkTemporalFractal *f = vtkTemporalFractal::SafeDownCast(caller);
@@ -123,30 +123,29 @@ int TestTemporalCacheTemporal(int , char *[])
   iren->SetRenderWindow( renWin );
 
   // ask for some specific data points
-  vtkStreamingDemandDrivenPipeline *sdd =
-    vtkStreamingDemandDrivenPipeline::SafeDownCast(geom->GetExecutive());
-  sdd->UpdateInformation();
+  vtkInformation* info = geom->GetOutputInformation(0);
+  geom->UpdateInformation();
 
   double time = 0;
   int i;
   int j;
   for (j = 0; j < 5; ++j)
-    {
+  {
     for (i = 0; i < 11; ++i)
-      {
+    {
       time = i/2.0;
-      sdd->SetUpdateTimeStep(0, time);
+      info->Set(vtkStreamingDemandDrivenPipeline::UPDATE_TIME_STEP(), time);
       mapper->Modified();
       renderer->ResetCameraClippingRange();
       renWin->Render();
-      }
     }
+  }
 
   vtkAlgorithm::SetDefaultExecutivePrototype(0);
 
   if (executecb->Count == 8)
-    {
+  {
     return 0;
-    }
+  }
   return 1;
 }

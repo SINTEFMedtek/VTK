@@ -59,17 +59,17 @@ vtkDoubleArray* vtkDescriptiveStatisticsGnuR::CalculatePValues(vtkDoubleArray* s
   ri->EvalRscript( "p=1-pchisq(jb,2)" );
 
   // Retrieve the p-values
-  vtkDoubleArray* testCol = vtkDoubleArray::SafeDownCast( ri->AssignRVariableToVTKDataArray( "p" ) );
+  vtkDoubleArray* testCol = vtkArrayDownCast<vtkDoubleArray>( ri->AssignRVariableToVTKDataArray( "p" ) );
   if ( ! testCol || testCol->GetNumberOfTuples() != statCol->GetNumberOfTuples() )
-    {
+  {
     vtkWarningMacro( "Something went wrong with the R calculations. Reported p-values will be invalid." );
     testCol = this->Superclass::CalculatePValues( statCol );
-    }
+  }
   else
-    {
+  {
     // increment ref count on testCol so its not cleaned up when the R interface goes away
     testCol->Register(NULL);
-    }
+  }
 
   // Clean up
   ri->Delete();

@@ -49,17 +49,17 @@ void * vtkMappedDataArray<Scalar>::GetVoidPointer(vtkIdType id)
 
   if (this->TemporaryScalarPointer &&
       this->TemporaryScalarPointerSize != numValues)
-    {
+  {
     delete [] this->TemporaryScalarPointer;
     this->TemporaryScalarPointer = NULL;
     this->TemporaryScalarPointerSize = 0;
-    }
+  }
 
   if (!this->TemporaryScalarPointer)
-    {
+  {
     this->TemporaryScalarPointer = new Scalar[numValues];
     this->TemporaryScalarPointerSize = numValues;
-    }
+  }
 
   this->ExportToVoidPointer(static_cast<void*>(this->TemporaryScalarPointer));
 
@@ -77,11 +77,11 @@ void vtkMappedDataArray<Scalar>::ExportToVoidPointer(void *voidPtr)
   Scalar *ptr = static_cast<Scalar*>(voidPtr);
 
   while (begin != end)
-    {
+  {
     *ptr = *begin;
     ++begin;
     ++ptr;
-    }
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -95,13 +95,22 @@ void vtkMappedDataArray<Scalar>::SetVoidArray(void *, vtkIdType, int)
 
 //------------------------------------------------------------------------------
 template<class Scalar>
+void vtkMappedDataArray<Scalar>::SetVoidArray(void *, vtkIdType, int, int)
+{
+  vtkErrorMacro(<<"SetVoidArray not supported for vtkMappedDataArray "
+                "subclasses.");
+  return;
+}
+
+//------------------------------------------------------------------------------
+template<class Scalar>
 void vtkMappedDataArray<Scalar>::DataChanged()
 {
   if (!this->TemporaryScalarPointer)
-    {
+  {
     vtkWarningMacro(<<"DataChanged called, but no scalar pointer available.");
     return;
-    }
+  }
 
   vtkTypedDataArrayIterator<Scalar> begin(this, 0);
   vtkTypedDataArrayIterator<Scalar> end =
@@ -110,11 +119,11 @@ void vtkMappedDataArray<Scalar>::DataChanged()
   Scalar *ptr = this->TemporaryScalarPointer;
 
   while (begin != end)
-    {
+  {
     *begin = *ptr;
     ++begin;
     ++ptr;
-    }
+  }
 
   this->Modified();
 }
@@ -123,16 +132,21 @@ void vtkMappedDataArray<Scalar>::DataChanged()
 template<class Scalar> inline vtkMappedDataArray<Scalar>*
 vtkMappedDataArray<Scalar>::FastDownCast(vtkAbstractArray *source)
 {
-  switch (source->GetArrayType())
+  if (source)
+  {
+    switch (source->GetArrayType())
     {
-    case vtkAbstractArray::MappedDataArray:
-      if (source->GetDataType() == vtkTypeTraits<Scalar>::VTK_TYPE_ID)
+      case vtkAbstractArray::MappedDataArray:
+        if (vtkDataTypesCompare(source->GetDataType(),
+                                vtkTypeTraits<Scalar>::VTK_TYPE_ID))
         {
-        return static_cast<vtkMappedDataArray<Scalar>*>(source);
+          return static_cast<vtkMappedDataArray<Scalar>*>(source);
         }
-    default:
-      return NULL;
+      default:
+        break;
     }
+  }
+  return NULL;
 }
 
 //------------------------------------------------------------------------------
@@ -154,9 +168,9 @@ void vtkMappedDataArray<Scalar>::Modified()
   this->vtkTypedDataArray<Scalar>::Modified();
 
   if (this->TemporaryScalarPointer == NULL)
-    {
+  {
     return;
-    }
+  }
 
   delete [] this->TemporaryScalarPointer;
   this->TemporaryScalarPointer = NULL;

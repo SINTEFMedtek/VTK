@@ -9,6 +9,7 @@ set(Module_SRCS
   vtkAnnotation.cxx
   vtkAnnotationLayers.cxx
   vtkArrayData.cxx
+  vtkArrayListTemplate.txx
   vtkAttributesErrorMetric.cxx
   vtkBiQuadraticQuad.cxx
   vtkBiQuadraticQuadraticHexahedron.cxx
@@ -155,6 +156,7 @@ set(Module_SRCS
   vtkSelectionNode.cxx
   vtkSimpleCellTessellator.cxx
   vtkSmoothErrorMetric.cxx
+  vtkSortFieldData.cxx
   vtkSphere.cxx
   vtkSpline.cxx
   vtkStaticCellLinks.cxx
@@ -167,7 +169,6 @@ set(Module_SRCS
   vtkStructuredPoints.cxx
   vtkSuperquadric.cxx
   vtkTable.cxx
-  vtkTensor.cxx
   vtkTetra.cxx
   vtkTreeBFSIterator.cxx
   vtkTree.cxx
@@ -213,6 +214,7 @@ set(Module_SRCS
   )
 
 set(${vtk-module}_HDRS
+  vtkArrayListTemplate.h
   vtkCellType.h
   vtkMappedUnstructuredGrid.h
   vtkMappedUnstructuredGridCellIterator.h
@@ -260,6 +262,7 @@ set_source_files_properties(
 
 set_source_files_properties(
   vtkAMRBox
+  vtkArrayListTemplate.txx
   vtkAtom
   vtkBond
   vtkBoundingBox

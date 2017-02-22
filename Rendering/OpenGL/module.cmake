@@ -3,10 +3,7 @@ vtk_module(vtkRenderingOpenGL
     vtkRenderingCore
   BACKEND
     OpenGL
-  PRIVATE_DEPENDS
-    # These are likely to be removed soon - split Rendering/OpenGL further.
-    vtkImagingHybrid # For vtkSampleFunction
-    vtksys
+  IMPLEMENTATION_REQUIRED_BY_BACKEND
   COMPILE_DEPENDS
     vtkParseOGLExt
     vtkUtilitiesEncodeString
@@ -25,4 +22,18 @@ vtk_module(vtkRenderingOpenGL
     vtkRenderingAnnotation
   KIT
     vtkOpenGL
+  DEPENDS
+    vtkCommonCore
+    vtkCommonDataModel
+    vtkFiltersCore
+    vtkRenderingCore
+  PRIVATE_DEPENDS
+    vtkCommonExecutionModel
+    vtkCommonMath
+    vtkCommonSystem
+    vtkCommonTransforms
+    vtkIOImage
+    vtkImagingCore
+    vtkImagingHybrid
+    vtksys
   )

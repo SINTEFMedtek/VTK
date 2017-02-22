@@ -14,12 +14,15 @@ vtk_add_test_python(
   Delaunay3D.py
   Delaunay3DAlphaTest.py
   QuadricDecimation.py
+  QuadricDecimation2.py
   StreamPolyData.py
   TestElevationFilter.py
   TestFlyingEdges2D.py
   TestFlyingEdges3D.py
+  TestFlyingEdges3DWithInterpolation.py
   TestFlyingEdgesExtents.py
   TestFlyingEdgesPlaneCutter.py
+  TestFlyingEdgesPlaneCutterInterpolation.py
   TestGridSynchronizedTemplates3D.py
   TestMarchingSquares.py
   TestProbeFilterImageInput.py
@@ -28,6 +31,7 @@ vtk_add_test_python(
   TestSynchronizedTemplates2D.py
   TestSynchronizedTemplates3D.py
   TestContourGrid.py,NO_VALID
+  TestContourPolyData.py,NO_VALID
   TestTensorGlyph.py,NO_RT
   TestTextureGlyph.py
   TestTriangleFilter.py
@@ -69,4 +73,5 @@ vtk_add_test_python(
   TestContourCases.py,NO_DATA,NO_VALID
   pointsPrecisions.py,NO_OUTPUT,NO_DATA,NO_VALID,NO_RT
   TestCompositeCutter.py,NO_VALID
+  testPDNormals.py,NO_DATA,NO_VALID
   )

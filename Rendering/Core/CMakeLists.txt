@@ -9,6 +9,7 @@ set(Module_SRCS
   vtkActor.cxx
   vtkAssembly.cxx
   vtkBackgroundColorMonitor.cxx
+  vtkBillboardTextActor3D.cxx
   vtkCameraActor.cxx
   vtkCamera.cxx
   vtkCameraInterpolator.cxx
@@ -23,7 +24,9 @@ set(Module_SRCS
   vtkDiscretizableColorTransferFunction.cxx
   vtkDistanceToCamera.cxx
   vtkFollower.cxx
+  vtkFrameBufferObjectBase.cxx
   vtkFrustumCoverageCuller.cxx
+  vtkFXAAOptions.cxx
   vtkGenericRenderWindowInteractor.cxx
   vtkGenericVertexAttributeMapping.cxx
   vtkGlyph3DMapper.cxx
@@ -61,6 +64,7 @@ set(Module_SRCS
   vtkProp3DFollower.cxx
   vtkPropAssembly.cxx
   vtkPropCollection.cxx
+  vtkPropPicker3D.cxx
   vtkProp.cxx
   vtkProperty2D.cxx
   vtkProperty.cxx
@@ -68,9 +72,12 @@ set(Module_SRCS
   vtkRenderer.cxx
   vtkRendererDelegate.cxx
   vtkRendererSource.cxx
+  vtkRenderPass.cxx
+  vtkRenderState.cxx
   vtkRenderWindowCollection.cxx
   vtkRenderWindow.cxx
   vtkRenderWindowInteractor.cxx
+  vtkRenderWindowInteractor3D.cxx
   vtkSelectVisiblePoints.cxx
   vtkShaderDeviceAdapter2.cxx
   vtkTextActor.cxx
@@ -110,6 +117,7 @@ set(Module_SRCS
   # Needed by vtkRenderWindowInteractor, for the default interactor.
   vtkInteractorStyle.cxx
   vtkInteractorStyleSwitchBase.cxx
+  vtkInteractorStyle3D.cxx
   # vtkTDx stuff dragged in by vtkInteractorStyle
   vtkTDxInteractorStyle.cxx
   vtkTDxInteractorStyleCamera.cxx
@@ -128,6 +136,7 @@ set(Module_SRCS
   )
 
 if(VTK_RENDERING_BACKEND STREQUAL "OpenGL2")
+  # needed as we do not have vtkRenderingOpenGLConfigure.h here
   set_source_files_properties(
     vtkRenderWindow.cxx  # dummy out painterdevice adapter
     vtkHardwareSelector.cxx # dummy out painter device adapter
@@ -163,6 +172,7 @@ set_source_files_properties(
   vtkAbstractPicker
   vtkAbstractPropPicker
   vtkCuller
+  vtkFrameBufferObjectBase
   vtkGPUInfoList.cxx
   vtkHardwareSelector
   vtkImageMapper3D
@@ -172,6 +182,8 @@ set_source_files_properties(
   vtkProp
   vtkProp3D
   vtkRendererDelegate
+  vtkRenderPass
+  vtkRenderState
   vtkShader
   vtkShaderDeviceAdapter
   vtkShaderDeviceAdapter2
@@ -187,6 +199,7 @@ set_source_files_properties(
 set_source_files_properties(
   vtkAbstractInteractionDevice
   vtkAbstractRenderDevice
+  vtkRenderState
   vtkRenderWidget
   WRAP_EXCLUDE
   )

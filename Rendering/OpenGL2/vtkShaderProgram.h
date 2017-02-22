@@ -11,9 +11,13 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-// .NAME vtkShaderProgram - a glsl shader program
-// .SECTION Description
-// This class contains the vertex, fragment, geometry shaders that combine to make a shader program
+/**
+ * @class   vtkShaderProgram
+ * @brief   a glsl shader program
+ *
+ * This class contains the vertex, fragment, geometry shaders that combine to make a shader program
+*/
+
 #ifndef vtkShaderProgram_h
 #define vtkShaderProgram_h
 
@@ -25,6 +29,7 @@
 
 class vtkMatrix3x3;
 class vtkMatrix4x4;
+class vtkTransformFeedback;
 class vtkShader;
 class VertexArrayObject;
 class vtkWindow;
@@ -43,29 +48,50 @@ public:
   vtkTypeMacro(vtkShaderProgram, vtkObject);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  // Description:
-  // Get the vertex shader for this program
+  //@{
+  /**
+   * Get the vertex shader for this program
+   */
   vtkGetObjectMacro(VertexShader, vtkShader);
   void SetVertexShader(vtkShader*);
+  //@}
 
-  // Description:
-  // Get the fragment shader for this program
+  //@{
+  /**
+   * Get the fragment shader for this program
+   */
   vtkGetObjectMacro(FragmentShader, vtkShader);
   void SetFragmentShader(vtkShader*);
+  //@}
 
-  // Description:
-  // Get the geometry shader for this program
+  //@{
+  /**
+   * Get the geometry shader for this program
+   */
   vtkGetObjectMacro(GeometryShader, vtkShader);
   void SetGeometryShader(vtkShader*);
+  //@}
 
-  // Description:
-  // Set/Get flag for if this program is compiled
+  //@{
+  /**
+   * Get/Set a TransformFeedbackCapture object on this shader program.
+   */
+  vtkGetObjectMacro(TransformFeedback, vtkTransformFeedback);
+  void SetTransformFeedback(vtkTransformFeedback *tfc);
+  //@}
+
+  //@{
+  /**
+   * Set/Get flag for if this program is compiled
+   */
   vtkGetMacro(Compiled, bool);
   vtkSetMacro(Compiled, bool);
   vtkBooleanMacro(Compiled, bool);
+  //@}
 
-  // Description:
-  // Set/Get the md5 hash of this program
+  /**
+   * Set/Get the md5 hash of this program
+   */
   std::string GetMD5Hash() const { return this->MD5Hash; }
   void SetMD5Hash(const std::string &hash) { this->MD5Hash = hash; }
 
@@ -92,8 +118,9 @@ public:
    */
   bool isBound() const { return this->Bound; }
 
-  // Description:
-  // release any graphics resources this class is using.
+  /**
+   * release any graphics resources this class is using.
+   */
   void ReleaseGraphicsResources(vtkWindow *win);
 
   /** Get the handle of the shader program. */
@@ -180,22 +207,43 @@ public:
   // only valid for OpenGL 3.2 or later
   vtkSetMacro(NumberOfOutputs,unsigned int);
 
-//BTX
-  // Description:
-  // perform in place string substitutions, indicate if a substitution was done
-  // this is useful for building up shader strings which typically involve
-  // lots of string substitutions. Return true if a substitution was done.
+  /**
+   * perform in place string substitutions, indicate if a substitution was done
+   * this is useful for building up shader strings which typically involve
+   * lots of string substitutions. Return true if a substitution was done.
+   */
   static bool Substitute(
     std::string &source,
     const std::string &search,
-    const std::string replace,
+    const std::string &replace,
     bool all = true);
 
-  // Description:
-  // methods to inquire as to what uniforms/attributes are used by
-  // this shader.  This can save some compute time if the uniforms
-  // or attributes are expensive to compute
+  /**
+   * methods to inquire as to what uniforms/attributes are used by
+   * this shader.  This can save some compute time if the uniforms
+   * or attributes are expensive to compute
+   */
   bool IsUniformUsed(const char *);
+
+  /**
+   * Return true if the compiled and linked shader has an attribute matching @a
+   * name.
+   */
+  bool IsAttributeUsed(const char *name);
+
+  // maps of std::string are super slow when calling find
+  // with a string literal or const char * as find
+  // forces construction/copy/destruction of a
+  // std::sting copy of the const char *
+  // In spite of the doubters this can really be a
+  // huge CPU hog.
+  struct cmp_str
+  {
+     bool operator()(const char *a, const char *b) const
+     {
+        return strcmp(a, b) < 0;
+     }
+  };
 
 protected:
   vtkShaderProgram();
@@ -224,8 +272,9 @@ protected:
    */
   bool DetachShader(const vtkShader *shader);
 
-  // Description:
-  // Compile this shader program and attached shaders
+  /**
+   * Compile this shader program and attached shaders
+   */
   virtual int CompileShader();
 
   /**
@@ -249,6 +298,7 @@ protected:
   vtkShader *VertexShader;
   vtkShader *FragmentShader;
   vtkShader *GeometryShader;
+  vtkTransformFeedback *TransformFeedback;
 
   // hash of the shader program
   std::string MD5Hash;
@@ -273,10 +323,11 @@ protected:
 
   std::string Error;
 
-  std::map<std::string, int> Attributes;
-
-
-  std::map<std::string, bool> UniformsUsed;
+  // since we are using const char * arrays we have to
+  // free our memory :-)
+  void ClearMaps();
+  std::map<const char *, int, cmp_str> AttributeLocs;
+  std::map<const char *, int, cmp_str> UniformLocs;
 
   friend class VertexArrayObject;
 
@@ -284,9 +335,9 @@ private:
   int FindAttributeArray(const char *name);
   int FindUniform(const char *name);
 
-  vtkShaderProgram(const vtkShaderProgram&);  // Not implemented.
-  void operator=(const vtkShaderProgram&);  // Not implemented.
-//ETX
+  vtkShaderProgram(const vtkShaderProgram&) VTK_DELETE_FUNCTION;
+  void operator=(const vtkShaderProgram&) VTK_DELETE_FUNCTION;
+
 };
 
 

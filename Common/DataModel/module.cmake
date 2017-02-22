@@ -1,11 +1,6 @@
 vtk_module(vtkCommonDataModel
-  DEPENDS
-    vtkCommonSystem
-    vtkCommonMath
-    vtkCommonMisc
-    vtkCommonTransforms
-  PRIVATE_DEPENDS
-    vtksys
+  GROUPS
+    StandAlone
   TEST_DEPENDS
     vtkTestingCore
     vtkTestingRendering
@@ -20,4 +15,12 @@ vtk_module(vtkCommonDataModel
     vtkRendering${VTK_RENDERING_BACKEND}
   KIT
     vtkCommon
+  DEPENDS
+    vtkCommonCore
+    vtkCommonMath
+    vtkCommonTransforms
+  PRIVATE_DEPENDS
+    vtkCommonMisc
+    vtkCommonSystem
+    vtksys
   )

@@ -74,10 +74,10 @@ vtkParallelTimer::vtkParallelTimerDestructor vtkParallelTimer::GlobalInstanceDes
 vtkParallelTimer::vtkParallelTimerDestructor::~vtkParallelTimerDestructor()
 {
   if (this->Log)
-    {
+  {
     this->Log->Delete();
     this->Log = NULL;
-    }
+  }
 }
 
 
@@ -95,7 +95,7 @@ public:
   ~vtkParallelTimerBuffer();
 
   vtkParallelTimerBuffer(const vtkParallelTimerBuffer &other);
-  void operator=(const vtkParallelTimerBuffer &other);
+  vtkParallelTimerBuffer& operator=(const vtkParallelTimerBuffer &other);
 
   // Description:
   // Access state and internal data.
@@ -179,15 +179,16 @@ vtkParallelTimerBuffer::vtkParallelTimerBuffer(const vtkParallelTimerBuffer &oth
 }
 
 //-----------------------------------------------------------------------------
-void vtkParallelTimerBuffer::operator=(const vtkParallelTimerBuffer &other)
+vtkParallelTimerBuffer& vtkParallelTimerBuffer::operator=(const vtkParallelTimerBuffer &other)
 {
   if (this == &other)
-    {
-    return;
-    }
+  {
+    return *this;
+  }
   this->Clear();
   this->Resize(other.GetSize());
   memcpy(this->Data, other.Data, other.GetSize());
+  return *this;
 }
 
 //-----------------------------------------------------------------------------
@@ -241,11 +242,11 @@ vtkParallelTimerBuffer &vtkParallelTimerBuffer::operator>>(ostringstream &s)
 {
   size_t i = 0;
   while (i < this->At)
-    {
+  {
     char c = this->Data[i];
     ++i;
     switch (c)
-      {
+    {
       case 'i':
         s << *(reinterpret_cast<int*>(this->Data+i));
         i += sizeof(int);
@@ -262,19 +263,19 @@ vtkParallelTimerBuffer &vtkParallelTimerBuffer::operator>>(ostringstream &s)
         break;
 
       case 's':
-        {
+      {
         s << this->Data+i;
         size_t n = strlen(this->Data+i)+1;
         i += n;
-        }
+      }
         break;
 
       default:
         cerr <<
           "Bad case at " << i-1 << " " << c << ", " << (int)c;
         return *this;
-      }
     }
+  }
   return *this;
 }
 
@@ -284,9 +285,9 @@ void vtkParallelTimerBuffer::Gather(int rootRank)
   int mpiOk;
   MPI_Initialized(&mpiOk);
   if (!mpiOk)
-    {
+  {
     return;
-    }
+  }
   int worldRank;
   MPI_Comm_rank(MPI_COMM_WORLD, &worldRank);
   int worldSize;
@@ -294,14 +295,14 @@ void vtkParallelTimerBuffer::Gather(int rootRank)
 
   // in serial this is a no-op
   if (worldSize > 1)
-    {
+  {
     int *bufferSizes = 0;
     int *disp = 0;
     if (worldRank == rootRank)
-      {
+    {
       bufferSizes = static_cast<int*>(malloc(worldSize*sizeof(int)));
       disp = static_cast<int*>(malloc(worldSize*sizeof(int)));
-      }
+    }
     int bufferSize = static_cast<int>(this->GetSize());
     MPI_Gather(
         &bufferSize,
@@ -315,14 +316,14 @@ void vtkParallelTimerBuffer::Gather(int rootRank)
     char *log = 0;
     int cumSize = 0;
     if (worldRank == rootRank)
-      {
+    {
       for (int i=0; i<worldSize; ++i)
-        {
+      {
         disp[i] = cumSize;
         cumSize += bufferSizes[i];
-        }
-      log = static_cast<char*>(malloc(cumSize));
       }
+      log = static_cast<char*>(malloc(cumSize));
+    }
     MPI_Gatherv(
       this->Data,
       bufferSize,
@@ -334,18 +335,18 @@ void vtkParallelTimerBuffer::Gather(int rootRank)
       rootRank,
       MPI_COMM_WORLD);
     if (worldRank == rootRank)
-      {
+    {
       this->Clear();
       this->PushBack(log,cumSize);
       free(bufferSizes);
       free(disp);
       free(log);
-      }
-    else
-      {
-      this->Clear();
-      }
     }
+    else
+    {
+      this->Clear();
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -364,13 +365,13 @@ void vtkParallelTimerBuffer::Resize(size_t newSize)
   size_t oldSize = this->Size;
   #endif
   if (newSize <= this->Size)
-    {
+  {
     return;
-    }
+  }
   while(this->Size < newSize)
-    {
+  {
     this->Size += this->GrowBy;
-    }
+  }
   this->Data = static_cast<char*>(realloc(this->Data,this->Size));
   #if defined(vtkParallelTimerBufferDEBUG)
   memset(this->Data+oldSize, -1, this->Size-oldSize);
@@ -399,9 +400,9 @@ vtkParallelTimer::vtkParallelTimer()
 
   MPI_Initialized(&this->Initialized);
   if (this->Initialized)
-    {
+  {
     MPI_Comm_rank(MPI_COMM_WORLD,&this->WorldRank);
-    }
+  }
   this->StartTime.reserve(256);
   this->Log=new vtkParallelTimerBuffer;
 }
@@ -416,25 +417,25 @@ vtkParallelTimer::~vtkParallelTimer()
   // Alert the user that he left events on the stack,
   // this is usually a sign of trouble.
   if (this->StartTime.size()>0)
-    {
+  {
     vtkErrorMacro(
       << "Start time stack has "
       << this->StartTime.size()
       << " remaining.");
-    }
+  }
 
   #if vtkParallelTimerDEBUG < 0
   if (this->EventId.size()>0)
-    {
+  {
     size_t nIds=this->EventId.size();
     vtkErrorMacro(
       << "Event id stack has "
       << nIds << " remaining.");
     for (size_t i=0; i<nIds; ++i)
-      {
+    {
       cerr << "EventId[" << i << "]=" << this->EventId[i] << endl;
-      }
     }
+  }
   #endif
 
   this->SetFileName(0);
@@ -450,7 +451,7 @@ vtkParallelTimer *vtkParallelTimer::GetGlobalInstance()
   #endif
 
   if (vtkParallelTimer::GlobalInstance==0)
-    {
+  {
     vtkParallelTimer *log=vtkParallelTimer::New();
     ostringstream oss;
     oss << getpid() << ".log";
@@ -458,7 +459,7 @@ vtkParallelTimer *vtkParallelTimer::GetGlobalInstance()
 
     vtkParallelTimer::GlobalInstance=log;
     vtkParallelTimer::GlobalInstanceDestructor.SetLog(log);
-    }
+  }
   return vtkParallelTimer::GlobalInstance;
 }
 
@@ -470,12 +471,12 @@ void vtkParallelTimer::DeleteGlobalInstance()
   #endif
 
   if (vtkParallelTimer::GlobalInstance)
-    {
+  {
     vtkParallelTimer::GlobalInstance->Delete();
     vtkParallelTimer::GlobalInstance = NULL;
 
     vtkParallelTimer::GlobalInstanceDestructor.SetLog(0);
-    }
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -497,9 +498,9 @@ void vtkParallelTimer::StartEvent(int rank, const char *event)
   #endif
 
   if (this->WorldRank != rank)
-    {
+  {
     return;
-    }
+  }
   this->StartEvent(event);
 }
 
@@ -510,10 +511,9 @@ void vtkParallelTimer::StartEvent(const char *event)
   cerr << "=====vtkParallelTimer::StartEvent" << endl;
   #endif
 
-  double walls = 0.0;
   timeval wallt;
   gettimeofday(&wallt, 0x0);
-  walls = static_cast<double>(wallt.tv_sec)
+  double walls = static_cast<double>(wallt.tv_sec)
     + static_cast<double>(wallt.tv_usec)/1.0E6;
 
   #if vtkParallelTimerDEBUG < 0
@@ -531,9 +531,9 @@ void vtkParallelTimer::EndEvent(int rank, const char *event)
   #endif
 
   if (this->WorldRank != rank)
-    {
+  {
     return;
-    }
+  }
   this->EndEvent(event);
 }
 
@@ -544,18 +544,17 @@ void vtkParallelTimer::EndEvent(const char *event)
   cerr << "=====vtkParallelTimer::EndEvent" << endl;
   #endif
 
-  double walle = 0.0;
   timeval wallt;
   gettimeofday(&wallt, 0x0);
-  walle = static_cast<double>(wallt.tv_sec)
+  double walle = static_cast<double>(wallt.tv_sec)
     + static_cast<double>(wallt.tv_usec)/1.0E6;
 
   #if vtkParallelTimerDEBUG > 0
   if (this->StartTime.size() == 0)
-    {
+  {
     vtkErrorMacro("No event to end! " << event);
     return;
-    }
+  }
   #endif
 
   double walls = this->StartTime.back();
@@ -573,10 +572,10 @@ void vtkParallelTimer::EndEvent(const char *event)
   const string &sEventId = this->EventId.back();
   const string eEventId = event;
   if (sEventId != eEventId)
-    {
+  {
     vtkErrorMacro(
       << "Event mismatch " << sEventId.c_str() << " != " << eEventId.c_str());
-    }
+  }
   this->EventId.pop_back();
   #endif
 
@@ -590,13 +589,13 @@ void vtkParallelTimer::EndEventSynch(int rank, const char *event)
   #endif
 
   if (this->Initialized)
-    {
+  {
     MPI_Barrier(MPI_COMM_WORLD);
-    }
+  }
   if (this->WorldRank != rank)
-    {
+  {
     return;
-    }
+  }
   this->EndEvent(event);
 }
 
@@ -608,9 +607,9 @@ void vtkParallelTimer::EndEventSynch(const char *event)
   #endif
 
   if (this->Initialized)
-    {
+  {
     MPI_Barrier(MPI_COMM_WORLD);
-    }
+  }
   this->EndEvent(event);
 }
 
@@ -622,9 +621,9 @@ void vtkParallelTimer::Update()
   #endif
 
   if (this->Initialized)
-    {
+  {
     this->Log->Gather(this->WriterRank);
-    }
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -635,25 +634,25 @@ int vtkParallelTimer::Write()
   #endif
 
   if ((this->WorldRank == this->WriterRank) && this->Log->GetSize())
-    {
+  {
     cerr << "Wrote " << this->FileName << endl;
 
     ostringstream oss;
     *this->Log >> oss;
     ofstream f(this->FileName, ios_base::out|ios_base::app);
     if (!f.good())
-      {
+    {
       vtkErrorMacro(
         << "Failed to open "
         << this->FileName
         << " for  writing.");
       return -1;
-      }
+    }
     time_t t;
     time(&t);
     f << "# " << ctime(&t) << this->HeaderBuffer.str() << oss.str();
     f.close();
-    }
+  }
   return 0;
 }
 
@@ -664,9 +663,9 @@ void vtkParallelTimer::PrintSelf(ostream& os, vtkIndent)
   time(&t);
   os << "# " << ctime(&t);
   if (this->WorldRank == this->WriterRank)
-    {
+  {
     os << this->HeaderBuffer.str();
-    }
+  }
   ostringstream oss;
   *this->Log >> oss;
   os << oss.str();

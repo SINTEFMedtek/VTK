@@ -27,16 +27,14 @@ set(vtkCommonCore_EXPORT_OPTIONS
   )
 
 # Choose which multi-threaded parallelism library to use
-set(VTK_SMP_IMPLEMENTATION_TYPE_DOC_STRING "Which multi-threaded parallelism implementation to use. Options are Sequential, Simple, Kaapi, OpenMP or TBB")
+set(VTK_SMP_IMPLEMENTATION_TYPE_DOC_STRING "Which multi-threaded parallelism implementation to use. Options are Sequential, OpenMP or TBB")
 
 set(VTK_SMP_IMPLEMENTATION_TYPE "Sequential" CACHE STRING ${VTK_SMP_IMPLEMENTATION_TYPE_DOC_STRING})
 
-set_property(CACHE VTK_SMP_IMPLEMENTATION_TYPE PROPERTY STRINGS Sequential Simple Kaapi OpenMP TBB)
+set_property(CACHE VTK_SMP_IMPLEMENTATION_TYPE PROPERTY STRINGS Sequential OpenMP TBB)
 
-if( NOT ("${VTK_SMP_IMPLEMENTATION_TYPE}" STREQUAL "Kaapi" OR
-         "${VTK_SMP_IMPLEMENTATION_TYPE}" STREQUAL "OpenMP" OR
-         "${VTK_SMP_IMPLEMENTATION_TYPE}" STREQUAL "TBB" OR
-         "${VTK_SMP_IMPLEMENTATION_TYPE}" STREQUAL "Simple") )
+if( NOT ("${VTK_SMP_IMPLEMENTATION_TYPE}" STREQUAL "OpenMP" OR
+         "${VTK_SMP_IMPLEMENTATION_TYPE}" STREQUAL "TBB") )
   set(VTK_SMP_IMPLEMENTATION_TYPE "Sequential" CACHE STRING ${VTK_SMP_IMPLEMENTATION_TYPE_DOC_STRING} FORCE)
 endif()
 
@@ -77,25 +75,6 @@ elseif ("${VTK_SMP_IMPLEMENTATION_TYPE}" STREQUAL "OpenMP")
     message(WARNING "Required OpenMP version (3.1) for atomics not detected. Using default atomics implementation.")
   endif()
 
-elseif ("${VTK_SMP_IMPLEMENTATION_TYPE}" STREQUAL "Kaapi")
-  find_package(XKaapi REQUIRED)
-  include_directories(${XKAAPI_INCLUDE_DIRS})
-  set(VTK_SMP_IMPLEMENTATION_LIBRARIES ${XKAAPI_LIBRARIES})
-  list(APPEND vtkCommonCore_SYSTEM_INCLUDE_DIRS ${XKAAPI_INCLUDE_DIRS})
-
-  set(VTK_SMP_IMPLEMENTATION_DIR "${CMAKE_CURRENT_SOURCE_DIR}/SMP/Kaapi")
-  set(VTK_SMP_SOURCES ${VTK_SMP_IMPLEMENTATION_DIR}/vtkSMPTools.cxx)
-  set(VTK_SMP_HEADERS_TO_CONFIG vtkSMPToolsInternal.h vtkSMPThreadLocal.h)
-
-elseif ("${VTK_SMP_IMPLEMENTATION_TYPE}" STREQUAL "Simple")
-  set(VTK_SMP_IMPLEMENTATION_LIBRARIES)
-
-  set(VTK_SMP_IMPLEMENTATION_DIR "${CMAKE_CURRENT_SOURCE_DIR}/SMP/Simple")
-  set(VTK_SMP_SOURCES ${VTK_SMP_IMPLEMENTATION_DIR}/vtkSMPTools.cxx)
-  set(VTK_SMP_HEADERS_TO_CONFIG vtkSMPToolsInternal.h vtkSMPThreadLocal.h)
-
-  message(WARNING "The Simple backend for SMP operations is an experimental backend that is mainly used for debugging currently. We recommend that you use either the TBB or the Kaapi backend for production work. Use the Sequential backend if you would like to turn off any SMP parallelism.")
-
 elseif ("${VTK_SMP_IMPLEMENTATION_TYPE}" STREQUAL "Sequential")
   set(VTK_SMP_IMPLEMENTATION_LIBRARIES)
   set(VTK_SMP_IMPLEMENTATION_DIR "${CMAKE_CURRENT_SOURCE_DIR}/SMP/Sequential")
@@ -119,19 +98,65 @@ endforeach()
 
 list(APPEND VTK_SMP_HEADERS vtkSMPTools.h vtkSMPThreadLocalObject.h)
 
+#-------------------------------------------------------------------------------
+# Generate the vtkTypeList_Create macros:
+include(vtkCreateTypeListMacros)
+CreateTypeListMacros(
+  VTK_TYPELISTMACRO_HEADER_CONTENTS
+  99
+  vtkTypeList_Create
+  "vtkTypeList::TypeList"
+  "vtkTypeList::NullType"
+)
+configure_file(vtkTypeListMacros.h.in vtkTypeListMacros.h)
+
+#-------------------------------------------------------------------------------
+# And the ArrayDispatch array list header:
+option(VTK_DISPATCH_AOS_ARRAYS
+  "Include array-of-structs vtkDataArray subclasses in dispatcher."
+  ON
+)
+option(VTK_DISPATCH_SOA_ARRAYS
+  "Include struct-of-arrays vtkDataArray subclasses in dispatcher."
+  OFF
+)
+option(VTK_DISPATCH_TYPED_ARRAYS
+  "Include vtkTypedDataArray subclasses (e.g. old mapped arrays) in dispatcher."
+  OFF
+)
+include(vtkCreateArrayDispatchArrayList)
+vtkArrayDispatch_default_array_setup()
+vtkArrayDispatch_generate_array_header(VTK_ARRAYDISPATCH_ARRAY_LIST)
+configure_file(vtkArrayDispatchArrayList.h.in vtkArrayDispatchArrayList.h)
+
+option(VTK_WARN_ON_DISPATCH_FAILURE
+  "If enabled, vtkArrayDispatch will print a warning when a dispatch fails."
+  OFF
+)
+
+mark_as_advanced(
+  VTK_DISPATCH_AOS_ARRAYS
+  VTK_DISPATCH_SOA_ARRAYS
+  VTK_DISPATCH_TYPED_ARRAYS
+  VTK_WARN_ON_DISPATCH_FAILURE
+)
+
 #-----------------------------------------------------------------------------
 
 include_directories(${VTK_SOURCE_DIR}/ThirdParty/utf8/source)
 
 SET(Module_SRCS
   vtkAbstractArray.cxx
-  vtkAnimationCue.cxx
   vtkAngularPeriodicDataArray.txx
+  vtkAnimationCue.cxx
+  vtkAOSDataArrayTemplate.txx
   vtkArrayCoordinates.cxx
   vtkArray.cxx
   vtkArrayExtents.cxx
   vtkArrayExtentsList.cxx
   vtkArrayIterator.cxx
+  vtkArrayIteratorTemplate.txx
+  vtkArrayIteratorTemplateInstantiate.cxx
   vtkArrayRange.cxx
   vtkArraySort.cxx
   vtkArrayWeights.cxx
@@ -179,6 +204,7 @@ SET(Module_SRCS
   vtkInformationIntegerVectorKey.cxx
   vtkInformationIterator.cxx
   vtkInformationKey.cxx
+  vtkInformationKeyLookup.cxx
   vtkInformationKeyVectorKey.cxx
   vtkInformationObjectBaseKey.cxx
   vtkInformationObjectBaseVectorKey.cxx
@@ -197,6 +223,7 @@ SET(Module_SRCS
   vtkLookupTable.cxx
   vtkMappedDataArray.txx
   vtkMath.cxx
+  vtkMersenneTwister.cxx
   vtkMinimalStandardRandomSequence.cxx
   vtkMultiThreader.cxx
   vtkMutexLock.cxx
@@ -221,9 +248,12 @@ SET(Module_SRCS
   vtkSignedCharArray.cxx
   vtkSimpleCriticalSection.cxx
   vtkSmartPointerBase.cxx
+  vtkSOADataArrayTemplate.txx
+  vtkSOADataArrayTemplateInstantiate.cxx
   vtkSortDataArray.cxx
   vtkStdString.cxx
   vtkStringArray.cxx
+  vtkStringOutputWindow.cxx
   vtkTimePointUtility.cxx
   vtkTimeStamp.cxx
   vtkTypedDataArray.txx
@@ -241,14 +271,13 @@ SET(Module_SRCS
   vtkWeakPointerBase.cxx
   vtkWindow.cxx
   vtkXMLFileOutputWindow.cxx
-  vtkDataArrayTemplate.txx
-  vtkDataArrayTemplateHelper.cxx
   vtkDenseArray.txx
   vtkSparseArray.txx
   vtkTypedArray.txx
   vtkTypeTemplate.h
   vtkType.h
   vtkSystemIncludes.h
+  vtkWrappingHints.h
   ${VTK_SMP_SOURCES}
   ${VTK_SMP_HEADERS}
   ${CMAKE_CURRENT_BINARY_DIR}/vtkConfigure.h
@@ -259,29 +288,41 @@ SET(Module_SRCS
 set(${vtk-module}_HDRS
   vtkABI.h
   vtkAngularPeriodicDataArray.h
+  vtkArrayDispatch.h
+  vtkArrayDispatch.txx
   vtkArrayInterpolate.h
   vtkArrayInterpolate.txx
   vtkArrayIteratorIncludes.h
-  vtkArrayIteratorTemplate.h
-  vtkArrayIteratorTemplate.txx
   vtkArrayIteratorTemplateImplicit.txx
   vtkArrayPrint.h
   vtkArrayPrint.txx
+  vtkAssume.h
   vtkAtomicTypeConcepts.h
   vtkAtomicTypes.h
   vtkAutoInit.h
+  vtkBuffer.h
+  vtkDataArrayAccessor.h
   vtkDataArrayIteratorMacro.h
-  vtkDataArrayTemplateImplicit.txx
+  vtkDataArrayTemplate.h
+  vtkGenericDataArray.h
+  vtkGenericDataArrayLookupHelper.h
+  vtkGenericDataArray.txx
   vtkIOStream.h
   vtkIOStreamFwd.h
   vtkInformationInternals.h
   vtkMappedDataArray.h
   vtkMathUtilities.h
+  vtkMersenneTwister.h
   vtkNew.h
   vtkPeriodicDataArray.h
   vtkSetGet.h
   vtkSmartPointer.h
+  vtkSOADataArrayTemplate.h
+  vtkSOADataArrayTemplate.txx
   vtkTemplateAliasMacro.h
+  vtkTestDataArray.h
+  vtkTypeList.h
+  vtkTypeList.txx
   vtkTypeTraits.h
   vtkTypedDataArray.h
   vtkTypedDataArrayIterator.h
@@ -292,7 +333,9 @@ set(${vtk-module}_HDRS
   vtkWeakPointer.h
   vtkWin32Header.h
   vtkWindows.h
+  ${CMAKE_CURRENT_BINARY_DIR}/vtkArrayDispatchArrayList.h
   ${CMAKE_CURRENT_BINARY_DIR}/vtkToolkits.h
+  ${CMAKE_CURRENT_BINARY_DIR}/vtkTypeListMacros.h
   )
 
 if(vtkCommonDataModel_ENABLED)
@@ -345,17 +388,6 @@ if (WIN32)
   check_symbol_exists(InterlockedAdd "windows.h" VTK_HAS_INTERLOCKEDADD)
 endif()
 
-if (NOT CMAKE_VERSION VERSION_LESS "3.1")
-  option(VTK_USE_CXX11_FEATURES "Build VTK using C++11 features (if available)"
-         OFF)
-else()
-  set(VTK_USE_CXX11_FEATURES OFF)
-endif()
-if (VTK_USE_CXX11_FEATURES)
-  set(CMAKE_CXX_STANDARD_REQUIRED 11)
-endif()
-
-
 configure_file(vtkVersionMacros.h.in vtkVersionMacros.h @ONLY)
 configure_file(vtkConfigure.h.in vtkConfigure.h @ONLY)
 configure_file(vtkToolkits.h.in vtkToolkits.h @ONLY)
@@ -374,31 +406,79 @@ set_source_files_properties(
 
 # Configure data arrays for platform-independent fixed-size types.
 # Match the type selection here to that in vtkType.h.
-if(VTK_TYPE_CHAR_IS_SIGNED)
-  set(VTK_TYPE_NATIVE_Int8 Char)
-else()
-  set(VTK_TYPE_NATIVE_Int8 SignedChar)
-endif()
-set(VTK_TYPE_NATIVE_Int16 Short)
-set(VTK_TYPE_NATIVE_Int32 Int)
-set(VTK_TYPE_NATIVE_UInt8 UnsignedChar)
-set(VTK_TYPE_NATIVE_UInt16 UnsignedShort)
-set(VTK_TYPE_NATIVE_UInt32 UnsignedInt)
+set(VTK_TYPE_NATIVE_Int8 "
+#if VTK_TYPE_INT8 == VTK_CHAR
+# include \"vtkCharArray.h\"
+# define vtkTypeArrayBase vtkCharArray
+#else
+# include \"vtkSignedCharArray.h\"
+# define vtkTypeArrayBase vtkSignedCharArray
+#endif
+")
+set(VTK_TYPE_NATIVE_UInt8 "
+#if VTK_TYPE_UINT8 == VTK_UNSIGNED_CHAR
+# include \"vtkUnsignedCharArray.h\"
+# define vtkTypeArrayBase vtkUnsignedCharArray
+#endif
+")
+set(VTK_TYPE_NATIVE_Int16 "
+#if VTK_TYPE_INT16 == VTK_SHORT
+# include \"vtkShortArray.h\"
+# define vtkTypeArrayBase vtkShortArray
+#endif
+")
+set(VTK_TYPE_NATIVE_UInt16 "
+#if VTK_TYPE_UINT16 == VTK_UNSIGNED_SHORT
+# include \"vtkUnsignedShortArray.h\"
+# define vtkTypeArrayBase vtkUnsignedShortArray
+#endif
+")
+set(VTK_TYPE_NATIVE_Int32 "
+#if VTK_TYPE_INT32 == VTK_INT
+# include \"vtkIntArray.h\"
+# define vtkTypeArrayBase vtkIntArray
+#endif
+")
+set(VTK_TYPE_NATIVE_UInt32 "
+#if VTK_TYPE_UINT32 == VTK_UNSIGNED_INT
+# include \"vtkUnsignedIntArray.h\"
+# define vtkTypeArrayBase vtkUnsignedIntArray
+#endif
+")
+set(VTK_TYPE_NATIVE_Int64 "
+#if VTK_TYPE_INT64 == VTK_LONG
+# include \"vtkLongArray.h\"
+# define vtkTypeArrayBase vtkLongArray
+#elif VTK_TYPE_INT64 == VTK_LONG_LONG
+# include \"vtkLongLongArray.h\"
+# define vtkTypeArrayBase vtkLongLongArray
+#endif
+")
+set(VTK_TYPE_NATIVE_UInt64 "
+#if VTK_TYPE_UINT64 == VTK_UNSIGNED_LONG
+# include \"vtkUnsignedLongArray.h\"
+# define vtkTypeArrayBase vtkUnsignedLongArray
+#elif VTK_TYPE_UINT64 == VTK_UNSIGNED_LONG_LONG
+# include \"vtkUnsignedLongLongArray.h\"
+# define vtkTypeArrayBase vtkUnsignedLongLongArray
+#endif
+")
+set(VTK_TYPE_NATIVE_Float32 "
+#if VTK_TYPE_FLOAT32 == VTK_FLOAT
+# include \"vtkFloatArray.h\"
+# define vtkTypeArrayBase vtkFloatArray
+#endif
+")
+set(VTK_TYPE_NATIVE_Float64 "
+#if VTK_TYPE_FLOAT64 == VTK_DOUBLE
+# include \"vtkDoubleArray.h\"
+# define vtkTypeArrayBase vtkDoubleArray
+#endif
+")
 
-if(VTK_SIZEOF_LONG_LONG MATCHES "^8$")
-  set(VTK_TYPE_NATIVE_Int64 LongLong)
-  set(VTK_TYPE_NATIVE_UInt64 UnsignedLongLong)
-else()
-  if(VTK_SIZEOF_LONG MATCHES "^8$")
-    set(VTK_TYPE_NATIVE_Int64 Long)
-    set(VTK_TYPE_NATIVE_UInt64 UnsignedLong)
-  endif()
-endif()
-set(VTK_TYPE_NATIVE_Float32 Float)
-set(VTK_TYPE_NATIVE_Float64 Double)
 foreach(t Int8 Int16 Int32 Int64 UInt8 UInt16 UInt32 UInt64 Float32 Float64)
   set(VTK_TYPE_NAME ${t})
-  set(VTK_TYPE_NATIVE ${VTK_TYPE_NATIVE_${t}})
+  set(VTK_TYPE_NATIVE "${VTK_TYPE_NATIVE_${t}}")
   if(VTK_TYPE_NATIVE)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/vtkTypedArray.h.in
                    ${CMAKE_CURRENT_BINARY_DIR}/vtkType${t}Array.h
@@ -460,9 +540,8 @@ configure_file(
 set_source_files_properties(
   # vtkObjectBase is marked ABSTRACT so that instantiators are happy.
   vtkAbstractArray
-  vtkArrayIterator
-  vtkArrayIteratorTemplate
   vtkArray
+  vtkArrayIterator
   vtkCallbackCommand
   vtkCommand
   vtkCommonInformationKeyManager
@@ -500,13 +579,17 @@ set_source_files_properties(
   )
 
 set_source_files_properties(
+  vtkAOSDataArrayTemplate.h
+  vtkAOSDataArrayTemplate.txx
   vtkArrayCoordinates.cxx
   vtkArrayExtents.cxx
   vtkArrayExtentsList.cxx
   vtkArrayIteratorTemplate.txx
+  vtkArrayIteratorTemplateInstantiate.cxx
   vtkArrayRange.cxx
   vtkArraySort.cxx
   vtkArrayWeights.cxx
+  vtkBuffer.h
   vtkBoundingBox.cxx
   vtkBreakPoint.cxx
   vtkCallbackCommand.cxx
@@ -517,17 +600,20 @@ set_source_files_properties(
   vtkGarbageCollectorManager.cxx
   vtkIndent.cxx
   vtkLargeInteger.cxx
+  vtkMersenneTwister_Private.cxx
   vtkOStrStreamWrapper.cxx
   vtkOStreamWrapper.cxx
   vtkOldStyleCallbackCommand.cxx
   vtkSimpleCriticalSection.cxx
   vtkSmartPointerBase.cxx
+  vtkSOADataArrayTemplate.h
+  vtkSOADataArrayTemplate.txx
+  vtkSOADataArrayTemplateInstantiate.cxx # Has no API
   vtkStdString.cxx
   vtkTimeStamp.cxx
   vtkVariant.cxx
   vtkWeakPointerBase.cxx
   vtkUnicodeString.cxx
-  vtkDataArrayTemplate.h
   vtkDataArrayPrivate.txx
 
   vtkABI.h
@@ -536,20 +622,18 @@ set_source_files_properties(
   vtkArrayInterpolate.txx
   vtkArrayIteratorIncludes.h
   vtkArrayIteratorTemplate.h
-  vtkArrayIteratorTemplate.txx
   vtkArrayIteratorTemplateImplicit.txx
   vtkArrayPrint.h
   vtkArrayPrint.txx
   vtkAtomicTypeConcepts.h
   vtkAtomicTypes.h
   vtkAutoInit.h
-  vtkDataArrayTemplate.txx
-  vtkDataArrayTemplateHelper.cxx
-  vtkDataArrayTemplateImplicit.txx
   vtkDenseArray.txx
+  vtkGenericDataArrayHelpers.h
+  vtkInformationInternals.h
   vtkIOStream.h
   vtkIOStreamFwd.h
-  vtkInformationInternals.h
+  vtkIOStreamFwd.h
   vtkMathUtilities.h
   vtkMappedDataArray.txx
   vtkNew.h
@@ -575,8 +659,10 @@ set_source_files_properties(
   vtkMathConfigure.h
   vtkVersionMacros.h
   vtkTypeTemplate.h
+  vtkWrappingHints.h
   ${VTK_SMP_SOURCES}
   ${VTK_SMP_HEADERS}
+  "${VTK_TYPELISTMACROS_HEADER}"
 
   WRAP_EXCLUDE
   )
@@ -584,12 +670,11 @@ set_source_files_properties(
 # python uses WRAP_EXCLUDE_PYTHON and ignores WRAP_EXCLUDE
 set_source_files_properties(
   vtkABI.h
+  vtkAOSDataArrayTemplate.txx
+  vtkArrayIteratorTemplateInstantiate.cxx
   vtkAtomic.h
   vtkAutoInit.h
-  vtkDataArrayTemplate.txx
-  vtkDataArrayTemplateHelper.cxx
-  vtkDataArrayTemplateImplicit.txx
-  vtkIOStream.h
+  vtkIOStream.cxx
   vtkIOStreamFwd.h
   vtkLargeInteger.cxx
   vtkOldStyleCallbackCommand.cxx
@@ -599,11 +684,14 @@ set_source_files_properties(
   vtkSetGet.h
   vtkSmartPointer.h
   vtkSmartPointerBase.h
+  vtkSOADataArrayTemplate.txx
+  vtkSOADataArrayTemplateInstantiate.cxx # Has no API
   vtkStdString.cxx
   vtkUnicodeString.cxx
   vtkWeakPointer.h
   vtkWeakPointerBase.cxx
   vtkWin32Header.h
+  vtkWrappingHints.h
   PROPERTIES WRAP_EXCLUDE_PYTHON 1
 )
 
@@ -613,8 +701,15 @@ set_source_files_properties(
   vtkSparseArray.h
   vtkTypedArray.h
   vtkTypeTemplate.h
+  "${VTK_TYPELISTMACROS_HEADER}"
   HEADER_FILE_ONLY
   )
+
+set_source_files_properties(
+  vtkArrayIteratorTemplateInstantiate.cxx # Has no header
+  vtkSOADataArrayTemplateInstantiate.cxx # Has no header
+  PROPERTIES SKIP_HEADER_INSTALL 1
+)
 
 # Need nsl to resolve gethostbyname on SunOS-5.8
 # and socket also
@@ -625,3 +720,7 @@ endif()
 vtk_module_library(vtkCommonCore ${Module_SRCS})
 
 vtk_module_link_libraries(vtkCommonCore LINK_PRIVATE ${CMAKE_THREAD_LIBS} LINK_PUBLIC ${VTK_SMP_IMPLEMENTATION_LIBRARIES})
+
+if(ANDROID)
+  target_link_libraries(vtkCommonCore LINK_PRIVATE log)
+endif()

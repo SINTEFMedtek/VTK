@@ -55,7 +55,24 @@ If you have found a bug:
 3. Finally, if the issue is not resolved by the above steps, open
    an entry in the [VTK Issue Tracker][].
 
-[VTK Issue Tracker]: http://www.vtk.org/Bug
+[VTK Issue Tracker]: https://gitlab.kitware.com/vtk/vtk/issues
+
+Requirements
+============
+
+In general VTK tries to be as portable as possible; the specific configurations below are known to work and tested.
+
+VTK supports the following compilers:
+1. Microsoft Visual Studio 2008 (aka MSVC++ 9.0) or newer
+2. gcc 4.2 or newer
+3. Apple gcc 4.2 (from Xcode 3.1.4 or newer)
+4. Clang 3.0 or newer
+5. Apple Clang 3.0 (from Xcode 4.2) or newer
+
+VTK supports the following operating systems:
+1. Windows Vista or newer
+2. Mac OS X 10.6.8 or newer
+3. Linux (ex: Ubuntu 12.04 or newer, Debian 4 or newer)
 
 Contributing
 ============

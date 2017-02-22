@@ -98,6 +98,7 @@ int TestScalarBar( int argc, char *argv[] )
   scalarBar1->SetTextPositionToPrecedeScalarBar();
   scalarBar1->GetTitleTextProperty()->SetColor( 0., 0., 1. );
   scalarBar1->GetLabelTextProperty()->SetColor( 0., 0., 1. );
+  scalarBar1->GetAnnotationTextProperty()->SetColor( 0., 0., 1. );
   scalarBar1->SetDrawFrame( 1 );
   scalarBar1->GetFrameProperty()->SetColor( 0., 0., 0. );
   scalarBar1->SetDrawBackground( 1 );
@@ -178,9 +179,9 @@ int TestScalarBar( int argc, char *argv[] )
 
   int retVal = vtkRegressionTestImage( renWin.GetPointer() );
   if ( retVal == vtkRegressionTester::DO_INTERACTOR )
-    {
+  {
     iren->Start();
-    }
+  }
 
   return !retVal;
 }

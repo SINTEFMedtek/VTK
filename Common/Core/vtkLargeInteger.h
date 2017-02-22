@@ -12,7 +12,10 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-// .NAME vtkLargeInteger - class for arbitrarily large ints
+/**
+ * @class   vtkLargeInteger
+ * @brief   class for arbitrarily large ints
+*/
 
 #ifndef vtkLargeInteger_h
 #define vtkLargeInteger_h
@@ -50,12 +53,12 @@ public:
   void Truncate(unsigned int n); // reduce to lower n bits
   void Complement(void); // * -1
 
-  int operator==(const vtkLargeInteger& n) const;
-  int operator!=(const vtkLargeInteger& n) const;
-  int operator<(const vtkLargeInteger& n) const;
-  int operator<=(const vtkLargeInteger& n) const;
-  int operator>(const vtkLargeInteger& n) const;
-  int operator>=(const vtkLargeInteger& n) const;
+  bool operator==(const vtkLargeInteger& n) const;
+  bool operator!=(const vtkLargeInteger& n) const;
+  bool operator<(const vtkLargeInteger& n) const;
+  bool operator<=(const vtkLargeInteger& n) const;
+  bool operator>(const vtkLargeInteger& n) const;
+  bool operator>=(const vtkLargeInteger& n) const;
 
   vtkLargeInteger& operator=(const vtkLargeInteger& n);
   vtkLargeInteger& operator+=(const vtkLargeInteger& n);
@@ -96,8 +99,8 @@ private:
   unsigned int Max;
 
   // unsigned operators
-  int IsSmaller(const vtkLargeInteger& n) const; // unsigned
-  int IsGreater(const vtkLargeInteger& n) const; // unsigned
+  bool IsSmaller(const vtkLargeInteger& n) const; // unsigned
+  bool IsGreater(const vtkLargeInteger& n) const; // unsigned
   void Expand(unsigned int n); // ensure n'th bit exits
   void Contract(); // remove leading 0s
   void Plus(const vtkLargeInteger& n); // unsigned

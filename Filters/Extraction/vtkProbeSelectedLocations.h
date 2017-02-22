@@ -12,15 +12,18 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-// .NAME vtkProbeSelectedLocations - similar to vtkExtractSelectedLocations
-// except that it interpolates the point attributes at the probe locations.
-// .SECTION Description
-// vtkProbeSelectedLocations is similar to vtkExtractSelectedLocations except
-// that it interpolates the point attributes at the probe location. This is
-// equivalent to the vtkProbeFilter except that the probe locations are provided
-// by a vtkSelection. The FieldType of the input vtkSelection is immaterial and
-// is ignored. The ContentType of the input vtkSelection must be
-// vtkSelection::LOCATIONS.
+/**
+ * @class   vtkProbeSelectedLocations
+ * @brief   similar to vtkExtractSelectedLocations
+ * except that it interpolates the point attributes at the probe locations.
+ *
+ * vtkProbeSelectedLocations is similar to vtkExtractSelectedLocations except
+ * that it interpolates the point attributes at the probe location. This is
+ * equivalent to the vtkProbeFilter except that the probe locations are provided
+ * by a vtkSelection. The FieldType of the input vtkSelection is immaterial and
+ * is ignored. The ContentType of the input vtkSelection must be
+ * vtkSelection::LOCATIONS.
+*/
 
 #ifndef vtkProbeSelectedLocations_h
 #define vtkProbeSelectedLocations_h
@@ -35,13 +38,13 @@ public:
   vtkTypeMacro(vtkProbeSelectedLocations, vtkExtractSelectionBase);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-//BTX
 protected:
   vtkProbeSelectedLocations();
   ~vtkProbeSelectedLocations();
 
-  // Description:
-  // Sets up empty output dataset
+  /**
+   * Sets up empty output dataset
+   */
   virtual int RequestDataObject(vtkInformation* request,
                                 vtkInformationVector** inputVector,
                                 vtkInformationVector* outputVector);
@@ -50,9 +53,9 @@ protected:
     vtkInformationVector *);
 
 private:
-  vtkProbeSelectedLocations(const vtkProbeSelectedLocations&); // Not implemented.
-  void operator=(const vtkProbeSelectedLocations&); // Not implemented.
-//ETX
+  vtkProbeSelectedLocations(const vtkProbeSelectedLocations&) VTK_DELETE_FUNCTION;
+  void operator=(const vtkProbeSelectedLocations&) VTK_DELETE_FUNCTION;
+
 };
 
 #endif

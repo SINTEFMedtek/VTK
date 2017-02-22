@@ -1,7 +1,9 @@
 vtk_add_test_cxx(${vtk-module}CxxTests tests
   TestExtractSurfaceNonLinearSubdivision.cxx
   TestDataSetSurfaceFieldData.cxx,NO_VALID
+  TestDataSetRegionSurfaceFilter.cxx
   TestImageDataToUniformGrid.cxx,NO_VALID
+  TestLinearToQuadraticCellsFilter.cxx
   TestProjectSphereFilter.cxx,NO_VALID
   TestStructuredAMRNeighbor.cxx,NO_VALID
   TestUniformGridGhostDataGenerator.cxx,NO_VALID
@@ -13,6 +15,7 @@ vtk_add_test_cxx(${vtk-module}CxxTests no_data_tests
   TestStructuredAMRGridConnectivity.cxx
   TestStructuredGridConnectivity.cxx
   TestStructuredGridGhostDataGenerator.cxx
+  UnitTestDataSetSurfaceFilter.cxx
   )
 
 set(all_tests

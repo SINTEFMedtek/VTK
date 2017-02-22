@@ -12,10 +12,12 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-// .NAME vtkCompositedSynchronizedRenderers
-// .SECTION Description
-// vtkCompositedSynchronizedRenderers is vtkSynchronizedRenderers that uses
-// vtkCompositer to composite the images on  the root node.
+/**
+ * @class   vtkCompositedSynchronizedRenderers
+ *
+ * vtkCompositedSynchronizedRenderers is vtkSynchronizedRenderers that uses
+ * vtkCompositer to composite the images on  the root node.
+*/
 
 #ifndef vtkCompositedSynchronizedRenderers_h
 #define vtkCompositedSynchronizedRenderers_h
@@ -33,12 +35,14 @@ public:
   vtkTypeMacro(vtkCompositedSynchronizedRenderers, vtkSynchronizedRenderers);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  // Description:
-  // Get/Set the composite. vtkTreeCompositer is used by default.
+  //@{
+  /**
+   * Get/Set the composite. vtkTreeCompositer is used by default.
+   */
   void SetCompositer(vtkCompositer*);
   vtkGetObjectMacro(Compositer, vtkCompositer);
+  //@}
 
-//BTX
 protected:
   vtkCompositedSynchronizedRenderers();
   ~vtkCompositedSynchronizedRenderers();
@@ -49,9 +53,9 @@ protected:
 
   vtkCompositer* Compositer;
 private:
-  vtkCompositedSynchronizedRenderers(const vtkCompositedSynchronizedRenderers&); // Not implemented
-  void operator=(const vtkCompositedSynchronizedRenderers&); // Not implemented
-//ETX
+  vtkCompositedSynchronizedRenderers(const vtkCompositedSynchronizedRenderers&) VTK_DELETE_FUNCTION;
+  void operator=(const vtkCompositedSynchronizedRenderers&) VTK_DELETE_FUNCTION;
+
 };
 
 #endif

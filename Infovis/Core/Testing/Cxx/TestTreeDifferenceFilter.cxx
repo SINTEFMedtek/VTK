@@ -98,29 +98,29 @@ int TestTreeDifferenceFilter(int, char*[])
 
   vtkNew<vtkTree> outputTree;
   outputTree->ShallowCopy(filter->GetOutput());
-  vtkDoubleArray *diff = vtkDoubleArray::SafeDownCast(
+  vtkDoubleArray *diff = vtkArrayDownCast<vtkDoubleArray>(
     outputTree->GetEdgeData()->GetAbstractArray("weight differences"));
 
   if (diff->GetValue(0) != -1.0)
-    {
+  {
     return EXIT_FAILURE;
-    }
+  }
   if (diff->GetValue(1) != -2.0)
-    {
+  {
     return EXIT_FAILURE;
-    }
+  }
   if (diff->GetValue(2) != -3.0)
-    {
+  {
     return EXIT_FAILURE;
-    }
+  }
   if (diff->GetValue(3) != -4.0)
-    {
+  {
     return EXIT_FAILURE;
-    }
+  }
   if (diff->GetValue(4) != -5.0)
-    {
+  {
     return EXIT_FAILURE;
-    }
+  }
 
   return EXIT_SUCCESS;
 }

@@ -47,12 +47,12 @@ namespace
 
 #define myassert(Cond)                                  \
   if (!(Cond))                                          \
-    {                                                   \
+  {                                                   \
       cerr << "error (" __FILE__ ":" << dec << __LINE__ \
            << ") assertion \"" #Cond "\" failed."       \
            << endl;                                     \
     MPI_Abort(MPI_COMM_WORLD, -1);                      \
-    }
+  }
 
 void TestPSQLGraphReader()
 {
@@ -64,34 +64,34 @@ void TestPSQLGraphReader()
   db->SetDatabaseFileName(":memory:");
   bool ok = db->Open("");
   if (!ok)
-    {
+  {
     cerr << "Could not open database!" << endl;
     cerr << db->GetLastErrorText() << endl;
     return;
-    }
+  }
   vtkSmartPointer<vtkSQLQuery> query;
   query.TakeReference(db->GetQueryInstance());
   query->SetQuery("create table vertices (id INTEGER, name VARCHAR(10), color INTEGER)");
   query->Execute();
   for (int i = 0; i < vertices; ++i)
-    {
+  {
     oss.str("");
     oss << "insert into vertices values(" << i << ","
       << vtkVariant(i).ToString() << "," << i % 2 << ")" << endl;
     query->SetQuery(oss.str().c_str());
     query->Execute();
-    }
+  }
   query->SetQuery("create table edges (source INTEGER, target INTEGER, name VARCHAR(10))");
   query->Execute();
   for (int i = 0; i < vertices; ++i)
-    {
+  {
     oss.str("");
     oss << "insert into edges values(" << i << ", "
       << (i+1)%vertices << ", "
       << vtkVariant(i).ToString() << ")" << endl;
     query->SetQuery(oss.str().c_str());
     query->Execute();
-    }
+  }
 
   // Create the reader
   vtkSmartPointer<vtkPBGLGraphSQLReader> reader =
@@ -109,46 +109,40 @@ void TestPSQLGraphReader()
   collapse->SetInputArrayToProcess(0, 0, 0, vtkDataObject::FIELD_ASSOCIATION_VERTICES, "color");
   collapse->SetInputConnection(reader->GetOutputPort());
 
-  // Setup the parallel executive
-  vtkStreamingDemandDrivenPipeline* exec =
-    vtkStreamingDemandDrivenPipeline::SafeDownCast(collapse->GetExecutive());
   vtkSmartPointer<vtkPBGLDistributedGraphHelper> helper =
     vtkSmartPointer<vtkPBGLDistributedGraphHelper>::New();
   int total = num_processes(helper->GetProcessGroup());
   int rank = process_id(helper->GetProcessGroup());
-  collapse->UpdateInformation();
-  exec->SetUpdateNumberOfPieces(exec->GetOutputInformation(0), total);
-  exec->SetUpdatePiece(exec->GetOutputInformation(0), rank);
 
   // Update the pipeline
-  collapse->Update();
+  collapse->Update(rank, total, 0);
 
   // Display the output
   vtkGraph* output = collapse->GetOutput();
-  vtkAbstractArray* colorArr = vtkAbstractArray::SafeDownCast(output->GetVertexData()->GetAbstractArray("color"));
+  vtkAbstractArray* colorArr = vtkArrayDownCast<vtkAbstractArray>(output->GetVertexData()->GetAbstractArray("color"));
   vtkSmartPointer<vtkVertexListIterator> vit =
     vtkSmartPointer<vtkVertexListIterator>::New();
   output->GetVertices(vit);
   while (vit->HasNext())
-    {
+  {
     vtkIdType v = vit->Next();
     int ind = output->GetDistributedGraphHelper()->GetVertexIndex(v);
     int owner = output->GetDistributedGraphHelper()->GetVertexOwner(v);
     int color = colorArr->GetVariantValue(ind).ToInt();
     cerr << "PROCESS " << rank << " vertex: " << hex << v
       << "," << color << endl;
-    }
+  }
   vtkSmartPointer<vtkEdgeListIterator> it =
     vtkSmartPointer<vtkEdgeListIterator>::New();
   output->GetEdges(it);
   while (it->HasNext())
-    {
+  {
     vtkEdgeType e = it->Next();
     vtkIdType ind = output->GetDistributedGraphHelper()->GetEdgeIndex(e.Id);
     cerr << "PROCESS " << rank << " edge: " << hex << e.Id
       << " (" << e.Source << "," << e.Target << ")"
       << " index: " << ind << endl;
-    }
+  }
 }
 
 }

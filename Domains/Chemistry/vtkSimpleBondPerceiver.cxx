@@ -69,32 +69,27 @@ int vtkSimpleBondPerceiver::RequestData(
   output->ShallowCopyAttributes(input);
 
   // Get pointers to data
-  vtkSmartPointer<vtkUnsignedShortArray> numArr =
-      vtkSmartPointer<vtkUnsignedShortArray>::New();
-  vtkSmartPointer<vtkPoints> posArr =
-      vtkSmartPointer<vtkPoints>::New();
-
-  posArr = output->GetAtomicPositionArray();
-  numArr = output->GetAtomicNumberArray();
+  vtkSmartPointer<vtkPoints> posArr = output->GetAtomicPositionArray();
+  vtkSmartPointer<vtkUnsignedShortArray> numArr = output->GetAtomicNumberArray();
 
   // Cache atomic radii
   vtkNew<vtkPeriodicTable> pTab;
   std::vector<float> radii (numArr->GetNumberOfTuples());
   for (size_t i = 0; i < radii.size(); ++i)
-    {
+  {
     radii[i] = pTab->GetCovalentRadius(
           numArr->GetValue(static_cast<vtkIdType>(i)));
-    }
+  }
 
   // Check for bonds
   double diff[3];
   const vtkIdType numAtoms = output->GetNumberOfAtoms();
   vtkDebugMacro(<<"Checking for bonds with tolerance " << this->Tolerance);
   for (vtkIdType i = 0; i < numAtoms; ++i)
-    {
+  {
     double *ipos = posArr->GetPoint(i);
     for (vtkIdType j = i+1; j < numAtoms; ++j)
-      {
+    {
       double cutoff = radii[i] + radii[j] + this->Tolerance;
       posArr->GetPoint(j, diff);
       diff[0] -= ipos[0];
@@ -111,13 +106,13 @@ int vtkSimpleBondPerceiver::RequestData(
       double cutoffSq = cutoff * cutoff;
       double diffsq = diff[0]*diff[0] + diff[1]*diff[1] + diff[2]*diff[2];
       if (diffsq < cutoffSq && diffsq > 0.1)
-        {
+      {
         vtkDebugMacro(<<"Adding bond between " << i << " and " << j
                       << ". Distance: " << diffsq << "\n");
         output->AppendBond(i, j, 1);
-        }
       }
     }
+  }
 
   return 1;
 }

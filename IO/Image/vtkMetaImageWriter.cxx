@@ -88,34 +88,30 @@ void vtkMetaImageWriter::Write( )
 
   // Error checking
   if (this->GetInput() == NULL )
-    {
+  {
     vtkErrorMacro(<<"Write:Please specify an input!");
     return;
-    }
+  }
 
   if ( !this->MHDFileName )
-    {
+  {
     vtkErrorMacro("Output file name not specified");
     return;
-    }
+  }
 
   int nDims = 3;
   int * ext = this->GetInputInformation(0, 0)->Get(
     vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT());
   if ( ext[4] == ext[5] )
-    {
+  {
     nDims = 2;
     if ( ext[2] == ext[3] )
-      {
+    {
       nDims = 1;
-      }
     }
+  }
 
-  vtkStreamingDemandDrivenPipeline::SetUpdateExtent(
-    this->GetInputInformation(0, 0), ext);
-  vtkDemandDrivenPipeline::SafeDownCast(
-    this->GetInputExecutive(0, 0))->UpdateData(
-      this->GetInputConnection(0, 0)->GetIndex());
+  this->GetInputAlgorithm()->UpdateExtent(ext);
 
   double origin[3];
   double spacingDouble[3];
@@ -136,7 +132,7 @@ void vtkMetaImageWriter::Write( )
 
   int scalarType = this->GetInput()->GetScalarType();
   switch ( scalarType )
-    {
+  {
     case VTK_CHAR:           elementType = vtkmetaio::MET_CHAR; break;
     case VTK_SIGNED_CHAR:    elementType = vtkmetaio::MET_CHAR; break;
     case VTK_UNSIGNED_CHAR:  elementType = vtkmetaio::MET_UCHAR; break;
@@ -151,7 +147,7 @@ void vtkMetaImageWriter::Write( )
     default:
       vtkErrorMacro("Unknown scalar type." );
       return ;
-    }
+  }
 
   origin[0] += ext[0] * spacing[0];
   origin[1] += ext[2] * spacing[1];
@@ -172,9 +168,9 @@ void vtkMetaImageWriter::Write( )
   this->MetaImagePtr->Position( origin );
 
   if ( this->GetRAWFileName() )
-    {
+  {
     this->MetaImagePtr->ElementDataFileName( this->GetRAWFileName() );
-    }
+  }
 
   this->SetFileDimensionality(nDims);
   this->MetaImagePtr->CompressedData(Compress);

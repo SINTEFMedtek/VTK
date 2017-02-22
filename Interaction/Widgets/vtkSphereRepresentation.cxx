@@ -12,35 +12,33 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-#include "vtkSphereRepresentation.h"
 #include "vtkActor.h"
-#include "vtkSphere.h"
-#include "vtkSphereSource.h"
-#include "vtkPickingManager.h"
-#include "vtkPolyDataMapper.h"
-#include "vtkPolyData.h"
+#include "vtkActor2D.h"
+#include "vtkAssemblyPath.h"
 #include "vtkCallbackCommand.h"
+#include "vtkCamera.h"
+#include "vtkCellArray.h"
+#include "vtkCellPicker.h"
+#include "vtkCursor3D.h"
+#include "vtkDoubleArray.h"
+#include "vtkInteractorObserver.h"
+#include "vtkLineSource.h"
+#include "vtkMath.h"
+#include "vtkObjectFactory.h"
+#include "vtkPickingManager.h"
 #include "vtkPolyData.h"
+#include "vtkPolyDataMapper.h"
 #include "vtkProperty.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
-#include "vtkInteractorObserver.h"
-#include "vtkMath.h"
-#include "vtkCellArray.h"
-#include "vtkCellPicker.h"
-#include "vtkTransform.h"
-#include "vtkDoubleArray.h"
 #include "vtkSphere.h"
-#include "vtkCamera.h"
-#include "vtkAssemblyPath.h"
+#include "vtkSphereRepresentation.h"
+#include "vtkSphereSource.h"
 #include "vtkTextMapper.h"
-#include "vtkActor2D.h"
 #include "vtkTextProperty.h"
-#include "vtkLineSource.h"
+#include "vtkTransform.h"
 #include "vtkWindow.h"
-#include "vtkObjectFactory.h"
-
 
 vtkStandardNewMacro(vtkSphereRepresentation);
 
@@ -110,6 +108,18 @@ vtkSphereRepresentation::vtkSphereRepresentation()
   this->RadialLineActor->SetMapper(this->RadialLineMapper);
   this->RadialLineActor->SetProperty(this->RadialLineProperty);
 
+  // Represent the center cursor
+  this->CenterCursor = 0;
+  this->CenterCursorSource = vtkCursor3D::New();
+  this->CenterCursorSource->AllOff();
+  this->CenterCursorSource->AxesOn();
+  this->CenterCursorSource->TranslationModeOn();
+  this->CenterMapper = vtkPolyDataMapper::New();
+  this->CenterMapper->SetInputConnection(
+    this->CenterCursorSource->GetOutputPort());
+  this->CenterActor = vtkActor::New();
+  this->CenterActor->SetMapper(this->CenterMapper);
+
   // Define the point coordinates
   double bounds[6];
   bounds[0] = -0.5;
@@ -162,22 +172,27 @@ vtkSphereRepresentation::~vtkSphereRepresentation()
   this->RadialLineMapper->Delete();
   this->RadialLineActor->Delete();
 
+  // The cursor
+  this->CenterCursorSource->Delete();
+  this->CenterMapper->Delete();
+  this->CenterActor->Delete();
+
   if ( this->SphereProperty )
-    {
+  {
     this->SphereProperty->Delete();
-    }
+  }
   if ( this->SelectedSphereProperty )
-    {
+  {
     this->SelectedSphereProperty->Delete();
-    }
+  }
   if ( this->HandleProperty )
-    {
+  {
     this->HandleProperty->Delete();
-    }
+  }
   if ( this->SelectedHandleProperty )
-    {
+  {
     this->SelectedHandleProperty->Delete();
-    }
+  }
 }
 
 //----------------------------------------------------------------------
@@ -197,28 +212,28 @@ void vtkSphereRepresentation::GetSphere(vtkSphere *sphere)
 void vtkSphereRepresentation::HighlightSphere(int highlight)
 {
   if ( highlight )
-    {
+  {
     this->ValidPick = 1;
     this->SphereActor->SetProperty(this->SelectedSphereProperty);
-    }
+  }
   else
-    {
+  {
     this->SphereActor->SetProperty(this->SphereProperty);
-    }
+  }
 }
 
 //----------------------------------------------------------------------
 void vtkSphereRepresentation::HighlightHandle(int highlight)
 {
   if ( highlight )
-    {
+  {
     this->ValidPick = 1;
     this->HandleActor->SetProperty(this->SelectedHandleProperty);
-    }
+  }
   else
-    {
+  {
     this->HandleActor->SetProperty(this->HandleProperty);
-    }
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -246,20 +261,20 @@ void vtkSphereRepresentation::Scale(double *p1, double *p2,
   // Compute the scale factor
   double sf = vtkMath::Norm(v) / radius;
   if ( Y > this->LastEventPosition[1] )
-    {
+  {
     sf = 1.0 + sf;
-    }
+  }
   else
-    {
+  {
     sf = 1.0 - sf;
-    }
+  }
 
   // Make sure that the radius is valid; don't let it shrink further
   // but it can still grow in radius.
   if ( Y <= this->LastEventPosition[1] && sf*radius < 1.0e-06*this->InitialLength )
-    {
+  {
     return;
-    }
+  }
 
   // Need to prevent radius going to zero
   this->SphereSource->SetRadius(sf*radius);
@@ -267,6 +282,7 @@ void vtkSphereRepresentation::Scale(double *p1, double *p2,
   this->HandlePosition[1] = c[1]+sf*(this->HandlePosition[1]-c[1]);
   this->HandlePosition[2] = c[2]+sf*(this->HandlePosition[2]-c[2]);
   this->HandleSource->SetCenter(this->HandlePosition);
+  this->AdaptCenterCursorBounds();
 }
 
 //----------------------------------------------------------------------
@@ -291,9 +307,9 @@ void vtkSphereRepresentation::WidgetInteraction(double e[2])
   // Convert events to appropriate coordinate systems
   vtkCamera *camera = this->Renderer->GetActiveCamera();
   if ( !camera )
-    {
+  {
     return;
-    }
+  }
   double focalPoint[4], pickPoint[4], prevPickPoint[4];
   double z, vpn[3];
   camera->GetViewPlaneNormal(vpn);
@@ -309,22 +325,22 @@ void vtkSphereRepresentation::WidgetInteraction(double e[2])
 
   // Process the motion
   if ( this->InteractionState == vtkSphereRepresentation::Translating )
-    {
+  {
     this->Translate(prevPickPoint, pickPoint);
-    }
+  }
 
   else if ( this->InteractionState == vtkSphereRepresentation::Scaling )
-    {
+  {
     this->Scale(prevPickPoint, pickPoint,
                 static_cast<int>(e[0]), static_cast<int>(e[1]));
-    }
+  }
   else if ( this->InteractionState == vtkSphereRepresentation::MovingHandle )
-    {
+  {
     vtkAssemblyPath* path = this->GetAssemblyPath(e[0], e[1], 0.,
                                                   this->SpherePicker);
 
     if ( path != NULL )
-      {
+    {
       double pos[3], dir[3], c[3];
       this->SpherePicker->GetPickPosition(pos);
       this->SphereSource->GetCenter(c);
@@ -332,8 +348,8 @@ void vtkSphereRepresentation::WidgetInteraction(double e[2])
       dir[1] = pos[1] - c[1];
       dir[2] = pos[2] - c[2];
       this->SetHandleDirection(dir);
-      }
     }
+  }
 
   // Store the position
   this->LastEventPosition[0] = e[0];
@@ -356,12 +372,13 @@ void vtkSphereRepresentation::Translate(double *p1, double *p2)
 
   double center1[3];
   for (int i=0; i<3; i++)
-    {
+  {
     center1[i] = center[i] + v[i];
     this->HandlePosition[i] += v[i];
-    }
+  }
 
   this->SphereSource->SetCenter(center1);
+  this->CenterCursorSource->SetFocalPoint(center1);
   this->HandleSource->SetCenter(HandlePosition);
 }
 
@@ -369,40 +386,40 @@ void vtkSphereRepresentation::Translate(double *p1, double *p2)
 void vtkSphereRepresentation::CreateDefaultProperties()
 {
   if ( ! this->SphereProperty )
-    {
+  {
     this->SphereProperty = vtkProperty::New();
-    }
+  }
   if ( ! this->SelectedSphereProperty )
-    {
+  {
     this->SelectedSphereProperty = vtkProperty::New();
-    }
+  }
 
   if ( ! this->HandleProperty )
-    {
+  {
     this->HandleProperty = vtkProperty::New();
     this->HandleProperty->SetColor(1,1,1);
-    }
+  }
   if ( ! this->SelectedHandleProperty )
-    {
+  {
     this->SelectedHandleProperty = vtkProperty::New();
     this->SelectedHandleProperty->SetColor(1,0,0);
-    }
+  }
 
   if ( ! this->HandleTextProperty )
-    {
+  {
     this->HandleTextProperty = vtkTextProperty::New();
     this->HandleTextProperty->SetFontSize(12);
     this->HandleTextProperty->SetBold(1);
     this->HandleTextProperty->SetItalic(1);
     this->HandleTextProperty->SetShadow(1);
     this->HandleTextProperty->SetFontFamilyToArial();
-    }
+  }
 
   if ( ! this->RadialLineProperty )
-    {
+  {
     this->RadialLineProperty = vtkProperty::New();
     this->RadialLineProperty->SetColor(1,0,0);
-    }
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -418,6 +435,9 @@ void vtkSphereRepresentation::PlaceWidget(double center[3], double handle[3])
   this->HandlePosition[2] = handle[2];
   this->HandleSource->SetCenter(handle);
   this->HandleSource->Update();
+
+  this->CenterCursorSource->SetFocalPoint(center);
+  this->CenterCursorSource->Update();
 
   this->HandleDirection[0] = handle[0] - center[0];
   this->HandleDirection[1] = handle[1] - center[1];
@@ -441,12 +461,12 @@ void vtkSphereRepresentation::SetCenter(double center[3])
   double c[3];
   this->SphereSource->GetCenter(c);
   if ( c[0] != center[0] || c[1] != center[1] || c[2] != center[2] )
-    {
+  {
     double handle[3];
     this->SphereSource->SetCenter(center);
 
     if(this->GetHandleVisibility())
-      {
+    {
       this->HandleSource->GetCenter(handle);
       this->HandleDirection[0] = handle[0] - center[0];
       this->HandleDirection[1] = handle[1] - center[1];
@@ -454,11 +474,15 @@ void vtkSphereRepresentation::SetCenter(double center[3])
       double r = sqrt( static_cast<double>(
         vtkMath::Distance2BetweenPoints(handle,center) ) );
       this->SphereSource->SetRadius(r);
-      }
+    }
 
     this->SphereSource->Update();
+
+    this->CenterCursorSource->SetFocalPoint(center);
+    this->CenterCursorSource->Update();
+
     this->Modified();
-    }
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -466,14 +490,14 @@ void vtkSphereRepresentation::SetRadius(double r)
 {
   r = (r <= this->InitialLength*1.0e-04 ? this->InitialLength*1.0e-04 : r);
   if ( r != this->SphereSource->GetRadius() )
-    {
+  {
     double center[3];
     this->SphereSource->SetRadius(r);
     this->SphereSource->GetCenter(center);
     this->PlaceHandle(center,r);
     this->SphereSource->Update();
     this->Modified();
-    }
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -483,7 +507,7 @@ void vtkSphereRepresentation::SetHandlePosition(double handle[3])
   double h[3];
   this->HandleSource->GetCenter(h);
   if ( h[0] != handle[0] || h[1] != handle[1] || h[2] != handle[2] )
-    {
+  {
     double c[3];
     this->HandleSource->SetCenter(handle);
     this->SphereSource->GetCenter(c);
@@ -496,7 +520,7 @@ void vtkSphereRepresentation::SetHandlePosition(double handle[3])
     this->SphereSource->Update();
     this->HandleSource->Update();
     this->Modified();
-    }
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -509,7 +533,7 @@ void vtkSphereRepresentation::SetHandleDirection(double dir[3])
   double *d = this->HandleDirection;
   double dirMag = vtkMath::Norm(dir);
   if ( (dirMag != 0.0) && (d[0] != dir[0] || d[1] != dir[1] || d[2] != dir[2]) )
-    {
+  {
     double r, f, c[3];
     r = this->SphereSource->GetRadius();
     f = r / dirMag;
@@ -520,7 +544,7 @@ void vtkSphereRepresentation::SetHandleDirection(double dir[3])
     this->HandleSource->SetCenter(this->HandlePosition);
     this->HandleSource->Update();
     this->Modified();
-    }
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -532,26 +556,29 @@ void vtkSphereRepresentation::PlaceWidget(double bds[6])
 
   radius = (bounds[1]-bounds[0]) / 2.0;
   if ( radius > ((bounds[3]-bounds[2])/2.0) )
-    {
+  {
     radius = (bounds[3]-bounds[2])/2.0;
-    }
+  }
   radius = (bounds[1]-bounds[0]) / 2.0;
   if ( radius > ((bounds[5]-bounds[4])/2.0) )
-    {
+  {
     radius = (bounds[5]-bounds[4])/2.0;
-    }
+  }
 
   this->SphereSource->SetCenter(center);
   this->SphereSource->SetRadius(radius);
   this->SphereSource->Update();
 
+  this->CenterCursorSource->SetFocalPoint(center);
+  this->CenterCursorSource->Update();
+
   // place the handle
   this->PlaceHandle(center,radius);
 
   for (int i=0; i<6; i++)
-    {
+  {
     this->InitialBounds[i] = bounds[i];
-    }
+  }
   this->InitialLength = sqrt((bounds[1]-bounds[0])*(bounds[1]-bounds[0]) +
                              (bounds[3]-bounds[2])*(bounds[3]-bounds[2]) +
                              (bounds[5]-bounds[4])*(bounds[5]-bounds[4]));
@@ -579,41 +606,55 @@ int vtkSphereRepresentation::ComputeInteractionState(int X, int Y, int vtkNotUse
   // if no handles picked, then pick the bounding box.
   this->InteractionState = vtkSphereRepresentation::Outside;
   if (!this->Renderer || !this->Renderer->IsInViewport(X, Y))
-    {
+  {
     return this->InteractionState;
-    }
+  }
 
   // Try and pick a handle first. This allows the picking of the handle even
   // if it is "behind" the sphere.
   vtkAssemblyPath *path;
   int handlePicked = 0;
   if ( this->HandleVisibility || this->HandleText || this->RadialLine )
-    {
+  {
     path = this->GetAssemblyPath(X, Y, 0., this->HandlePicker);
 
     if ( path != NULL )
-      {
+    {
       this->ValidPick = 1;
       this->InteractionState = vtkSphereRepresentation::MovingHandle;
       this->HandleSource->GetCenter(this->LastPickPosition);
       this->HandleSource->GetCenter(this->HandlePosition);
       handlePicked = 1;
-      }
     }
+  }
 
   if ( ! handlePicked )
-    {
+  {
     path = this->GetAssemblyPath(X, Y, 0., this->SpherePicker);
 
     if ( path != NULL )
-      {
+    {
       this->ValidPick = 1;
       this->InteractionState = vtkSphereRepresentation::OnSphere;
       this->SpherePicker->GetPickPosition(this->LastPickPosition);
-      }
     }
+  }
 
   return this->InteractionState;
+}
+
+//----------------------------------------------------------------------
+void vtkSphereRepresentation::AdaptCenterCursorBounds()
+{
+  double center[3], newBounds[6];
+  this->CenterCursorSource->GetFocalPoint(center);
+  double radius = this->SizeHandlesInPixels(2.0,center);
+  for (int i=0; i<3; i++)
+  {
+    newBounds[2*i] = center[i] - radius;
+    newBounds[2*i+1] = center[i] + radius;
+  }
+  this->CenterCursorSource->SetModelBounds(newBounds);
 }
 
 //----------------------------------------------------------------------
@@ -639,7 +680,7 @@ void vtkSphereRepresentation::BuildRepresentation()
 {
   // Always rebuild, it's not worth keeping track of modified
   switch ( this->Representation )
-    {
+  {
     case VTK_SPHERE_OFF:
       break;
     case VTK_SPHERE_WIREFRAME:
@@ -650,20 +691,20 @@ void vtkSphereRepresentation::BuildRepresentation()
       this->SphereProperty->SetRepresentationToSurface();
       this->SelectedSphereProperty->SetRepresentationToSurface();
       break;
-    }
+  }
   this->SphereSource->Update();
   this->SizeHandles();
 
   // Now the annotations
   if ( this->RadialLine )
-    {
+  {
     this->RadialLineSource->SetPoint1(this->SphereSource->GetCenter());
     this->RadialLineSource->SetPoint2(this->HandleSource->GetCenter());
     this->RadialLineSource->Update();
-    }
+  }
 
   if ( this->HandleText && this->Renderer )
-    {
+  {
     char str[256];
     double c[3], hc[3], tc[4];
     this->SphereSource->GetCenter(c);
@@ -676,7 +717,8 @@ void vtkSphereRepresentation::BuildRepresentation()
     this->HandleTextMapper->SetInput(str);
     vtkInteractorObserver::ComputeWorldToDisplay(this->Renderer, hc[0], hc[1], hc[2], tc);
     this->HandleTextActor->GetPositionCoordinate()->SetValue(tc[0]+10,tc[1]+10);
-    }
+  }
+  this->AdaptCenterCursorBounds();
 }
 
 //----------------------------------------------------------------------------
@@ -686,6 +728,7 @@ void vtkSphereRepresentation::ReleaseGraphicsResources(vtkWindow *w)
   this->HandleActor->ReleaseGraphicsResources(w);
   this->HandleTextActor->ReleaseGraphicsResources(w);
   this->RadialLineActor->ReleaseGraphicsResources(w);
+  this->CenterActor->ReleaseGraphicsResources(w);
 }
 
 //----------------------------------------------------------------------------
@@ -695,17 +738,21 @@ int vtkSphereRepresentation::RenderOpaqueGeometry(vtkViewport *v)
   this->BuildRepresentation();
 
   if ( this->Representation != VTK_SPHERE_OFF )
-    {
+  {
     count += this->SphereActor->RenderOpaqueGeometry(v);
-    }
+  }
   if ( this->HandleVisibility )
-    {
+  {
     count += this->HandleActor->RenderOpaqueGeometry(v);
-    }
+  }
   if ( this->RadialLine )
-    {
+  {
     count += this->RadialLineActor->RenderOpaqueGeometry(v);
-    }
+  }
+  if (this->CenterCursor)
+  {
+    count += this->CenterActor->RenderOpaqueGeometry(v);
+  }
 
   return count;
 }
@@ -716,17 +763,21 @@ int vtkSphereRepresentation::RenderTranslucentPolygonalGeometry(vtkViewport *v)
   int count=0;
 
   if ( this->Representation != VTK_SPHERE_OFF )
-    {
+  {
     count += this->SphereActor->RenderTranslucentPolygonalGeometry(v);
-    }
+  }
   if ( this->HandleVisibility )
-    {
+  {
     count += this->HandleActor->RenderTranslucentPolygonalGeometry(v);
-    }
+  }
   if ( this->RadialLine )
-    {
+  {
     count += this->RadialLineActor->RenderTranslucentPolygonalGeometry(v);
-    }
+  }
+  if (this->CenterCursor)
+  {
+    count += this->CenterActor->RenderTranslucentPolygonalGeometry(v);
+  }
 
   return count;
 }
@@ -737,9 +788,9 @@ int vtkSphereRepresentation::RenderOverlay(vtkViewport *v)
   int count=0;
 
   if ( this->HandleText )
-    {
+  {
     count += this->HandleTextActor->RenderOverlay(v);
-    }
+  }
 
   return count;
 }
@@ -751,21 +802,25 @@ int vtkSphereRepresentation::HasTranslucentPolygonalGeometry()
   this->BuildRepresentation();
 
   if ( this->Representation != VTK_SPHERE_OFF )
-    {
+  {
     result |= this->SphereActor->HasTranslucentPolygonalGeometry();
-    }
+  }
   if ( this->HandleVisibility )
-    {
+  {
     result |= this->HandleActor->HasTranslucentPolygonalGeometry();
-    }
+  }
   if ( this->HandleText )
-    {
+  {
     result |= this->HandleTextActor->HasTranslucentPolygonalGeometry();
-    }
+  }
   if ( this->RadialLine )
-    {
+  {
     result |= this->RadialLineActor->HasTranslucentPolygonalGeometry();
-    }
+  }
+  if (this->CenterCursor)
+  {
+    result |= this->CenterActor->HasTranslucentPolygonalGeometry();
+  }
 
   return result;
 }
@@ -788,53 +843,53 @@ void vtkSphereRepresentation::PrintSelf(ostream& os, vtkIndent indent)
 
   os << indent << "Sphere Representation: ";
   if ( this->Representation == VTK_SPHERE_OFF )
-    {
+  {
     os << "Off\n";
-    }
+  }
   else if ( this->Representation == VTK_SPHERE_WIREFRAME )
-    {
+  {
     os << "Wireframe\n";
-    }
+  }
   else //if ( this->Representation == VTK_SPHERE_SURFACE )
-    {
+  {
     os << "Surface\n";
-    }
+  }
 
   if ( this->SphereProperty )
-    {
+  {
     os << indent << "Sphere Property: " << this->SphereProperty << "\n";
-    }
+  }
   else
-    {
+  {
     os << indent << "Sphere Property: (none)\n";
-    }
+  }
   if ( this->SelectedSphereProperty )
-    {
+  {
     os << indent << "Selected Sphere Property: "
        << this->SelectedSphereProperty << "\n";
-    }
+  }
   else
-    {
+  {
     os << indent << "Selected Sphere Property: (none)\n";
-    }
+  }
 
   if ( this->HandleProperty )
-    {
+  {
     os << indent << "Handle Property: " << this->HandleProperty << "\n";
-    }
+  }
   else
-    {
+  {
     os << indent << "Handle Property: (none)\n";
-    }
+  }
   if ( this->SelectedHandleProperty )
-    {
+  {
     os << indent << "Selected Handle Property: "
        << this->SelectedHandleProperty << "\n";
-    }
+  }
   else
-    {
+  {
     os << indent << "Selected Handle Property: (none)\n";
-    }
+  }
 
   os << indent << "Handle Visibility: "
      << (this->HandleVisibility ? "On\n" : "Off\n");
@@ -858,24 +913,25 @@ void vtkSphereRepresentation::PrintSelf(ostream& os, vtkIndent indent)
 
   os << indent << "Handle Text: " << this->HandleText << "\n";
   os << indent << "Radial Line: " << this->RadialLine << "\n";
+  os << indent << "Center Cursor: " << this->CenterCursor << "\n";
 
   if ( this->HandleTextProperty )
-    {
+  {
     os << indent << "Handle Text Property: " << this->HandleTextProperty << "\n";
-    }
+  }
   else
-    {
+  {
     os << indent << "Handle Text Property: (none)\n";
-    }
+  }
 
   if ( this->RadialLineProperty )
-    {
+  {
     os << indent << "Radial Line Property: " << this->RadialLineProperty << "\n";
-    }
+  }
   else
-    {
+  {
     os << indent << "Radial Line Property: (none)\n";
-    }
+  }
 }
 
 

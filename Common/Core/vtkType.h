@@ -16,6 +16,29 @@
 #define vtkType_h
 
 #include "vtkConfigure.h"
+#include "vtk_kwiml.h"
+
+#define VTK_SIZEOF_CHAR KWIML_ABI_SIZEOF_CHAR
+#define VTK_SIZEOF_SHORT KWIML_ABI_SIZEOF_SHORT
+#define VTK_SIZEOF_INT KWIML_ABI_SIZEOF_INT
+#define VTK_SIZEOF_LONG KWIML_ABI_SIZEOF_LONG
+#define VTK_SIZEOF_LONG_LONG KWIML_ABI_SIZEOF_LONG_LONG
+#define VTK_SIZEOF_FLOAT KWIML_ABI_SIZEOF_FLOAT
+#define VTK_SIZEOF_DOUBLE KWIML_ABI_SIZEOF_DOUBLE
+#define VTK_SIZEOF_VOID_P KWIML_ABI_SIZEOF_DATA_PTR
+
+/* Whether type "long long" is enabled as a unique fundamental type.  */
+#define VTK_TYPE_USE_LONG_LONG
+#if VTK_SIZEOF_LONG_LONG == 0
+# error "No 'long long' type available."
+#endif
+
+/* Whether type "char" is signed (it may be signed or unsigned).  */
+#if defined(KWIML_ABI_CHAR_IS_SIGNED)
+# define VTK_TYPE_CHAR_IS_SIGNED 1
+#else
+# define VTK_TYPE_CHAR_IS_SIGNED 0
+#endif
 
 /*--------------------------------------------------------------------------*/
 /* Define a unique integer identifier for each native scalar type.  */
@@ -138,12 +161,10 @@
 #define VTK_FLOAT_MAX               VTK_TYPE_CAST(float,  1.0e+38f)
 #define VTK_DOUBLE_MIN              VTK_TYPE_CAST(double, -1.0e+299)
 #define VTK_DOUBLE_MAX              VTK_TYPE_CAST(double,  1.0e+299)
-#if defined(VTK_SIZEOF_LONG_LONG)
-# define VTK_LONG_LONG_MIN          VTK_TYPE_CAST(long long, ~(~0ull >> 1))
-# define VTK_LONG_LONG_MAX          VTK_TYPE_CAST(long long, ~0ull >> 1)
-# define VTK_UNSIGNED_LONG_LONG_MIN VTK_TYPE_CAST(unsigned long long, 0ull)
-# define VTK_UNSIGNED_LONG_LONG_MAX VTK_TYPE_CAST(unsigned long long, ~0ull)
-#endif
+#define VTK_LONG_LONG_MIN           VTK_TYPE_CAST(long long, ~(~0ull >> 1))
+#define VTK_LONG_LONG_MAX           VTK_TYPE_CAST(long long, ~0ull >> 1)
+#define VTK_UNSIGNED_LONG_LONG_MIN  VTK_TYPE_CAST(unsigned long long, 0ull)
+#define VTK_UNSIGNED_LONG_LONG_MAX  VTK_TYPE_CAST(unsigned long long, ~0ull)
 
 /*--------------------------------------------------------------------------*/
 /* Define named types and constants corresponding to specific integer
@@ -208,6 +229,25 @@ typedef signed long   vtkTypeInt64;
 # error "No native data type can represent a 64-bit integer."
 #endif
 
+// Provide this define to facilitate apps that need to support older
+// versions that do not have vtkMTimeType
+// #ifndef VTK_HAS_MTIME_TYPE
+// #if VTK_SIZEOF_LONG == 8
+// typedef unsigned long vtkMTimeType;
+// #else
+// typedef vtkTypeUInt64 vtkMTimeType;
+// #endif
+// #endif
+#define VTK_HAS_MTIME_TYPE
+
+// Select an unsigned 64-bit integer type for use in MTime values.
+// If possible, use 'unsigned long' as we have historically.
+#if VTK_SIZEOF_LONG == 8
+typedef unsigned long vtkMTimeType;
+#else
+typedef vtkTypeUInt64 vtkMTimeType;
+#endif
+
 /* Select a 32-bit floating point type.  */
 #if VTK_SIZEOF_FLOAT == 4
 typedef float vtkTypeFloat32;
@@ -251,18 +291,58 @@ typedef int vtkIdType;
 # define VTK_ID_MAX VTK_INT_MAX
 #endif
 
+/*--------------------------------------------------------------------------*/
+/* If not already defined, define vtkTypeBool. When VTK was started, some   */
+/* compilers did not yet support the bool type, and so VTK often used int   */
+/* where it should have used bool. Eventually vtkTypeBool will switch to    */
+/* real bool. */
+#ifndef VTK_TYPE_BOOL_TYPEDEFED
+# define VTK_TYPE_BOOL_TYPEDEFED
+# if 1
+   typedef int vtkTypeBool;
+# else
+   typedef bool vtkTypeBool;
+# endif
+#endif
+
+
 #if defined(__cplusplus)
 /* Description:
  * Returns true if data type tags a and b point to the same data type. This
  * is intended to handle vtkIdType, which does not have the same tag as its
  * underlying data type.
  * @note This method is only available when included from a C++ source file. */
-inline int vtkDataTypesCompare(int a, int b)
+inline vtkTypeBool vtkDataTypesCompare(int a, int b)
 {
   return (a == b ||
           ((a == VTK_ID_TYPE || a == VTK_ID_TYPE_IMPL) &&
            (b == VTK_ID_TYPE || b == VTK_ID_TYPE_IMPL)));
 }
+#endif
+
+/*--------------------------------------------------------------------------*/
+/** A macro to instantiate a template over all numerical types */
+#define vtkInstantiateTemplateMacro(decl) \
+  decl<float>; \
+  decl<double>; \
+  decl<char>; \
+  decl<signed char>; \
+  decl<unsigned char>; \
+  decl<short>; \
+  decl<unsigned short>; \
+  decl<int>; \
+  decl<unsigned int>; \
+  decl<long>; \
+  decl<unsigned long>; \
+  decl<long long>; \
+  decl<unsigned long long>;
+
+/** A macro to declare extern templates for all numerical types */
+#ifdef VTK_USE_EXTERN_TEMPLATE
+#define vtkExternTemplateMacro(decl) \
+  vtkInstantiateTemplateMacro(decl)
+#else
+#define vtkExternTemplateMacro(decl)
 #endif
 
 #endif

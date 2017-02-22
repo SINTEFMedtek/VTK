@@ -20,7 +20,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
-#include <stdio.h>
+#include <cstdio>
 
 using std::cout;
 using std::endl;
@@ -91,7 +91,7 @@ public:
     {
     }
   Output(const Output&);
-  void operator=(const Output&);
+  Output& operator=(const Output&);
   ~Output()
     {
     }
