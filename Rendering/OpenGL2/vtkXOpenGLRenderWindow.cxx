@@ -621,14 +621,16 @@ void vtkXOpenGLRenderWindow::CreateAWindow()
             GL_TRUE, context_attribs );
         // Sync to ensure any errors generated are processed.
         XSync( this->DisplayId, False );
-      }
 
-      //OBS: skulle disse to vært inne i løkken over?
-      if(!cx_shared_context)
-      {
-        cx_shared_context = this->Internal->ContextId;
+        if(this->Internal->ContextId)
+        {
+          if(!cx_shared_context)
+          {
+            cx_shared_context = this->Internal->ContextId;
+          }
+          this->InvokeEvent(vtkCommand::CXSharedContextCreatedEvent, NULL);
+        }
       }
-      this->InvokeEvent(vtkCommand::CXSharedContextCreatedEvent, NULL);
 
       XSetErrorHandler(previousHandler);
       if ( this->Internal->ContextId )
@@ -883,15 +885,16 @@ void vtkXOpenGLRenderWindow::CreateOffScreenWindow(int width, int height)
                 GL_TRUE, context_attribs );
             // Sync to ensure any errors generated are processed.
             XSync( this->DisplayId, False );
-          }
 
-          //OBS: skulle disse to vært inne i løkken over?
-          //Og skal de i det hele tatt være her på gang nr 2 også, pbuffer...
-          if(!cx_shared_context)
-          {
-            cx_shared_context = this->Internal->ContextId;
+            if(this->Internal->PbufferContextId)
+            {
+              if(!cx_shared_context)
+              {
+                cx_shared_context = this->Internal->PbufferContextId;
+              }
+              this->InvokeEvent(vtkCommand::CXSharedContextCreatedEvent, NULL);
+            }
           }
-          this->InvokeEvent(vtkCommand::CXSharedContextCreatedEvent, NULL);
 
           XSetErrorHandler(previousHandler);
           if ( this->Internal->PbufferContextId )
