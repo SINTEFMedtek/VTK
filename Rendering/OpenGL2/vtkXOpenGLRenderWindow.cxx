@@ -621,15 +621,6 @@ void vtkXOpenGLRenderWindow::CreateAWindow()
             GL_TRUE, context_attribs );
         // Sync to ensure any errors generated are processed.
         XSync( this->DisplayId, False );
-
-        if(this->Internal->ContextId)
-        {
-          if(!cx_shared_context)
-          {
-            cx_shared_context = this->Internal->ContextId;
-          }
-          this->InvokeEvent(vtkCommand::CXSharedContextCreatedEvent, NULL);
-        }
       }
 
       XSetErrorHandler(previousHandler);
@@ -643,7 +634,16 @@ void vtkXOpenGLRenderWindow::CreateAWindow()
   // old failsafe
   if (this->Internal->ContextId == NULL)
   {
-    createContext(v);
+    this->Internal->ContextId = glXCreateContext(this->DisplayId, v, cx_shared_context, GL_TRUE);
+  }
+
+  if(this->Internal->ContextId)
+  {
+    if(!cx_shared_context)
+    {
+      cx_shared_context = this->Internal->ContextId;
+      this->InvokeEvent(vtkCommand::CXSharedContextCreatedEvent, NULL);
+    }
   }
 
   if(!this->Internal->ContextId)
@@ -881,19 +881,10 @@ void vtkXOpenGLRenderWindow::CreateOffScreenWindow(int width, int height)
             context_attribs[3] = attemptedVersions[i*2+1];
             this->Internal->PbufferContextId =
               glXCreateContextAttribsARB( this->DisplayId,
-                fb, cx_shared_context,
+                fb, 0,
                 GL_TRUE, context_attribs );
             // Sync to ensure any errors generated are processed.
             XSync( this->DisplayId, False );
-
-            if(this->Internal->PbufferContextId)
-            {
-              if(!cx_shared_context)
-              {
-                cx_shared_context = this->Internal->PbufferContextId;
-              }
-              this->InvokeEvent(vtkCommand::CXSharedContextCreatedEvent, NULL);
-            }
           }
 
           XSetErrorHandler(previousHandler);
@@ -1771,6 +1762,7 @@ const char* vtkXOpenGLRenderWindow::ReportCapabilities()
   return this->Capabilities;
 }
 
+/*
 void vtkXOpenGLRenderWindow::createContext(XVisualInfo *v)
 {
     // CustusX modification: glXCreateContext with share list.
@@ -1782,6 +1774,7 @@ void vtkXOpenGLRenderWindow::createContext(XVisualInfo *v)
     }
     this->InvokeEvent(vtkCommand::CXSharedContextCreatedEvent, NULL);
 }
+*/
 
 void vtkXOpenGLRenderWindow::CloseDisplay()
 {

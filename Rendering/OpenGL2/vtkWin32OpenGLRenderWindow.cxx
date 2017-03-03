@@ -530,11 +530,19 @@ typedef bool (APIENTRY *wglChoosePixelFormatARBType)(HDC, const int*, const floa
 
 void vtkWin32OpenGLRenderWindow::setCXSharedContext(HGLRC contextId)
 {
-	if(cx_shared_context)
-		return;
-
-	cx_shared_context = contextId;
-	this->InvokeEvent(vtkCommand::CXSharedContextCreatedEvent, NULL);
+	//this is the first opengl renderwindow created:
+	if(cx_shared_context == 0)
+	{
+		cx_shared_context = contextId;
+		this->InvokeEvent(vtkCommand::CXSharedContextCreatedEvent, NULL);
+	}
+	//this is the Nth renderwindow created, where N != 1:
+	if(cx_shared_context && (cx_shared_context != this->ContextId))
+	{
+		BOOL error = wglShareLists(this->ContextId, cx_shared_context);
+		if(error)
+			std::cout << "Could not set vtkWin32OpenGLRenderWindow to share display list (cx_shared_context)" << std::endl;
+	}
 }
 
 void vtkWin32OpenGLRenderWindow::SetupPixelFormatPaletteAndContext(
@@ -714,7 +722,6 @@ void vtkWin32OpenGLRenderWindow::SetupPixelFormatPaletteAndContext(
               (renderer.find("HD Graphics 3000") != std::string::npos ||
                renderer.find("HD Graphics 2000") != std::string::npos))
           {
-            this->setCXSharedContext(this->ContextId);
             vtkErrorMacro("We have determined that your graphics system is"
             " an Intel SandyBridge based system. These systems only partially "
             " support VTK. If you encounter any issues please make sure"
@@ -730,7 +737,6 @@ void vtkWin32OpenGLRenderWindow::SetupPixelFormatPaletteAndContext(
       if (this->ContextId &&
           (iContextAttribs[1] >= 4 || iContextAttribs[3] >= 2))
       {
-        this->setCXSharedContext(this->ContextId);
         this->SetContextSupportsOpenGL32(true);
       }
     }
@@ -738,21 +744,14 @@ void vtkWin32OpenGLRenderWindow::SetupPixelFormatPaletteAndContext(
     if (!this->ContextId)
     {
       this->ContextId = wglCreateContext(hDC);
-      if(this->ContextId)
-      {
-        if(cx_shared_context != 0)
-        {
-            BOOL error = wglShareLists(this->ContextId, cx_shared_context);
-            if(error)
-                std::cout << "Could not set vtkWin32OpenGLRenderWindow to share display list (cx_shared_context)" << std::endl;
-        }
-        else
-            this->setCXSharedContext(this->ContextId);
-      }
     }
     if (this->ContextId == NULL)
     {
       vtkErrorMacro("wglCreateContext failed in CreateAWindow(), error: " << GetLastError());
+    }
+    if(this->ContextId != NULL)
+    {
+      this->setCXSharedContext(this->ContextId);
     }
   }
 

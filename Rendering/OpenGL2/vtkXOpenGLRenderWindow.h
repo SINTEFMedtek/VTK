@@ -341,7 +341,6 @@ protected:
 private:
   vtkXOpenGLRenderWindow(const vtkXOpenGLRenderWindow&) VTK_DELETE_FUNCTION;
   void operator=(const vtkXOpenGLRenderWindow&) VTK_DELETE_FUNCTION;
-  void createContext(XVisualInfo *v);  // CustusX modification
 };
 
 
