@@ -974,7 +974,6 @@ void vtkCocoaRenderWindow::CreateGLContext()
   {
       first = true;
     cx_shared_context = context;
-    printf("cx_shared_context:");
   }
 
   // This syncs the OpenGL context to the VBL to prevent tearing
@@ -986,7 +985,6 @@ void vtkCocoaRenderWindow::CreateGLContext()
   if(first)
   {
       this->InvokeEvent(vtkCommand::CXSharedContextCreatedEvent,NULL);
-      this->PrintSelf(std::cout, vtkIndent(20));
   }
 
   [pixelFormat self]; // prevent premature collection under GC.
