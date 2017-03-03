@@ -639,7 +639,11 @@ void vtkXOpenGLRenderWindow::CreateAWindow()
 
   if(this->Internal->ContextId)
   {
-    this->setCXSharedContext(this->Internal->ContextId);
+    if(!cx_shared_context)
+    {
+      cx_shared_context = this->Internal->ContextId;
+      this->InvokeEvent(vtkCommand::CXSharedContextCreatedEvent, NULL);
+    }
   }
 
   if(!this->Internal->ContextId)
@@ -1758,15 +1762,6 @@ const char* vtkXOpenGLRenderWindow::ReportCapabilities()
   return this->Capabilities;
 }
 
-void vtkXOpenGLRenderWindow::setCXSharedContext(GLXContext context)
-{
-    if(!cx_shared_context)
-    {
-      cx_shared_context = context;
-      this->InvokeEvent(vtkCommand::CXSharedContextCreatedEvent, NULL);
-    }
-}
-
 //void vtkXOpenGLRenderWindow::createContextAttribsARB(void *inFBConfig)
 //{
 //    // CustusX modification: glXCreateContext with share list.
@@ -1876,7 +1871,11 @@ int vtkXOpenGLRenderWindow::SupportsOpenGL()
       }
     else
       {
-      this->setCXSharedContext(this->Internal->ContextId);
+      if(!cx_shared_context)
+      {
+        cx_shared_context = this->Internal->ContextId;
+        this->InvokeEvent(vtkCommand::CXSharedContextCreatedEvent, NULL);
+      }
       }
 
     int pbufferAttribs[] =
