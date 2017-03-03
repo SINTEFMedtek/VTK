@@ -621,15 +621,6 @@ void vtkXOpenGLRenderWindow::CreateAWindow()
             GL_TRUE, context_attribs );
         // Sync to ensure any errors generated are processed.
         XSync( this->DisplayId, False );
-
-        if(this->Internal->ContextId)
-        {
-          if(!cx_shared_context)
-          {
-            cx_shared_context = this->Internal->ContextId;
-          }
-          this->InvokeEvent(vtkCommand::CXSharedContextCreatedEvent, NULL);
-        }
       }
 
       XSetErrorHandler(previousHandler);
@@ -643,7 +634,12 @@ void vtkXOpenGLRenderWindow::CreateAWindow()
   // old failsafe
   if (this->Internal->ContextId == NULL)
   {
-    createContext(v);
+    this->Internal->ContextId = glXCreateContext(this->DisplayId, v, cx_shared_context, GL_TRUE);
+  }
+
+  if(this->Internal->ContextId)
+  {
+    this->setCXSharedContext(this->Internal->ContextId);
   }
 
   if(!this->Internal->ContextId)
@@ -881,19 +877,10 @@ void vtkXOpenGLRenderWindow::CreateOffScreenWindow(int width, int height)
             context_attribs[3] = attemptedVersions[i*2+1];
             this->Internal->PbufferContextId =
               glXCreateContextAttribsARB( this->DisplayId,
-                fb, cx_shared_context,
+                fb, 0,
                 GL_TRUE, context_attribs );
             // Sync to ensure any errors generated are processed.
             XSync( this->DisplayId, False );
-
-            if(this->Internal->PbufferContextId)
-            {
-              if(!cx_shared_context)
-              {
-                cx_shared_context = this->Internal->PbufferContextId;
-              }
-              this->InvokeEvent(vtkCommand::CXSharedContextCreatedEvent, NULL);
-            }
           }
 
           XSetErrorHandler(previousHandler);
@@ -1771,16 +1758,13 @@ const char* vtkXOpenGLRenderWindow::ReportCapabilities()
   return this->Capabilities;
 }
 
-void vtkXOpenGLRenderWindow::createContext(XVisualInfo *v)
+void vtkXOpenGLRenderWindow::setCXSharedContext(GLXContext context)
 {
-    // CustusX modification: glXCreateContext with share list.
-    // Select the first created context as the shared one.
-    this->Internal->ContextId = glXCreateContext(this->DisplayId, v, cx_shared_context, GL_TRUE);
     if(!cx_shared_context)
     {
-      cx_shared_context = this->Internal->ContextId;
+      cx_shared_context = context;
+      this->InvokeEvent(vtkCommand::CXSharedContextCreatedEvent, NULL);
     }
-    this->InvokeEvent(vtkCommand::CXSharedContextCreatedEvent, NULL);
 }
 
 //void vtkXOpenGLRenderWindow::createContextAttribsARB(void *inFBConfig)
@@ -1850,33 +1834,49 @@ int vtkXOpenGLRenderWindow::SupportsOpenGL()
     // try for 32 context
     if (this->Internal->FBConfig)
       {
-      // NOTE: It is not necessary to create or make current to a context before
-      // calling glXGetProcAddressARB
-      glXCreateContextAttribsARBProc glXCreateContextAttribsARB = 0;
-      glXCreateContextAttribsARB = (glXCreateContextAttribsARBProc)
-        glXGetProcAddressARB( (const GLubyte *) "glXCreateContextAttribsARB" );
+        // NOTE: It is not necessary to create or make current to a context before
+        // calling glXGetProcAddressARB
+        glXCreateContextAttribsARBProc glXCreateContextAttribsARB = 0;
+        glXCreateContextAttribsARB = (glXCreateContextAttribsARBProc)
+          glXGetProcAddressARB( (const GLubyte *) "glXCreateContextAttribsARB" );
 
-      if (glXCreateContextAttribsARB)
-        {
-          this->createContextAttribsARB(&this->Internal->FBConfig);
-        // Sync to ensure any errors generated are processed.
-        XSync( this->DisplayId, False );
-        if ( this->Internal->ContextId )
+        int context_attribs[] =
           {
-          this->SetContextSupportsOpenGL32(true);
+          GLX_CONTEXT_MAJOR_VERSION_ARB, 3,
+          GLX_CONTEXT_MINOR_VERSION_ARB, 2,
+          //GLX_CONTEXT_FLAGS_ARB        , GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
+          0
+          };
+
+        if (glXCreateContextAttribsARB)
+          {
+          this->Internal->ContextId =
+            glXCreateContextAttribsARB( this->DisplayId,
+              this->Internal->FBConfig, cx_shared_context,
+              GL_TRUE, context_attribs );
+
+          // Sync to ensure any errors generated are processed.
+          XSync( this->DisplayId, False );
+          if ( this->Internal->ContextId )
+            {
+            this->SetContextSupportsOpenGL32(true);
+            }
           }
-        }
       }
 
     // old failsafe
     if (this->Internal->ContextId == NULL)
       {
-      createContext(v);
+      this->Internal->ContextId = glXCreateContext(this->DisplayId, v, cx_shared_context, GL_TRUE);
       }
 
     if(!this->Internal->ContextId)
       {
       return 0;
+      }
+    else
+      {
+      this->setCXSharedContext(this->Internal->ContextId);
       }
 
     int pbufferAttribs[] =

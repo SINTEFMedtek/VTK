@@ -341,8 +341,8 @@ protected:
 private:
   vtkXOpenGLRenderWindow(const vtkXOpenGLRenderWindow&) VTK_DELETE_FUNCTION;
   void operator=(const vtkXOpenGLRenderWindow&) VTK_DELETE_FUNCTION;
-  void createContext(XVisualInfo *v);  // CustusX modification
   //void createContextAttribsARB(void* inFBConfig); // CustusX modification
+  void setCXSharedContext(GLXContext context);// CustusX modification
 };
 
 
