@@ -539,8 +539,8 @@ void vtkWin32OpenGLRenderWindow::setCXSharedContext(HGLRC contextId)
 	//this is the Nth renderwindow created, where N != 1:
 	if(cx_shared_context && (cx_shared_context != this->ContextId))
 	{
-		BOOL error = wglShareLists(this->ContextId, cx_shared_context);
-		if(error)
+		BOOL success = wglShareLists(this->ContextId, cx_shared_context);
+		if(!success)
 			std::cout << "Could not set vtkWin32OpenGLRenderWindow to share display list (cx_shared_context)" << std::endl;
 	}
 }
