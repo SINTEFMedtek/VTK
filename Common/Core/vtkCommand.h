@@ -337,7 +337,7 @@
     _vtk_add_event(TapEvent)\
     _vtk_add_event(LongTapEvent)\
     _vtk_add_event(SwipeEvent)\
-    _vtk_add_event(CXSharedContextCreatedEvent)
+    _vtk_add_event(CXSharedContextCreatedEvent)\
     _vtk_add_event(FourthButtonPressEvent)\
     _vtk_add_event(FourthButtonReleaseEvent)\
     _vtk_add_event(FifthButtonPressEvent)\
