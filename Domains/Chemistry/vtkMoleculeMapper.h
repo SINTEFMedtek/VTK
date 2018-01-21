@@ -45,7 +45,7 @@ class VTKDOMAINSCHEMISTRY_EXPORT vtkMoleculeMapper : public vtkMapper
 public:
   static vtkMoleculeMapper *New();
   vtkTypeMacro(vtkMoleculeMapper,vtkMapper);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -258,12 +258,12 @@ public:
   virtual void GetSelectedAtoms(vtkSelection *selection,
                                 vtkIdTypeArray *atomIds)
   {
-    this->GetSelectedAtomsAndBonds(selection, atomIds, NULL);
+    this->GetSelectedAtomsAndBonds(selection, atomIds, nullptr);
   }
   virtual void GetSelectedBonds(vtkSelection *selection,
                                 vtkIdTypeArray *bondIds)
   {
-    this->GetSelectedAtomsAndBonds(selection, NULL, bondIds);
+    this->GetSelectedAtomsAndBonds(selection, nullptr, bondIds);
   }
   //@}
 
@@ -271,17 +271,17 @@ public:
   /**
    * Reimplemented from base class
    */
-  virtual void Render(vtkRenderer *, vtkActor *);
-  virtual void ReleaseGraphicsResources(vtkWindow *);
-  double * GetBounds();
-  void GetBounds(double bounds[6]) { vtkAbstractMapper3D::GetBounds(bounds); }
-  virtual int FillInputPortInformation(int port, vtkInformation* info);
-  virtual bool GetSupportsSelection() {return true;}
+  void Render(vtkRenderer *, vtkActor *) override;
+  void ReleaseGraphicsResources(vtkWindow *) override;
+  double * GetBounds() override;
+  void GetBounds(double bounds[6]) override { vtkAbstractMapper3D::GetBounds(bounds); }
+  int FillInputPortInformation(int port, vtkInformation* info) override;
+  bool GetSupportsSelection() override {return true;}
   //@}
 
 protected:
   vtkMoleculeMapper();
-  ~vtkMoleculeMapper();
+  ~vtkMoleculeMapper() override;
 
   //@{
   /**
@@ -343,8 +343,8 @@ protected:
   vtkNew<vtkPeriodicTable> PeriodicTable;
 
 private:
-  vtkMoleculeMapper(const vtkMoleculeMapper&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkMoleculeMapper&) VTK_DELETE_FUNCTION;
+  vtkMoleculeMapper(const vtkMoleculeMapper&) = delete;
+  void operator=(const vtkMoleculeMapper&) = delete;
 };
 
 #endif

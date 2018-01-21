@@ -60,7 +60,7 @@ public:
    * Standard methods for instances of this class.
    */
   vtkTypeMacro(vtkHandleRepresentation,vtkWidgetRepresentation);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   //@{
@@ -144,16 +144,16 @@ public:
   /**
    * Methods to make this class properly act like a vtkWidgetRepresentation.
    */
-  virtual void ShallowCopy(vtkProp *prop);
+  void ShallowCopy(vtkProp *prop) override;
   virtual void DeepCopy(vtkProp *prop);
-  virtual void SetRenderer(vtkRenderer *ren);
+  void SetRenderer(vtkRenderer *ren) override;
   //@}
 
   /**
    * Overload the superclasses' GetMTime() because the internal vtkCoordinates
    * are used to keep the state of the representation.
    */
-  virtual vtkMTimeType GetMTime();
+  vtkMTimeType GetMTime() override;
 
   //@{
   /**
@@ -170,7 +170,7 @@ public:
 
 protected:
   vtkHandleRepresentation();
-  ~vtkHandleRepresentation();
+  ~vtkHandleRepresentation() override;
 
   int Tolerance;
   int ActiveRepresentation;
@@ -191,8 +191,8 @@ protected:
   vtkPointPlacer * PointPlacer;
 
 private:
-  vtkHandleRepresentation(const vtkHandleRepresentation&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkHandleRepresentation&) VTK_DELETE_FUNCTION;
+  vtkHandleRepresentation(const vtkHandleRepresentation&) = delete;
+  void operator=(const vtkHandleRepresentation&) = delete;
 };
 
 #endif

@@ -289,7 +289,7 @@ protected:
       this->LastLinearInterpolation=false;
       this->LastRange[0] = this->LastRange[1] = 0.0;
   }
-  virtual ~vtkTextureTable()
+  ~vtkTextureTable() override
   {
       if(this->TextureId!=0)
       {
@@ -309,8 +309,8 @@ protected:
   double LastRange[2];
 
 private:
-  vtkTextureTable(const vtkTextureTable&) VTK_DELETE_FUNCTION;
-  vtkTextureTable& operator=(const vtkTextureTable&) VTK_DELETE_FUNCTION;
+  vtkTextureTable(const vtkTextureTable&) = delete;
+  vtkTextureTable& operator=(const vtkTextureTable&) = delete;
 
   // Description:
   // Queries the GL_MAX_TEXTURE_SIZE and returns either the requested idealWidth
@@ -469,13 +469,13 @@ protected:
       this->LastSampleDistance=1.0;
   }
 
-  ~vtkOpacityTable() {};
+  ~vtkOpacityTable() override {};
 
   int LastBlendMode;
   double LastSampleDistance;
 private:
-  vtkOpacityTable(const vtkOpacityTable&) VTK_DELETE_FUNCTION;
-  vtkOpacityTable& operator=(const vtkOpacityTable&) VTK_DELETE_FUNCTION;
+  vtkOpacityTable(const vtkOpacityTable&) = delete;
+  vtkOpacityTable& operator=(const vtkOpacityTable&) = delete;
 };
 
 vtkStandardNewMacro(vtkOpacityTable);
@@ -510,9 +510,9 @@ public:
     return this->Tables.size();
   }
 private:
-  vtkOpacityTables() VTK_DELETE_FUNCTION;
-  vtkOpacityTables(const vtkOpacityTables &other) VTK_DELETE_FUNCTION;
-  vtkOpacityTables &operator=(const vtkOpacityTables &other) VTK_DELETE_FUNCTION;
+  vtkOpacityTables() = delete;
+  vtkOpacityTables(const vtkOpacityTables &other) = delete;
+  vtkOpacityTables &operator=(const vtkOpacityTables &other) = delete;
 
   std::vector<vtkOpacityTable*> Tables;
 };
@@ -592,11 +592,11 @@ public:
 
 protected:
   vtkRGBTable() {};
-  ~vtkRGBTable() {};
+  ~vtkRGBTable() override {};
 
 private:
-  vtkRGBTable(const vtkRGBTable &other) VTK_DELETE_FUNCTION;
-  vtkRGBTable &operator=(const vtkRGBTable &other) VTK_DELETE_FUNCTION;
+  vtkRGBTable(const vtkRGBTable &other) = delete;
+  vtkRGBTable &operator=(const vtkRGBTable &other) = delete;
 };
 
 vtkStandardNewMacro(vtkRGBTable);
@@ -704,7 +704,7 @@ public:
                                         arrayId,arrayName,
                                         this->LoadedCellFlag);
 
-        // DONT USE GetScalarType() or GetNumberOfScalarComponents() on
+        // DON'T USE GetScalarType() or GetNumberOfScalarComponents() on
         // ImageData as it deals only with point data...
 
         int scalarType=scalars->GetDataType();
@@ -770,10 +770,12 @@ public:
               scale=VTK_INT_MAX/(tableRange[1]-tableRange[0]);
               break;
             case VTK_DOUBLE:
+#if !defined(VTK_LEGACY_REMOVE)
             case VTK___INT64:
+            case VTK_UNSIGNED___INT64:
+#endif
             case VTK_LONG:
             case VTK_LONG_LONG:
-            case VTK_UNSIGNED___INT64:
             case VTK_UNSIGNED_LONG:
             case VTK_UNSIGNED_LONG_LONG:
               needTypeConversion=1; // to float
@@ -1251,7 +1253,7 @@ public:
                                         arrayId,arrayName,
                                         this->LoadedCellFlag);
 
-        // DONT USE GetScalarType() or GetNumberOfScalarComponents() on
+        // DON'T USE GetScalarType() or GetNumberOfScalarComponents() on
         // ImageData as it deals only with point data...
 
         int scalarType=scalars->GetDataType();
@@ -2207,27 +2209,6 @@ void vtkOpenGLGPUVolumeRayCastMapper::LoadExtensions(
   }
   vtkOpenGLExtensionManager *extensions = context->GetExtensionManager();
 
-  // It does not work on Mac OS X 10.6 (Snow Leopard) with nVidia.
-  // There is a bug in that OpenGL driver with an error in the
-  // Cg compiler about an infinite loop.
-  // However it works with Mac OS X 10.7 (Lion) with nVidia.
-#if defined(__APPLE__) && (MAC_OS_X_VERSION_MIN_REQUIRED < 1070)
-  // Gestalt() is deprecated, but all this code will go away when 10.7 is VTK's minimum.
-  #pragma clang diagnostic push
-  #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-  SInt32 major, minor;
-  Gestalt (gestaltSystemVersionMajor, &major);
-  Gestalt (gestaltSystemVersionMinor, &minor);
-  #pragma clang diagnostic pop
-  if (extensions->DriverIsNvidia() && (major == 10) && (minor == 6))
-  {
-    this->UnsupportedRequiredExtensions->Stream <<
-      " Disabled on unsupported Apple OS X driver.";
-    this->LoadExtensionsSucceeded=0;
-    return;
-  }
-#endif
-
   // mesa notes:
   // 8.0.0 -- missing some required extensions
   // 8.0.5 -- tests pass but there are invalid enum opengl errors reported (mesa bug)
@@ -3026,10 +3007,12 @@ void vtkOpenGLGPUVolumeRayCastMapper::GetTextureFormat(
         *type=GL_INT;
         break;
       case VTK_DOUBLE:
-      case VTK___INT64:
       case VTK_LONG:
       case VTK_LONG_LONG:
+#if !defined(VTK_LEGACY_REMOVE)
+      case VTK___INT64:
       case VTK_UNSIGNED___INT64:
+#endif
       case VTK_UNSIGNED_LONG:
       case VTK_UNSIGNED_LONG_LONG:
         if(this->Supports_GL_ARB_texture_float)
@@ -5266,7 +5249,7 @@ void vtkOpenGLGPUVolumeRayCastMapper::SlabsFromDatasetToIndex(
   double origin[3];
 
   // take spacing sign into account
-  double *bds = this->GetInput()->GetBounds();
+  const double *bds = this->GetInput()->GetBounds();
   origin[0] = bds[0];
   origin[1] = bds[2];
   origin[2] = bds[4];
@@ -5297,7 +5280,7 @@ void vtkOpenGLGPUVolumeRayCastMapper::SlabsFromIndexToDataset(
   double origin[3];
 
   // take spacing sign into account
-  double *bds = this->GetInput()->GetBounds();
+  const double *bds = this->GetInput()->GetBounds();
   origin[0] = bds[0];
   origin[1] = bds[2];
   origin[2] = bds[4];

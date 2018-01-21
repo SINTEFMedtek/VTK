@@ -34,23 +34,23 @@ class VTKRENDERINGOPENGL_EXPORT vtkOpenGLClipPlanesPainter : public vtkClipPlane
 public:
   static vtkOpenGLClipPlanesPainter* New();
   vtkTypeMacro(vtkOpenGLClipPlanesPainter, vtkClipPlanesPainter);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
 protected:
   vtkOpenGLClipPlanesPainter();
-  ~vtkOpenGLClipPlanesPainter();
+  ~vtkOpenGLClipPlanesPainter() override;
 
   /**
    * Generates rendering primitives of appropriate type(s).
    * Uses the clipping planes to set up clipping regions.
    * typeflags are ignored by this painter.
    */
-  virtual void RenderInternal(vtkRenderer* renderer, vtkActor* actor,
-                              unsigned long typeflags, bool forceCompileOnly);
+  void RenderInternal(vtkRenderer* renderer, vtkActor* actor,
+                              unsigned long typeflags, bool forceCompileOnly) override;
 
 private:
-  vtkOpenGLClipPlanesPainter(const vtkOpenGLClipPlanesPainter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkOpenGLClipPlanesPainter&) VTK_DELETE_FUNCTION;
+  vtkOpenGLClipPlanesPainter(const vtkOpenGLClipPlanesPainter&) = delete;
+  void operator=(const vtkOpenGLClipPlanesPainter&) = delete;
 };
 
 #endif

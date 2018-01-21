@@ -64,7 +64,7 @@ void vtkOpenGLActor::Render(vtkRenderer *ren, vtkMapper *mapper)
   else
   {
     vtkHardwareSelector* selector = ren->GetSelector();
-    bool picking = (ren->GetRenderWindow()->GetIsPicking() || selector != NULL);
+    bool picking = (ren->GetRenderWindow()->GetIsPicking() || selector != nullptr);
     if (picking)
     {
       glDepthMask(GL_TRUE);
@@ -75,8 +75,8 @@ void vtkOpenGLActor::Render(vtkRenderer *ren, vtkMapper *mapper)
       vtkInformation *info = this->GetPropertyKeys();
       if (info && info->Has(vtkOpenGLActor::GLDepthMaskOverride()))
       {
-        int override = info->Get(vtkOpenGLActor::GLDepthMaskOverride());
-        switch (override)
+        int maskoverride = info->Get(vtkOpenGLActor::GLDepthMaskOverride());
+        switch (maskoverride)
         {
           case 0:
             glDepthMask(GL_FALSE);

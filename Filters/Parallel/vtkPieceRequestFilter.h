@@ -33,7 +33,7 @@ class VTKFILTERSPARALLEL_EXPORT vtkPieceRequestFilter : public vtkAlgorithm
 public:
   static vtkPieceRequestFilter *New();
   vtkTypeMacro(vtkPieceRequestFilter,vtkAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -70,13 +70,13 @@ public:
   /**
    * see vtkAlgorithm for details
    */
-  virtual int ProcessRequest(vtkInformation* request,
+  int ProcessRequest(vtkInformation* request,
                              vtkInformationVector** inputVector,
-                             vtkInformationVector* outputVector);
+                             vtkInformationVector* outputVector) override;
 
 protected:
   vtkPieceRequestFilter();
-  ~vtkPieceRequestFilter() {}
+  ~vtkPieceRequestFilter() override {}
 
   virtual int RequestDataObject(vtkInformation* request,
                                 vtkInformationVector** inputVector,
@@ -90,15 +90,15 @@ protected:
                                   vtkInformationVector**,
                                   vtkInformationVector*);
 
-  virtual int FillOutputPortInformation(int port, vtkInformation* info);
-  virtual int FillInputPortInformation(int port, vtkInformation* info);
+  int FillOutputPortInformation(int port, vtkInformation* info) override;
+  int FillInputPortInformation(int port, vtkInformation* info) override;
 
   int NumberOfPieces;
   int Piece;
 
 private:
-  vtkPieceRequestFilter(const vtkPieceRequestFilter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPieceRequestFilter&) VTK_DELETE_FUNCTION;
+  vtkPieceRequestFilter(const vtkPieceRequestFilter&) = delete;
+  void operator=(const vtkPieceRequestFilter&) = delete;
 };
 
 #endif

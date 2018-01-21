@@ -38,7 +38,7 @@ vtkDijkstraGraphGeodesicPath::vtkDijkstraGraphGeodesicPath()
   this->UseScalarWeights = 0;
   this->NumberOfVertices = 0;
   this->RepelPathFromVertices = 0;
-  this->RepelVertices = NULL;
+  this->RepelVertices = nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -49,7 +49,7 @@ vtkDijkstraGraphGeodesicPath::~vtkDijkstraGraphGeodesicPath()
     this->IdList->Delete();
   }
   delete this->Internals;
-  this->SetRepelVertices(NULL);
+  this->SetRepelVertices(nullptr);
 }
 
 //----------------------------------------------------------------------------
@@ -64,7 +64,7 @@ void vtkDijkstraGraphGeodesicPath::GetCumulativeWeights(vtkDoubleArray *weights)
   double *weightsArray = new double[this->Internals->CumulativeWeights.size()];
   std::copy(this->Internals->CumulativeWeights.begin(),
     this->Internals->CumulativeWeights.end(), weightsArray);
-  weights->SetArray(weightsArray, this->Internals->CumulativeWeights.size(), 0);
+  weights->SetArray(weightsArray, static_cast<vtkIdType>(this->Internals->CumulativeWeights.size()), 0);
 }
 
 //----------------------------------------------------------------------------

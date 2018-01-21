@@ -53,7 +53,7 @@ Q_OBJECT
 public:
   static vtkQtListView *New();
   vtkTypeMacro(vtkQtListView, vtkQtView);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Get the main container of this view (a  QWidget).
@@ -61,7 +61,7 @@ public:
    * to GetWidget(): something like this
    * this->ui->box->layout()->addWidget(this->View->GetWidget());
    */
-  virtual QWidget* GetWidget();
+  QWidget* GetWidget() override;
 
   enum
   {
@@ -137,19 +137,19 @@ public:
   void SetIconArrayName(const char* name);
   //@}
 
-  virtual void ApplyViewTheme(vtkViewTheme* theme);
+  void ApplyViewTheme(vtkViewTheme* theme) override;
 
   /**
    * Updates the view.
    */
-  virtual void Update();
+  void Update() override;
 
 protected:
   vtkQtListView();
-  ~vtkQtListView();
+  ~vtkQtListView() override;
 
-  virtual void AddRepresentationInternal(vtkDataRepresentation* rep);
-  virtual void RemoveRepresentationInternal(vtkDataRepresentation* rep);
+  void AddRepresentationInternal(vtkDataRepresentation* rep) override;
+  void RemoveRepresentationInternal(vtkDataRepresentation* rep) override;
 
 private slots:
   void slotQtSelectionChanged(const QItemSelection&,const QItemSelection&);
@@ -180,8 +180,8 @@ private:
   vtkSmartPointer<vtkDataObjectToTable> DataObjectToTable;
   vtkSmartPointer<vtkApplyColors> ApplyColors;
 
-  vtkQtListView(const vtkQtListView&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkQtListView&) VTK_DELETE_FUNCTION;
+  vtkQtListView(const vtkQtListView&) = delete;
+  void operator=(const vtkQtListView&) = delete;
 
 };
 

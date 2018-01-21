@@ -39,32 +39,38 @@ vtkContextArea::vtkContextArea()
     FixedMargins(0),
     FillViewport(true)
 {
-  this->Axes[vtkAxis::TOP] = this->TopAxis.GetPointer();
-  this->Axes[vtkAxis::BOTTOM] = this->BottomAxis.GetPointer();
-  this->Axes[vtkAxis::LEFT] = this->LeftAxis.GetPointer();
-  this->Axes[vtkAxis::RIGHT] = this->RightAxis.GetPointer();
+  this->Axes[vtkAxis::TOP] = this->TopAxis;
+  this->Axes[vtkAxis::BOTTOM] = this->BottomAxis;
+  this->Axes[vtkAxis::LEFT] = this->LeftAxis;
+  this->Axes[vtkAxis::RIGHT] = this->RightAxis;
+
+  this->Grid->SetXAxis(this->BottomAxis);
+  this->Grid->SetYAxis(this->LeftAxis);
 
   this->Axes[vtkAxis::TOP]->SetPosition(vtkAxis::TOP);
   this->Axes[vtkAxis::BOTTOM]->SetPosition(vtkAxis::BOTTOM);
   this->Axes[vtkAxis::LEFT]->SetPosition(vtkAxis::LEFT);
   this->Axes[vtkAxis::RIGHT]->SetPosition(vtkAxis::RIGHT);
 
-  for (int i = 0; i < 4; ++i)
-  {
-    this->AddItem(this->Axes[i]);
-  }
-
-  this->AddItem(this->Clip.GetPointer());
-  this->Clip->AddItem(this->Transform.GetPointer());
-
-  this->Grid->SetXAxis(this->BottomAxis.GetPointer());
-  this->Grid->SetYAxis(this->LeftAxis.GetPointer());
-  this->Clip->AddItem(this->Grid.GetPointer());
+  this->InitializeDrawArea();
 }
 
 //------------------------------------------------------------------------------
 vtkContextArea::~vtkContextArea()
 {
+}
+
+//------------------------------------------------------------------------------
+void vtkContextArea::InitializeDrawArea()
+{
+  for (int i = 0; i < 4; ++i)
+  {
+    this->AddItem(this->Axes[i]);
+  }
+
+  this->Clip->AddItem(this->Transform);
+  this->Clip->AddItem(this->Grid);
+  this->AddItem(this->Clip);
 }
 
 //------------------------------------------------------------------------------
@@ -74,12 +80,7 @@ void vtkContextArea::LayoutAxes(vtkContext2D *painter)
   vtkRectd &data = this->DrawAreaBounds;
   vtkRecti &draw = this->DrawAreaGeometry;
 
-  // Set the data bounds:
-  this->TopAxis->SetRange(data.GetLeft(), data.GetRight());
-  this->BottomAxis->SetRange(data.GetLeft(), data.GetRight());
-  this->LeftAxis->SetRange(data.GetBottom(), data.GetTop());
-  this->RightAxis->SetRange(data.GetBottom(), data.GetTop());
-
+  this->SetAxisRange(data);
   draw = this->ComputeDrawAreaGeometry(painter);
 
   // Set axes locations to the most recent draw rect:
@@ -97,6 +98,16 @@ void vtkContextArea::LayoutAxes(vtkContext2D *painter)
   {
     this->Axes[i]->Update();
   }
+}
+
+//------------------------------------------------------------------------------
+void vtkContextArea::SetAxisRange(vtkRectd const& data)
+{
+  // Set the data bounds
+  this->TopAxis->SetRange(data.GetLeft(), data.GetRight());
+  this->BottomAxis->SetRange(data.GetLeft(), data.GetRight());
+  this->LeftAxis->SetRange(data.GetBottom(), data.GetTop());
+  this->RightAxis->SetRange(data.GetBottom(), data.GetTop());
 }
 
 //------------------------------------------------------------------------------
@@ -127,7 +138,7 @@ vtkRecti vtkContextArea::ComputeExpandedDrawAreaGeometry(vtkContext2D *painter)
   // Shorter names for compact readability:
   vtkRecti &geo = this->Geometry;
 
-  // Set the axes positions. We iterate upto 3 times to converge on the margins.
+  // Set the axes positions. We iterate up to 3 times to converge on the margins.
   vtkRecti draw(this->DrawAreaGeometry); // Start with last attempt
   vtkRecti lastDraw;
   for (int pass = 0; pass < 3; ++pass)
@@ -232,7 +243,6 @@ vtkRecti vtkContextArea::ComputeFixedMarginsDrawAreaGeometry(vtkContext2D *)
 void vtkContextArea::UpdateDrawArea()
 {
   // Shorter names for compact readability:
-  vtkRectd &data = this->DrawAreaBounds;
   vtkRecti &draw = this->DrawAreaGeometry;
 
   // Setup clipping:
@@ -241,7 +251,15 @@ void vtkContextArea::UpdateDrawArea()
                       static_cast<float>(draw.GetWidth()),
                       static_cast<float>(draw.GetHeight()));
 
-  // Configure transform:
+  this->ComputeViewTransform();
+}
+
+//------------------------------------------------------------------------------
+void vtkContextArea::ComputeViewTransform()
+{
+  vtkRectd const& data = this->DrawAreaBounds;
+  vtkRecti const& draw = this->DrawAreaGeometry;
+
   this->Transform->Identity();
   this->Transform->Translate(draw.GetX(), draw.GetY());
   this->Transform->Scale(draw.GetWidth() / data.GetWidth(),
@@ -300,13 +318,13 @@ void vtkContextArea::PrintSelf(std::ostream &os, vtkIndent indent)
 //------------------------------------------------------------------------------
 vtkAxis *vtkContextArea::GetAxis(vtkAxis::Location location)
 {
-  return location < 4 ? this->Axes[location] : NULL;
+  return location < 4 ? this->Axes[location] : nullptr;
 }
 
 //------------------------------------------------------------------------------
 vtkAbstractContextItem *vtkContextArea::GetDrawAreaItem()
 {
-  return this->Transform.GetPointer();
+  return this->Transform;
 }
 
 //------------------------------------------------------------------------------

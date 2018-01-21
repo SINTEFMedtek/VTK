@@ -74,12 +74,13 @@
 
 /*! constructor */
 QVTKWidget::QVTKWidget(QWidget* p, Qt::WindowFlags f)
-  : QWidget(p, f | Qt::MSWindowsOwnDC), mRenWin(NULL),
+  : QWidget(p, f | Qt::MSWindowsOwnDC), mRenWin(nullptr),
     cachedImageCleanFlag(false),
     automaticImageCache(false), maxImageCacheRenderRate(1.0),
     mDeferRenderInPaintEvent(false),
     renderEventCallbackObserverId(0)
 {
+  VTK_LEGACY_BODY(QVTKWidget, "VTK 8.1");
   this->UseTDx=false;
   // no background
   this->setAttribute(Qt::WA_NoBackground);
@@ -116,7 +117,7 @@ QVTKWidget::QVTKWidget(QWidget* p, Qt::WindowFlags f)
 QVTKWidget::~QVTKWidget()
 {
   // get rid of the VTK window
-  this->SetRenderWindow(NULL);
+  this->SetRenderWindow(nullptr);
 
   this->mCachedImage->Delete();
 
@@ -198,10 +199,10 @@ void QVTKWidget::SetRenderWindow(vtkRenderWindow* w)
       this->mRenWin->Finalize();
     }
 #if defined(Q_WS_X11) || defined(Q_OS_LINUX)
-    this->mRenWin->SetDisplayId(NULL);
+    this->mRenWin->SetDisplayId(nullptr);
 #endif
-    this->mRenWin->SetWindowId(NULL);
-    this->mRenWin->UnRegister(NULL);
+    this->mRenWin->SetWindowId(nullptr);
+    this->mRenWin->UnRegister(nullptr);
   }
 
   // now set the window
@@ -210,7 +211,7 @@ void QVTKWidget::SetRenderWindow(vtkRenderWindow* w)
   if(this->mRenWin)
   {
     // register new window
-    this->mRenWin->Register(NULL);
+    this->mRenWin->Register(nullptr);
 
     // if it is mapped somewhere else, unmap it
     if(this->mRenWin->GetMapped())
@@ -345,7 +346,7 @@ bool QVTKWidget::deferRenderInPaintEvent() const
 vtkImageData* QVTKWidget::cachedImage()
 {
   // Make sure image is up to date.
-  this->paintEvent(NULL);
+  this->paintEvent(nullptr);
   this->saveImageToCache();
 
   return this->mCachedImage;
@@ -359,6 +360,7 @@ bool QVTKWidget::event(QEvent* e)
   if(e->type() == QEvent::ParentAboutToChange)
   {
     this->markCachedImageAsDirty();
+#if QT_VERSION < 0x050000
     if (this->mRenWin)
     {
       // Finalize the window to remove graphics resources associated with
@@ -368,6 +370,7 @@ bool QVTKWidget::event(QEvent* e)
         this->mRenWin->Finalize();
       }
     }
+#endif
   }
   else if(e->type() == QEvent::ParentChange)
   {
@@ -376,12 +379,13 @@ bool QVTKWidget::event(QEvent* e)
       x11_setup_window();
       // connect to new window
       this->mRenWin->SetWindowId( reinterpret_cast<void*>(this->winId()));
-
+#if QT_VERSION < 0x050000
       // start up the window to create graphics resources for this window
       if(isVisible())
       {
         this->mRenWin->Start();
       }
+#endif
     }
   }
   else if(e->type() == QEvent::TouchBegin ||
@@ -458,7 +462,7 @@ void QVTKWidget::moveEvent(QMoveEvent* e)
  */
 void QVTKWidget::paintEvent(QPaintEvent* )
 {
-  vtkRenderWindowInteractor* iren = this->mRenWin ? this->mRenWin->GetInteractor() : NULL;
+  vtkRenderWindowInteractor* iren = this->mRenWin ? this->mRenWin->GetInteractor() : nullptr;
   if (!iren || !iren->GetEnabled())
   {
     return;
@@ -467,7 +471,7 @@ void QVTKWidget::paintEvent(QPaintEvent* )
   // In Qt 4.1+ let's support redirected painting
   // if redirected, let's grab the image from VTK, and paint it to the device
   QPaintDevice* device = QPainter::redirected(this);
-  bool usingRedirectedDevice = (device != NULL && device != this);
+  bool usingRedirectedDevice = (device != nullptr && device != this);
 
   // if we have a saved image, use it
   if (this->paintCachedImage() == false)
@@ -480,7 +484,7 @@ void QVTKWidget::paintEvent(QPaintEvent* )
     }
     else
     {
-      iren->Render();
+      this->doDeferredRender();
     }
   }
 
@@ -831,7 +835,7 @@ bool QVTKWidget::winEvent(MSG* msg, long*)
   if(msg->message == WM_PAINT &&
     QSysInfo::windowsVersion() >= QSysInfo::WV_VISTA)
   {
-    InvalidateRect((HWND)this->winId(), NULL, FALSE);
+    InvalidateRect((HWND)this->winId(), nullptr, FALSE);
   }
   return false;
 }
@@ -882,7 +886,7 @@ void QVTKWidget::renderEventCallback()
 
       while(vtkRenderer *renderer = renderers->GetNextItem())
       {
-        if(renderer->GetSelector() != NULL)
+        if(renderer->GetSelector() != nullptr)
         {
           return;
         }
@@ -911,7 +915,7 @@ void QVTKWidget::deferRender()
 //-----------------------------------------------------------------------------
 void QVTKWidget::doDeferredRender()
 {
-  vtkRenderWindowInteractor* iren = this->mRenWin ? this->mRenWin->GetInteractor() : NULL;
+  vtkRenderWindowInteractor* iren = this->mRenWin ? this->mRenWin->GetInteractor() : nullptr;
   if (iren && iren->GetEnabled())
   {
     iren->Render();

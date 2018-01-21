@@ -45,6 +45,7 @@
 #include "vtkAbstractPropPicker.h"
 
 class vtkAbstractMapper3D;
+class vtkCompositeDataSet;
 class vtkDataSet;
 class vtkTransform;
 class vtkActorCollection;
@@ -56,7 +57,7 @@ class VTKRENDERINGCORE_EXPORT vtkPicker : public vtkAbstractPropPicker
 public:
   static vtkPicker *New();
   vtkTypeMacro(vtkPicker, vtkAbstractPropPicker);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -91,6 +92,23 @@ public:
   vtkGetObjectMacro(DataSet, vtkDataSet);
   //@}
 
+  //@{
+  /**
+   * Get a pointer to the composite dataset that was picked (if any). If nothing
+   * was picked or a non-composite data object was picked then NULL is returned.
+   */
+  vtkGetObjectMacro(CompositeDataSet, vtkCompositeDataSet);
+  //@}
+
+  //@{
+  /**
+   * Get the flat block index of the vtkDataSet in the composite dataset
+   * that was picked (if any). If nothing
+   * was picked or a non-composite data object was picked then -1 is returned.
+   */
+  vtkGetMacro(FlatBlockIndex, vtkIdType);
+  //@}
+
   /**
    * Return a collection of all the prop 3D's that were intersected
    * by the pick ray. This collection is not sorted.
@@ -119,8 +137,8 @@ public:
    * the third value is =0. Return non-zero if something was successfully
    * picked.
    */
-  virtual int Pick(double selectionX, double selectionY, double selectionZ,
-                   vtkRenderer *renderer);
+  int Pick(double selectionX, double selectionY, double selectionZ,
+                   vtkRenderer *renderer) override;
 
   /**
    * Perform pick operation with selection point provided. Normally the first
@@ -130,22 +148,46 @@ public:
   int Pick(double selectionPt[3], vtkRenderer *ren)
     { return this->Pick(selectionPt[0], selectionPt[1], selectionPt[2], ren); }
 
+  /**
+   * Perform pick operation with selection point provided. The
+   * selectionPt is in world coordinates.
+   * Return non-zero if something was successfully picked.
+   */
+  int Pick3DPoint(double selectionPt[3], vtkRenderer *ren) override;
+
+  /**
+   * Perform pick operation with selection point and orientaion provided.
+   * The selectionPt is in world coordinates.
+   * Return non-zero if something was successfully picked.
+   */
+  int Pick3DRay(double selectionPt[3], double orient[4], vtkRenderer *ren) override;
+
 protected:
   vtkPicker();
-  ~vtkPicker();
+  ~vtkPicker() override;
+
+  // shared code for picking
+  virtual int Pick3DInternal(vtkRenderer *ren, double p1World[4], double p2World[4]);
 
   void MarkPicked(vtkAssemblyPath *path, vtkProp3D *p, vtkAbstractMapper3D *m,
                   double tMin, double mapperPos[3]);
+  void MarkPickedData(vtkAssemblyPath *path,
+                  double tMin, double mapperPos[3], vtkAbstractMapper3D* mapper,
+                  vtkDataSet* input, vtkIdType flatBlockIndex = -1);
   virtual double IntersectWithLine(double p1[3], double p2[3], double tol,
                                   vtkAssemblyPath *path, vtkProp3D *p,
                                   vtkAbstractMapper3D *m);
-  virtual void Initialize();
+  void Initialize() override;
+  static bool CalculateRay(double p1[3], double p2[3],
+                           double ray[3], double &rayFactor);
 
   double Tolerance;  //tolerance for computation (% of window)
   double MapperPosition[3]; //selection point in untransformed coordinates
 
   vtkAbstractMapper3D *Mapper; //selected mapper (if the prop has a mapper)
   vtkDataSet *DataSet; //selected dataset (if there is one)
+  vtkCompositeDataSet* CompositeDataSet;
+  vtkIdType FlatBlockIndex; // flat block index, for a composite data set
 
   double GlobalTMin; //parametric coordinate along pick ray where hit occurred
   vtkTransform *Transform; //use to perform ray transformation
@@ -154,8 +196,8 @@ protected:
   vtkPoints *PickedPositions; // candidate positions
 
 private:
-  vtkPicker(const vtkPicker&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPicker&) VTK_DELETE_FUNCTION;
+  vtkPicker(const vtkPicker&) = delete;
+  void operator=(const vtkPicker&) = delete;
 };
 
 #endif

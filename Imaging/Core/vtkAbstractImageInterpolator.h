@@ -47,7 +47,7 @@ class VTKIMAGINGCORE_EXPORT vtkAbstractImageInterpolator : public vtkObject
 {
 public:
   vtkTypeMacro(vtkAbstractImageInterpolator, vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Initialize the interpolator with the data that you wish to interpolate.
@@ -176,10 +176,22 @@ public:
   //@}
 
   /**
+   * Enable sliding window for separable kernels.
+   * When this is enabled, the interpolator will cache partial sums in
+   * in order to accelerate the computation.  It only makes sense to do
+   * this if the interpolator is used by calling InterpolateRow() while
+   * incrementing first the Y, and then the Z index with every call.
+   */
+  void SetSlidingWindow(bool x);
+  void SlidingWindowOn() { this->SetSlidingWindow(true); }
+  void SlidingWindowOff() { this->SetSlidingWindow(false); }
+  bool GetSlidingWindow() { return this->SlidingWindow; }
+
+  /**
    * Get the support size for use in computing update extents.  If the data
    * will be sampled on a regular grid, then pass a matrix describing the
    * structured coordinate transformation between the output and the input.
-   * Otherwise, pass NULL as the matrix to retrieve the full kernel size.
+   * Otherwise, pass nullptr as the matrix to retrieve the full kernel size.
    */
   virtual void ComputeSupportSize(const double matrix[16], int support[3]) = 0;
 
@@ -262,7 +274,7 @@ public:
 
 protected:
   vtkAbstractImageInterpolator();
-  ~vtkAbstractImageInterpolator();
+  ~vtkAbstractImageInterpolator() override;
 
   /**
    * Subclass-specific updates.
@@ -298,6 +310,18 @@ protected:
       vtkInterpolationWeights *, int, int, int, float *, int));
   //@}
 
+  //@{
+  /**
+   * Get the sliding window interpolation functions.
+   */
+  virtual void GetSlidingWindowFunc(
+    void (**doublefunc)(
+      vtkInterpolationWeights *, int, int, int, double *, int));
+  virtual void GetSlidingWindowFunc(
+    void (**floatfunc)(
+      vtkInterpolationWeights *, int, int, int, float *, int));
+  //@}
+
   vtkDataArray *Scalars;
   double StructuredBoundsDouble[6];
   float StructuredBoundsFloat[6];
@@ -309,6 +333,7 @@ protected:
   int BorderMode;
   int ComponentOffset;
   int ComponentCount;
+  bool SlidingWindow;
 
   // information needed by the interpolator funcs
   vtkInterpolationInfo *InterpolationInfo;
@@ -327,8 +352,8 @@ protected:
 
 private:
 
-  vtkAbstractImageInterpolator(const vtkAbstractImageInterpolator&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkAbstractImageInterpolator&) VTK_DELETE_FUNCTION;
+  vtkAbstractImageInterpolator(const vtkAbstractImageInterpolator&) = delete;
+  void operator=(const vtkAbstractImageInterpolator&) = delete;
 };
 
 inline void vtkAbstractImageInterpolator::InterpolateIJK(
@@ -345,18 +370,18 @@ inline void vtkAbstractImageInterpolator::InterpolateIJK(
 
 inline bool vtkAbstractImageInterpolator::CheckBoundsIJK(const double x[3])
 {
-  double *bounds = this->StructuredBoundsDouble;
-  return !((x[0] < bounds[0]) | (x[0] > bounds[1]) |
-           (x[1] < bounds[2]) | (x[1] > bounds[3]) |
-           (x[2] < bounds[4]) | (x[2] > bounds[5]));
+  const double *bounds = this->StructuredBoundsDouble;
+  return !((x[0] < bounds[0]) || (x[0] > bounds[1]) ||
+           (x[1] < bounds[2]) || (x[1] > bounds[3]) ||
+           (x[2] < bounds[4]) || (x[2] > bounds[5]));
 }
 
 inline bool vtkAbstractImageInterpolator::CheckBoundsIJK(const float x[3])
 {
-  float *bounds = this->StructuredBoundsFloat;
-  return !((x[0] < bounds[0]) | (x[0] > bounds[1]) |
-           (x[1] < bounds[2]) | (x[1] > bounds[3]) |
-           (x[2] < bounds[4]) | (x[2] > bounds[5]));
+  const float *bounds = this->StructuredBoundsFloat;
+  return !((x[0] < bounds[0]) || (x[0] > bounds[1]) ||
+           (x[1] < bounds[2]) || (x[1] > bounds[3]) ||
+           (x[2] < bounds[4]) || (x[2] > bounds[5]));
 }
 
 inline void vtkAbstractImageInterpolator::InterpolateRow(

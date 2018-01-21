@@ -39,17 +39,17 @@ class VTKIOXML_EXPORT vtkXMLMultiBlockDataReader : public vtkXMLCompositeDataRea
 public:
   static vtkXMLMultiBlockDataReader* New();
   vtkTypeMacro(vtkXMLMultiBlockDataReader,vtkXMLCompositeDataReader);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
 protected:
   vtkXMLMultiBlockDataReader();
-  ~vtkXMLMultiBlockDataReader();
+  ~vtkXMLMultiBlockDataReader() override;
 
   // Read the XML element for the subtree of a the composite dataset.
   // dataSetIndex is used to rank the leaf nodes in an inorder traversal.
-  virtual void ReadComposite(vtkXMLDataElement* element,
+  void ReadComposite(vtkXMLDataElement* element,
     vtkCompositeDataSet* composite, const char* filePath,
-    unsigned int &dataSetIndex);
+    unsigned int &dataSetIndex) override;
 
   // Reads file version < 1.0.
   virtual void ReadVersion0(vtkXMLDataElement* element,
@@ -57,21 +57,21 @@ protected:
     unsigned int &dataSetIndex);
 
   // Get the name of the data set being read.
-  virtual const char* GetDataSetName();
+  const char* GetDataSetName() override;
 
-  virtual int FillOutputPortInformation(int, vtkInformation* info);
+  int FillOutputPortInformation(int, vtkInformation* info) override;
 
-  virtual int RequestInformation(vtkInformation*,
+  int RequestInformation(vtkInformation*,
                                  vtkInformationVector**,
-                                 vtkInformationVector*);
+                                 vtkInformationVector*) override;
 
   virtual int FillMetaData(vtkCompositeDataSet* metadata,
                            vtkXMLDataElement* element,
                            unsigned int& dataSetIndex);
 
 private:
-  vtkXMLMultiBlockDataReader(const vtkXMLMultiBlockDataReader&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkXMLMultiBlockDataReader&) VTK_DELETE_FUNCTION;
+  vtkXMLMultiBlockDataReader(const vtkXMLMultiBlockDataReader&) = delete;
+  void operator=(const vtkXMLMultiBlockDataReader&) = delete;
 };
 
 #endif

@@ -51,28 +51,28 @@ public:
    */
   static vtkResliceImageViewer *New();
   vtkTypeMacro(vtkResliceImageViewer,vtkImageViewer2);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   /**
    * Render the resulting image.
    */
-  virtual void Render();
+  void Render() override;
 
   //@{
   /**
    * Set/Get the input image to the viewer.
    */
-  virtual void SetInputData(vtkImageData *in);
-  virtual void SetInputConnection(vtkAlgorithmOutput* input);
+  void SetInputData(vtkImageData *in) override;
+  void SetInputConnection(vtkAlgorithmOutput* input) override;
   //@}
 
   //@{
   /**
    * Set window and level for mapping pixels to colors.
    */
-  virtual void SetColorWindow(double s);
-  virtual void SetColorLevel(double s);
+  void SetColorWindow(double s) override;
+  void SetColorLevel(double s) override;
   //@}
 
   //@{
@@ -171,12 +171,12 @@ public:
 
 protected:
   vtkResliceImageViewer();
-  ~vtkResliceImageViewer();
+  ~vtkResliceImageViewer() override;
 
-  virtual void InstallPipeline();
-  virtual void UnInstallPipeline();
-  virtual void UpdateOrientation();
-  virtual void UpdateDisplayExtent();
+  void InstallPipeline() override;
+  void UnInstallPipeline() override;
+  void UpdateOrientation() override;
+  void UpdateDisplayExtent() override;
   virtual void UpdatePointPlacer();
 
   //@{
@@ -196,8 +196,8 @@ protected:
   vtkResliceImageViewerScrollCallback * ScrollCallback;
 
 private:
-  vtkResliceImageViewer(const vtkResliceImageViewer&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkResliceImageViewer&) VTK_DELETE_FUNCTION;
+  vtkResliceImageViewer(const vtkResliceImageViewer&) = delete;
+  void operator=(const vtkResliceImageViewer&) = delete;
 };
 
 #endif

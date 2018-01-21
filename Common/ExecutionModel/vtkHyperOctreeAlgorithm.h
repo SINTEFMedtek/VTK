@@ -35,6 +35,7 @@
 #include "vtkAlgorithm.h"
 #include "vtkHyperOctree.h" // makes things a bit easier
 
+#if !defined(VTK_LEGACY_REMOVE)
 class vtkDataSet;
 class vtkHyperOctree;
 
@@ -42,7 +43,7 @@ class VTKCOMMONEXECUTIONMODEL_EXPORT vtkHyperOctreeAlgorithm : public vtkAlgorit
 {
 public:
   vtkTypeMacro(vtkHyperOctreeAlgorithm,vtkAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -58,7 +59,7 @@ public:
    */
   int ProcessRequest(vtkInformation*,
                              vtkInformationVector**,
-                             vtkInformationVector*) VTK_OVERRIDE;
+                             vtkInformationVector*) override;
 
   // this method is not recommended for use, but lots of old style filters
   // use it
@@ -88,7 +89,7 @@ public:
 
 protected:
   vtkHyperOctreeAlgorithm();
-  ~vtkHyperOctreeAlgorithm() VTK_OVERRIDE;
+  ~vtkHyperOctreeAlgorithm() override;
 
   // convenience method
   virtual int RequestInformation(vtkInformation* request,
@@ -112,12 +113,13 @@ protected:
                                   vtkInformationVector*);
 
   // see algorithm for more info
-  int FillOutputPortInformation(int port, vtkInformation* info) VTK_OVERRIDE;
-  int FillInputPortInformation(int port, vtkInformation* info) VTK_OVERRIDE;
+  int FillOutputPortInformation(int port, vtkInformation* info) override;
+  int FillInputPortInformation(int port, vtkInformation* info) override;
 
 private:
-  vtkHyperOctreeAlgorithm(const vtkHyperOctreeAlgorithm&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkHyperOctreeAlgorithm&) VTK_DELETE_FUNCTION;
+  vtkHyperOctreeAlgorithm(const vtkHyperOctreeAlgorithm&) = delete;
+  void operator=(const vtkHyperOctreeAlgorithm&) = delete;
 };
+#endif // LEGACY remove
 
 #endif

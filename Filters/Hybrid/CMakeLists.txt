@@ -1,4 +1,5 @@
 set(Module_SRCS
+  vtkAdaptiveDataSetSurfaceFilter.cxx
   vtkBSplineTransform.cxx
   vtkDepthSortPolyData.cxx
   vtkDSPFilterDefinition.cxx
@@ -16,6 +17,7 @@ set(Module_SRCS
   vtkProcrustesAlignmentFilter.cxx
   vtkProjectedTerrainPath.cxx
   vtkRenderLargeImage.cxx
+  vtkTemporalArrayOperatorFilter.cxx
   vtkTemporalDataSetCache.cxx
   vtkTemporalFractal.cxx
   vtkTemporalInterpolator.cxx

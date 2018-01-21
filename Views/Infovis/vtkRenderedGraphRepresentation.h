@@ -66,7 +66,7 @@ class VTKVIEWSINFOVIS_EXPORT vtkRenderedGraphRepresentation : public vtkRendered
 public:
   static vtkRenderedGraphRepresentation* New();
   vtkTypeMacro(vtkRenderedGraphRepresentation, vtkRenderedRepresentation);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   // ------------------------------------------------------------------------
   // Vertex labels
@@ -272,7 +272,7 @@ public:
    * The x array must be specified. The y and z arrays are optional.
    */
   virtual void SetLayoutStrategyToAssignCoordinates(
-    const char* xarr, const char* yarr = 0, const char* zarr = 0);
+    const char* xarr, const char* yarr = nullptr, const char* zarr = nullptr);
 
   /**
    * Set the layout strategy to a tree layout. Radial indicates whether to
@@ -292,7 +292,7 @@ public:
 
   /**
    * Set the layout strategy to a cosmic tree layout. nodeSizeArrayName is
-   * the array used to size the circles (default is NULL, which makes leaf
+   * the array used to size the circles (default is nullptr, which makes leaf
    * nodes the same size). sizeLeafNodesOnly only uses the leaf node sizes,
    * and computes the parent size as the sum of the child sizes (default true).
    * layoutDepth stops layout at a certain depth (default is 0, which does the
@@ -341,7 +341,7 @@ public:
   /**
    * Apply a theme to this representation.
    */
-  virtual void ApplyViewTheme(vtkViewTheme* theme);
+  void ApplyViewTheme(vtkViewTheme* theme) override;
 
   //@{
   /**
@@ -403,29 +403,29 @@ public:
 
 protected:
   vtkRenderedGraphRepresentation();
-  ~vtkRenderedGraphRepresentation();
+  ~vtkRenderedGraphRepresentation() override;
 
   //@{
   /**
    * Called by the view to add/remove this representation.
    */
-  virtual bool AddToView(vtkView* view);
-  virtual bool RemoveFromView(vtkView* view);
+  bool AddToView(vtkView* view) override;
+  bool RemoveFromView(vtkView* view) override;
   //@}
 
-  virtual void PrepareForRendering(vtkRenderView* view);
+  void PrepareForRendering(vtkRenderView* view) override;
 
-  virtual vtkSelection* ConvertSelection(vtkView* view, vtkSelection* sel);
+  vtkSelection* ConvertSelection(vtkView* view, vtkSelection* sel) override;
 
-  virtual vtkUnicodeString GetHoverTextInternal(vtkSelection* sel);
+  vtkUnicodeString GetHoverTextInternal(vtkSelection* sel) override;
 
   /**
    * Connect inputs to internal pipeline.
    */
-  virtual int RequestData(
+  int RequestData(
     vtkInformation* request,
     vtkInformationVector** inputVector,
-    vtkInformationVector* outputVector);
+    vtkInformationVector* outputVector) override;
 
   //@{
   /**
@@ -486,8 +486,8 @@ protected:
   bool EdgeSelection;
 
 private:
-  vtkRenderedGraphRepresentation(const vtkRenderedGraphRepresentation&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkRenderedGraphRepresentation&) VTK_DELETE_FUNCTION;
+  vtkRenderedGraphRepresentation(const vtkRenderedGraphRepresentation&) = delete;
+  void operator=(const vtkRenderedGraphRepresentation&) = delete;
 };
 
 #endif

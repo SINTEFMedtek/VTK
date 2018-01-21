@@ -35,7 +35,7 @@ struct TimedQuaternion
   {
     this->Time = 0.0;
   }
-  TimedQuaternion(double t, vtkQuaterniond q)
+  TimedQuaternion(double t, const vtkQuaterniond& q)
   {
     this->Time = t;
     this->Q = q;
@@ -71,7 +71,7 @@ int vtkQuaternionInterpolator::GetNumberOfQuaternions()
 //----------------------------------------------------------------------------
 double vtkQuaternionInterpolator::GetMinimumT()
 {
-  if (this->QuaternionList->size() > 0)
+  if (!this->QuaternionList->empty())
   {
     return this->QuaternionList->front().Time;
   }
@@ -85,7 +85,7 @@ double vtkQuaternionInterpolator::GetMinimumT()
 //----------------------------------------------------------------------------
 double vtkQuaternionInterpolator::GetMaximumT()
 {
-  if (this->QuaternionList->size() > 0)
+  if (!this->QuaternionList->empty())
   {
     return this->QuaternionList->back().Time;
   }
@@ -283,8 +283,6 @@ void vtkQuaternionInterpolator::InterpolateQuaternion(double t,
     q = qc.Slerp(2.0*T*(1.0-T),qd);
     q.NormalizeWithAngleInDegrees();
   }
-
-  return;
 }
 
 //----------------------------------------------------------------------------

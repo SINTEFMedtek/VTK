@@ -18,14 +18,14 @@
 // CMakeCache.txt file.  This test will display the file.
 
 #include "vtkDebugLeaks.h"
-#include <sys/stat.h>
+#include <vtksys/SystemTools.hxx>
 #include <string>
 
 void vtkSystemInformationPrintFile(const char* name, ostream& os)
 {
   os << "================================================================\n";
-  struct stat fs;
-  if(stat(name, &fs) != 0)
+  vtksys::SystemTools::Stat_t fs;
+  if(vtksys::SystemTools::Stat(name, &fs) != 0)
   {
     os << "The file \"" << name << "\" does not exist.\n";
     return;
@@ -82,7 +82,7 @@ int TestSystemInformation(int argc, char* argv[])
     "Common/Core/vtkToolkits.h",
     "VTKConfig.cmake",
     "Testing/Temporary/ConfigSummary.txt",
-    0
+    nullptr
     };
 
   cout << "CTEST_FULL_OUTPUT (Avoid ctest truncation of output)" << endl;

@@ -69,12 +69,12 @@ class VTKVIEWSINFOVIS_EXPORT vtkParallelCoordinatesHistogramRepresentation : pub
 public:
   static vtkParallelCoordinatesHistogramRepresentation* New();
   vtkTypeMacro(vtkParallelCoordinatesHistogramRepresentation, vtkParallelCoordinatesRepresentation);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Apply the theme to this view.
    */
-  virtual void ApplyViewTheme(vtkViewTheme* theme);
+  void ApplyViewTheme(vtkViewTheme* theme) override;
 
   //@{
   /**
@@ -123,26 +123,26 @@ public:
    * Calls superclass swap, and assures that only histograms affected by the
    * swap get recomputed.
    */
-  virtual int SwapAxisPositions(int position1, int position2);
+  int SwapAxisPositions(int position1, int position2) override;
 
   /**
    * Calls the superclass method, and assures that only the two histograms
    * affect by this call get recomputed.
    */
-  virtual int SetRangeAtPosition(int position, double range[2]);
+  int SetRangeAtPosition(int position, double range[2]) override;
 
 protected:
   vtkParallelCoordinatesHistogramRepresentation();
-  virtual ~vtkParallelCoordinatesHistogramRepresentation();
+  ~vtkParallelCoordinatesHistogramRepresentation() override;
 
-  virtual int RequestData(
+  int RequestData(
     vtkInformation*,
     vtkInformationVector**,
-    vtkInformationVector*);
+    vtkInformationVector*) override;
 
-  virtual bool AddToView(vtkView* view);
+  bool AddToView(vtkView* view) override;
 
-  virtual bool RemoveFromView(vtkView* view);
+  bool RemoveFromView(vtkView* view) override;
 
   /**
    * Flag deciding if histograms will be drawn.
@@ -181,18 +181,18 @@ protected:
    * Correctly forwards the superclass call to draw lines to the internal
    * PlaceHistogramLineQuads call.
    */
-  virtual int PlaceLines(vtkPolyData* polyData, vtkTable* data, vtkIdTypeArray* idsToPlot);
+  int PlaceLines(vtkPolyData* polyData, vtkTable* data, vtkIdTypeArray* idsToPlot) override;
 
   /**
    * Correctly forwards the superclass call to draw curves to the internal
    * PlaceHistogramLineCurves call.
    */
-  virtual int PlaceCurves(vtkPolyData* polyData, vtkTable* data, vtkIdTypeArray* idsToPlot);
+  int PlaceCurves(vtkPolyData* polyData, vtkTable* data, vtkIdTypeArray* idsToPlot) override;
 
   /**
    * Draw a selection node referencing the row ids of a table into a poly data object.
    */
-  virtual int PlaceSelection(vtkPolyData* polyData, vtkTable* data, vtkSelectionNode* selectionNode);
+  int PlaceSelection(vtkPolyData* polyData, vtkTable* data, vtkSelectionNode* selectionNode) override;
 
   /**
    * Take the input 2D histogram images and draw one quad for each bin
@@ -210,8 +210,8 @@ protected:
    * Compute the number of axes and their individual ranges, as well
    * as histograms if requested.
    */
-  virtual int ComputeDataProperties();
-  virtual int UpdatePlotProperties(vtkStringArray*);
+  int ComputeDataProperties() override;
+  int UpdatePlotProperties(vtkStringArray*) override;
   //@}
 
   /**
@@ -226,8 +226,8 @@ protected:
   virtual vtkTable* GetOutlierData();
 
 private:
-  vtkParallelCoordinatesHistogramRepresentation(const vtkParallelCoordinatesHistogramRepresentation&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkParallelCoordinatesHistogramRepresentation&) VTK_DELETE_FUNCTION;
+  vtkParallelCoordinatesHistogramRepresentation(const vtkParallelCoordinatesHistogramRepresentation&) = delete;
+  void operator=(const vtkParallelCoordinatesHistogramRepresentation&) = delete;
 };
 
 #endif

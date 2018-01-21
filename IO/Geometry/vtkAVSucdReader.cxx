@@ -48,7 +48,7 @@ struct vtkAVSucdReader::idMapping : public std::map<vtkIdType, vtkIdType>
 //----------------------------------------------------------------------------
 vtkAVSucdReader::vtkAVSucdReader()
 {
-  this->FileName  = NULL;
+  this->FileName  = nullptr;
   this->ByteOrder = FILE_BIG_ENDIAN;
   this->BinaryFile = 0;
   this->NumberOfNodeFields = 0;
@@ -56,12 +56,12 @@ vtkAVSucdReader::vtkAVSucdReader()
   this->NumberOfFields = 0;
   this->NumberOfNodeComponents = 0;
   this->NumberOfCellComponents = 0;
-  this->FileStream = NULL;
+  this->FileStream = nullptr;
   this->NumberOfNodes = 0;
   this->NumberOfCells = 0;
 
-  this->NodeDataInfo = NULL;
-  this->CellDataInfo = NULL;
+  this->NodeDataInfo = nullptr;
+  this->CellDataInfo = nullptr;
   this->PointDataArraySelection = vtkDataArraySelection::New();
   this->CellDataArraySelection = vtkDataArraySelection::New();
 
@@ -121,7 +121,7 @@ int vtkAVSucdReader::RequestData(
 
   vtkDebugMacro( << "Reading AVS UCD file");
 
-  // If ExecuteInformation() failed FileStream will be NULL and
+  // If ExecuteInformation() failed FileStream will be nullptr and
   // ExecuteInformation() will have spit out an error.
   if ( this->FileStream )
   {
@@ -175,7 +175,7 @@ void vtkAVSucdReader::ReadFile(vtkUnstructuredGrid *output)
   }
 
   delete this->FileStream;
-  this->FileStream = NULL;
+  this->FileStream = nullptr;
 }
 
 
@@ -203,7 +203,7 @@ int vtkAVSucdReader::RequestInformation(
   {
     this->SetErrorCode(vtkErrorCode::FileNotFoundError);
     delete this->FileStream;
-    this->FileStream = NULL;
+    this->FileStream = nullptr;
     vtkErrorMacro("Specified filename not found");
     return 0;
   }
@@ -215,7 +215,7 @@ int vtkAVSucdReader::RequestInformation(
   { // most likely an ASCII file
     this->BinaryFile = 0;
     delete this->FileStream; // close file to reopen it later
-    this->FileStream = NULL;
+    this->FileStream = nullptr;
 
     this->FileStream = new ifstream(this->FileName, ios::in);
     char c='\0';
@@ -539,7 +539,7 @@ void vtkAVSucdReader::ReadGeometry(vtkUnstructuredGrid *output,
   if (this->BinaryFile)
   {
     int *types = new int[this->NumberOfCells];
-    if(types == NULL)
+    if(types == nullptr)
     {
       vtkErrorMacro(<< "Error allocating types memory\n");
     }
@@ -593,7 +593,7 @@ void vtkAVSucdReader::ReadBinaryCellTopology(vtkIntArray *materials,
   int *mat = materials->GetPointer(0);
   vtkIdType *list = listcells->GetPointer(0);
   int *ctype = new int[4 * this->NumberOfCells];
-  if(ctype == NULL)
+  if(ctype == nullptr)
   {
     vtkErrorMacro(<< "Error allocating ctype memory");
     return;
@@ -603,7 +603,7 @@ void vtkAVSucdReader::ReadBinaryCellTopology(vtkIntArray *materials,
   this->ReadIntBlock(4 * this->NumberOfCells, ctype);
 
   int *topology_list = new int[this->NlistNodes];
-  if(topology_list == NULL)
+  if(topology_list == nullptr)
   {
     vtkErrorMacro(<< "Error allocating topology_list memory");
     return;
@@ -667,7 +667,7 @@ void vtkAVSucdReader::ReadASCIICellTopology(vtkIntArray *materials,
   int i, k;
   vtkIdType list[8];
   int *mat = materials->GetPointer(0);
-  char ctype[5];
+  std::string ctype;
 
   output->Allocate();
   for(i=0; i < this->NumberOfCells; i++)
@@ -678,7 +678,7 @@ void vtkAVSucdReader::ReadASCIICellTopology(vtkIntArray *materials,
     *(this->FileStream) >> mat[i];
     *(this->FileStream) >> ctype;
     vtkDebugMacro( << mat[i] << ", " << ctype );
-    if(!strcmp(ctype, "pt"))
+    if(ctype == "pt")
     {
       for(k=0; k < 1; k++)
       {
@@ -687,7 +687,7 @@ void vtkAVSucdReader::ReadASCIICellTopology(vtkIntArray *materials,
       }
       output->InsertNextCell(VTK_VERTEX, 1, list);
     }
-    else if(!strcmp(ctype, "line"))
+    else if(ctype == "line")
     {
       for(k=0; k < 2; k++)
       {
@@ -696,7 +696,7 @@ void vtkAVSucdReader::ReadASCIICellTopology(vtkIntArray *materials,
       }
       output->InsertNextCell(VTK_LINE, 2, list);
     }
-    else if(!strcmp(ctype, "tri"))
+    else if(ctype == "tri")
     {
       for(k=0; k < 3; k++)
       {
@@ -705,7 +705,7 @@ void vtkAVSucdReader::ReadASCIICellTopology(vtkIntArray *materials,
       }
       output->InsertNextCell(VTK_TRIANGLE, 3, list);
     }
-    else if(!strcmp(ctype, "quad"))
+    else if(ctype == "quad")
     {
       for(k=0; k < 4; k++)
       {
@@ -714,7 +714,7 @@ void vtkAVSucdReader::ReadASCIICellTopology(vtkIntArray *materials,
       }
       output->InsertNextCell(VTK_QUAD, 4, list);
     }
-    else if(!strcmp(ctype, "tet"))
+    else if(ctype == "tet")
     {
       for(k=0; k < 4; k++)
       {
@@ -723,7 +723,7 @@ void vtkAVSucdReader::ReadASCIICellTopology(vtkIntArray *materials,
       }
       output->InsertNextCell(VTK_TETRA, 4, list);
     }
-    else if(!strcmp(ctype, "pyr"))
+    else if(ctype == "pyr")
     {
       for(k=0; k < 5; k++)
       {
@@ -736,7 +736,7 @@ void vtkAVSucdReader::ReadASCIICellTopology(vtkIntArray *materials,
       list[3] = list[4]; list[4] = tmp;
       output->InsertNextCell(VTK_PYRAMID, 5, list);
     }
-    else if(!strcmp(ctype, "prism"))
+    else if(ctype == "prism")
     {
       for(k=0; k < 6; k++)
       {
@@ -745,7 +745,7 @@ void vtkAVSucdReader::ReadASCIICellTopology(vtkIntArray *materials,
       }
       output->InsertNextCell(VTK_WEDGE, 6, list);
     }
-    else if(!strcmp(ctype, "hex"))
+    else if(ctype == "hex")
     {
       for(k=0; k < 8; k++)
       {
@@ -1090,8 +1090,8 @@ int vtkAVSucdReader::GetLabel(char *string, int number, char *label)
   char  current;
 
 
-  // check to make sure that structure is not NULL
-  if (string == NULL)
+  // check to make sure that structure is not nullptr
+  if (string == nullptr)
   {
     vtkErrorMacro( << "String is null");
     return 0;

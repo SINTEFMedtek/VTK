@@ -41,21 +41,21 @@ class VTKGEOVISCORE_EXPORT vtkGeoSphereTransform : public vtkAbstractTransform
 {
 public:
   static vtkGeoSphereTransform* New();
-  virtual void PrintSelf( ostream& os, vtkIndent indent );
+  void PrintSelf( ostream& os, vtkIndent indent ) override;
   vtkTypeMacro(vtkGeoSphereTransform,vtkAbstractTransform);
 
   /**
    * Invert the transformation.
    */
-  virtual void Inverse();
+  void Inverse() override;
 
   //@{
   /**
    * This will calculate the transformation without calling Update.
    * Meant for use only within other VTK classes.
    */
-  virtual void InternalTransformPoint( const float in[3], float out[3] );
-  virtual void InternalTransformPoint( const double in[3], double out[3] );
+  void InternalTransformPoint( const float in[3], float out[3] ) override;
+  void InternalTransformPoint( const double in[3], double out[3] ) override;
   //@}
 
   //@{
@@ -65,14 +65,14 @@ public:
    * transformation at that point.  This method does not call Update.
    * Meant for use only within other VTK classes.
    */
-  virtual void InternalTransformDerivative( const float in[3], float out[3], float derivative[3][3] );
-  virtual void InternalTransformDerivative( const double in[3], double out[3], double derivative[3][3] );
+  void InternalTransformDerivative( const float in[3], float out[3], float derivative[3][3] ) override;
+  void InternalTransformDerivative( const double in[3], double out[3], double derivative[3][3] ) override;
   //@}
 
   /**
    * Make another transform of the same type.
    */
-  virtual vtkAbstractTransform* MakeTransform();
+  vtkAbstractTransform* MakeTransform() override;
 
   //@{
   /**
@@ -97,14 +97,14 @@ public:
 
 protected:
   vtkGeoSphereTransform();
-  virtual ~vtkGeoSphereTransform();
+  ~vtkGeoSphereTransform() override;
 
   bool ToRectangular;
   double BaseAltitude;
 
 private:
-  vtkGeoSphereTransform( const vtkGeoSphereTransform& ) VTK_DELETE_FUNCTION;
-  void operator = ( const vtkGeoSphereTransform& ) VTK_DELETE_FUNCTION;
+  vtkGeoSphereTransform( const vtkGeoSphereTransform& ) = delete;
+  void operator = ( const vtkGeoSphereTransform& ) = delete;
 };
 
 #endif // vtkGeoSphereTransform_h

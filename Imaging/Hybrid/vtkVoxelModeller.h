@@ -38,7 +38,7 @@ class VTKIMAGINGHYBRID_EXPORT vtkVoxelModeller : public vtkImageAlgorithm
 {
 public:
   vtkTypeMacro(vtkVoxelModeller,vtkImageAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Construct an instance of vtkVoxelModeller with its sample dimensions
@@ -127,19 +127,19 @@ public:
 
 protected:
   vtkVoxelModeller();
-  ~vtkVoxelModeller() {}
+  ~vtkVoxelModeller() override {}
 
-  virtual int RequestInformation (vtkInformation *,
+  int RequestInformation (vtkInformation *,
                                   vtkInformationVector **,
-                                  vtkInformationVector *);
+                                  vtkInformationVector *) override;
 
   // see vtkAlgorithm for details
-  virtual int RequestData(vtkInformation *request,
+  int RequestData(vtkInformation *request,
                           vtkInformationVector** inputVector,
-                          vtkInformationVector* outputVector);
+                          vtkInformationVector* outputVector) override;
 
   // see algorithm for more info
-  virtual int FillInputPortInformation(int port, vtkInformation* info);
+  int FillInputPortInformation(int port, vtkInformation* info) override;
 
   int SampleDimensions[3];
   double MaximumDistance;
@@ -149,8 +149,8 @@ protected:
   int ScalarType;
 
 private:
-  vtkVoxelModeller(const vtkVoxelModeller&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkVoxelModeller&) VTK_DELETE_FUNCTION;
+  vtkVoxelModeller(const vtkVoxelModeller&) = delete;
+  void operator=(const vtkVoxelModeller&) = delete;
 };
 
 #endif

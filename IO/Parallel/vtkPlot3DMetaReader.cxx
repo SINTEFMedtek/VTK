@@ -49,7 +49,7 @@ struct vtkPlot3DMetaReaderInternals
   std::map<std::string, Plot3DFunction> FunctionMap;
   std::vector<Plot3DTimeStep> TimeSteps;
 
-  std::string ResolveFileName(std::string metaFileName,
+  std::string ResolveFileName(const std::string& metaFileName,
                               std::string fileName)
   {
       if (vtksys::SystemTools::FileIsFullPath(fileName.c_str()))
@@ -76,7 +76,7 @@ vtkPlot3DMetaReader::vtkPlot3DMetaReader()
   this->Reader = vtkMultiBlockPLOT3DReader::New();
   this->Reader->AutoDetectFormatOn();
 
-  this->FileName = 0;
+  this->FileName = nullptr;
 
   this->Internal = new vtkPlot3DMetaReaderInternals;
 
@@ -104,6 +104,8 @@ vtkPlot3DMetaReader::vtkPlot3DMetaReader()
     &vtkPlot3DMetaReader::SetFileNames;
   this->Internal->FunctionMap["functions"] =
     &vtkPlot3DMetaReader::AddFunctions;
+  this->Internal->FunctionMap["function-names"] =
+    &vtkPlot3DMetaReader::SetFunctionNames;
 }
 
 //-----------------------------------------------------------------------------
@@ -332,6 +334,16 @@ void vtkPlot3DMetaReader::SetFileNames(Json::Value* val)
   }
 }
 
+//-----------------------------------------------------------------------------
+void vtkPlot3DMetaReader::SetFunctionNames(Json::Value* val)
+{
+  const Json::Value& functionNames = *val;
+  for ( size_t index = 0; index < functionNames.size(); ++index )
+  {
+    this->Reader->AddFunctionName(functionNames[(int)index].asString());
+  }
+}
+
 //----------------------------------------------------------------------------
 int vtkPlot3DMetaReader::RequestInformation(
   vtkInformation* vtkNotUsed(request),
@@ -368,7 +380,7 @@ int vtkPlot3DMetaReader::RequestInformation(
   Json::Value::Members::iterator memberIterator;
   for (memberIterator = members.begin();
        memberIterator != members.end();
-       memberIterator++)
+       ++memberIterator)
   {
     std::map<std::string, Plot3DFunction>::iterator iter =
       this->Internal->FunctionMap.find(*memberIterator);
@@ -390,7 +402,7 @@ int vtkPlot3DMetaReader::RequestInformation(
   std::vector<double> timeValues;
   for (iter  = this->Internal->TimeSteps.begin();
        iter != this->Internal->TimeSteps.end();
-       iter++)
+       ++iter)
   {
     timeValues.push_back(iter->Time);
   }
@@ -471,7 +483,7 @@ int vtkPlot3DMetaReader::RequestData(
     }
     else
     {
-      this->Reader->SetQFileName(0);
+      this->Reader->SetQFileName(nullptr);
     }
     const char* fname =
       this->Internal->TimeSteps[updateTime].FunctionFile.c_str();
@@ -481,7 +493,7 @@ int vtkPlot3DMetaReader::RequestData(
     }
     else
     {
-      this->Reader->SetFunctionFileName(0);
+      this->Reader->SetFunctionFileName(nullptr);
     }
     this->Reader->UpdatePiece(
       outInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_PIECE_NUMBER()),

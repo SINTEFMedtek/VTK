@@ -63,7 +63,7 @@ public:
    * Standard methods for the class.
    */
   vtkTypeMacro(vtkSliderRepresentation2D,vtkSliderRepresentation);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   /**
@@ -91,8 +91,8 @@ public:
    * Specify the label text for this widget. If the value is not set, or set
    * to the empty string "", then the label text is not displayed.
    */
-  virtual void SetTitleText(const char*);
-  virtual const char* GetTitleText();
+  void SetTitleText(const char*) override;
+  const char* GetTitleText() override;
   //@}
 
   //@{
@@ -133,26 +133,26 @@ public:
    * assumes that the parameter bounds[6] specifies the location in display space
    * where the widget should be placed.
    */
-  virtual void PlaceWidget(double bounds[6]);
-  virtual void BuildRepresentation();
-  virtual void StartWidgetInteraction(double eventPos[2]);
-  virtual void WidgetInteraction(double newEventPos[2]);
-  virtual void Highlight(int);
+  void PlaceWidget(double bounds[6]) override;
+  void BuildRepresentation() override;
+  void StartWidgetInteraction(double eventPos[2]) override;
+  void WidgetInteraction(double newEventPos[2]) override;
+  void Highlight(int) override;
   //@}
 
   //@{
   /**
    * Methods supporting the rendering process.
    */
-  virtual void GetActors2D(vtkPropCollection*);
-  virtual void ReleaseGraphicsResources(vtkWindow*);
-  virtual int RenderOverlay(vtkViewport*);
-  virtual int RenderOpaqueGeometry(vtkViewport*);
+  void GetActors2D(vtkPropCollection*) override;
+  void ReleaseGraphicsResources(vtkWindow*) override;
+  int RenderOverlay(vtkViewport*) override;
+  int RenderOpaqueGeometry(vtkViewport*) override;
   //@}
 
 protected:
   vtkSliderRepresentation2D();
-  ~vtkSliderRepresentation2D();
+  ~vtkSliderRepresentation2D() override;
 
   // Positioning the widget
   vtkCoordinate *Point1Coordinate;
@@ -201,8 +201,8 @@ protected:
   double X;
 
 private:
-  vtkSliderRepresentation2D(const vtkSliderRepresentation2D&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkSliderRepresentation2D&) VTK_DELETE_FUNCTION;
+  vtkSliderRepresentation2D(const vtkSliderRepresentation2D&) = delete;
+  void operator=(const vtkSliderRepresentation2D&) = delete;
 };
 
 #endif

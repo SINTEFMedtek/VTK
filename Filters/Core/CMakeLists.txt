@@ -1,4 +1,5 @@
 set(Module_SRCS
+  vtkAppendArcLength.cxx
   vtkAppendFilter.cxx
   vtkAppendPolyData.cxx
   vtkAppendSelection.cxx
@@ -43,6 +44,7 @@ set(Module_SRCS
   vtkMergeDataObjectFilter.cxx
   vtkMergeFields.cxx
   vtkMergeFilter.cxx
+  vtkPlaneCutter.cxx
   vtkPointDataToCellData.cxx
   vtkPolyDataConnectivityFilter.cxx
   vtkPolyDataNormals.cxx
@@ -55,6 +57,7 @@ set(Module_SRCS
   vtkReverseSense.cxx
   vtkSimpleElevationFilter.cxx
   vtkSmoothPolyDataFilter.cxx
+  vtkSphereTreeFilter.cxx
   vtkStripper.cxx
   vtkStructuredGridOutlineFilter.cxx
   vtkSynchronizedTemplates2D.cxx
@@ -65,6 +68,7 @@ set(Module_SRCS
   vtkThresholdPoints.cxx
   vtkTransposeTable.cxx
   vtkTriangleFilter.cxx
+  vtkTriangleMeshPointNormals.cxx
   vtkTubeFilter.cxx
   vtkUnstructuredGridQuadricDecimation.cxx
   vtkVectorDot.cxx

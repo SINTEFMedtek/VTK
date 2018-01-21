@@ -34,12 +34,14 @@ vtkStandardNewMacro(vtkHyperOctreeToUniformGridFilter);
 //----------------------------------------------------------------------------
 vtkHyperOctreeToUniformGridFilter::vtkHyperOctreeToUniformGridFilter()
 {
-  this->InputCD=0;
-  this->OutputCD=0;
-  this->Cursor=0;
+  VTK_LEGACY_BODY(vtkHyperOctreeToUniformGridFilter, "VTK 8.1");
+
+  this->InputCD=nullptr;
+  this->OutputCD=nullptr;
+  this->Cursor=nullptr;
   this->YExtent=1;
   this->ZExtent=1;
-  this->Output=0;
+  this->Output=nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -217,10 +219,10 @@ int vtkHyperOctreeToUniformGridFilter::RequestData(
   }
   this->CopyCellData(extent);
   this->Cursor->UnRegister(this);
-  this->Cursor=0;
-  this->InputCD=0;
-  this->OutputCD=0;
-  this->Output=0;
+  this->Cursor=nullptr;
+  this->InputCD=nullptr;
+  this->OutputCD=nullptr;
+  this->Output=nullptr;
 
   assert("post: valid_output" && output->CheckAttributes()==0);
 

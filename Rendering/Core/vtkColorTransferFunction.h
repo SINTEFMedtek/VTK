@@ -45,6 +45,7 @@ class vtkColorTransferFunctionInternals;
 #define VTK_CTF_HSV           1
 #define VTK_CTF_LAB           2
 #define VTK_CTF_DIVERGING     3
+#define VTK_CTF_LAB_CIEDE2000 4
 
 #define VTK_CTF_LINEAR        0
 #define VTK_CTF_LOG10         1
@@ -54,13 +55,13 @@ class VTKRENDERINGCORE_EXPORT vtkColorTransferFunction : public vtkScalarsToColo
 public:
   static vtkColorTransferFunction *New();
   vtkTypeMacro(vtkColorTransferFunction,vtkScalarsToColors);
-  void DeepCopy( vtkScalarsToColors *f );
+  void DeepCopy( vtkScalarsToColors *f ) override;
   void ShallowCopy( vtkColorTransferFunction *f );
 
   /**
    * Print method for vtkColorTransferFunction
    */
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * How many nodes define this function?
@@ -104,7 +105,7 @@ public:
    */
   double *GetColor(double x) {
     return vtkScalarsToColors::GetColor(x); }
-  void GetColor(double x, double rgb[3]);
+  void GetColor(double x, double rgb[3]) override;
 
   //@{
   /**
@@ -128,13 +129,22 @@ public:
   /**
    * Map one value through the lookup table.
    */
-  virtual unsigned char *MapValue(double v);
+  unsigned char *MapValue(double v) override;
 
   //@{
   /**
    * Returns min and max position of all function points.
    */
-  vtkGetVector2Macro( Range, double );
+  double* GetRange() override { return this->Range; }
+  virtual void GetRange(double& arg1, double& arg2)
+  {
+    arg1 = this->Range[0];
+    arg2 = this->Range[1];
+  }
+  virtual void GetRange(double _arg[2])
+  {
+    this->GetRange(_arg[0],_arg[1]);
+  }
   //@}
 
   /**
@@ -187,14 +197,17 @@ public:
    * Diverging.  In HSV mode, if HSVWrap is on, it will take the shortest path
    * in Hue (going back through 0 if that is the shortest way around the hue
    * circle) whereas if HSVWrap is off it will not go through 0 (in order the
-   * match the current functionality of vtkLookupTable).  Diverging is a special
+   * match the current functionality of vtkLookupTable).  In Lab/CIEDE2000 mode,
+   * it will take the shortest path in the Lab color space with respect to the
+   * CIE Delta E 2000 color distance measure. Diverging is a special
    * mode where colors will pass through white when interpolating between two
    * saturated colors.
    */
-  vtkSetClampMacro( ColorSpace, int, VTK_CTF_RGB, VTK_CTF_DIVERGING );
-  void SetColorSpaceToRGB(){this->SetColorSpace(VTK_CTF_RGB);};
-  void SetColorSpaceToHSV(){this->SetColorSpace(VTK_CTF_HSV);};
-  void SetColorSpaceToLab(){this->SetColorSpace(VTK_CTF_LAB);};
+  vtkSetClampMacro(ColorSpace, int, VTK_CTF_RGB, VTK_CTF_LAB_CIEDE2000);
+  void SetColorSpaceToRGB(){this->SetColorSpace(VTK_CTF_RGB);}
+  void SetColorSpaceToHSV(){this->SetColorSpace(VTK_CTF_HSV);}
+  void SetColorSpaceToLab(){this->SetColorSpace(VTK_CTF_LAB);}
+  void SetColorSpaceToLabCIEDE2000() { this->SetColorSpace(VTK_CTF_LAB_CIEDE2000); }
   void SetColorSpaceToDiverging(){this->SetColorSpace(VTK_CTF_DIVERGING);}
   vtkGetMacro( ColorSpace, int );
   vtkSetMacro(HSVWrap, int);
@@ -209,8 +222,8 @@ public:
    * zero, the color mapping will be linear.
    */
   vtkSetMacro(Scale,int);
-  void SetScaleToLinear() { this->SetScale(VTK_CTF_LINEAR); };
-  void SetScaleToLog10() { this->SetScale(VTK_CTF_LOG10); };
+  void SetScaleToLinear() { this->SetScale(VTK_CTF_LINEAR); }
+  void SetScaleToLog10() { this->SetScale(VTK_CTF_LOG10); }
   vtkGetMacro(Scale,int);
   //@}
 
@@ -279,9 +292,9 @@ public:
   /**
    * Map a set of scalars through the lookup table.
    */
-  virtual void MapScalarsThroughTable2(void *input, unsigned char *output,
+  void MapScalarsThroughTable2(void *input, unsigned char *output,
                                        int inputDataType, int numberOfValues,
-                                       int inputIncrement, int outputIncrement);
+                                       int inputIncrement, int outputIncrement) override;
 
   //@{
   /**
@@ -296,7 +309,7 @@ public:
   /**
    * Get the number of available colors for mapping to.
    */
-  virtual vtkIdType GetNumberOfAvailableColors();
+  vtkIdType GetNumberOfAvailableColors() override;
 
   /**
    * Return a color given an integer index.
@@ -304,7 +317,7 @@ public:
    * This is used to assign colors to annotations (given an offset into the list of annotations).
    * If there are no control points or \a idx < 0, then NanColor is returned.
    */
-  virtual void GetIndexedColor(vtkIdType idx, double rgba[4]);
+  void GetIndexedColor(vtkIdType idx, double rgba[4]) override;
 
   /**
    * Estimates the minimum size of a table such that it would correctly sample this function.
@@ -314,7 +327,7 @@ public:
 
 protected:
   vtkColorTransferFunction();
-  ~vtkColorTransferFunction();
+  ~vtkColorTransferFunction() override;
 
   vtkColorTransferFunctionInternals *Internal;
 
@@ -399,8 +412,8 @@ protected:
    * Set the range of scalars being mapped. This method has no functionality
    * in this subclass of vtkScalarsToColors.
    */
-  virtual void SetRange(double, double) {}
-  void SetRange(double rng[2]) {this->SetRange(rng[0],rng[1]);};
+  void SetRange(double, double) override {}
+  void SetRange(const double rng[2]) override {this->SetRange(rng[0],rng[1]);}
 
   /**
    * Internal method to sort the vector and update the
@@ -427,8 +440,8 @@ protected:
   double FindMinimumXDistance();
 
 private:
-  vtkColorTransferFunction(const vtkColorTransferFunction&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkColorTransferFunction&) VTK_DELETE_FUNCTION;
+  vtkColorTransferFunction(const vtkColorTransferFunction&) = delete;
+  void operator=(const vtkColorTransferFunction&) = delete;
 };
 
 #endif

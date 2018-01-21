@@ -14,10 +14,10 @@
 =========================================================================*/
 /**
  * @class   vtkTextPropertyCollection
- * @brief   a list of vtkTextProperty objects.
+ * @brief   an ordered list of vtkTextProperty objects.
  *
  * vtkTextPropertyCollection represents and provides methods to manipulate a
- * list of TextProperty objects. The list is unsorted and
+ * list of TextProperty objects. The list is ordered and
  * duplicate entries are not prevented.
  * @sa
  * vtkTextProperty vtkCollection
@@ -35,10 +35,10 @@ class VTKRENDERINGCORE_EXPORT vtkTextPropertyCollection : public vtkCollection
  public:
   static vtkTextPropertyCollection *New();
   vtkTypeMacro(vtkTextPropertyCollection, vtkCollection)
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
-   * Add a vtkTextProperty to the list.
+   * Add a vtkTextProperty to the bottom of the list.
    */
   void AddItem(vtkTextProperty *a);
 
@@ -65,15 +65,15 @@ class VTKRENDERINGCORE_EXPORT vtkTextPropertyCollection : public vtkCollection
 
 protected:
   vtkTextPropertyCollection();
-  ~vtkTextPropertyCollection();
+  ~vtkTextPropertyCollection() override;
 
 private:
   // hide the standard AddItem from the user and the compiler.
   void AddItem(vtkObject *o);
 
 private:
-  vtkTextPropertyCollection(const vtkTextPropertyCollection&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkTextPropertyCollection&) VTK_DELETE_FUNCTION;
+  vtkTextPropertyCollection(const vtkTextPropertyCollection&) = delete;
+  void operator=(const vtkTextPropertyCollection&) = delete;
 };
 
 inline void vtkTextPropertyCollection::AddItem(vtkTextProperty *a)
@@ -93,9 +93,9 @@ inline vtkTextProperty *vtkTextPropertyCollection::GetItem(int idx)
 
 inline vtkTextProperty *vtkTextPropertyCollection::GetLastItem()
 {
-  if ( this->Bottom == NULL )
+  if ( this->Bottom == nullptr )
   {
-    return NULL;
+    return nullptr;
   }
   else
   {

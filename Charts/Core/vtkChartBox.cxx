@@ -30,6 +30,7 @@
 #include "vtkPen.h"
 #include "vtkPlotBox.h"
 #include "vtkPlotGrid.h"
+#include "vtkPoints2D.h"
 #include "vtkSelection.h"
 #include "vtkSelectionNode.h"
 #include "vtkSmartPointer.h"
@@ -75,7 +76,7 @@ vtkChartBox::vtkChartBox()
 {
   this->Storage = new vtkChartBox::Private;
   this->Storage->Plot->SetParent(this);
-  this->AddItem(this->Storage->YAxis.GetPointer());
+  this->AddItem(this->Storage->YAxis);
   this->GeometryValid = false;
   this->Selection = vtkIdTypeArray::New();
   this->SelectedColumn = -1;
@@ -94,7 +95,7 @@ vtkChartBox::vtkChartBox()
 //-----------------------------------------------------------------------------
 vtkChartBox::~vtkChartBox()
 {
-  this->Storage->Plot->SetSelection(NULL);
+  this->Storage->Plot->SetSelection(nullptr);
   delete this->Storage;
   this->Selection->Delete();
   this->VisibleColumns->Delete();
@@ -164,7 +165,7 @@ bool vtkChartBox::Paint(vtkContext2D *painter)
   this->UpdateGeometry(painter);
 
   // Handle selections
-  vtkIdTypeArray *idArray = 0;
+  vtkIdTypeArray *idArray = nullptr;
   if (this->AnnotationLink)
   {
     vtkSelection *selection = this->AnnotationLink->GetCurrentSelection();
@@ -182,11 +183,37 @@ bool vtkChartBox::Paint(vtkContext2D *painter)
   }
 
   painter->PushMatrix();
-  painter->SetTransform(this->Storage->Transform.GetPointer());
+  painter->SetTransform(this->Storage->Transform);
   this->Storage->Plot->Paint(painter);
   painter->PopMatrix();
 
   this->Storage->YAxis->Paint(painter);
+
+  if (this->Title)
+  {
+    painter->ApplyTextProp(this->TitleProperties);
+    vtkVector2f stringBounds[2];
+    painter->ComputeStringBounds(this->Title, stringBounds->GetData());
+    float height = 1.1 * stringBounds[1].GetY();
+
+    // Shift the position of the title down if it would be outside the window
+    float shift;
+    if (this->Point2[1] + height > this->Geometry[1])
+    {
+      shift = this->Point2[1] + height - this->Geometry[1];
+    }
+    else
+    {
+      shift = 0.0f;
+    }
+    vtkPoints2D *rect = vtkPoints2D::New();
+    rect->InsertNextPoint(this->Point1[0],
+                          this->Point2[1]);
+    rect->InsertNextPoint(this->Point2[0]-this->Point1[0],
+                          height - shift);
+    painter->DrawStringRect(rect, this->Title);
+    rect->Delete();
+  }
 
   if (this->GetShowLegend())
   {
@@ -339,7 +366,7 @@ vtkIdType vtkChartBox::GetColumnId(const vtkStdString& name)
 //-----------------------------------------------------------------------------
 vtkAxis* vtkChartBox::GetYAxis()
 {
-  return this->Storage->YAxis.GetPointer();
+  return this->Storage->YAxis;
 }
 
 //-----------------------------------------------------------------------------
@@ -378,7 +405,7 @@ void vtkChartBox::UpdateGeometry(vtkContext2D* painter)
   if (geometry.GetX() != this->Geometry[0] ||
     geometry.GetY() != this->Geometry[1] || !this->GeometryValid)
   {
-    vtkAxis* axis = this->Storage->YAxis.GetPointer();
+    vtkAxis* axis = this->Storage->YAxis;
 
     axis->SetPoint1(0, this->Point1[1]);
     axis->SetPoint2(0, this->Point2[1]);
@@ -392,7 +419,7 @@ void vtkChartBox::UpdateGeometry(vtkContext2D* painter)
     if (axis->GetVisible())
     {
       vtkRectf bounds = axis->GetBoundingRect(painter);
-      leftBorder = int(bounds.GetWidth());;
+      leftBorder = int(bounds.GetWidth());
     }
     axis->SetPoint1(leftBorder, this->Point1[1]);
     axis->SetPoint2(leftBorder, this->Point2[1]);
@@ -436,7 +463,7 @@ void vtkChartBox::CalculatePlotTransform()
   // In the case of box plots everything is plotted in a normalized
   // system, where the range is from 0.0 to 1.0 in the y axis, and in screen
   // coordinates along the x axis.
-  vtkAxis* axis = this->Storage->YAxis.GetPointer();
+  vtkAxis* axis = this->Storage->YAxis;
   float *min = axis->GetPoint1();
   float *max = axis->GetPoint2();
   float yScale = 1.0f / (max[1] - min[1]);
@@ -610,14 +637,14 @@ bool vtkChartBox::LocatePointInPlots(const vtkContextMouseEvent &mouse,
   {
     vtkVector2f plotPos, position;
     vtkTransform2D* transform =
-      this->Storage->Transform.GetPointer();
+      this->Storage->Transform;
     transform->InverseTransformPoints(mouse.GetPos().GetData(),
       position.GetData(), 1);
     // Use a tolerance of +/- 5 pixels
     vtkVector2f tolerance(5*(1.0/transform->GetMatrix()->GetElement(0, 0)),
       5*(1.0/transform->GetMatrix()->GetElement(1, 1)));
 
-    vtkPlot* plot = this->Storage->Plot.GetPointer();
+    vtkPlot* plot = this->Storage->Plot;
     vtkIdType segmentIndex = -1;
     int seriesIndex =
       LocatePointInPlot(position, tolerance, plotPos, plot, segmentIndex);

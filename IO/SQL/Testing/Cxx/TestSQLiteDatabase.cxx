@@ -36,34 +36,16 @@
 
 #include <vector>
 
-#define CHECK_ERROR_MSG(observer, msg)   \
-  { \
-  std::string expectedMsg(msg); \
-  if (!observer->GetError()) \
-  { \
-    std::cout << "ERROR: Failed to catch any error. Expected the error message to contain \"" << expectedMsg << std::endl; \
-  } \
-  else \
-  { \
-    std::string gotMsg(observer->GetErrorMessage()); \
-    if (gotMsg.find(expectedMsg) == std::string::npos) \
-    { \
-      std::cout << "ERROR: Error message does not contain \"" << expectedMsg << "\" got \n\"" << gotMsg << std::endl; \
-    } \
-  } \
-  } \
-  observer->Clear()
-
 int TestSQLiteDatabase( int /*argc*/, char* /*argv*/[])
 {
   bool status;
 
   cerr << ">>>>> Testing bad input." << endl;
 
-  vtkSQLDatabase* db0 = vtkSQLDatabase::CreateFromURL( 0 );
+  vtkSQLDatabase* db0 = vtkSQLDatabase::CreateFromURL( nullptr );
   if ( db0 )
   {
-    cerr << "ERROR: Created a database from a NULL URL! How?" << endl;
+    cerr << "ERROR: Created a database from a nullptr URL! How?" << endl;
     db0->Delete();
     return 1;
   }
@@ -101,8 +83,7 @@ int TestSQLiteDatabase( int /*argc*/, char* /*argv*/[])
     cerr << "Using CREATE on an existing file should have failed but did not.\n";
     return 1;
   }
-  CHECK_ERROR_MSG(errorObserver,
-                  "You specified creating a database but the file exists");
+  int status1 = errorObserver->CheckErrorMessage("You specified creating a database but the file exists");
   db2->Delete();
 
   vtkSQLiteDatabase* db3 = vtkSQLiteDatabase::SafeDownCast( vtkSQLDatabase::CreateFromURL( "sqlite://local.db" ) );
@@ -137,8 +118,7 @@ int TestSQLiteDatabase( int /*argc*/, char* /*argv*/[])
       cerr << "Select query succeeded when it shouldn't have." << endl;
       return 1;
   }
-  CHECK_ERROR_MSG(queryObserver,
-                  "Query is not null but prepared statement is");
+  status1 += queryObserver->CheckErrorMessage("Query is not null but prepared statement is");
   db4->Delete();
   query4->Delete();
 
@@ -168,7 +148,7 @@ int TestSQLiteDatabase( int /*argc*/, char* /*argv*/[])
   for ( i = 0; i < 20; i++)
   {
       char insertQuery[200];
-      sprintf( insertQuery, "INSERT INTO people (name, age, weight) VALUES('John Doe %d', %d, %f)",
+      snprintf( insertQuery, sizeof(insertQuery), "INSERT INTO people (name, age, weight) VALUES('John Doe %d', %d, %f)",
         i, i, 10.1*i );
       cout << insertQuery << endl;
       query->SetQuery( insertQuery );
@@ -185,7 +165,7 @@ int TestSQLiteDatabase( int /*argc*/, char* /*argv*/[])
   for ( i = 21; i < 40; i++ )
   {
     char name[20];
-    sprintf(name, "John Doe %d", i);
+    snprintf(name, sizeof(name), "John Doe %d", i);
     bool bind1 = query->BindParameter(0, name);
     bool bind2 = query->BindParameter(1, i);
     bool bind3 = query->BindParameter(2, 10.1*i);

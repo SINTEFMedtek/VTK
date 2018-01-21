@@ -56,7 +56,7 @@ class VTKVIEWSINFOVIS_EXPORT vtkDendrogramItem : public vtkContextItem
 public:
   static vtkDendrogramItem *New();
   vtkTypeMacro(vtkDendrogramItem, vtkContextItem);
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
   /**
    * Set the tree that this item draws.  Note that this tree's vertex data
@@ -121,7 +121,7 @@ public:
   double GetAngleForOrientation(int orientation);
 
   /**
-   * Get the angle that vertex labels should be rotated for the correponding
+   * Get the angle that vertex labels should be rotated for the corresponding
    * tree orientation.  For the default orientation (LEFT_TO_RIGHT), this
    * is 0 degrees.
    */
@@ -191,12 +191,12 @@ public:
    * this information in the passed array.  Returns true if the vertex
    * was found, false otherwise.
    */
-  bool GetPositionOfVertex(std::string vertexName, double position[2]);
+  bool GetPositionOfVertex(const std::string& vertexName, double position[2]);
 
   /**
    * Paints the input tree as a dendrogram.
    */
-  virtual bool Paint(vtkContext2D *painter);
+  bool Paint(vtkContext2D *painter) override;
 
   //@{
   /**
@@ -272,17 +272,17 @@ public:
   /**
    * Returns true if the transform is interactive, false otherwise.
    */
-  virtual bool Hit(const vtkContextMouseEvent &mouse);
+  bool Hit(const vtkContextMouseEvent &mouse) override;
 
   /**
    * Collapse or expand a subtree when the user double clicks on an
    * internal node.
    */
-  virtual bool MouseDoubleClickEvent( const vtkContextMouseEvent &event);
+  bool MouseDoubleClickEvent( const vtkContextMouseEvent &event) override;
 
 protected:
   vtkDendrogramItem();
-  ~vtkDendrogramItem();
+  ~vtkDendrogramItem() override;
 
   vtkVector2f PositionVector;
   float* Position;
@@ -386,8 +386,8 @@ protected:
   vtkSmartPointer<vtkTree> LayoutTree;
 
 private:
-  vtkDendrogramItem(const vtkDendrogramItem&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkDendrogramItem&) VTK_DELETE_FUNCTION;
+  vtkDendrogramItem(const vtkDendrogramItem&) = delete;
+  void operator=(const vtkDendrogramItem&) = delete;
 
   vtkSmartPointer<vtkTree> PrunedTree;
   vtkMTimeType DendrogramBuildTime;

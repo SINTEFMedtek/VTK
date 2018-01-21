@@ -179,7 +179,7 @@ public:
   /**
    * Print information about this object.
    */
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Get the magic number for the NIFTI file as a null-terminated string.
@@ -323,7 +323,7 @@ public:
   const char *GetDescrip() { return this->Descrip; }
 
   /**
-   * Get an auxilliary file, e.g. a color table, that is associated
+   * Get an auxiliary file, e.g. a color table, that is associated
    * with this data.  The length of the filename must be a maximum of
    * 24 characters, and it will be assumed to be in the same directory
    * as the NIFTI file.
@@ -398,7 +398,7 @@ public:
 
 protected:
   vtkNIFTIImageHeader();
-  ~vtkNIFTIImageHeader();
+  ~vtkNIFTIImageHeader() override;
 
   char Magic[12];
   vtkTypeInt64 VoxOffset;
@@ -439,8 +439,8 @@ protected:
   void SetStringValue(char *x, const char *y, size_t n);
 
 private:
-  vtkNIFTIImageHeader(const vtkNIFTIImageHeader&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkNIFTIImageHeader&) VTK_DELETE_FUNCTION;
+  vtkNIFTIImageHeader(const vtkNIFTIImageHeader&) = delete;
+  void operator=(const vtkNIFTIImageHeader&) = delete;
 };
 
 #endif // vtkNIFTIImageHeader_h

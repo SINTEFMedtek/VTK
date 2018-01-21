@@ -31,7 +31,7 @@ class VTKIMAGINGGENERAL_EXPORT vtkImageGaussianSmooth : public vtkThreadedImageA
 {
 public:
   vtkTypeMacro(vtkImageGaussianSmooth,vtkThreadedImageAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Creates an instance of vtkImageGaussianSmooth with the following
@@ -86,14 +86,14 @@ public:
 
 protected:
   vtkImageGaussianSmooth();
-  ~vtkImageGaussianSmooth();
+  ~vtkImageGaussianSmooth() override;
 
   int Dimensionality;
   double StandardDeviations[3];
   double RadiusFactors[3];
 
   void ComputeKernel(double *kernel, int min, int max, double std);
-  virtual int RequestUpdateExtent (vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+  int RequestUpdateExtent (vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
   void InternalRequestUpdateExtent(int *, int*);
   void ExecuteAxis(int axis, vtkImageData *inData, int inExt[6],
                    vtkImageData *outData, int outExt[6],
@@ -103,11 +103,11 @@ protected:
                            vtkInformationVector **inputVector,
                            vtkInformationVector *outputVector,
                            vtkImageData ***inData, vtkImageData **outData,
-                           int outExt[6], int id);
+                           int outExt[6], int id) override;
 
 private:
-  vtkImageGaussianSmooth(const vtkImageGaussianSmooth&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkImageGaussianSmooth&) VTK_DELETE_FUNCTION;
+  vtkImageGaussianSmooth(const vtkImageGaussianSmooth&) = delete;
+  void operator=(const vtkImageGaussianSmooth&) = delete;
 };
 
 #endif

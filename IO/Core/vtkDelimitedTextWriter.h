@@ -38,7 +38,7 @@ class VTKIOCORE_EXPORT vtkDelimitedTextWriter : public vtkWriter
 public:
   static vtkDelimitedTextWriter* New();
   vtkTypeMacro(vtkDelimitedTextWriter, vtkWriter);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -84,7 +84,7 @@ public:
   //@}
 
   /**
-   * This convenience method returns the string, sets the IVAR to NULL,
+   * This convenience method returns the string, sets the IVAR to nullptr,
    * so that the user is responsible for deleting the string.
    */
   char *RegisterAndGetOutputString();
@@ -97,19 +97,19 @@ public:
 
 protected:
   vtkDelimitedTextWriter();
-  ~vtkDelimitedTextWriter();
+  ~vtkDelimitedTextWriter() override;
 
   bool WriteToOutputString;
   char* OutputString;
 
   bool OpenStream();
 
-  virtual void WriteData();
+  void WriteData() override;
   virtual void WriteTable(vtkTable* rectilinearGrid);
 
   // see algorithm for more info.
   // This writer takes in vtkTable.
-  virtual int FillInputPortInformation(int port, vtkInformation* info);
+  int FillInputPortInformation(int port, vtkInformation* info) override;
 
   char* FileName;
   char* FieldDelimiter;
@@ -119,8 +119,8 @@ protected:
   ostream* Stream;
 
 private:
-  vtkDelimitedTextWriter(const vtkDelimitedTextWriter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkDelimitedTextWriter&) VTK_DELETE_FUNCTION;
+  vtkDelimitedTextWriter(const vtkDelimitedTextWriter&) = delete;
+  void operator=(const vtkDelimitedTextWriter&) = delete;
 };
 
 

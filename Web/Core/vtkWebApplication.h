@@ -26,6 +26,7 @@
 
 #include "vtkObject.h"
 #include "vtkWebCoreModule.h" // needed for exports
+#include <string> // needed for std::string
 
 class vtkObjectIdMap;
 class vtkRenderWindow;
@@ -37,7 +38,7 @@ class VTKWEBCORE_EXPORT vtkWebApplication : public vtkObject
 public:
   static vtkWebApplication* New();
   vtkTypeMacro(vtkWebApplication, vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -98,7 +99,7 @@ public:
   /**
    * Return the MTime of the last array exported by StillRenderToString.
    */
-  vtkGetMacro(LastStillRenderToStringMTime, vtkMTimeType);
+  vtkGetMacro(LastStillRenderToMTime, vtkMTimeType);
   //@}
 
   /**
@@ -116,17 +117,25 @@ public:
 
   vtkObjectIdMap* GetObjectIdMap();
 
+  /**
+   * Return a hexadecimal formatted string of the VTK object's memory address,
+   * useful for uniquely identifying the object when exporting data.
+   *
+   * e.g. 0x8f05a90
+   */
+  static std::string GetObjectId(vtkObject* obj);
+
 protected:
   vtkWebApplication();
-  ~vtkWebApplication();
+  ~vtkWebApplication() override;
 
   int ImageEncoding;
   int ImageCompression;
-  vtkMTimeType LastStillRenderToStringMTime;
+  vtkMTimeType LastStillRenderToMTime;
 
 private:
-  vtkWebApplication(const vtkWebApplication&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkWebApplication&) VTK_DELETE_FUNCTION;
+  vtkWebApplication(const vtkWebApplication&) = delete;
+  void operator=(const vtkWebApplication&) = delete;
 
   class vtkInternals;
   vtkInternals* Internals;

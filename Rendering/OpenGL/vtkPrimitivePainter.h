@@ -40,7 +40,7 @@ class VTKRENDERINGOPENGL_EXPORT vtkPrimitivePainter : public vtkPolyDataPainter
 {
 public:
   vtkTypeMacro(vtkPrimitivePainter, vtkPolyDataPainter);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -52,7 +52,7 @@ public:
 
 protected:
   vtkPrimitivePainter();
-  ~vtkPrimitivePainter();
+  ~vtkPrimitivePainter() override;
 
   enum {
     VTK_PDM_NORMALS = 0x001,
@@ -75,18 +75,18 @@ protected:
    * This method is overridden to update the output data
    * as per the input.
    */
-  virtual void PrepareForRendering(vtkRenderer*, vtkActor*);
+  void PrepareForRendering(vtkRenderer*, vtkActor*) override;
 
   /**
    * Called before RenderInternal() if the Information has been changed
    * since the last time this method was called.
    */
-  virtual void ProcessInformation(vtkInformation*);
+  void ProcessInformation(vtkInformation*) override;
 
   /**
    * Subclasses need to override this to return the output of the pipeline.
    */
-  virtual vtkDataObject* GetOutput();
+  vtkDataObject* GetOutput() override;
 
   /**
    * The actual rendering happens here. This method is called only when
@@ -109,14 +109,14 @@ protected:
    * is with typeflags = (typeflags & ~this->SupportedPrimitive) i.e.
    * the request is to render everything other than what the subclass rendered.
    */
-  virtual void RenderInternal(vtkRenderer* renderer, vtkActor* actor,
+  void RenderInternal(vtkRenderer* renderer, vtkActor* actor,
                               unsigned long typeflags,
-                              bool forceCompileOnly);
+                              bool forceCompileOnly) override;
 
   /**
    * Take part in garbage collection.
    */
-  void ReportReferences(vtkGarbageCollector *collector) VTK_OVERRIDE;
+  void ReportReferences(vtkGarbageCollector *collector) override;
 
   int SupportedPrimitive; // must be set by subclasses.
   vtkSetMacro(SupportedPrimitive, int);
@@ -129,8 +129,8 @@ protected:
   bool MultiTextureAttributes;
 
 private:
-  vtkPrimitivePainter(const vtkPrimitivePainter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPrimitivePainter&) VTK_DELETE_FUNCTION;
+  vtkPrimitivePainter(const vtkPrimitivePainter&) = delete;
+  void operator=(const vtkPrimitivePainter&) = delete;
 };
 
 #endif

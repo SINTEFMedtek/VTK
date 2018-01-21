@@ -19,6 +19,7 @@
 #include "vtkObjectFactory.h"
 
 #include <cassert>
+#include <cmath>
 #include <vector>
 #include <set>
 #include <algorithm>
@@ -102,9 +103,10 @@ vtkPiecewiseFunction::vtkPiecewiseFunction()
   this->Range[0] = 0;
   this->Range[1] = 0;
 
-  this->Function = NULL;
+  this->Function = nullptr;
 
   this->AllowDuplicateScalars = 0;
+  this->UseLogScale = false;
 
   this->Internal = new vtkPiecewiseFunctionInternals;
 }
@@ -126,7 +128,7 @@ void vtkPiecewiseFunction::DeepCopy( vtkDataObject *o )
 {
   vtkPiecewiseFunction *f = vtkPiecewiseFunction::SafeDownCast(o);
 
-  if (f != NULL)
+  if (f != nullptr)
   {
     this->Clamping     = f->Clamping;
     int i;
@@ -149,7 +151,7 @@ void vtkPiecewiseFunction::ShallowCopy( vtkDataObject *o )
 {
   vtkPiecewiseFunction *f = vtkPiecewiseFunction::SafeDownCast(o);
 
-  if (f != NULL)
+  if (f != nullptr)
   {
     this->Clamping     = f->Clamping;
     int i;
@@ -198,7 +200,7 @@ const char *vtkPiecewiseFunction::GetType()
 
   function_type = 0;
 
-  if( this->Internal->Nodes.size() )
+  if( !this->Internal->Nodes.empty() )
   {
     prev_value = this->Internal->Nodes[0]->Y;
   }
@@ -270,7 +272,7 @@ double *vtkPiecewiseFunction::GetDataPointer()
   int size = static_cast<int>(this->Internal->Nodes.size());
 
   delete [] this->Function;
-  this->Function = NULL;
+  this->Function = nullptr;
 
   if ( size > 0 )
   {
@@ -290,7 +292,7 @@ double *vtkPiecewiseFunction::GetDataPointer()
 double vtkPiecewiseFunction::GetFirstNonZeroValue()
 {
   // Check if no points specified
-  if( this->Internal->Nodes.size() == 0 )
+  if( this->Internal->Nodes.empty() )
   {
     return 0;
   }
@@ -731,7 +733,7 @@ void vtkPiecewiseFunction::GetTable( double xStart, double xEnd,
     lastValue = this->Internal->Nodes[numNodes-1]->Y;
   }
 
-  double *tptr     = NULL;
+  double *tptr     = nullptr;
   double x         = 0.0;
   double x1        = 0.0;
   double x2        = 0.0;
@@ -811,7 +813,19 @@ void vtkPiecewiseFunction::GetTable( double xStart, double xEnd,
       // we will be modifying this based on midpoint and
       // sharpness to get the curve shape we want and to have
       // it pass through (y1+y2)/2 at the midpoint.
-      double s = (x - x1) / (x2 - x1);
+      double s;
+      if (this->UseLogScale)
+      {
+        // Don't modify x1/x2 -- these are not reset on each iteration.
+        double xLog = std::log10(x);
+        double x1Log = std::log10(x1);
+        double x2Log = std::log10(x2);
+        s = (xLog - x1Log) / (x2Log - x1Log);
+      }
+      else
+      {
+        s = (x - x1) / (x2 - x1);
+      }
 
       // Readjust based on the midpoint - linear adjustment
       if ( s < midpoint )
@@ -985,7 +999,7 @@ void vtkPiecewiseFunction::FillFromDataPointer(int nb, double *ptr)
 vtkPiecewiseFunction* vtkPiecewiseFunction::GetData(vtkInformation* info)
 {
   return
-    info? vtkPiecewiseFunction::SafeDownCast(info->Get(DATA_OBJECT())) : 0;
+    info? vtkPiecewiseFunction::SafeDownCast(info->Get(DATA_OBJECT())) : nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -1016,5 +1030,6 @@ void vtkPiecewiseFunction::PrintSelf(ostream& os, vtkIndent indent)
   }
   os << indent << "AllowDuplicateScalars: " << this->AllowDuplicateScalars
      << endl;
+  os << indent << "UseLogScale: " << this->UseLogScale << endl;
 }
 

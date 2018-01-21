@@ -34,7 +34,7 @@ class VTKIOXML_EXPORT vtkXMLStructuredDataWriter : public vtkXMLWriter
 {
 public:
   vtkTypeMacro(vtkXMLStructuredDataWriter,vtkXMLWriter);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -74,10 +74,10 @@ public:
 
 protected:
   vtkXMLStructuredDataWriter();
-  ~vtkXMLStructuredDataWriter();
+  ~vtkXMLStructuredDataWriter() override;
 
   // Writing drivers defined by subclasses.
-  virtual void WritePrimaryElementAttributes(ostream &os, vtkIndent indent);
+  void WritePrimaryElementAttributes(ostream &os, vtkIndent indent) override;
   virtual void WriteAppendedPiece(int index, vtkIndent indent);
   virtual void WriteAppendedPieceData(int index);
   virtual void WriteInlinePiece(vtkIndent indent);
@@ -98,9 +98,11 @@ protected:
   void SetInputUpdateExtent(int piece);
   int ProcessRequest(vtkInformation* request,
                      vtkInformationVector** inputVector,
-                     vtkInformationVector* outputVector);
+                     vtkInformationVector* outputVector) override;
 
   vtkSetVector6Macro(InternalWriteExtent, int);
+
+  static vtkIdType GetNumberOfValues(vtkDataSet* input);
 
   // The extent of the input to write, as specified by user
   int WriteExtent[6];
@@ -127,8 +129,8 @@ protected:
   OffsetsManagerArray *CellDataOM;
 
 private:
-  vtkXMLStructuredDataWriter(const vtkXMLStructuredDataWriter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkXMLStructuredDataWriter&) VTK_DELETE_FUNCTION;
+  vtkXMLStructuredDataWriter(const vtkXMLStructuredDataWriter&) = delete;
+  void operator=(const vtkXMLStructuredDataWriter&) = delete;
 };
 
 #endif

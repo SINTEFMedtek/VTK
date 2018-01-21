@@ -296,9 +296,9 @@ int vtkSurfaceReconstructionFilter::RequestData(
   // that has the lowest cost connection with a visited vertex. Record this
   // vertex as visited, add any new neighbors to the neighbors list.
 
-  int orientationPropagation=1;
-  if(orientationPropagation)
-  {// set to false if you don't want orientation propagation (for testing)
+  // Disable if you don't want orientation propagation (for testing)
+#if 1
+  {
     vtkIdList *nearby = vtkIdList::New(); // list of nearby, unvisited points
 
     // start with some vertex
@@ -381,6 +381,7 @@ int vtkSurfaceReconstructionFilter::RequestData(
 
     nearby->Delete();
   }
+#endif
 
   //time(&t3);
 
@@ -526,7 +527,7 @@ static double *vtkSRVector(long nl, long nh)
   if (!v)
   {
     vtkGenericWarningMacro(<<"allocation failure in vector()");
-    return NULL;
+    return nullptr;
   }
 
   return (v-nl+VTK_NR_END);
@@ -544,7 +545,7 @@ static double **vtkSRMatrix(long nrl, long nrh, long ncl, long nch)
   if (!m)
   {
     vtkGenericWarningMacro(<<"allocation failure 1 in Matrix()");
-    return NULL;
+    return nullptr;
   }
 
   m += VTK_NR_END;
@@ -555,7 +556,7 @@ static double **vtkSRMatrix(long nrl, long nrh, long ncl, long nch)
   if (!m[nrl])
   {
     vtkGenericWarningMacro("allocation failure 2 in Matrix()");
-    return NULL;
+    return nullptr;
   }
 
   m[nrl] += VTK_NR_END;

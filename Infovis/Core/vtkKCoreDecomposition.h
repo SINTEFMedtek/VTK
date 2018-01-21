@@ -52,7 +52,7 @@ public:
   static vtkKCoreDecomposition *New();
 
   vtkTypeMacro(vtkKCoreDecomposition, vtkGraphAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -99,9 +99,9 @@ public:
 
 protected:
   vtkKCoreDecomposition();
-  ~vtkKCoreDecomposition();
+  ~vtkKCoreDecomposition() override;
 
-  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
 
 private:
 
@@ -115,8 +115,8 @@ private:
   void Cores(vtkGraph* g,
              vtkIntArray* KCoreNumbers);
 
-  vtkKCoreDecomposition(const vtkKCoreDecomposition&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkKCoreDecomposition&) VTK_DELETE_FUNCTION;
+  vtkKCoreDecomposition(const vtkKCoreDecomposition&) = delete;
+  void operator=(const vtkKCoreDecomposition&) = delete;
 };
 
 #endif

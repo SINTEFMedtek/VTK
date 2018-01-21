@@ -49,11 +49,11 @@ class VTKFILTERSGENERAL_EXPORT vtkYoungsMaterialInterface : public vtkMultiBlock
 public:
   static vtkYoungsMaterialInterface* New();
   vtkTypeMacro(vtkYoungsMaterialInterface,vtkMultiBlockDataSetAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
-   * Set/Get wether the normal vector has to be flipped.
+   * Set/Get whether the normal vector has to be flipped.
    */
   vtkSetMacro(InverseNormal,int);
   vtkGetMacro(InverseNormal,int);
@@ -137,7 +137,7 @@ public:
 
   //@{
   /**
-   * Only meaningfull for LOVE software. returns the maximum number of blocks conatining the same material
+   * Only meaningful for LOVE software. returns the maximum number of blocks containing the same material
    */
   vtkGetMacro(NumberOfDomains,int);
   //@}
@@ -154,7 +154,7 @@ public:
   //@}
 
   /**
-   * Removes all meterials previously added.
+   * Removes all materials previously added.
    */
   virtual void RemoveAllMaterials();
 
@@ -186,12 +186,12 @@ public:
 
 protected:
   vtkYoungsMaterialInterface ();
-  ~vtkYoungsMaterialInterface () VTK_OVERRIDE;
+  ~vtkYoungsMaterialInterface () override;
 
-  int FillInputPortInformation(int port, vtkInformation *info) VTK_OVERRIDE;
+  int FillInputPortInformation(int port, vtkInformation *info) override;
   int RequestData(vtkInformation *request,
              vtkInformationVector **inputVector,
-             vtkInformationVector *outputVector) VTK_OVERRIDE;
+             vtkInformationVector *outputVector) override;
 
   /**
    * Serial implementation of the material aggregation.
@@ -224,13 +224,13 @@ protected:
    */
   int NumberOfDomains;
 
-  // Desctiption:
+  // Description:
   // Internal data structures
   vtkYoungsMaterialInterfaceInternals* Internals;
 
 private:
-  vtkYoungsMaterialInterface(const vtkYoungsMaterialInterface&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkYoungsMaterialInterface&) VTK_DELETE_FUNCTION;
+  vtkYoungsMaterialInterface(const vtkYoungsMaterialInterface&) = delete;
+  void operator=(const vtkYoungsMaterialInterface&) = delete;
 };
 
 #endif /* VTK_YOUNGS_MATERIAL_INTERFACE_H */

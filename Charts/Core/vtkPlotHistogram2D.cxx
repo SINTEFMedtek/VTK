@@ -123,10 +123,16 @@ vtkIdType vtkPlotHistogram2D::GetNearestPoint(const vtkVector2f& point,
                                               const vtkVector2f& tolerance,
                                               vtkVector2f* location)
 {
+  if (!this->Input)
+  {
+    return -1;
+  }
+
   (void)tolerance;
   double bounds[4];
   this->GetBounds(bounds);
   double spacing[3];
+
   this->Input->GetSpacing(spacing);
 
   if (point.GetX() < bounds[0] ||
@@ -160,6 +166,11 @@ vtkStdString vtkPlotHistogram2D::GetTooltipLabel(const vtkVector2d &plotPos,
   vtkStdString tooltipLabel;
   vtkStdString &format = this->TooltipLabelFormat.empty() ?
         this->TooltipDefaultLabelFormat : this->TooltipLabelFormat;
+
+  if (!this->Input)
+  {
+    return tooltipLabel;
+  }
 
   double bounds[4];
   this->GetBounds(bounds);
@@ -203,7 +214,7 @@ vtkStdString vtkPlotHistogram2D::GetTooltipLabel(const vtkVector2d &plotPos,
           {
             tooltipLabel +=
               this->GetNumber(this->Input->GetScalarComponentAsDouble(
-                pointX, pointY, 0, 0), NULL);
+                pointX, pointY, 0, 0), nullptr);
           }
           break;
         default: // If no match, insert the entire format tag

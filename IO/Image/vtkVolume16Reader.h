@@ -24,7 +24,7 @@
  * 3D volume.
  *
  * File names are created using FilePattern and FilePrefix as follows:
- * sprintf (filename, FilePattern, FilePrefix, number);
+ * snprintf (filename, sizeof(filename), FilePattern, FilePrefix, number);
  * where number is in the range ImageRange[0] to ImageRange[1]. If
  * ImageRange[1] <= ImageRange[0], then slice number ImageRange[0] is
  * read. Thus to read an image set ImageRange[0] = ImageRange[1] = slice
@@ -62,10 +62,10 @@ class VTKIOIMAGE_EXPORT vtkVolume16Reader : public vtkVolumeReader
 {
 public:
   vtkTypeMacro(vtkVolume16Reader,vtkVolumeReader);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
-   * Construct object with NULL file prefix; file pattern "%s.%d"; image range
+   * Construct object with nullptr file prefix; file pattern "%s.%d"; image range
    * set to (1,1); data origin (0,0,0); data spacing (1,1,1); no data mask;
    * header size 0; and byte swapping turned off.
    */
@@ -139,14 +139,14 @@ public:
   /**
    * Other objects make use of these methods
    */
-  vtkImageData *GetImage(int ImageNumber);
+  vtkImageData *GetImage(int ImageNumber) override;
 
 protected:
   vtkVolume16Reader();
-  ~vtkVolume16Reader();
+  ~vtkVolume16Reader() override;
 
-  virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-  virtual int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
+  int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
   int   DataDimensions[2];
   unsigned short DataMask;
   int   SwapBytes;
@@ -165,8 +165,8 @@ protected:
                      int skip, int swapBytes);
 
 private:
-  vtkVolume16Reader(const vtkVolume16Reader&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkVolume16Reader&) VTK_DELETE_FUNCTION;
+  vtkVolume16Reader(const vtkVolume16Reader&) = delete;
+  void operator=(const vtkVolume16Reader&) = delete;
 };
 
 #endif

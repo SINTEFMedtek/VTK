@@ -48,7 +48,7 @@ public:
    * Standard VTK methods.
    */
   vtkTypeMacro(vtkSeedRepresentation,vtkWidgetRepresentation);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   //@{
@@ -135,13 +135,13 @@ public:
   /**
    * These are methods that satisfy vtkWidgetRepresentation's API.
    */
-  virtual void BuildRepresentation();
-  virtual int ComputeInteractionState( int X, int Y, int modify = 0 );
+  void BuildRepresentation() override;
+  int ComputeInteractionState( int X, int Y, int modify = 0 ) override;
   //@}
 
 protected:
   vtkSeedRepresentation();
-  ~vtkSeedRepresentation();
+  ~vtkSeedRepresentation() override;
 
   // The handle and the rep used to close the handles
   vtkHandleRepresentation  *HandleRepresentation;
@@ -154,8 +154,8 @@ protected:
   int ActiveHandle;
 
 private:
-  vtkSeedRepresentation(const vtkSeedRepresentation&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkSeedRepresentation&) VTK_DELETE_FUNCTION;
+  vtkSeedRepresentation(const vtkSeedRepresentation&) = delete;
+  void operator=(const vtkSeedRepresentation&) = delete;
 };
 
 #endif

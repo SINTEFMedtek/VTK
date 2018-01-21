@@ -32,6 +32,7 @@
 #include "vtkIOXMLModule.h" // For export macro
 #include "vtkXMLDataReader.h"
 
+#if !defined(VTK_LEGACY_REMOVE)
 class vtkHyperOctree;
 class vtkHyperOctreeCursor;
 class vtkIntArray;
@@ -40,7 +41,7 @@ class VTKIOXML_EXPORT vtkXMLHyperOctreeReader : public vtkXMLDataReader
 {
 public:
   vtkTypeMacro(vtkXMLHyperOctreeReader,vtkXMLDataReader);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   static vtkXMLHyperOctreeReader *New();
 
   //@{
@@ -53,31 +54,31 @@ public:
 
 protected:
   vtkXMLHyperOctreeReader();
-  ~vtkXMLHyperOctreeReader();
+  ~vtkXMLHyperOctreeReader() override;
 
-  const char* GetDataSetName();
+  const char* GetDataSetName() override;
 
   // Setup the output with no data available.  Used in error cases.
-  void SetupEmptyOutput();
+  void SetupEmptyOutput() override;
 
   // Declare that this reader produces HyperOctrees
-  virtual int FillOutputPortInformation(int, vtkInformation*);
+  int FillOutputPortInformation(int, vtkInformation*) override;
 
   //These defer to the HyperOctree output.
-  vtkIdType GetNumberOfPoints();
-  vtkIdType GetNumberOfCells();
+  vtkIdType GetNumberOfPoints() override;
+  vtkIdType GetNumberOfCells() override;
 
-  // Overriden here to do allocation.
-  virtual int ReadArrayForPoints(vtkXMLDataElement* da,
-                                 vtkAbstractArray* outArray);
-  virtual int ReadArrayForCells(vtkXMLDataElement* da,
-                                vtkAbstractArray* outArray);
+  // Overridden here to do allocation.
+  int ReadArrayForPoints(vtkXMLDataElement* da,
+                                 vtkAbstractArray* outArray) override;
+  int ReadArrayForCells(vtkXMLDataElement* da,
+                                vtkAbstractArray* outArray) override;
 
 
 
   // The most important stuff is here.
   // Read the rest of the file and create the HyperOctree.
-  void ReadXMLData();
+  void ReadXMLData() override;
 
   // Recover the structure of the HyperOctree, used by ReadXMLData.
   void ReadTopology(vtkXMLDataElement *elem);
@@ -89,8 +90,9 @@ protected:
   int ArrayIndex;
 
 private:
-  vtkXMLHyperOctreeReader(const vtkXMLHyperOctreeReader&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkXMLHyperOctreeReader&) VTK_DELETE_FUNCTION;
+  vtkXMLHyperOctreeReader(const vtkXMLHyperOctreeReader&) = delete;
+  void operator=(const vtkXMLHyperOctreeReader&) = delete;
 };
+#endif // LEGACY remove
 
 #endif

@@ -32,7 +32,7 @@ public:
   //--------------------------------------------------------------------------
   vtkVolumeMask()
   {
-    this->Texture = NULL;
+    this->Texture = nullptr;
     this->Loaded = false;
     this->LoadedExtent[0] = VTK_INT_MAX;
     this->LoadedExtent[1] = VTK_INT_MIN;
@@ -48,7 +48,7 @@ public:
     if (this->Texture)
     {
       this->Texture->Delete();
-      this->Texture = 0;
+      this->Texture = nullptr;
     }
   }
 
@@ -124,7 +124,7 @@ public:
                                         arrayId,arrayName,
                                         this->LoadedCellFlag);
 
-        // DONT USE GetScalarType() or GetNumberOfScalarComponents() on
+        // DON'T USE GetScalarType() or GetNumberOfScalarComponents() on
         // ImageData as it deals only with point data...
         int scalarType = scalars->GetDataType();
         if(scalarType != VTK_UNSIGNED_CHAR)
@@ -330,7 +330,7 @@ public:
     {
       this->Texture->ReleaseGraphicsResources(window);
       this->Texture->Delete();
-      this->Texture = 0;
+      this->Texture = nullptr;
     }
   }
 

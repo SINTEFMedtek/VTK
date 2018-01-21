@@ -57,7 +57,7 @@ public:
    * Standard methods for type information and printing.
    */
   vtkTypeMacro(vtkPieChartActor,vtkActor2D);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   /**
@@ -167,26 +167,26 @@ public:
   /**
    * Draw the pie plot.
    */
-  int RenderOverlay(vtkViewport*);
-  int RenderOpaqueGeometry(vtkViewport*);
-  virtual int RenderTranslucentPolygonalGeometry(vtkViewport* ) {return 0;}
+  int RenderOverlay(vtkViewport*) override;
+  int RenderOpaqueGeometry(vtkViewport*) override;
+  int RenderTranslucentPolygonalGeometry(vtkViewport* ) override {return 0;}
   //@}
 
   /**
    * Does this prop have some translucent polygonal geometry?
    */
-  virtual int HasTranslucentPolygonalGeometry();
+  int HasTranslucentPolygonalGeometry() override;
 
   /**
    * Release any graphics resources that are being consumed by this actor.
    * The parameter window could be used to determine which graphic
    * resources to release.
    */
-  void ReleaseGraphicsResources(vtkWindow *);
+  void ReleaseGraphicsResources(vtkWindow *) override;
 
 protected:
   vtkPieChartActor();
-  ~vtkPieChartActor();
+  ~vtkPieChartActor() override;
 
 private:
 
@@ -238,8 +238,8 @@ private:
   int BuildPlot(vtkViewport*);
 
 private:
-  vtkPieChartActor(const vtkPieChartActor&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPieChartActor&) VTK_DELETE_FUNCTION;
+  vtkPieChartActor(const vtkPieChartActor&) = delete;
+  void operator=(const vtkPieChartActor&) = delete;
 };
 
 

@@ -48,7 +48,7 @@ public:
    * Standard VTK class methods.
    */
   vtkTypeMacro(vtkProgressBarWidget, vtkBorderWidget);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   /**
@@ -62,15 +62,15 @@ public:
   /**
    * Create the default widget representation if one is not set.
    */
-  void CreateDefaultRepresentation();
+  void CreateDefaultRepresentation() override;
 
 protected:
   vtkProgressBarWidget();
-  ~vtkProgressBarWidget();
+  ~vtkProgressBarWidget() override;
 
 private:
-  vtkProgressBarWidget(const vtkProgressBarWidget&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkProgressBarWidget&) VTK_DELETE_FUNCTION;
+  vtkProgressBarWidget(const vtkProgressBarWidget&) = delete;
+  void operator=(const vtkProgressBarWidget&) = delete;
 };
 
 #endif

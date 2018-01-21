@@ -45,6 +45,7 @@
 #define VTK_SURFACE   2
 
 class vtkActor;
+class vtkInformation;
 class vtkRenderer;
 class vtkShaderProgram;
 class vtkShaderDeviceAdapter2;
@@ -59,7 +60,7 @@ class VTKRENDERINGCORE_EXPORT vtkProperty : public vtkObject
 {
 public:
   vtkTypeMacro(vtkProperty,vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Construct object with object color, ambient color, diffuse color,
@@ -264,6 +265,25 @@ public:
 
   //@{
   /**
+   * Turn on/off the visibility of vertices. On some renderers it is
+   * possible to render the vertices of geometric primitives separately
+   * from the interior.
+   */
+  vtkGetMacro(VertexVisibility, int);
+  vtkSetMacro(VertexVisibility, int);
+  vtkBooleanMacro(VertexVisibility, int);
+  //@}
+
+  //@{
+  /**
+   * Set/Get the color of primitive vertices (if vertex visibility is enabled).
+   */
+  vtkSetVector3Macro(VertexColor, double);
+  vtkGetVector3Macro(VertexColor, double);
+  //@}
+
+  //@{
+  /**
    * Set/Get the width of a Line. The width is expressed in screen units.
    * This is only implemented for OpenGL. The default is 1.0.
    */
@@ -275,7 +295,7 @@ public:
   /**
    * Set/Get the stippling pattern of a Line, as a 16-bit binary pattern
    * (1 = pixel on, 0 = pixel off).
-   * This is only implemented for OpenGL. The default is 0xFFFF.
+   * This is only implemented for OpenGL, not OpenGL2. The default is 0xFFFF.
    */
   vtkSetMacro(LineStipplePattern, int);
   vtkGetMacro(LineStipplePattern, int);
@@ -285,7 +305,7 @@ public:
   /**
    * Set/Get the stippling repeat factor of a Line, which specifies how
    * many times each bit in the pattern is to be repeated.
-   * This is only implemented for OpenGL. The default is 1.
+   * This is only implemented for OpenGL, not OpenGL2. The default is 1.
    */
   vtkSetClampMacro(LineStippleRepeatFactor, int, 1, VTK_INT_MAX);
   vtkGetMacro(LineStippleRepeatFactor, int);
@@ -326,6 +346,7 @@ public:
   /**
    * Returns the name of the material currently loaded, if any.
    */
+  vtkSetStringMacro(MaterialName);
   vtkGetStringMacro(MaterialName);
   //@}
 
@@ -343,7 +364,7 @@ public:
    * Get the vtkShaderDeviceAdapter2 if set, returns null otherwise.
    */
   virtual vtkShaderDeviceAdapter2* GetShaderDeviceAdapter2()
-    { return NULL; }
+    { return nullptr; }
 
   //@{
   /**
@@ -463,9 +484,17 @@ public:
     VTK_TEXTURE_UNIT_7
   };
 
+  //@{
+  /**
+   * Set/Get the information object associated with the Property.
+   */
+  vtkGetObjectMacro(Information, vtkInformation);
+  virtual void SetInformation(vtkInformation*);
+  //@}
+
 protected:
   vtkProperty();
-  ~vtkProperty();
+  ~vtkProperty() override;
 
   /**
    * Computes composite color. Used by GetColor().
@@ -480,6 +509,7 @@ protected:
   double DiffuseColor[3];
   double SpecularColor[3];
   double EdgeColor[3];
+  double VertexColor[3];
   double Ambient;
   double Diffuse;
   double Specular;
@@ -492,6 +522,7 @@ protected:
   int Interpolation;
   int Representation;
   int EdgeVisibility;
+  int VertexVisibility;
   int BackfaceCulling;
   int FrontfaceCulling;
   bool Lighting;
@@ -501,7 +532,6 @@ protected:
   int Shading;
 
   char* MaterialName;
-  vtkSetStringMacro(MaterialName);
 
   // FIXME:
   // Don't use these methods. They will be removed. They are provided only
@@ -510,9 +540,12 @@ protected:
   int GetTextureUnitAtIndex(int index);
   int GetTextureUnit(const char* name);
 
+  // Arbitrary extra information associated with this Property.
+  vtkInformation* Information;
+
 private:
-  vtkProperty(const vtkProperty&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkProperty&) VTK_DELETE_FUNCTION;
+  vtkProperty(const vtkProperty&) = delete;
+  void operator=(const vtkProperty&) = delete;
 
   vtkPropertyInternals* Internals;
 };

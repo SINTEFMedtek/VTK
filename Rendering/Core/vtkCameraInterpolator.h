@@ -62,7 +62,7 @@ class VTKRENDERINGCORE_EXPORT vtkCameraInterpolator : public vtkObject
 {
 public:
   vtkTypeMacro(vtkCameraInterpolator, vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Instantiate the class.
@@ -209,11 +209,11 @@ public:
    * Override GetMTime() because we depend on the interpolators which may be
    * modified outside of this class.
    */
-  vtkMTimeType GetMTime();
+  vtkMTimeType GetMTime() override;
 
 protected:
   vtkCameraInterpolator();
-  virtual ~vtkCameraInterpolator();
+  ~vtkCameraInterpolator() override;
 
   // Control the interpolation type
   int InterpolationType;
@@ -235,8 +235,8 @@ protected:
   vtkCameraList *CameraList;
 
 private:
-  vtkCameraInterpolator(const vtkCameraInterpolator&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkCameraInterpolator&) VTK_DELETE_FUNCTION;
+  vtkCameraInterpolator(const vtkCameraInterpolator&) = delete;
+  void operator=(const vtkCameraInterpolator&) = delete;
 };
 
 #endif

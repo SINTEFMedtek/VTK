@@ -40,7 +40,7 @@ class VTKCHARTSCORE_EXPORT vtkChartLegend : public vtkContextItem
 {
 public:
   vtkTypeMacro(vtkChartLegend, vtkContextItem);
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
   /**
    * Creates a 2D Chart object.
@@ -183,12 +183,12 @@ public:
    * Update the geometry of the axis. Takes care of setting up the tick mark
    * locations etc. Should be called by the scene before rendering.
    */
-  virtual void Update();
+  void Update() override;
 
   /**
    * Paint event for the axis, called whenever the axis needs to be drawn.
    */
-  virtual bool Paint(vtkContext2D *painter);
+  bool Paint(vtkContext2D *painter) override;
 
   /**
    * Request the space the legend requires to be drawn. This is returned as a
@@ -230,26 +230,26 @@ public:
   /**
    * Return true if the supplied x, y coordinate is inside the item.
    */
-  virtual bool Hit(const vtkContextMouseEvent &mouse);
+  bool Hit(const vtkContextMouseEvent &mouse) override;
 
   /**
    * Mouse move event.
    */
-  virtual bool MouseMoveEvent(const vtkContextMouseEvent &mouse);
+  bool MouseMoveEvent(const vtkContextMouseEvent &mouse) override;
 
   /**
    * Mouse button down event
    */
-  virtual bool MouseButtonPressEvent(const vtkContextMouseEvent &mouse);
+  bool MouseButtonPressEvent(const vtkContextMouseEvent &mouse) override;
 
   /**
    * Mouse button release event.
    */
-  virtual bool MouseButtonReleaseEvent(const vtkContextMouseEvent &mouse);
+  bool MouseButtonReleaseEvent(const vtkContextMouseEvent &mouse) override;
 
 protected:
   vtkChartLegend();
-  ~vtkChartLegend();
+  ~vtkChartLegend() override;
 
   float* Point;  // The point the legend is anchored to.
   int HorizontalAlignment; // Alignment of the legend to the point it is anchored to.
@@ -311,8 +311,8 @@ protected:
   Private* Storage;
 
 private:
-  vtkChartLegend(const vtkChartLegend &) VTK_DELETE_FUNCTION;
-  void operator=(const vtkChartLegend &) VTK_DELETE_FUNCTION;
+  vtkChartLegend(const vtkChartLegend &) = delete;
+  void operator=(const vtkChartLegend &) = delete;
 };
 
 #endif //vtkChartLegend_h

@@ -77,7 +77,7 @@ public:
    * Standard methods for type information and printing.
    */
   vtkTypeMacro(vtkSpiderPlotActor,vtkActor2D);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   /**
@@ -218,26 +218,26 @@ public:
   /**
    * Draw the spider plot.
    */
-  int RenderOverlay(vtkViewport*);
-  int RenderOpaqueGeometry(vtkViewport*);
-  virtual int RenderTranslucentPolygonalGeometry(vtkViewport* ) {return 0;}
+  int RenderOverlay(vtkViewport*) override;
+  int RenderOpaqueGeometry(vtkViewport*) override;
+  int RenderTranslucentPolygonalGeometry(vtkViewport* ) override {return 0;}
   //@}
 
   /**
    * Does this prop have some translucent polygonal geometry?
    */
-  virtual int HasTranslucentPolygonalGeometry();
+  int HasTranslucentPolygonalGeometry() override;
 
   /**
    * Release any graphics resources that are being consumed by this actor.
    * The parameter window could be used to determine which graphic
    * resources to release.
    */
-  void ReleaseGraphicsResources(vtkWindow *);
+  void ReleaseGraphicsResources(vtkWindow *) override;
 
 protected:
   vtkSpiderPlotActor();
-  ~vtkSpiderPlotActor();
+  ~vtkSpiderPlotActor() override;
 
 private:
 
@@ -291,8 +291,8 @@ private:
   int BuildPlot(vtkViewport*);
 
 private:
-  vtkSpiderPlotActor(const vtkSpiderPlotActor&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkSpiderPlotActor&) VTK_DELETE_FUNCTION;
+  vtkSpiderPlotActor(const vtkSpiderPlotActor&) = delete;
+  void operator=(const vtkSpiderPlotActor&) = delete;
 };
 
 

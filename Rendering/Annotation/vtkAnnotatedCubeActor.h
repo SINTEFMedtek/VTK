@@ -59,39 +59,39 @@ class VTKRENDERINGANNOTATION_EXPORT vtkAnnotatedCubeActor : public vtkProp3D
 public:
   static vtkAnnotatedCubeActor *New();
   vtkTypeMacro(vtkAnnotatedCubeActor,vtkProp3D);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * For some exporters and other other operations we must be
    * able to collect all the actors or volumes. These methods
    * are used in that process.
    */
-  virtual void GetActors(vtkPropCollection *);
+  void GetActors(vtkPropCollection *) override;
 
   //@{
   /**
    * Support the standard render methods.
    */
-  virtual int RenderOpaqueGeometry(vtkViewport *viewport);
-  virtual int RenderTranslucentPolygonalGeometry(vtkViewport *viewport);
+  int RenderOpaqueGeometry(vtkViewport *viewport) override;
+  int RenderTranslucentPolygonalGeometry(vtkViewport *viewport) override;
   //@}
 
   /**
    * Does this prop have some translucent polygonal geometry?
    */
-  virtual int HasTranslucentPolygonalGeometry();
+  int HasTranslucentPolygonalGeometry() override;
 
   /**
    * Shallow copy of an axes actor. Overloads the virtual vtkProp method.
    */
-  void ShallowCopy(vtkProp *prop);
+  void ShallowCopy(vtkProp *prop) override;
 
   /**
    * Release any graphics resources that are being consumed by this actor.
    * The parameter window could be used to determine which graphic
    * resources to release.
    */
-  void ReleaseGraphicsResources(vtkWindow *);
+  void ReleaseGraphicsResources(vtkWindow *) override;
 
   //@{
   /**
@@ -99,13 +99,13 @@ public:
    * method GetBounds(double bounds[6]) is available from the superclass.)
    */
   void GetBounds(double bounds[6]);
-  double *GetBounds();
+  double *GetBounds() override;
   //@}
 
   /**
    * Get the actors mtime plus consider its properties and texture if set.
    */
-  vtkMTimeType GetMTime();
+  vtkMTimeType GetMTime() override;
 
   //@{
   /**
@@ -199,7 +199,7 @@ public:
 
 protected:
   vtkAnnotatedCubeActor();
-  ~vtkAnnotatedCubeActor();
+  ~vtkAnnotatedCubeActor() override;
 
   vtkCubeSource      *CubeSource;
   vtkActor           *CubeActor;
@@ -237,14 +237,14 @@ protected:
   vtkActor           *ZPlusFaceActor;
   vtkActor           *ZMinusFaceActor;
 
-  vtkTransformFilter *TransformFilter;
-  vtkTransform       *Transform;
+  vtkTransformFilter *InternalTransformFilter;
+  vtkTransform       *InternalTransform;
 
   vtkAssembly        *Assembly;
 
 private:
-  vtkAnnotatedCubeActor(const vtkAnnotatedCubeActor&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkAnnotatedCubeActor&) VTK_DELETE_FUNCTION;
+  vtkAnnotatedCubeActor(const vtkAnnotatedCubeActor&) = delete;
+  void operator=(const vtkAnnotatedCubeActor&) = delete;
 };
 
 #endif

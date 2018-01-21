@@ -40,21 +40,21 @@ class VTKTESTINGGENERICBRIDGE_EXPORT vtkBridgeCellIteratorStrategy : public vtkG
 {
 public:
   vtkTypeMacro(vtkBridgeCellIteratorStrategy,vtkGenericCellIterator);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Create an empty cell. NOT USED
    * \post result_exists: result!=0
    */
-  vtkGenericAdaptorCell *NewCell();
+  vtkGenericAdaptorCell *NewCell() override;
 
 protected:
   vtkBridgeCellIteratorStrategy() {}
-  virtual ~vtkBridgeCellIteratorStrategy() {}
+  ~vtkBridgeCellIteratorStrategy() override {}
 
 private:
-  vtkBridgeCellIteratorStrategy(const vtkBridgeCellIteratorStrategy&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkBridgeCellIteratorStrategy&) VTK_DELETE_FUNCTION;
+  vtkBridgeCellIteratorStrategy(const vtkBridgeCellIteratorStrategy&) = delete;
+  void operator=(const vtkBridgeCellIteratorStrategy&) = delete;
 };
 
 #endif

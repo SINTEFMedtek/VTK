@@ -43,7 +43,7 @@ class VTKGEOVISCORE_EXPORT vtkGeoGraticule : public vtkPolyDataAlgorithm
 {
 public:
   static vtkGeoGraticule* New();
-  virtual void PrintSelf( ostream& os, vtkIndent indent );
+  void PrintSelf( ostream& os, vtkIndent indent ) override;
   vtkTypeMacro(vtkGeoGraticule,vtkPolyDataAlgorithm);
 
   //@{
@@ -114,7 +114,7 @@ public:
 
 protected:
   vtkGeoGraticule();
-  virtual ~vtkGeoGraticule();
+  ~vtkGeoGraticule() override;
 
   int GeometryType;
   double LatitudeBounds[2];
@@ -130,14 +130,14 @@ protected:
   static double LongitudeLevelTics[NUMBER_OF_LEVELS];
   //@}
 
-  virtual int RequestData( vtkInformation*, vtkInformationVector**, vtkInformationVector* );
+  int RequestData( vtkInformation*, vtkInformationVector**, vtkInformationVector* ) override;
 
   void GenerateGraticule( vtkPolyData* output, double latbds[2], double lngbds[2] );
   int ComputeLineLevel( int ticId, int baseLevel, const double* levelIncrements );
 
 private:
-  vtkGeoGraticule( const vtkGeoGraticule& ) VTK_DELETE_FUNCTION;
-  void operator = ( const vtkGeoGraticule& ) VTK_DELETE_FUNCTION;
+  vtkGeoGraticule( const vtkGeoGraticule& ) = delete;
+  void operator = ( const vtkGeoGraticule& ) = delete;
 };
 
 #endif // vtkGeoGraticule_h

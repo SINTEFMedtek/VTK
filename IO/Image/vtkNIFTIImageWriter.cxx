@@ -22,7 +22,6 @@
 #include "vtkInformationVector.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtkErrorCode.h"
-#include "vtkByteSwap.h"
 #include "vtkMatrix4x4.h"
 #include "vtkMath.h"
 #include "vtkCommand.h"
@@ -59,10 +58,10 @@ vtkNIFTIImageWriter::vtkNIFTIImageWriter()
   this->RescaleSlope = 0.0;
   this->RescaleIntercept = 0.0;
   this->QFac = 0.0;
-  this->QFormMatrix = 0;
-  this->SFormMatrix = 0;
-  this->OwnHeader = 0;
-  this->NIFTIHeader = 0;
+  this->QFormMatrix = nullptr;
+  this->SFormMatrix = nullptr;
+  this->OwnHeader = nullptr;
+  this->NIFTIHeader = nullptr;
   this->NIFTIVersion = 0;
   // Default description is "VTKX.Y.Z"
   const char *version = vtkVersion::GetVTKVersion();
@@ -268,8 +267,10 @@ void vtkNIFTIImageWriterSetInformation(
 #endif
     { VTK_LONG_LONG, NIFTI_TYPE_INT64, 64 },
     { VTK_UNSIGNED_LONG_LONG, NIFTI_TYPE_UINT64, 64 },
+#if !defined(VTK_LEGACY_REMOVE)
     { VTK___INT64, NIFTI_TYPE_INT64, 64 },
     { VTK_UNSIGNED___INT64, NIFTI_TYPE_UINT64, 64 },
+#endif
     { VTK_FLOAT, NIFTI_TYPE_FLOAT32, 32 },
     { VTK_DOUBLE, NIFTI_TYPE_FLOAT64, 64 },
     { 0, 0, 0 }
@@ -279,7 +280,7 @@ void vtkNIFTIImageWriterSetInformation(
   short databits = 0;
 
   // the end of the typemap has been reached when typeMap[2] is 0
-  for (int i = 0; typeMap[2] != 0; i++)
+  for (int i = 0; typeMap[2] != nullptr; i++)
   {
     if (scalarType == typeMap[i][0])
     {
@@ -432,7 +433,7 @@ int vtkNIFTIImageWriter::GenerateHeader(vtkInformation *info, bool singleFile)
   // create the header
   nifti_2_header hdr;
   int version = 0;
-  if (this->OwnHeader == 0)
+  if (this->OwnHeader == nullptr)
   {
     this->OwnHeader = vtkNIFTIImageHeader::New();
   }
@@ -599,14 +600,14 @@ int vtkNIFTIImageWriter::RequestData(
   vtkImageData *data =
     vtkImageData::SafeDownCast(info->Get(vtkDataObject::DATA_OBJECT()));
 
-  if (data == NULL)
+  if (data == nullptr)
   {
     vtkErrorMacro("No input provided!");
     return 0;
   }
 
   const char *filename = this->GetFileName();
-  if (filename == NULL)
+  if (filename == nullptr)
   {
     vtkErrorMacro("A FileName must be provided");
     this->SetErrorCode(vtkErrorCode::NoFileNameError);
@@ -658,7 +659,7 @@ int vtkNIFTIImageWriter::RequestData(
   // get either a NIFTIv1 or a NIFTIv2 header
   nifti_1_header hdr1;
   nifti_2_header hdr2;
-  void *hdrptr = 0;
+  void *hdrptr = nullptr;
   size_t hdrsize = 0;
   int version = this->OwnHeader->GetMagic()[2] - '0';
   if (version == 2)
@@ -684,8 +685,8 @@ int vtkNIFTIImageWriter::RequestData(
   }
 
   // try opening file
-  gzFile file = 0;
-  FILE *ufile = 0;
+  gzFile file = nullptr;
+  FILE *ufile = nullptr;
   if (isCompressed)
   {
     file = gzopen(hdrname, "wb");
@@ -777,7 +778,6 @@ int vtkNIFTIImageWriter::RequestData(
                     (this->OwnHeader->GetDataType() == NIFTI_TYPE_RGB24 ||
                      this->OwnHeader->GetDataType() == NIFTI_TYPE_RGBA32));
 
-  int swapBytes = 0;
   int scalarSize = data->GetScalarSize();
   int numComponents = data->GetNumberOfScalarComponents();
   int outSizeX = static_cast<int>(this->OwnHeader->GetDim(1));
@@ -798,8 +798,8 @@ int vtkNIFTIImageWriter::RequestData(
   }
 
   // add a buffer for planar-vector to packed-vector conversion
-  unsigned char *rowBuffer = 0;
-  if (vectorDim > 1 || planarRGB || swapBytes)
+  unsigned char *rowBuffer = nullptr;
+  if (vectorDim > 1 || planarRGB)
   {
     rowBuffer = new unsigned char[outSizeX*fileVoxelIncr];
   }
@@ -846,7 +846,7 @@ int vtkNIFTIImageWriter::RequestData(
 
   while (!this->AbortExecute && !this->ErrorCode)
   {
-    if (vectorDim == 1 && !planarRGB && !swapBytes)
+    if (vectorDim == 1 && !planarRGB)
     {
       // write directly from input, instead of using a buffer
       rowBuffer = ptr;
@@ -865,11 +865,6 @@ int vtkNIFTIImageWriter::RequestData(
         // skip past the other components
         ptr += skipOther;
       }
-    }
-
-    if (swapBytes != 0 && scalarSize > 1)
-    {
-      vtkByteSwap::SwapVoidRange(rowBuffer, rowSize, scalarSize);
     }
 
     if (isCompressed)
@@ -932,7 +927,7 @@ int vtkNIFTIImageWriter::RequestData(
 
   // only delete this if it was alloced (if it was not alloced, it
   // would have been set directly to a row out the output image)
-  if (vectorDim > 1 || swapBytes || planarRGB)
+  if (vectorDim > 1 || planarRGB)
   {
     delete [] rowBuffer;
   }

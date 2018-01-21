@@ -67,7 +67,7 @@ class VTKRENDERINGOPENGL_EXPORT vtkShaderProgram2 : public vtkObject
 public:
   static vtkShaderProgram2* New();
   vtkTypeMacro(vtkShaderProgram2, vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Returns if the context supports the required extensions.
@@ -337,7 +337,7 @@ public:
   this is provided as a way to avoid some of the overhead in this
   class's implementation of SendUniforms. One should use the
   following API if performance is a concern (eg. uniforms are
-  set per primative), or if the uniform management is not needed
+  set per primitive), or if the uniform management is not needed
   (eg. variables are already managed in other vtkObjects)
   */
 
@@ -349,7 +349,7 @@ public:
 
   /**
    * Set a uniform value directly. The driving use case for this api
-   * is modifying a uniform per-primative in a loop. In that case
+   * is modifying a uniform per-primitive in a loop. In that case
    * we need the minimal implementtion passing the value directly to
    * the driver. It is an error to specify an invalid location.
    * Low level API
@@ -419,10 +419,10 @@ public:
 
 protected:
   vtkShaderProgram2();
-  virtual ~vtkShaderProgram2();
+  ~vtkShaderProgram2() override;
 
   /**
-   * Load the required OpenGL extentions.
+   * Load the required OpenGL extensions.
    */
   bool LoadRequiredExtensions(vtkRenderWindow *context);
 
@@ -465,8 +465,8 @@ protected:
   int GeometryVerticesOut;
 
 private:
-  vtkShaderProgram2(const vtkShaderProgram2&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkShaderProgram2&) VTK_DELETE_FUNCTION;
+  vtkShaderProgram2(const vtkShaderProgram2&) = delete;
+  void operator=(const vtkShaderProgram2&) = delete;
 };
 
 // ----------------------------------------------------------------------------

@@ -46,7 +46,7 @@ class VTKRENDERINGVOLUME_EXPORT vtkFiniteDifferenceGradientEstimator : public vt
 {
 public:
   vtkTypeMacro(vtkFiniteDifferenceGradientEstimator,vtkEncodedGradientEstimator);
-  void PrintSelf( ostream& os, vtkIndent indent );
+  void PrintSelf( ostream& os, vtkIndent indent ) override;
 
   /**
    * Construct a vtkFiniteDifferenceGradientEstimator with
@@ -68,16 +68,16 @@ public:
 
 protected:
   vtkFiniteDifferenceGradientEstimator();
-  ~vtkFiniteDifferenceGradientEstimator();
+  ~vtkFiniteDifferenceGradientEstimator() override;
 
   /**
    * Recompute the encoded normals and gradient magnitudes.
    */
-  void UpdateNormals( void );
+  void UpdateNormals( void ) override;
 
 private:
-  vtkFiniteDifferenceGradientEstimator(const vtkFiniteDifferenceGradientEstimator&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkFiniteDifferenceGradientEstimator&) VTK_DELETE_FUNCTION;
+  vtkFiniteDifferenceGradientEstimator(const vtkFiniteDifferenceGradientEstimator&) = delete;
+  void operator=(const vtkFiniteDifferenceGradientEstimator&) = delete;
 };
 
 

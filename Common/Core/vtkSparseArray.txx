@@ -409,7 +409,7 @@ const typename vtkSparseArray<T>::CoordinateT* vtkSparseArray<T>::GetCoordinateS
   if(dimension < 0 || dimension >= this->GetDimensions())
   {
     vtkErrorMacro(<< "Dimension out-of-bounds.");
-    return 0;
+    return nullptr;
   }
 
   return &this->Coordinates[dimension][0];
@@ -421,7 +421,7 @@ typename vtkSparseArray<T>::CoordinateT* vtkSparseArray<T>::GetCoordinateStorage
   if(dimension < 0 || dimension >= this->GetDimensions())
   {
     vtkErrorMacro(<< "Dimension out-of-bounds.");
-    return 0;
+    return nullptr;
   }
 
   return &this->Coordinates[dimension][0];
@@ -454,7 +454,7 @@ void vtkSparseArray<T>::SetExtentsFromContents()
   vtkArrayExtents new_extents;
 
   const vtkIdType row_begin = 0;
-  const vtkIdType row_end = row_begin + this->Values.size();
+  const vtkIdType row_end = row_begin + static_cast<vtkIdType>(this->Values.size());
   const DimensionT dimension_count = this->GetDimensions();
   for(DimensionT dimension = 0; dimension != dimension_count; ++dimension)
   {

@@ -90,7 +90,7 @@ void vtkTableToSparseArray::AddCoordinateColumn(const char* name)
 {
   if(!name)
   {
-    vtkErrorMacro(<< "cannot add coordinate column with NULL name");
+    vtkErrorMacro(<< "cannot add coordinate column with nullptr name");
     return;
   }
 
@@ -102,7 +102,7 @@ void vtkTableToSparseArray::SetValueColumn(const char* name)
 {
   if(!name)
   {
-    vtkErrorMacro(<< "cannot set value column with NULL name");
+    vtkErrorMacro(<< "cannot set value column with nullptr name");
     return;
   }
 
@@ -165,7 +165,7 @@ int vtkTableToSparseArray::RequestData(
 #ifdef _RWSTD_NO_CLASS_PARTIAL_SPEC
   std::count(coordinates.begin(), coordinates.end(), static_cast<vtkAbstractArray*>(0),n);
 #else
-  n=std::count(coordinates.begin(), coordinates.end(), static_cast<vtkAbstractArray*>(0));
+  n=std::count(coordinates.begin(), coordinates.end(), static_cast<vtkAbstractArray*>(nullptr));
 #endif
   if(n!=0)
   {
@@ -180,18 +180,22 @@ int vtkTableToSparseArray::RequestData(
   }
 
   vtkSparseArray<double>* const array = vtkSparseArray<double>::New();
-  array->Resize(vtkArrayExtents::Uniform(coordinates.size(), 0));
+  array->Resize(vtkArrayExtents::Uniform(static_cast<vtkArrayExtents::DimensionT>(coordinates.size()), 0));
 
   for(size_t i = 0; i != coordinates.size(); ++i)
-    array->SetDimensionLabel(i, coordinates[i]->GetName());
+  {
+    array->SetDimensionLabel(static_cast<vtkArray::DimensionT>(i), coordinates[i]->GetName());
+  }
 
   vtkArrayCoordinates output_coordinates;
-  output_coordinates.SetDimensions(coordinates.size());
+  output_coordinates.SetDimensions(
+    static_cast<vtkArrayCoordinates::DimensionT>(coordinates.size()));
   for(vtkIdType i = 0; i != table->GetNumberOfRows(); ++i)
   {
     for(size_t j = 0; j != coordinates.size(); ++j)
     {
-      output_coordinates[j] = coordinates[j]->GetVariantValue(i).ToInt();
+      output_coordinates[static_cast<vtkArrayCoordinates::DimensionT>(j)] =
+        coordinates[j]->GetVariantValue(i).ToInt();
     }
     array->AddValue(output_coordinates, values->GetVariantValue(i).ToDouble());
   }

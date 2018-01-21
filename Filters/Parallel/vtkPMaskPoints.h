@@ -34,7 +34,7 @@ class VTKFILTERSPARALLEL_EXPORT vtkPMaskPoints : public vtkMaskPoints
 public:
   static vtkPMaskPoints *New();
   vtkTypeMacro(vtkPMaskPoints,vtkMaskPoints);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -46,18 +46,18 @@ public:
 
 protected:
   vtkPMaskPoints();
-  ~vtkPMaskPoints();
+  ~vtkPMaskPoints() override;
 
-  virtual void InternalScatter(unsigned long*, unsigned long *, int, int);
-  virtual void InternalGather(unsigned long*, unsigned long*, int, int);
-  virtual int InternalGetNumberOfProcesses();
-  virtual int InternalGetLocalProcessId();
-  virtual void InternalBarrier();
+  void InternalScatter(unsigned long*, unsigned long *, int, int) override;
+  void InternalGather(unsigned long*, unsigned long*, int, int) override;
+  int InternalGetNumberOfProcesses() override;
+  int InternalGetLocalProcessId() override;
+  void InternalBarrier() override;
 
   vtkMultiProcessController* Controller;
 private:
-  vtkPMaskPoints(const vtkPMaskPoints&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPMaskPoints&) VTK_DELETE_FUNCTION;
+  vtkPMaskPoints(const vtkPMaskPoints&) = delete;
+  void operator=(const vtkPMaskPoints&) = delete;
 };
 
 #endif

@@ -41,7 +41,7 @@ class VTKIOAMR_EXPORT vtkAMREnzoParticlesReader :
 public:
   static vtkAMREnzoParticlesReader* New();
   vtkTypeMacro( vtkAMREnzoParticlesReader, vtkAMRBaseParticlesReader );
-  void PrintSelf(ostream &os, vtkIndent indent );
+  void PrintSelf(ostream &os, vtkIndent indent ) override;
 
   //@{
   /**
@@ -54,11 +54,11 @@ public:
   /**
    * See vtkAMRBaseParticlesReader::GetTotalNumberOfParticles.
    */
-  int GetTotalNumberOfParticles();
+  int GetTotalNumberOfParticles() override;
 
 protected:
   vtkAMREnzoParticlesReader();
-  virtual ~vtkAMREnzoParticlesReader();
+  ~vtkAMREnzoParticlesReader() override;
 
   /**
    * Read the particles from the given particles file for the block
@@ -69,12 +69,12 @@ protected:
   /**
    * See vtkAMRBaseParticlesReader::ReadMetaData()
    */
-  void ReadMetaData();
+  void ReadMetaData() override;
 
   /**
    * See vtkAMRBaseParticlesReader::SetupParticleDataSelections
    */
-  void SetupParticleDataSelections();
+  void SetupParticleDataSelections() override;
 
   /**
    * Filter's by particle type, iff particle_type is included in
@@ -90,15 +90,15 @@ protected:
   /**
    * Reads the particles.
    */
-  vtkPolyData* ReadParticles( const int blkidx );
+  vtkPolyData* ReadParticles( const int blkidx ) override;
 
   int ParticleType;
 
   vtkEnzoReaderInternal *Internal;
 
 private:
-  vtkAMREnzoParticlesReader( const vtkAMREnzoParticlesReader& ) VTK_DELETE_FUNCTION;
-  void operator=( const vtkAMREnzoParticlesReader& ) VTK_DELETE_FUNCTION;
+  vtkAMREnzoParticlesReader( const vtkAMREnzoParticlesReader& ) = delete;
+  void operator=( const vtkAMREnzoParticlesReader& ) = delete;
 };
 
 #endif /* vtkAMREnzoParticlesReader_h */

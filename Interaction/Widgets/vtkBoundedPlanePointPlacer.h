@@ -48,7 +48,7 @@ public:
    * Standard methods for instances of this class.
    */
   vtkTypeMacro(vtkBoundedPlanePointPlacer,vtkPointPlacer);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   //@{
@@ -134,7 +134,7 @@ public:
   int ComputeWorldPosition( vtkRenderer *ren,
                             double displayPos[2],
                             double worldPos[3],
-                            double worldOrient[9] );
+                            double worldOrient[9] ) override;
 
   /**
    * Given a renderer, a display position, and a reference world
@@ -142,24 +142,24 @@ public:
    * of this point. This method is typically used by the
    * representation to move the point.
    */
-  virtual int ComputeWorldPosition( vtkRenderer *ren,
+  int ComputeWorldPosition( vtkRenderer *ren,
                                     double displayPos[2],
                                     double refWorldPos[3],
                                     double worldPos[3],
-                                    double worldOrient[9] );
+                                    double worldOrient[9] ) override;
 
   /**
    * Give a world position check if it is valid - does
    * it lie on the plane and within the bounds? Returns
    * 1 if it is valid, 0 otherwise.
    */
-  int ValidateWorldPosition( double worldPos[3] );
+  int ValidateWorldPosition( double worldPos[3] ) override;
 
   // Descrption:
   // Orientationation is ignored, and the above method
   // is called instead.
   int ValidateWorldPosition( double worldPos[3],
-                             double worldOrient[9]);
+                             double worldOrient[9]) override;
 
   /**
    * If the constraints on this placer are changed, then
@@ -169,14 +169,14 @@ public:
    * ComputeWorldPosition will be used to update the
    * point.
    */
-  virtual int UpdateWorldPosition( vtkRenderer *ren,
+  int UpdateWorldPosition( vtkRenderer *ren,
                                    double worldPos[3],
-                                   double worldOrient[9] );
+                                   double worldOrient[9] ) override;
 
 
 protected:
   vtkBoundedPlanePointPlacer();
-  ~vtkBoundedPlanePointPlacer();
+  ~vtkBoundedPlanePointPlacer() override;
 
   // Indicates the projection normal as laying along the
   // XAxis, YAxis, ZAxis, or Oblique. For X, Y, and Z axes,
@@ -215,8 +215,8 @@ protected:
                                        double               closestPt[3]);
 
 private:
-  vtkBoundedPlanePointPlacer(const vtkBoundedPlanePointPlacer&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkBoundedPlanePointPlacer&) VTK_DELETE_FUNCTION;
+  vtkBoundedPlanePointPlacer(const vtkBoundedPlanePointPlacer&) = delete;
+  void operator=(const vtkBoundedPlanePointPlacer&) = delete;
 };
 
 #endif

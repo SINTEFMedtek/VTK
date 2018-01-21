@@ -19,11 +19,12 @@
 #include "vtkDoubleArray.h"
 #include "vtkExtractRectilinearGrid.h"
 #include "vtkMathUtilities.h"
+#include "vtkNew.h"
 #include "vtkPointData.h"
+#include "vtkPointDataToCellData.h"
 #include "vtkRectilinearGrid.h"
 #include "vtkRectilinearGridWriter.h"
 #include "vtkStructuredData.h"
-
 
 // C/C++ includes
 #include <cassert>
@@ -41,7 +42,7 @@ double exponential_distribution(const int i, const double beta)
 //------------------------------------------------------------------------------
 void WriteGrid(vtkRectilinearGrid* grid, const std::string& file)
 {
-  assert( "pre: input grid instance is NULL!" && (grid != NULL) );
+  assert( "pre: input grid instance is nullptr!" && (grid != nullptr) );
 
   std::ostringstream oss;
   oss << file << ".vtk";
@@ -92,7 +93,7 @@ int CheckGrid( vtkRectilinearGrid* grid )
 //------------------------------------------------------------------------------
 void GenerateGrid( vtkRectilinearGrid* grid,  int ext[6] )
 {
-  assert( "pre: input grid instance is NULL!" && (grid != NULL) );
+  assert( "pre: input grid instance is nullptr!" && (grid != nullptr) );
   grid->Initialize();
   grid->SetExtent(ext);
 
@@ -142,6 +143,13 @@ void GenerateGrid( vtkRectilinearGrid* grid,  int ext[6] )
     xyz->SetTuple(pntIdx, grid->GetPoint(pntIdx) );
   } // END for all points
   grid->GetPointData()->AddArray( xyz );
+
+  vtkNew<vtkPointDataToCellData> pd2cd;
+  pd2cd->PassPointDataOn();
+  pd2cd->SetInputDataObject(grid);
+  pd2cd->Update();
+  grid->ShallowCopy(pd2cd->GetOutputDataObject(0));
+
   xyz->Delete();
 }
 
@@ -175,6 +183,16 @@ int TestExtractRectilinearGrid( int argc, char* argv[])
 #endif
 
   rc += CheckGrid( subGrid );
+
+  // Let's extract outer face too.
+  int sub_ext2[6] = { 49, 49, 0, 49, 0, 0 };
+  extractFilter->SetVOI(sub_ext2);
+  extractFilter->SetSampleRate(1, 1, 1);
+  extractFilter->IncludeBoundaryOff();
+  extractFilter->Update();
+
+  subGrid = extractFilter->GetOutput();
+  rc += CheckGrid(subGrid);
 
   extractFilter->Delete();
   grid->Delete();

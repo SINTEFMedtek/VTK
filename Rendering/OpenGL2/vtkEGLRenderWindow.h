@@ -205,7 +205,6 @@ protected:
 
   int ScreenSize[2];
   int OwnWindow;
-  int DeviceIndex;
   bool IsPointSpriteBugTested;
   bool IsPointSpriteBugPresent_;
   class vtkInternals;
@@ -223,8 +222,8 @@ protected:
   void SetDeviceAsDisplay(int deviceIndex);
 
 private:
-  vtkEGLRenderWindow(const vtkEGLRenderWindow&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkEGLRenderWindow&) VTK_DELETE_FUNCTION;
+  vtkEGLRenderWindow(const vtkEGLRenderWindow&) = delete;
+  void operator=(const vtkEGLRenderWindow&) = delete;
 
   bool DeviceExtensionsPresent;
 };

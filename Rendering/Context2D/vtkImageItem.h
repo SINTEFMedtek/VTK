@@ -35,14 +35,14 @@ class VTKRENDERINGCONTEXT2D_EXPORT vtkImageItem : public vtkContextItem
 {
 public:
   vtkTypeMacro(vtkImageItem, vtkContextItem);
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
   static vtkImageItem *New();
 
   /**
    * Paint event for the item.
    */
-  virtual bool Paint(vtkContext2D *painter);
+  bool Paint(vtkContext2D *painter) override;
 
   /**
    * Set the image of the item.
@@ -72,15 +72,15 @@ public:
 
 protected:
   vtkImageItem();
-  ~vtkImageItem();
+  ~vtkImageItem() override;
 
   float Position[2];
 
   vtkImageData *Image;
 
 private:
-  vtkImageItem(const vtkImageItem &) VTK_DELETE_FUNCTION;
-  void operator=(const vtkImageItem &) VTK_DELETE_FUNCTION;
+  vtkImageItem(const vtkImageItem &) = delete;
+  void operator=(const vtkImageItem &) = delete;
 
 };
 

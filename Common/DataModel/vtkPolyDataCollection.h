@@ -16,8 +16,8 @@
  * @class   vtkPolyDataCollection
  * @brief   maintain a list of polygonal data objects
  *
- * vtkPolyDataCollection is an object that creates and manipulates lists of
- * datasets of type vtkPolyData.
+ * vtkPolyDataCollection is an object that creates and manipulates ordered
+ * lists of datasets of type vtkPolyData.
  *
  * @sa
  * vtkDataSetCollection vtkCollection
@@ -36,10 +36,10 @@ class VTKCOMMONDATAMODEL_EXPORT vtkPolyDataCollection : public vtkCollection
 public:
   static vtkPolyDataCollection *New();
   vtkTypeMacro(vtkPolyDataCollection,vtkCollection);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
-   * Add a poly data to the list.
+   * Add a poly data to the bottom of the list.
    */
   void AddItem(vtkPolyData *pd)
   {
@@ -61,15 +61,15 @@ public:
 
 protected:
   vtkPolyDataCollection() {}
-  ~vtkPolyDataCollection() VTK_OVERRIDE {}
+  ~vtkPolyDataCollection() override {}
 
 private:
   // hide the standard AddItem from the user and the compiler.
   void AddItem(vtkObject *o) { this->vtkCollection::AddItem(o); };
 
 private:
-  vtkPolyDataCollection(const vtkPolyDataCollection&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPolyDataCollection&) VTK_DELETE_FUNCTION;
+  vtkPolyDataCollection(const vtkPolyDataCollection&) = delete;
+  void operator=(const vtkPolyDataCollection&) = delete;
 };
 
 

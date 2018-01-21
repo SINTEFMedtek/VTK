@@ -38,7 +38,7 @@ class VTKIOXML_EXPORT vtkXMLImageDataReader : public vtkXMLStructuredDataReader
 {
 public:
   vtkTypeMacro(vtkXMLImageDataReader,vtkXMLStructuredDataReader);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   static vtkXMLImageDataReader *New();
 
   //@{
@@ -53,31 +53,31 @@ public:
    * For the specified port, copy the information this reader sets up in
    * SetupOutputInformation to outInfo
    */
-  virtual void CopyOutputInformation(vtkInformation *outInfo, int port);
+  void CopyOutputInformation(vtkInformation *outInfo, int port) override;
 
 protected:
   vtkXMLImageDataReader();
-  ~vtkXMLImageDataReader();
+  ~vtkXMLImageDataReader() override;
 
   double Origin[3];
   double Spacing[3];
   int PieceExtent[6];
 
-  const char* GetDataSetName();
-  void SetOutputExtent(int* extent);
+  const char* GetDataSetName() override;
+  void SetOutputExtent(int* extent) override;
 
-  int ReadPrimaryElement(vtkXMLDataElement* ePrimary);
+  int ReadPrimaryElement(vtkXMLDataElement* ePrimary) override;
 
   // Setup the output's information.
-  void SetupOutputInformation(vtkInformation *outInfo);
+  void SetupOutputInformation(vtkInformation *outInfo) override;
 
-  virtual int FillOutputPortInformation(int, vtkInformation*);
+  int FillOutputPortInformation(int, vtkInformation*) override;
 
 
 
 private:
-  vtkXMLImageDataReader(const vtkXMLImageDataReader&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkXMLImageDataReader&) VTK_DELETE_FUNCTION;
+  vtkXMLImageDataReader(const vtkXMLImageDataReader&) = delete;
+  void operator=(const vtkXMLImageDataReader&) = delete;
 };
 
 #endif

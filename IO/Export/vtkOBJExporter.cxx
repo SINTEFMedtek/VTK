@@ -22,6 +22,7 @@
 #include "vtkFloatArray.h"
 #include "vtkGeometryFilter.h"
 #include "vtkMapper.h"
+#include "vtkNew.h"
 #include "vtkObjectFactory.h"
 #include "vtkPointData.h"
 #include "vtkPolyData.h"
@@ -34,7 +35,7 @@ vtkStandardNewMacro(vtkOBJExporter);
 
 vtkOBJExporter::vtkOBJExporter()
 {
-  this->FilePrefix = NULL;
+  this->FilePrefix = nullptr;
 }
 
 vtkOBJExporter::~vtkOBJExporter()
@@ -53,7 +54,7 @@ void vtkOBJExporter::WriteData()
   int idStart = 1;
 
   // make sure the user specified a filename
-  if ( this->FilePrefix == NULL)
+  if ( this->FilePrefix == nullptr)
   {
     vtkErrorMacro(<< "Please specify file prefix to use");
     return;
@@ -77,8 +78,8 @@ void vtkOBJExporter::WriteData()
   }
 
   // try opening the files
-  sprintf(nameObj,"%s.obj",this->FilePrefix);
-  sprintf(nameMtl,"%s.mtl",this->FilePrefix);
+  snprintf(nameObj,sizeof(nameObj),"%s.obj",this->FilePrefix);
+  snprintf(nameMtl,sizeof(nameMtl),"%s.mtl",this->FilePrefix);
   fpObj = fopen(nameObj,"w");
   if (!fpObj)
   {
@@ -123,23 +124,21 @@ void vtkOBJExporter::WriteAnActor(vtkActor *anActor, FILE *fpObj, FILE *fpMtl,
                                   int &idStart)
 {
   vtkDataSet *ds;
-  vtkPolyData *pd;
-  vtkGeometryFilter *gf = NULL;
+  vtkNew<vtkPolyData> pd;
   vtkPointData *pntData;
   vtkPoints *points;
-  vtkDataArray *normals = NULL;
   vtkDataArray *tcoords;
   int i, i1, i2, idNext;
   vtkProperty *prop;
   double *tempd;
   double *p;
   vtkCellArray *cells;
-  vtkTransform *trans = vtkTransform::New();
+  vtkNew<vtkTransform> trans;
   vtkIdType npts = 0;
-  vtkIdType *indx = 0;
+  vtkIdType *indx = nullptr;
 
   // see if the actor has a mapper. it could be an assembly
-  if (anActor->GetMapper() == NULL)
+  if (anActor->GetMapper() == nullptr)
   {
     return;
   }
@@ -163,7 +162,7 @@ void vtkOBJExporter::WriteAnActor(vtkActor *anActor, FILE *fpObj, FILE *fpMtl,
   // get the mappers input and matrix
   ds = anActor->GetMapper()->GetInput();
   // see if the mapper has an input.
-  if (ds == NULL)
+  if (ds == nullptr)
   {
     return;
   }
@@ -173,15 +172,15 @@ void vtkOBJExporter::WriteAnActor(vtkActor *anActor, FILE *fpObj, FILE *fpMtl,
   // we really want polydata
   if ( ds->GetDataObjectType() != VTK_POLY_DATA )
   {
-    gf = vtkGeometryFilter::New();
+    vtkNew<vtkGeometryFilter> gf;
     gf->SetInputConnection(
       anActor->GetMapper()->GetInputConnection(0, 0));
     gf->Update();
-    pd = gf->GetOutput();
+    pd->DeepCopy(gf->GetOutput());
   }
   else
   {
-    pd = static_cast<vtkPolyData *>(ds);
+    pd->DeepCopy(ds);
   }
 
   // write out the points
@@ -199,7 +198,7 @@ void vtkOBJExporter::WriteAnActor(vtkActor *anActor, FILE *fpObj, FILE *fpMtl,
   pntData = pd->GetPointData();
   if (pntData->GetNormals())
   {
-    normals = vtkFloatArray::New();
+    vtkNew<vtkFloatArray> normals;
     normals->SetNumberOfComponents(3);
     trans->TransformNormals(pntData->GetNormals(),normals);
     for (i = 0; i < normals->GetNumberOfTuples(); i++)
@@ -276,7 +275,7 @@ void vtkOBJExporter::WriteAnActor(vtkActor *anActor, FILE *fpObj, FILE *fpMtl,
       fprintf(fpObj,"f ");
       for (i = 0; i < npts; i++)
       {
-        if (normals)
+        if (pntData->GetNormals())
         {
           if (tcoords)
           {
@@ -329,7 +328,7 @@ void vtkOBJExporter::WriteAnActor(vtkActor *anActor, FILE *fpObj, FILE *fpMtl,
           i1 = i - 1;
           i2 = i - 2;
         }
-        if (normals)
+        if (pntData->GetNormals())
         {
           if (tcoords)
           {
@@ -376,15 +375,6 @@ void vtkOBJExporter::WriteAnActor(vtkActor *anActor, FILE *fpObj, FILE *fpMtl,
   }
 
   idStart = idNext;
-  trans->Delete();
-  if (normals)
-  {
-    normals->Delete();
-  }
-  if (gf)
-  {
-    gf->Delete();
-  }
 }
 
 

@@ -48,7 +48,7 @@ public:
    * Standard VTK methods.
    */
   vtkTypeMacro(vtkTextRepresentation,vtkBorderRepresentation);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   //@{
@@ -71,8 +71,8 @@ public:
   /**
    * Satisfy the superclasses API.
    */
-  virtual void BuildRepresentation();
-  virtual void GetSize(double size[2])
+  void BuildRepresentation() override;
+  void GetSize(double size[2]) override
     {size[0]=2.0; size[1]=2.0;}
 
   //@{
@@ -80,12 +80,12 @@ public:
    * These methods are necessary to make this representation behave as
    * a vtkProp.
    */
-  virtual void GetActors2D(vtkPropCollection*);
-  virtual void ReleaseGraphicsResources(vtkWindow*);
-  virtual int RenderOverlay(vtkViewport*);
-  virtual int RenderOpaqueGeometry(vtkViewport*);
-  virtual int RenderTranslucentPolygonalGeometry(vtkViewport*);
-  virtual int HasTranslucentPolygonalGeometry();
+  void GetActors2D(vtkPropCollection*) override;
+  void ReleaseGraphicsResources(vtkWindow*) override;
+  int RenderOverlay(vtkViewport*) override;
+  int RenderOpaqueGeometry(vtkViewport*) override;
+  int RenderTranslucentPolygonalGeometry(vtkViewport*) override;
+  int HasTranslucentPolygonalGeometry() override;
   //@}
 
   enum
@@ -120,8 +120,8 @@ public:
    * Set the text position, by overiding the same function of
    * vtkBorderRepresentation so that the Modified() will be called.
    */
-  virtual void SetPosition(double x, double y);
-  virtual void SetPosition(double pos[2])
+  void SetPosition(double x, double y) override;
+  void SetPosition(double pos[2]) override
     { this->SetPosition(pos[0], pos[1]);};
   //@}
 
@@ -135,7 +135,7 @@ public:
 
 protected:
   vtkTextRepresentation();
-  ~vtkTextRepresentation();
+  ~vtkTextRepresentation() override;
 
   // Initialize text actor
   virtual void InitializeTextActor();
@@ -155,8 +155,8 @@ protected:
   vtkTextRepresentationObserver *Observer;
 
 private:
-  vtkTextRepresentation(const vtkTextRepresentation&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkTextRepresentation&) VTK_DELETE_FUNCTION;
+  vtkTextRepresentation(const vtkTextRepresentation&) = delete;
+  void operator=(const vtkTextRepresentation&) = delete;
 };
 
 #endif

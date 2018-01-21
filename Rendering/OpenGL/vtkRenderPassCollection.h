@@ -14,11 +14,11 @@
 =========================================================================*/
 /**
  * @class   vtkRenderPassCollection
- * @brief   a list of RenderPasses
+ * @brief   an ordered list of RenderPasses
  *
  * vtkRenderPassCollection represents a list of RenderPasses
  * (i.e., vtkRenderPass and subclasses) and provides methods to manipulate the
- * list. The list is unsorted and duplicate entries are not prevented.
+ * list. The list is ordered and duplicate entries are not prevented.
  *
  * @sa
  * vtkRenderPass vtkCollection
@@ -37,10 +37,10 @@ class VTKRENDERINGOPENGL_EXPORT vtkRenderPassCollection : public vtkCollection
  public:
   static vtkRenderPassCollection *New();
   vtkTypeMacro(vtkRenderPassCollection,vtkCollection);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
-   * Add an RenderPass to the list.
+   * Add an RenderPass to the bottom of the list.
    */
   void AddItem(vtkRenderPass *pass);
 
@@ -62,15 +62,15 @@ class VTKRENDERINGOPENGL_EXPORT vtkRenderPassCollection : public vtkCollection
 
 protected:
   vtkRenderPassCollection();
-  ~vtkRenderPassCollection();
+  ~vtkRenderPassCollection() override;
 
 private:
   // hide the standard AddItem from the user and the compiler.
   void AddItem(vtkObject *o);
 
 private:
-  vtkRenderPassCollection(const vtkRenderPassCollection&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkRenderPassCollection&) VTK_DELETE_FUNCTION;
+  vtkRenderPassCollection(const vtkRenderPassCollection&) = delete;
+  void operator=(const vtkRenderPassCollection&) = delete;
 };
 
 #endif

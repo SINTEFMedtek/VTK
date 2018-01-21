@@ -16,8 +16,8 @@
  * @class   vtkDataObjectCollection
  * @brief   maintain an unordered list of data objects
  *
- * vtkDataObjectCollection is an object that creates and manipulates lists of
- * data objects. See also vtkCollection and subclasses.
+ * vtkDataObjectCollection is an object that creates and manipulates ordered
+ * lists of data objects. See also vtkCollection and subclasses.
 */
 
 #ifndef vtkDataObjectCollection_h
@@ -35,7 +35,7 @@ public:
   vtkTypeMacro(vtkDataObjectCollection,vtkCollection);
 
   /**
-   * Add a data object to the list.
+   * Add a data object to the bottom of the list.
    */
   void AddItem(vtkDataObject *ds)
   {
@@ -69,7 +69,7 @@ public:
 
 protected:
   vtkDataObjectCollection() {}
-  ~vtkDataObjectCollection() VTK_OVERRIDE {}
+  ~vtkDataObjectCollection() override {}
 
 
 private:
@@ -77,8 +77,8 @@ private:
   void AddItem(vtkObject *o) { this->vtkCollection::AddItem(o); };
 
 private:
-  vtkDataObjectCollection(const vtkDataObjectCollection&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkDataObjectCollection&) VTK_DELETE_FUNCTION;
+  vtkDataObjectCollection(const vtkDataObjectCollection&) = delete;
+  void operator=(const vtkDataObjectCollection&) = delete;
 };
 
 

@@ -48,7 +48,7 @@ void vtkPlotPoints3D::PrintSelf(ostream &os, vtkIndent indent)
 //-----------------------------------------------------------------------------
 bool vtkPlotPoints3D::Paint(vtkContext2D *painter)
 {
-  if (!this->Visible || this->Points.size() == 0)
+  if (!this->Visible || this->Points.empty())
   {
     return false;
   }
@@ -63,11 +63,11 @@ bool vtkPlotPoints3D::Paint(vtkContext2D *painter)
 
   this->Update();
 
-  if (this->Points.size() > 0)
+  if (!this->Points.empty())
   {
 
     // Draw the points in 3d.
-    context->ApplyPen(this->Pen.GetPointer());
+    context->ApplyPen(this->Pen);
     if (this->NumberOfComponents == 0)
     {
       context->DrawPoints(
@@ -93,7 +93,8 @@ bool vtkPlotPoints3D::Paint(vtkContext2D *painter)
       this->SelectedPoints.reserve(nSelected);
       for (size_t i = 0; i < nSelected; ++i)
       {
-        this->SelectedPoints.push_back(this->Points[this->Selection->GetValue(i)]);
+        this->SelectedPoints.push_back(this->Points[
+          this->Selection->GetValue(static_cast<vtkIdType>(i))]);
       }
       this->SelectedPointsBuildTime.Modified();
     }
@@ -101,7 +102,7 @@ bool vtkPlotPoints3D::Paint(vtkContext2D *painter)
     // Now to render the selected points.
     if (!this->SelectedPoints.empty())
     {
-      context->ApplyPen(this->SelectionPen.GetPointer());
+      context->ApplyPen(this->SelectionPen);
       context->DrawPoints(this->SelectedPoints[0].GetData(),
                           static_cast<int>(this->SelectedPoints.size()));
     }

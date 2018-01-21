@@ -51,6 +51,7 @@
 
 vtkInformationKeyMacro(vtkAbstractArray, GUI_HIDE, Integer);
 vtkInformationKeyMacro(vtkAbstractArray, PER_COMPONENT, InformationVector);
+vtkInformationKeyMacro(vtkAbstractArray, PER_FINITE_COMPONENT, InformationVector);
 vtkInformationKeyMacro(vtkAbstractArray, DISCRETE_VALUES, VariantVector);
 vtkInformationKeyRestrictedMacro(vtkAbstractArray, DISCRETE_VALUE_SAMPLE_PARAMETERS, DoubleVector, 2);
 
@@ -67,10 +68,10 @@ vtkAbstractArray::vtkAbstractArray()
   this->Size = 0;
   this->MaxId = -1;
   this->NumberOfComponents = 1;
-  this->Name = NULL;
+  this->Name = nullptr;
   this->RebuildArray = false;
-  this->Information = NULL;
-  this->ComponentNames = NULL;
+  this->Information = nullptr;
+  this->ComponentNames = nullptr;
 
   this->MaxDiscreteValues = vtkAbstractArray::MAX_DISCRETE_VALUES; //32
 }
@@ -86,22 +87,22 @@ vtkAbstractArray::~vtkAbstractArray()
     }
     this->ComponentNames->clear();
     delete this->ComponentNames;
-    this->ComponentNames = NULL;
+    this->ComponentNames = nullptr;
   }
 
-  this->SetName(NULL);
-  this->SetInformation(NULL);
+  this->SetName(nullptr);
+  this->SetInformation(nullptr);
 }
 
 //----------------------------------------------------------------------------
 void vtkAbstractArray::SetComponentName( vtkIdType component, const char *name )
 {
-  if ( component < 0 || name == NULL )
+  if ( component < 0 || name == nullptr )
   {
     return;
   }
   unsigned int index = static_cast<unsigned int>( component );
-  if ( this->ComponentNames == NULL )
+  if ( this->ComponentNames == nullptr )
   {
     //delayed allocate
     this->ComponentNames = new vtkAbstractArray::vtkInternalComponentNames();
@@ -115,7 +116,7 @@ void vtkAbstractArray::SetComponentName( vtkIdType component, const char *name )
   }
   else if ( index > this->ComponentNames->size() )
   {
-    this->ComponentNames->resize( index+1, NULL );
+    this->ComponentNames->resize( index+1, nullptr );
   }
 
   //replace an exisiting element
@@ -139,17 +140,17 @@ const char* vtkAbstractArray::GetComponentName( vtkIdType component )
     index >= this->ComponentNames->size() )
   {
     //make sure we have valid vector
-    return NULL;
+    return nullptr;
   }
 
   vtkStdString *compName = this->ComponentNames->at( index );
-  return ( compName ) ? compName->c_str() : NULL;
+  return ( compName ) ? compName->c_str() : nullptr;
 }
 
 //----------------------------------------------------------------------------
 bool vtkAbstractArray::HasAComponentName()
 {
-  return (this->ComponentNames) ? ( this->ComponentNames->size() > 0 ) : 0;
+  return (this->ComponentNames) ? ( !this->ComponentNames->empty() ) : 0;
 }
 
 //----------------------------------------------------------------------------
@@ -187,8 +188,10 @@ int vtkAbstractArray::CopyComponentNames( vtkAbstractArray *da )
 //----------------------------------------------------------------------------
 void vtkAbstractArray::SetNumberOfValues(vtkIdType numValues)
 {
-  if (this->Resize(std::ceil(numValues /
-                             static_cast<float>(this->NumberOfComponents))))
+  vtkIdType numTuples = this->NumberOfComponents == 1 ?
+    numValues : (numValues + this->NumberOfComponents - 1) /
+    this->NumberOfComponents;
+  if (this->Resize(numTuples))
   {
     this->MaxId = numValues - 1;
   }
@@ -205,8 +208,8 @@ void vtkAbstractArray::SetInformation(vtkInformation *args)
   {
     vtkInformation* tempSGMacroVar = this->Information;
     this->Information = args;
-    if (this->Information != NULL) { this->Information->Register(this); }
-    if (tempSGMacroVar != NULL)
+    if (this->Information != nullptr) { this->Information->Register(this); }
+    if (tempSGMacroVar != nullptr)
     {
       tempSGMacroVar->UnRegister(this);
     }
@@ -269,7 +272,7 @@ void vtkAbstractArray::DeepCopy( vtkAbstractArray* da )
   }
   else
   {
-    this->SetInformation(NULL);
+    this->SetInformation(nullptr);
   }
 
   this->SetName(da->Name);
@@ -296,16 +299,22 @@ int vtkAbstractArray::CopyInformation(vtkInformation* infoFrom, int deep)
 
   // Remove any keys we own that are not to be copied here.
   // For now, remove per-component metadata.
-  if (myInfo->Has(PER_COMPONENT()))
-  {
-    myInfo->Remove(PER_COMPONENT());
-  }
-  if (myInfo->Has(DISCRETE_VALUES()))
-  {
-    myInfo->Remove(DISCRETE_VALUES());
-  }
+  myInfo->Remove(PER_COMPONENT());
+  myInfo->Remove(PER_FINITE_COMPONENT());
+  myInfo->Remove(DISCRETE_VALUES());
 
   return 1;
+}
+
+//----------------------------------------------------------------------------
+// call modified on superclass
+void vtkAbstractArray::Modified()
+{
+    vtkInformation *info = this->GetInformation();
+    // Clear key-value pairs that are now out of date.
+    info->Remove(PER_COMPONENT());
+    info->Remove(PER_FINITE_COMPONENT());
+    this->Superclass::Modified();
 }
 
 //----------------------------------------------------------------------------
@@ -332,7 +341,7 @@ int vtkAbstractArray::GetDataTypeSize(int type)
   switch (type)
   {
     vtkTemplateMacro(
-      return vtkAbstractArrayGetDataTypeSize(static_cast<VTK_TT*>(0))
+      return vtkAbstractArrayGetDataTypeSize(static_cast<VTK_TT*>(nullptr))
       );
 
     case VTK_BIT:
@@ -485,7 +494,7 @@ void vtkAbstractArray::GetProminentComponentValues(
   vtkInformation* info = this->GetInformation();
   const double* lastParams = info ?
     (info->Has(DISCRETE_VALUE_SAMPLE_PARAMETERS()) ?
-     info->Get(DISCRETE_VALUE_SAMPLE_PARAMETERS()) : 0) : 0;
+     info->Get(DISCRETE_VALUE_SAMPLE_PARAMETERS()) : nullptr) : nullptr;
   if (comp >= 0 && info)
   {
     vtkInformationVector* infoVec = info->Get(PER_COMPONENT());
@@ -537,7 +546,7 @@ void vtkAbstractArray::GetProminentComponentValues(
 
   vtkIdType len;
   const vtkVariant* vals = info->Get(DISCRETE_VALUES());
-  if (vals != NULL)
+  if (vals != nullptr)
   {
     len = info->Length(DISCRETE_VALUES());
     values->SetNumberOfTuples(len / values->GetNumberOfComponents());
@@ -755,7 +764,7 @@ void vtkAbstractArray::UpdateDiscreteValueSet(
       {
         vtkNew<vtkInformationVector> infoVec;
         infoVec->SetNumberOfInformationObjects(this->NumberOfComponents);
-        this->GetInformation()->Set(PER_COMPONENT(), infoVec.GetPointer());
+        this->GetInformation()->Set(PER_COMPONENT(), infoVec);
         iv = this->GetInformation()->Get(PER_COMPONENT());
       }
       iv->GetInformationObject(c)->Set(

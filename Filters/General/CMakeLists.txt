@@ -70,9 +70,12 @@ set(Module_SRCS
   vtkShrinkPolyData.cxx
   vtkSpatialRepresentationFilter.cxx
   vtkSplineFilter.cxx
+  vtkSplitByCellScalarFilter.cxx
   vtkSplitField.cxx
   vtkStructuredGridClip.cxx
+  vtkSubdivisionFilter.cxx
   vtkSubPixelPositionEdgels.cxx
+  vtkSynchronizeTimeFilter.cxx
   vtkTableBasedClipDataSet.cxx
   vtkTableToPolyData.cxx
   vtkTableToStructuredGrid.cxx
@@ -103,6 +106,7 @@ set(Module_SRCS
   vtkImageDataToPointSet.cxx
   vtkIntersectionPolyDataFilter.cxx
   vtkBooleanOperationPolyDataFilter.cxx
+  vtkLoopBooleanPolyDataFilter.cxx
   vtkDistancePolyDataFilter.cxx
 
   vtkOverlappingAMRLevelIdScalars.cxx
@@ -120,6 +124,7 @@ set_source_files_properties(
   vtkDicer
   vtkGraphWeightFilter
   vtkInterpolatingSubdivisionFilter
+  vtkSubdivisionFilter
   ABSTRACT
   )
 

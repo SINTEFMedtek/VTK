@@ -31,22 +31,22 @@ class VTKRENDERINGOPENGL_EXPORT vtkPolygonsPainter : public vtkPrimitivePainter
 public:
   static vtkPolygonsPainter* New();
   vtkTypeMacro(vtkPolygonsPainter, vtkPrimitivePainter);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
 protected:
   vtkPolygonsPainter();
-  ~vtkPolygonsPainter();
+  ~vtkPolygonsPainter() override;
 
   /**
    * The actual rendering happens here. This method is called only when
    * SupportedPrimitive is present in typeflags when Render() is invoked.
    */
-  virtual int RenderPrimitive(unsigned long flags, vtkDataArray* n,
-    vtkUnsignedCharArray* c, vtkDataArray* t, vtkRenderer* ren);
+  int RenderPrimitive(unsigned long flags, vtkDataArray* n,
+    vtkUnsignedCharArray* c, vtkDataArray* t, vtkRenderer* ren) override;
 
 private:
-  vtkPolygonsPainter(const vtkPolygonsPainter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPolygonsPainter&) VTK_DELETE_FUNCTION;
+  vtkPolygonsPainter(const vtkPolygonsPainter&) = delete;
+  void operator=(const vtkPolygonsPainter&) = delete;
 
 };
 

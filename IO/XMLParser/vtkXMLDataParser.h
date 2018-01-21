@@ -40,7 +40,7 @@ class VTKIOXMLPARSER_EXPORT vtkXMLDataParser : public vtkXMLParser
 {
 public:
   vtkTypeMacro(vtkXMLDataParser,vtkXMLParser);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   static vtkXMLDataParser* New();
 
   /**
@@ -111,7 +111,7 @@ public:
    * Parse the XML input and check that the file is safe to read.
    * Returns 1 for okay, 0 for error.
    */
-  virtual int Parse();
+  int Parse() override;
 
   //@{
   /**
@@ -150,7 +150,7 @@ public:
    * will be stored in each XMLDataElement. VTK XML Readers store the
    * information elsewhere, so the default is to ignore it.
    */
-  virtual void CharacterDataHandler(const char* data, int length);
+  void CharacterDataHandler(const char* data, int length) override;
 
   /**
    * Returns the byte index of where appended data starts (if the
@@ -163,20 +163,20 @@ public:
 
 protected:
   vtkXMLDataParser();
-  ~vtkXMLDataParser();
+  ~vtkXMLDataParser() override;
 
   // This parser does not support parsing from a string.
-  virtual int Parse(const char*);
-  virtual int Parse(const char*, unsigned int);
+  int Parse(const char*) override;
+  int Parse(const char*, unsigned int) override;
 
   // Implement parsing methods.
-  virtual void StartElement(const char* name, const char** atts);
-  virtual void EndElement(const char*);
+  void StartElement(const char* name, const char** atts) override;
+  void EndElement(const char*) override;
 
-  int ParsingComplete();
+  int ParsingComplete() override;
   int CheckPrimaryAttributes();
   void FindAppendedDataPosition();
-  int ParseBuffer(const char* buffer, unsigned int count);
+  int ParseBuffer(const char* buffer, unsigned int count) override;
 
   void AddElement(vtkXMLDataElement* element);
   void PushOpenElement(vtkXMLDataElement* element);
@@ -262,8 +262,8 @@ protected:
   int AttributesEncoding;
 
 private:
-  vtkXMLDataParser(const vtkXMLDataParser&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkXMLDataParser&) VTK_DELETE_FUNCTION;
+  vtkXMLDataParser(const vtkXMLDataParser&) = delete;
+  void operator=(const vtkXMLDataParser&) = delete;
 };
 
 //----------------------------------------------------------------------------

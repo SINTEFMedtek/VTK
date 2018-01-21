@@ -32,7 +32,7 @@ class VTKRENDERINGQT_EXPORT vtkQImageToImageSource : public vtkImageAlgorithm
 public:
   static vtkQImageToImageSource *New();
   vtkTypeMacro(vtkQImageToImageSource,vtkImageAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Set/Get QImage surface to be used.
@@ -43,18 +43,18 @@ public:
 
 protected:
   vtkQImageToImageSource();
-  ~vtkQImageToImageSource() {}
+  ~vtkQImageToImageSource() override {}
 
   const QImage* QtImage;
   int DataExtent[6];
 
-  virtual int RequestData( vtkInformation*, vtkInformationVector**, vtkInformationVector*);
+  int RequestData( vtkInformation*, vtkInformationVector**, vtkInformationVector*) override;
   int RequestInformation ( vtkInformation * vtkNotUsed(request),
                            vtkInformationVector ** vtkNotUsed( inputVector ),
-                           vtkInformationVector *outputVector);
+                           vtkInformationVector *outputVector) override;
 private:
-  vtkQImageToImageSource(const vtkQImageToImageSource&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkQImageToImageSource&) VTK_DELETE_FUNCTION;
+  vtkQImageToImageSource(const vtkQImageToImageSource&) = delete;
+  void operator=(const vtkQImageToImageSource&) = delete;
 };
 
 

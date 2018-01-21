@@ -40,7 +40,7 @@ class VTKGUISUPPORTQT_EXPORT vtkQtDebugLeaksView : public QWidget
 public:
 
   vtkQtDebugLeaksView(QWidget *p=0);
-  virtual ~vtkQtDebugLeaksView();
+  ~vtkQtDebugLeaksView() override;
 
   vtkQtDebugLeaksModel* model();
 

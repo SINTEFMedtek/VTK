@@ -43,13 +43,13 @@ class VTKIOIMAGE_EXPORT vtkPNMReader : public vtkImageReader
 public:
   static vtkPNMReader *New();
   vtkTypeMacro(vtkPNMReader,vtkImageReader);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
-  int CanReadFile(const char* fname);
+  int CanReadFile(const char* fname) override;
   /**
    * .pnm .pgm .ppm
    */
-  virtual const char* GetFileExtensions()
+  const char* GetFileExtensions() override
   {
       return ".pnm .pgm .ppm";
   }
@@ -57,18 +57,18 @@ public:
   /**
    * PNM
    */
-  virtual const char* GetDescriptiveName()
+  const char* GetDescriptiveName() override
   {
       return "PNM";
   }
 
 protected:
   vtkPNMReader() {}
-  ~vtkPNMReader() {}
-  void ExecuteInformation();
+  ~vtkPNMReader() override {}
+  void ExecuteInformation() override;
 private:
-  vtkPNMReader(const vtkPNMReader&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPNMReader&) VTK_DELETE_FUNCTION;
+  vtkPNMReader(const vtkPNMReader&) = delete;
+  void operator=(const vtkPNMReader&) = delete;
 };
 
 #endif

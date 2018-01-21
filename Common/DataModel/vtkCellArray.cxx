@@ -29,8 +29,8 @@ vtkCellArray::vtkCellArray()
 //----------------------------------------------------------------------------
 void vtkCellArray::DeepCopy (vtkCellArray *ca)
 {
-  // Do nothing on a NULL input.
-  if (ca == NULL)
+  // Do nothing on a nullptr input.
+  if (ca == nullptr)
   {
     return;
   }
@@ -61,7 +61,8 @@ void vtkCellArray::Initialize()
 // defining the cell.
 int vtkCellArray::GetMaxCellSize()
 {
-  int i, npts=0, maxSize=0;
+  int npts=0, maxSize=0;
+  vtkIdType i;
 
   for (i=0; i<this->Ia->GetMaxId(); i+=(npts+1))
   {

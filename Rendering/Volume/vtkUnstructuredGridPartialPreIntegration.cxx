@@ -100,7 +100,7 @@ void vtkPartialPreIntegrationTransferFunction::GetTransferFunction(
     color->GetColor(x1, rgb);
     vtkMath::RGBToHSV(rgb, hsv);
     hue1 = hsv[0];
-    for (i++; i != cpset.end(); i++)
+    for (++i; i != cpset.end(); ++i)
     {
       x2 = *i;
       color->GetColor(x2, rgb);
@@ -302,8 +302,8 @@ int vtkUnstructuredGridPartialPreIntegration::PsiTableBuilt = 0;
 
 vtkUnstructuredGridPartialPreIntegration::vtkUnstructuredGridPartialPreIntegration()
 {
-  this->Property = NULL;
-  this->TransferFunctions = NULL;
+  this->Property = nullptr;
+  this->TransferFunctions = nullptr;
   this->NumIndependentComponents = 0;
 }
 
@@ -418,7 +418,7 @@ void vtkUnstructuredGridPartialPreIntegration::Integrate(
       for (int j = 0; j < numscalars; j++)
       {
         std::vector<double> &cp = this->TransferFunctions[j].ControlPoints;
-        vtkIdType numcp = cp.size();
+        vtkIdType numcp = static_cast<vtkIdType>(cp.size());
         double minscalar, maxscalar;
         if (nearScalars[j] < farScalars[j])
         {
@@ -443,7 +443,7 @@ void vtkUnstructuredGridPartialPreIntegration::Integrate(
       // integrate each piece.
       std::set<double>::iterator segi = segments.begin();
       double nearInterpolant = *segi;
-      for (segi++; segi != segments.end(); segi++)
+      for (++segi; segi != segments.end(); ++segi)
       {
         double farInterpolant = *segi;
         double nearcolor[4] = {0.0, 0.0, 0.0, 0.0};

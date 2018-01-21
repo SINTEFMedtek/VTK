@@ -36,7 +36,7 @@ class VTKIMAGINGSTENCIL_EXPORT vtkImageStencilToImage : public vtkImageAlgorithm
 public:
   static vtkImageStencilToImage *New();
   vtkTypeMacro(vtkImageStencilToImage, vtkImageAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -79,25 +79,25 @@ public:
 
 protected:
   vtkImageStencilToImage();
-  ~vtkImageStencilToImage();
+  ~vtkImageStencilToImage() override;
 
-  virtual int RequestInformation(vtkInformation *,
+  int RequestInformation(vtkInformation *,
                                  vtkInformationVector **,
-                                 vtkInformationVector *);
+                                 vtkInformationVector *) override;
 
-  virtual int RequestData(vtkInformation *,
+  int RequestData(vtkInformation *,
                           vtkInformationVector **,
-                          vtkInformationVector *);
+                          vtkInformationVector *) override;
 
   double OutsideValue;
   double InsideValue;
   int OutputScalarType;
 
-  virtual int FillInputPortInformation(int, vtkInformation*);
+  int FillInputPortInformation(int, vtkInformation*) override;
 
 private:
-  vtkImageStencilToImage(const vtkImageStencilToImage&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkImageStencilToImage&) VTK_DELETE_FUNCTION;
+  vtkImageStencilToImage(const vtkImageStencilToImage&) = delete;
+  void operator=(const vtkImageStencilToImage&) = delete;
 };
 
 #endif

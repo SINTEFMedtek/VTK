@@ -18,7 +18,7 @@
  *
  *
  * Class to handle non-contiguous data transfers of data described
- * by pixel extents within a process. For transfering data between
+ * by pixel extents within a process. For transferring data between
  * processes see vtkPPixelTransfer.
  *
  * @sa
@@ -165,7 +165,7 @@ int vtkPixelTransfer::Blit(
        int nDestComps,
        DEST_TYPE *destData)
 {
-  if ( (srcData == NULL) || (destData == NULL) )
+  if ( (srcData == nullptr) || (destData == nullptr) )
   {
     return -1;
   }

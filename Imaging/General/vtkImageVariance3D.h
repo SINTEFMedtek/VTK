@@ -38,7 +38,7 @@ class VTKIMAGINGGENERAL_EXPORT vtkImageVariance3D : public vtkImageSpatialAlgori
 public:
   static vtkImageVariance3D *New();
   vtkTypeMacro(vtkImageVariance3D,vtkImageSpatialAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * This method sets the size of the neighborhood.  It also sets the default
@@ -48,26 +48,26 @@ public:
 
 protected:
   vtkImageVariance3D();
-  ~vtkImageVariance3D();
+  ~vtkImageVariance3D() override;
 
   vtkImageEllipsoidSource *Ellipse;
 
-  virtual int RequestInformation (vtkInformation *request,
+  int RequestInformation (vtkInformation *request,
                                   vtkInformationVector **inputVector,
-                                  vtkInformationVector *outputVector);
+                                  vtkInformationVector *outputVector) override;
 
   void ThreadedRequestData(vtkInformation *request,
                            vtkInformationVector **inputVector,
                            vtkInformationVector *outputVector,
                            vtkImageData ***inData, vtkImageData **outData,
-                           int extent[6], int id);
-  virtual int RequestData(vtkInformation *request,
+                           int extent[6], int id) override;
+  int RequestData(vtkInformation *request,
                           vtkInformationVector **inputVector,
-                          vtkInformationVector *outputVector);
+                          vtkInformationVector *outputVector) override;
 
 private:
-  vtkImageVariance3D(const vtkImageVariance3D&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkImageVariance3D&) VTK_DELETE_FUNCTION;
+  vtkImageVariance3D(const vtkImageVariance3D&) = delete;
+  void operator=(const vtkImageVariance3D&) = delete;
 };
 
 #endif

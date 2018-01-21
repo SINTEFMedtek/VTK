@@ -38,7 +38,7 @@ class VTKRENDERINGCONTEXT2D_EXPORT vtkMarkerUtilities : public vtkObject
 {
 public:
   vtkTypeMacro(vtkMarkerUtilities, vtkObject);
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
   /**
    * Enum containing various marker styles that can be used in a plot.
@@ -59,11 +59,11 @@ public:
 
 protected:
   vtkMarkerUtilities();
-  ~vtkMarkerUtilities();
+  ~vtkMarkerUtilities() override;
 
 private:
-  vtkMarkerUtilities(const vtkMarkerUtilities &) VTK_DELETE_FUNCTION;
-  void operator=(const vtkMarkerUtilities &) VTK_DELETE_FUNCTION;
+  vtkMarkerUtilities(const vtkMarkerUtilities &) = delete;
+  void operator=(const vtkMarkerUtilities &) = delete;
 
 };
 

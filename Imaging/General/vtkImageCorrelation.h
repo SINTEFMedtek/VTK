@@ -37,7 +37,7 @@ class VTKIMAGINGGENERAL_EXPORT vtkImageCorrelation : public vtkThreadedImageAlgo
 public:
   static vtkImageCorrelation *New();
   vtkTypeMacro(vtkImageCorrelation,vtkThreadedImageAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -60,26 +60,26 @@ public:
 
 protected:
   vtkImageCorrelation();
-  ~vtkImageCorrelation() {}
+  ~vtkImageCorrelation() override {}
 
   int Dimensionality;
-  virtual int RequestInformation (vtkInformation *,
+  int RequestInformation (vtkInformation *,
                                   vtkInformationVector **,
-                                  vtkInformationVector *);
-  virtual int RequestUpdateExtent(vtkInformation*,
+                                  vtkInformationVector *) override;
+  int RequestUpdateExtent(vtkInformation*,
                                    vtkInformationVector**,
-                                   vtkInformationVector*);
+                                   vtkInformationVector*) override;
 
-  virtual void ThreadedRequestData(vtkInformation *request,
+  void ThreadedRequestData(vtkInformation *request,
                                    vtkInformationVector **inputVector,
                                    vtkInformationVector *outputVector,
                                    vtkImageData ***inData,
                                    vtkImageData **outData,
-                                   int extent[6], int threadId);
+                                   int extent[6], int threadId) override;
 
 private:
-  vtkImageCorrelation(const vtkImageCorrelation&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkImageCorrelation&) VTK_DELETE_FUNCTION;
+  vtkImageCorrelation(const vtkImageCorrelation&) = delete;
+  void operator=(const vtkImageCorrelation&) = delete;
 };
 
 #endif

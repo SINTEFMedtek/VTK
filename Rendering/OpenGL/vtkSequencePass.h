@@ -40,20 +40,20 @@ class VTKRENDERINGOPENGL_EXPORT vtkSequencePass : public vtkRenderPass
 public:
   static vtkSequencePass *New();
   vtkTypeMacro(vtkSequencePass,vtkRenderPass);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Perform rendering according to a render state \p s.
    * \pre s_exists: s!=0
    */
-  virtual void Render(const vtkRenderState *s);
+  void Render(const vtkRenderState *s) override;
 
   /**
    * Release graphics resources and ask components to release their own
    * resources.
    * \pre w_exists: w!=0
    */
-  virtual void ReleaseGraphicsResources(vtkWindow *w);
+  void ReleaseGraphicsResources(vtkWindow *w) override;
 
   //@{
   /**
@@ -70,11 +70,11 @@ protected:
   vtkRenderPassCollection *Passes;
 
   vtkSequencePass();
-  virtual ~vtkSequencePass();
+  ~vtkSequencePass() override;
 
 private:
-  vtkSequencePass(const vtkSequencePass&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkSequencePass&) VTK_DELETE_FUNCTION;
+  vtkSequencePass(const vtkSequencePass&) = delete;
+  void operator=(const vtkSequencePass&) = delete;
 };
 
 #endif

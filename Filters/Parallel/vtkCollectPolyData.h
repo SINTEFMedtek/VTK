@@ -34,11 +34,11 @@ class VTKFILTERSPARALLEL_EXPORT vtkCollectPolyData : public vtkPolyDataAlgorithm
 public:
   static vtkCollectPolyData *New();
   vtkTypeMacro(vtkCollectPolyData, vtkPolyDataAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
-   * By defualt this filter uses the global controller,
+   * By default this filter uses the global controller,
    * but this method can be used to set another instead.
    */
   virtual void SetController(vtkMultiProcessController*);
@@ -66,20 +66,20 @@ public:
 
 protected:
   vtkCollectPolyData();
-  ~vtkCollectPolyData();
+  ~vtkCollectPolyData() override;
 
   int PassThrough;
 
   // Data generation method
-  virtual int RequestUpdateExtent(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-  virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+  int RequestUpdateExtent(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
+  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
 
   vtkMultiProcessController *Controller;
   vtkSocketController *SocketController;
 
 private:
-  vtkCollectPolyData(const vtkCollectPolyData&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkCollectPolyData&) VTK_DELETE_FUNCTION;
+  vtkCollectPolyData(const vtkCollectPolyData&) = delete;
+  void operator=(const vtkCollectPolyData&) = delete;
 };
 
 #endif

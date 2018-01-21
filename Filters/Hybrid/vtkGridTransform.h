@@ -44,7 +44,7 @@ class VTKFILTERSHYBRID_EXPORT vtkGridTransform : public vtkWarpTransform
 public:
   static vtkGridTransform *New();
   vtkTypeMacro(vtkGridTransform,vtkWarpTransform);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -99,47 +99,47 @@ public:
   /**
    * Make another transform of the same type.
    */
-  vtkAbstractTransform *MakeTransform();
+  vtkAbstractTransform *MakeTransform() override;
 
   /**
    * Get the MTime.
    */
-  vtkMTimeType GetMTime();
+  vtkMTimeType GetMTime() override;
 
 protected:
   vtkGridTransform();
-  ~vtkGridTransform();
+  ~vtkGridTransform() override;
 
   /**
    * Update the displacement grid.
    */
-  void InternalUpdate();
+  void InternalUpdate() override;
 
   /**
    * Copy this transform from another of the same type.
    */
-  void InternalDeepCopy(vtkAbstractTransform *transform);
+  void InternalDeepCopy(vtkAbstractTransform *transform) override;
 
   //@{
   /**
    * Internal functions for calculating the transformation.
    */
-  void ForwardTransformPoint(const float in[3], float out[3]);
-  void ForwardTransformPoint(const double in[3], double out[3]);
+  void ForwardTransformPoint(const float in[3], float out[3]) override;
+  void ForwardTransformPoint(const double in[3], double out[3]) override;
   //@}
 
   void ForwardTransformDerivative(const float in[3], float out[3],
-                                  float derivative[3][3]);
+                                  float derivative[3][3]) override;
   void ForwardTransformDerivative(const double in[3], double out[3],
-                                  double derivative[3][3]);
+                                  double derivative[3][3]) override;
 
-  void InverseTransformPoint(const float in[3], float out[3]);
-  void InverseTransformPoint(const double in[3], double out[3]);
+  void InverseTransformPoint(const float in[3], float out[3]) override;
+  void InverseTransformPoint(const double in[3], double out[3]) override;
 
   void InverseTransformDerivative(const float in[3], float out[3],
-                                  float derivative[3][3]);
+                                  float derivative[3][3]) override;
   void InverseTransformDerivative(const double in[3], double out[3],
-                                  double derivative[3][3]);
+                                  double derivative[3][3]) override;
 
   void (*InterpolationFunction)(double point[3], double displacement[3],
                                 double derivatives[3][3],
@@ -158,8 +158,8 @@ protected:
   vtkIdType GridIncrements[3];
 
 private:
-  vtkGridTransform(const vtkGridTransform&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkGridTransform&) VTK_DELETE_FUNCTION;
+  vtkGridTransform(const vtkGridTransform&) = delete;
+  void operator=(const vtkGridTransform&) = delete;
 
   vtkGridTransformConnectionHolder* ConnectionHolder;
 };

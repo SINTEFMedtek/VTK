@@ -33,7 +33,7 @@
 #include <string>
 #include <math.h>
 #include <algorithm>
-#if defined(__BORLANDC__)
+#if defined(__BORLANDC__) && (__BORLANDC__ < 0x660)
 #include <mem.h> // for memcpy
 #endif
 
@@ -103,7 +103,7 @@ DICOMAppHelper::DICOMAppHelper()
   this->TransferSyntaxUID = new dicom_stl::string();
   this->RescaleOffset = 0.0;
   this->RescaleSlope = 1.0;
-  this->ImageData = NULL;
+  this->ImageData = nullptr;
   this->ImageDataLengthInBytes = 0;
   this->PatientName = new dicom_stl::string();
   this->StudyUID = new dicom_stl::string();
@@ -339,14 +339,14 @@ void DICOMAppHelper::OutputSeries()
 
   for (dicom_stl::map<dicom_stl::string, dicom_stl::vector<dicom_stl::string>, ltstdstr >::iterator iter = this->Implementation->SeriesUIDMap.begin();
        iter != this->Implementation->SeriesUIDMap.end();
-       iter++)
+       ++iter)
     {
     dicom_stream::cout << "SERIES: " << (*iter).first.c_str() << dicom_stream::endl;
     dicom_stl::vector<dicom_stl::string>& v_ref = (*iter).second;
 
     for (dicom_stl::vector<dicom_stl::string>::iterator v_iter = v_ref.begin();
          v_iter != v_ref.end();
-         v_iter++)
+         ++v_iter)
       {
       dicom_stl::map<dicom_stl::string, DICOMOrderingElements, ltstdstr>::iterator sn_iter = Implementation->SliceOrderingMap.find(*v_iter);
 
@@ -893,7 +893,7 @@ void DICOMAppHelper::PixelDataCallback( DICOMParser *,
   unsigned char* ucharInputData = data;
   short* shortInputData = reinterpret_cast<short*> (data);
 
-  float* floatOutputData; // = NULL;
+  float* floatOutputData; // = nullptr;
 
   bool isFloat = this->RescaledImageDataIsFloat();
 
@@ -1125,7 +1125,7 @@ void DICOMAppHelper::GetSliceNumberFilenamePairs(const dicom_stl::string &series
 
   for (dicom_stl::vector<dicom_stl::string>::iterator fileIter = files.begin();
        fileIter != files.end();
-       fileIter++)
+       ++fileIter)
        {
        dicom_stl::pair<int, dicom_stl::string> p;
        p.second = dicom_stl::string(*fileIter);
@@ -1179,7 +1179,7 @@ void DICOMAppHelper::GetSliceLocationFilenamePairs(const dicom_stl::string &seri
 
   for (dicom_stl::vector<dicom_stl::string>::iterator fileIter = files.begin();
        fileIter != files.end();
-       fileIter++)
+       ++fileIter)
        {
        dicom_stl::pair<float, dicom_stl::string> p;
        p.second = dicom_stl::string(*fileIter);
@@ -1233,7 +1233,7 @@ void DICOMAppHelper::GetImagePositionPatientFilenamePairs(const dicom_stl::strin
 
   for (dicom_stl::vector<dicom_stl::string>::iterator fileIter = files.begin();
        fileIter != files.end();
-       fileIter++)
+       ++fileIter)
        {
        dicom_stl::pair<float, dicom_stl::string> p;
        p.second = dicom_stl::string(*fileIter);

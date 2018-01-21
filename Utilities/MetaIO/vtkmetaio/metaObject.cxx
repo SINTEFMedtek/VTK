@@ -106,7 +106,7 @@ ClearFields()
   while( it != end )
     {
     MET_FieldRecordType* field = *it;
-    it++;
+    ++it;
 
     // Check if the pointer is not in one of the user's list
     bool exists = false;
@@ -119,7 +119,7 @@ ClearFields()
         exists = true;
         break;
         }
-      it2++;
+      ++it2;
     }
 
     if(!exists)
@@ -133,7 +133,7 @@ ClearFields()
           exists = true;
           break;
           }
-        it2++;
+        ++it2;
       }
     }
 
@@ -156,7 +156,7 @@ void MetaObject
   while( it != end )
     {
     MET_FieldRecordType* field = *it;
-    it++;
+    ++it;
     delete field;
     }
 
@@ -179,10 +179,10 @@ void MetaObject
         deleted = true;
         break;
         }
-      it2++;
+      ++it2;
       }
 
-    it++;
+    ++it;
 
     if(!deleted)
       {
@@ -536,8 +536,8 @@ PrintInfo(void) const
       }
     METAIO_STREAM::cout << METAIO_STREAM::endl;
 
-    itw++;
-    itr++;
+    ++itw;
+    ++itr;
     }
   }
 
@@ -830,14 +830,13 @@ DistanceUnits(const char * _distanceUnits)
 const char * MetaObject::
 AnatomicalOrientationAcronym(void) const
   {
-  static char str[10];
   int i;
   for(i=0; i<m_NDims; i++)
     {
-    str[i] = MET_OrientationTypeName[m_AnatomicalOrientation[i]][0];
+    m_OrientationAcronym[i] = MET_OrientationTypeName[m_AnatomicalOrientation[i]][0];
     }
-  str[i] = '\0';
-  return str;
+  m_OrientationAcronym[i] = '\0';
+  return m_OrientationAcronym;
   }
 
 const MET_OrientationEnumType * MetaObject::
@@ -1203,7 +1202,7 @@ M_SetupReadFields(void)
   m_Fields.push_back(mF);
 
   mF = new MET_FieldRecordType;
-  MET_InitReadField(mF, "CompressedDataSize", MET_FLOAT, false);
+  MET_InitReadField(mF, "CompressedDataSize", MET_ULONG_LONG, false);
   m_Fields.push_back(mF);
 
   mF = new MET_FieldRecordType;
@@ -1277,7 +1276,7 @@ M_SetupReadFields(void)
   while( it != end )
     {
     m_Fields.push_back(*it);
-    it++;
+    ++it;
     }
 
 
@@ -1404,7 +1403,7 @@ M_SetupWriteFields(void)
       if(m_WriteCompressedDataSize && m_CompressedDataSize>0)
         {
         mF = new MET_FieldRecordType;
-        MET_InitWriteField(mF, "CompressedDataSize", MET_UINT,
+        MET_InitWriteField(mF, "CompressedDataSize", MET_ULONG_LONG,
                            static_cast<double>(m_CompressedDataSize));
         m_Fields.push_back(mF);
         }
@@ -1484,7 +1483,7 @@ M_SetupWriteFields(void)
   while( it != end )
     {
     m_Fields.push_back(*it);
-    it++;
+    ++it;
     }
   }
 
@@ -1578,7 +1577,7 @@ M_Read(void)
   mF = MET_GetFieldRecord("CompressedDataSize",  &m_Fields);
   if(mF && mF->defined)
     {
-    m_CompressedDataSize = (unsigned int)mF->value[0];
+    m_CompressedDataSize = (unsigned long long)mF->value[0];
     }
 
   mF = MET_GetFieldRecord("BinaryData",  &m_Fields);
@@ -1779,7 +1778,7 @@ M_Read(void)
      FieldsContainerType::iterator dup;
      for(dup = m_UserDefinedWriteFields.begin();
          dup != m_UserDefinedWriteFields.end();
-         dup++)
+         ++dup)
        {
        if( (*dup) == mF )
          {
@@ -1790,7 +1789,7 @@ M_Read(void)
        {
        m_UserDefinedWriteFields.push_back(mF);
        }
-     it++;
+     ++it;
    }
 
   return true;
@@ -1906,7 +1905,7 @@ void* MetaObject
         }
       return out;
       }
-    it++;
+    ++it;
   }
   return NULL;
 }

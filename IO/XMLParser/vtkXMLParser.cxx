@@ -15,19 +15,21 @@
 #include "vtkXMLParser.h"
 #include "vtkObjectFactory.h"
 #include "vtk_expat.h"
+
+#include <vtksys/SystemTools.hxx>
+
 #include <cctype>
-#include <sys/stat.h>
 
 vtkStandardNewMacro(vtkXMLParser);
 
 //----------------------------------------------------------------------------
 vtkXMLParser::vtkXMLParser()
 {
-  this->Stream            = 0;
-  this->Parser            = 0;
-  this->FileName          = 0;
-  this->Encoding          = 0;
-  this->InputString       = 0;
+  this->Stream            = nullptr;
+  this->Parser            = nullptr;
+  this->FileName          = nullptr;
+  this->Encoding          = nullptr;
+  this->InputString       = nullptr;
   this->InputStringLength = 0;
   this->ParseError        = 0;
   this->IgnoreCharacterData = 0;
@@ -36,9 +38,9 @@ vtkXMLParser::vtkXMLParser()
 //----------------------------------------------------------------------------
 vtkXMLParser::~vtkXMLParser()
 {
-  this->SetStream(0);
-  this->SetFileName(0);
-  this->SetEncoding(0);
+  this->SetStream(nullptr);
+  this->SetFileName(nullptr);
+  this->SetEncoding(nullptr);
 }
 
 //----------------------------------------------------------------------------
@@ -102,7 +104,7 @@ int vtkXMLParser::Parse(const char* inputString)
   this->InputString = inputString;
   this->InputStringLength = -1;
   int result = this->Parse();
-  this->InputString = 0;
+  this->InputString = nullptr;
   return result;
 }
 
@@ -112,7 +114,7 @@ int vtkXMLParser::Parse(const char* inputString, unsigned int length)
   this->InputString = inputString;
   this->InputStringLength = length;
   int result = this->Parse();
-  this->InputString = 0;
+  this->InputString = nullptr;
   this->InputStringLength = -1;
   return result;
 }
@@ -126,8 +128,8 @@ int vtkXMLParser::Parse()
   if ( !this->InputString && !this->Stream && this->FileName )
   {
     // If it is file, open it and set the appropriate stream
-    struct stat fs;
-    if (stat(this->FileName, &fs) != 0)
+    vtksys::SystemTools::Stat_t fs;
+    if (vtksys::SystemTools::Stat(this->FileName, &fs) != 0)
     {
       vtkErrorMacro("Cannot open XML file: " << this->FileName);
       return 0;
@@ -158,7 +160,7 @@ int vtkXMLParser::Parse()
   }
   else
   {
-    XML_SetCharacterDataHandler(static_cast<XML_Parser>(this->Parser), NULL);
+    XML_SetCharacterDataHandler(static_cast<XML_Parser>(this->Parser), nullptr);
   }
   XML_SetUserData(static_cast<XML_Parser>(this->Parser), this);
 
@@ -177,12 +179,12 @@ int vtkXMLParser::Parse()
 
   // Clean up the parser.
   XML_ParserFree(static_cast<XML_Parser>(this->Parser));
-  this->Parser = 0;
+  this->Parser = nullptr;
 
   // If the source was a file, reset the stream
   if ( this->Stream == &ifs )
   {
-    this->Stream = 0;
+    this->Stream = nullptr;
   }
 
   return result;
@@ -222,7 +224,7 @@ int vtkXMLParser::InitializeParser()
   }
   else
   {
-    XML_SetCharacterDataHandler(static_cast<XML_Parser>(this->Parser), NULL);
+    XML_SetCharacterDataHandler(static_cast<XML_Parser>(this->Parser), nullptr);
   }
   XML_SetUserData(static_cast<XML_Parser>(this->Parser), this);
   this->ParseError = 0;
@@ -269,7 +271,7 @@ int vtkXMLParser::CleanupParser()
 
   // Clean up the parser.
   XML_ParserFree(static_cast<XML_Parser>(this->Parser));
-  this->Parser = 0;
+  this->Parser = nullptr;
 
   return result;
 }

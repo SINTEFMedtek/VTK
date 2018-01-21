@@ -43,7 +43,7 @@ class VTKFILTERSSMP_EXPORT vtkSMPMergePoints : public vtkMergePoints
 public:
   vtkTypeMacro(vtkSMPMergePoints, vtkMergePoints);
   static vtkSMPMergePoints* New();
-  void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
   /**
    * This should be called from 1 thread before any call to Merge.
@@ -85,7 +85,7 @@ public:
 
   //@{
   /**
-   * Retuns the number of points in a bin.
+   * Returns the number of points in a bin.
    */
   vtkIdType GetNumberOfIdsInBucket(vtkIdType idx)
   {
@@ -99,22 +99,22 @@ public:
   //@}
 
   /**
-   * Retuns the number of bins.
+   * Returns the number of bins.
    */
-  vtkIdType GetNumberOfBuckets()
+  vtkIdType GetNumberOfBuckets() override
   {
     return this->NumberOfBuckets;
   }
 
 protected:
   vtkSMPMergePoints();
-  ~vtkSMPMergePoints();
+  ~vtkSMPMergePoints() override;
 
   vtkAtomicIdType AtomicInsertionId;
 
 private:
-  vtkSMPMergePoints(const vtkSMPMergePoints&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkSMPMergePoints&) VTK_DELETE_FUNCTION;
+  vtkSMPMergePoints(const vtkSMPMergePoints&) = delete;
+  void operator=(const vtkSMPMergePoints&) = delete;
 };
 
 #endif // vtkSMPMergePoints_h

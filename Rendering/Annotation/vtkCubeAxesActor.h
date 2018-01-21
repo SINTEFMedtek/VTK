@@ -68,7 +68,7 @@ class VTKRENDERINGANNOTATION_EXPORT vtkCubeAxesActor : public vtkActor
 {
 public:
   vtkTypeMacro(vtkCubeAxesActor,vtkActor);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Instantiate object with label format "6.3g" and the number of labels
@@ -80,11 +80,11 @@ public:
   /**
    * Draw the axes as per the vtkProp superclass' API.
    */
-  virtual int RenderOpaqueGeometry(vtkViewport*);
+  int RenderOpaqueGeometry(vtkViewport*) override;
   virtual int RenderTranslucentGeometry(vtkViewport*);
-  virtual int RenderTranslucentPolygonalGeometry(vtkViewport*);
-  virtual int RenderOverlay(vtkViewport*);
-  int HasTranslucentPolygonalGeometry();
+  int RenderTranslucentPolygonalGeometry(vtkViewport*) override;
+  int RenderOverlay(vtkViewport*) override;
+  int HasTranslucentPolygonalGeometry() override;
   //@}
 
   //@{
@@ -103,7 +103,8 @@ public:
    * sure that the min's are less than the max's.
    */
   vtkSetVector6Macro(Bounds,double);
-  vtkGetVector6Macro(Bounds,double);
+  using Superclass::GetBounds;
+  double *GetBounds() override { return this->Bounds; }
   //@}
 
   //@{
@@ -264,7 +265,7 @@ public:
    * The parameter window could be used to determine which graphic
    * resources to release.
    */
-  void ReleaseGraphicsResources(vtkWindow *);
+  void ReleaseGraphicsResources(vtkWindow *) override;
 
   //@{
   /**
@@ -548,7 +549,7 @@ public:
 
   //@{
   /**
-   * Provide a custom AxisOrigin. This point must be inside the bouding box and
+   * Provide a custom AxisOrigin. This point must be inside the bounding box and
    * will represent the point where the 3 axes will interesect
    */
   vtkSetVector3Macro(AxisOrigin,double);
@@ -604,7 +605,7 @@ public:
 
 protected:
   vtkCubeAxesActor();
-  ~vtkCubeAxesActor();
+  ~vtkCubeAxesActor() override;
 
   /**
    * Computes a bounding sphere used to determine the sticky bounding box.
@@ -646,8 +647,6 @@ protected:
   int GetNumTicks( double range, double fxt);
 
   void UpdateLabels(vtkAxisActor **axis, int index);
-
-  double Bounds[6]; //Define bounds explicitly
 
   vtkCamera *Camera;
 
@@ -704,7 +703,7 @@ protected:
   int EnableViewAngleLOD;
 
   /**
-   * This determines at what view angle to geometry will make the geometry not visibile.
+   * This determines at what view angle to geometry will make the geometry not visible.
    * Default is 0.3.
    */
   double ViewAngleLODThreshold;
@@ -811,8 +810,8 @@ protected:
   double AxisBaseForZ[3];
 
 private:
-  vtkCubeAxesActor(const vtkCubeAxesActor&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkCubeAxesActor&) VTK_DELETE_FUNCTION;
+  vtkCubeAxesActor(const vtkCubeAxesActor&) = delete;
+  void operator=(const vtkCubeAxesActor&) = delete;
 
   vtkSetStringMacro(ActualXLabel);
   vtkSetStringMacro(ActualYLabel);

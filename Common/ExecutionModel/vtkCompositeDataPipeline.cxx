@@ -17,6 +17,7 @@ PURPOSE.  See the above copyright notice for more information.
 #include "vtkAlgorithm.h"
 #include "vtkAlgorithmOutput.h"
 #include "vtkCompositeDataIterator.h"
+#include "vtkFieldData.h"
 #include "vtkImageData.h"
 #include "vtkInformationDoubleKey.h"
 #include "vtkInformationExecutivePortKey.h"
@@ -56,7 +57,10 @@ vtkCompositeDataPipeline::vtkCompositeDataPipeline()
 
   this->GenericRequest = vtkInformation::New();
 
-  this->DataObjectRequest = vtkInformation::New();
+  if (!this->DataObjectRequest)
+  {
+    this->DataObjectRequest = vtkInformation::New();
+  }
   this->DataObjectRequest->Set(vtkDemandDrivenPipeline::REQUEST_DATA_OBJECT());
   // The request is forwarded upstream through the pipeline.
   this->DataObjectRequest->Set(
@@ -72,16 +76,10 @@ vtkCompositeDataPipeline::vtkCompositeDataPipeline()
   // Algorithms process this request after it is forwarded.
   this->InformationRequest->Set(vtkExecutive::ALGORITHM_AFTER_FORWARD(), 1);
 
-  this->UpdateExtentRequest = vtkInformation::New();
-  this->UpdateExtentRequest->Set(
-    vtkStreamingDemandDrivenPipeline::REQUEST_UPDATE_EXTENT());
-  // The request is forwarded upstream through the pipeline.
-  this->UpdateExtentRequest->Set(
-    vtkExecutive::FORWARD_DIRECTION(), vtkExecutive::RequestUpstream);
-  // Algorithms process this request before it is forwarded.
-  this->UpdateExtentRequest->Set(vtkExecutive::ALGORITHM_BEFORE_FORWARD(), 1);
-
-  this->DataRequest = vtkInformation::New();
+  if (!this->DataRequest)
+  {
+    this->DataRequest = vtkInformation::New();
+  }
   this->DataRequest->Set(REQUEST_DATA());
   // The request is forwarded upstream through the pipeline.
   this->DataRequest->Set(
@@ -96,10 +94,7 @@ vtkCompositeDataPipeline::~vtkCompositeDataPipeline()
   this->InformationCache->Delete();
 
   this->GenericRequest->Delete();
-  this->DataObjectRequest->Delete();
   this->InformationRequest->Delete();
-  this->UpdateExtentRequest->Delete();
-  this->DataRequest->Delete();
 }
 
 //----------------------------------------------------------------------------
@@ -168,7 +163,7 @@ int vtkCompositeDataPipeline::ExecuteData(vtkInformation* request,
     }
     else
     {
-       vtkErrorMacro("Can not execute simple alorithm without output ports");
+       vtkErrorMacro("Can not execute simple algorithm without output ports");
        return 0;
     }
   }
@@ -235,6 +230,7 @@ bool vtkCompositeDataPipeline::ShouldIterateOverInput(vtkInformationVector** inI
         // the filter upstream will iterate
 
         if (strcmp(inputType, "vtkCompositeDataSet") == 0 ||
+            strcmp(inputType, "vtkDataObjectTree") == 0 ||
             strcmp(inputType, "vtkHierarchicalBoxDataSet") == 0 ||
             strcmp(inputType, "vtkOverlappingAMR") == 0 ||
             strcmp(inputType, "vtkNonOverlappingAMR") == 0 ||
@@ -327,7 +323,7 @@ void vtkCompositeDataPipeline::ExecuteSimpleAlgorithm(
 
   this->ExecuteDataStart(request,inInfoVec,outInfoVec);
 
-  vtkInformation* outInfo = 0;
+  vtkInformation* outInfo = nullptr;
 
   if (this->GetNumberOfOutputPorts() > 0)
   {
@@ -366,6 +362,10 @@ void vtkCompositeDataPipeline::ExecuteSimpleAlgorithm(
   {
     compositeOutput->PrepareForNewData();
     compositeOutput->CopyStructure(input);
+    if (input && input->GetFieldData())
+    {
+      compositeOutput->GetFieldData()->PassData(input->GetFieldData());
+    }
 
     vtkSmartPointer<vtkInformation> r =
       vtkSmartPointer<vtkInformation>::New();
@@ -438,7 +438,7 @@ vtkDataObject* vtkCompositeDataPipeline::ExecuteSimpleAlgorithmForBlock(
   {
     vtkErrorMacro("ExecuteSimpleAlgorithmForBlock cannot be called "
       "for a vtkCompositeDataSet");
-    return 0;
+    return nullptr;
   }
 
   // There must be a bug somehwere. If this Remove()
@@ -520,7 +520,7 @@ vtkDataObject* vtkCompositeDataPipeline::ExecuteSimpleAlgorithmForBlock(
   vtkDataObject* output = outInfo->Get(vtkDataObject::DATA_OBJECT());
   if (!output)
   {
-    return 0;
+    return nullptr;
   }
   vtkDataObject* outputCopy = output->NewInstance();
   outputCopy->ShallowCopy(output);
@@ -695,7 +695,7 @@ int vtkCompositeDataPipeline::ForwardUpstream(vtkInformation* request)
     {
       vtkInformation* info = inVector->GetInformationObject(j);
       // Get the executive producing this input.  If there is none, then
-      // it is a NULL input.
+      // it is a nullptr input.
       vtkExecutive* e;
       int producerPort;
       vtkExecutive::PRODUCER()->Get(info, e, producerPort);
@@ -938,12 +938,12 @@ vtkDataObject* vtkCompositeDataPipeline::GetCompositeInputData(
 {
   if (!inInfoVec[port])
   {
-    return 0;
+    return nullptr;
   }
   vtkInformation *info = inInfoVec[port]->GetInformationObject(index);
   if (!info)
   {
-    return 0;
+    return nullptr;
   }
   return info->Get(vtkDataObject::DATA_OBJECT());
 }
@@ -953,20 +953,20 @@ vtkDataObject* vtkCompositeDataPipeline::GetCompositeOutputData(int port)
 {
   if(!this->OutputPortIndexInRange(port, "get data for"))
   {
-    return 0;
+    return nullptr;
   }
 
   // Check that the given output port has a valid data object.
   vtkDebugMacro(<< "GetCompositeOutputData calling CheckCompositeData ");
 
-  this->CheckCompositeData(0, port, this->GetInputInformation(), this->GetOutputInformation());
+  this->CheckCompositeData(nullptr, port, this->GetInputInformation(), this->GetOutputInformation());
 
   // Return the data object.
   if(vtkInformation* info = this->GetOutputInformation(port))
   {
     return info->Get(vtkDataObject::DATA_OBJECT());
   }
-  return 0;
+  return nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -1049,7 +1049,7 @@ void vtkCompositeDataPipeline::MarkOutputsGenerated(
         size_t count = outInfo->Length(UPDATE_COMPOSITE_INDICES());
         int* indices = new int[count];
         // assume the source produced the blocks it was asked for:
-        // the indices recieved are what was requested
+        // the indices received are what was requested
         outInfo->Get(UPDATE_COMPOSITE_INDICES(),indices);
         outInfo->Set(DATA_COMPOSITE_INDICES(), indices,
           static_cast<int>(count));

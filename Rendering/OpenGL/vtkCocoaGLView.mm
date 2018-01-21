@@ -202,11 +202,7 @@ static const char *vtkMacKeyCodeToKeySymTable[128] = {
   // first responder.
   NSPoint windowLoc = [[self window] mouseLocationOutsideOfEventStream];
   NSPoint viewLoc = [self convertPoint:windowLoc fromView:nil];
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1070
   NSPoint backingLoc = [self convertPointToBacking:viewLoc];
-#else
-  NSPoint backingLoc = viewLoc;
-#endif
 
   NSUInteger flags = [theEvent modifierFlags];
   int shiftDown = ((flags & NSEventModifierFlagShift) != 0);
@@ -306,11 +302,7 @@ static const char *vtkMacKeyCodeToKeySymTable[128] = {
   // left corner. Since this is a mouse event, we can use locationInWindow.
   NSPoint windowLoc = [theEvent locationInWindow];
   NSPoint viewLoc = [self convertPoint:windowLoc fromView:nil];
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1070
   NSPoint backingLoc = [self convertPointToBacking:viewLoc];
-#else
-  NSPoint backingLoc = viewLoc;
-#endif
 
   NSUInteger flags = [theEvent modifierFlags];
   int shiftDown = ((flags & NSEventModifierFlagShift) != 0);
@@ -342,11 +334,7 @@ static const char *vtkMacKeyCodeToKeySymTable[128] = {
   // left corner. Since this is a mouse event, we can use locationInWindow.
   NSPoint windowLoc = [theEvent locationInWindow];
   NSPoint viewLoc = [self convertPoint:windowLoc fromView:nil];
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1070
   NSPoint backingLoc = [self convertPointToBacking:viewLoc];
-#else
-  NSPoint backingLoc = viewLoc;
-#endif
 
   int clickCount = static_cast<int>([theEvent clickCount]);
   int repeatCount = ((clickCount > 1) ? clickCount - 1 : 0);
@@ -519,6 +507,45 @@ static const char *vtkMacKeyCodeToKeySymTable[128] = {
 {
   [self invokeVTKButtonEvent:vtkCommand::MiddleButtonReleaseEvent
                   cocoaEvent:theEvent];
+}
+
+//----------------------------------------------------------------------------
+// Private
+- (void)modifyDPIForBackingScaleFactorOfWindow:(/*nullable*/ NSWindow *)window
+{
+  if (window)
+  {
+    CGFloat backingScaleFactor = [window backingScaleFactor];
+    assert(backingScaleFactor >= 1.0);
+
+    vtkCocoaRenderWindow *renderWindow = [self getVTKRenderWindow];
+    if (renderWindow)
+    {
+      // Ordinarily, DPI is hardcoded to 72, but in order for vtkTextActors
+      // to have the correct apparent size, we adjust it per the NSWindow's
+      // scaling factor.
+      renderWindow->SetDPI(lround(72.0 * backingScaleFactor));
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
+// Overridden (from NSView).
+- (void)viewWillMoveToWindow:(/*nullable*/ NSWindow*)inNewWindow
+{
+  [super viewWillMoveToWindow:inNewWindow];
+
+  [self modifyDPIForBackingScaleFactorOfWindow:inNewWindow];
+}
+
+//----------------------------------------------------------------------------
+// Overridden (from NSView).
+- (void)viewDidChangeBackingProperties
+{
+  [super viewDidChangeBackingProperties];
+
+  NSWindow *window = [self window];
+  [self modifyDPIForBackingScaleFactorOfWindow:window];
 }
 
 @end

@@ -92,7 +92,7 @@ int TestCellPickerImage(int argc, char* argv[])
     imageMapper->SetInputConnection(reader->GetOutputPort());
     imageMapper->SliceAtFocalPointOn();
 
-    double *bounds = imageMapper->GetBounds();
+    const double *bounds = imageMapper->GetBounds();
     double point[3];
     point[0] = 0.5*(bounds[0] + bounds[1]);
     point[1] = 0.5*(bounds[2] + bounds[3]);
@@ -164,12 +164,12 @@ int TestCellPickerImage(int argc, char* argv[])
     double p[3], n[3];
     picker->GetPickPosition(p);
     picker->GetPickNormal(n);
-    if (vtkImageSlice::SafeDownCast(picker->GetProp3D()) == 0)
+    if (vtkImageSlice::SafeDownCast(picker->GetProp3D()) == nullptr)
     {
       cerr << "Pick did not get an image.\n";
       pickSuccess = false;
     }
-    if (vtkImageSliceMapper::SafeDownCast(picker->GetMapper()) == 0)
+    if (vtkImageSliceMapper::SafeDownCast(picker->GetMapper()) == nullptr)
     {
       cerr << "Pick did not get a mapper.\n";
       pickSuccess = false;

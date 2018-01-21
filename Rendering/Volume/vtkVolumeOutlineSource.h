@@ -40,7 +40,7 @@ class VTKRENDERINGVOLUME_EXPORT vtkVolumeOutlineSource : public vtkPolyDataAlgor
 public:
   static vtkVolumeOutlineSource *New();
   vtkTypeMacro(vtkVolumeOutlineSource,vtkPolyDataAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -116,7 +116,7 @@ public:
 
 protected:
   vtkVolumeOutlineSource();
-  ~vtkVolumeOutlineSource();
+  ~vtkVolumeOutlineSource() override;
 
   vtkVolumeMapper *VolumeMapper;
   int GenerateScalars;
@@ -162,23 +162,23 @@ protected:
   static void CreateColorValues(unsigned char colors[2][3],
                                 double color1[3], double color2[3]);
 
-  virtual int ComputePipelineMTime(vtkInformation* request,
+  int ComputePipelineMTime(vtkInformation* request,
                                    vtkInformationVector** inputVector,
                                    vtkInformationVector* outputVector,
                                    int requestFromOutputPort,
-                                   vtkMTimeType* mtime);
+                                   vtkMTimeType* mtime) override;
 
-  virtual int RequestInformation(vtkInformation* request,
+  int RequestInformation(vtkInformation* request,
                                  vtkInformationVector** inputVector,
-                                 vtkInformationVector* outputVector);
+                                 vtkInformationVector* outputVector) override;
 
-  virtual int RequestData(vtkInformation* request,
+  int RequestData(vtkInformation* request,
                           vtkInformationVector** inputVector,
-                          vtkInformationVector* outputVector);
+                          vtkInformationVector* outputVector) override;
 
 private:
-  vtkVolumeOutlineSource(const vtkVolumeOutlineSource&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkVolumeOutlineSource&) VTK_DELETE_FUNCTION;
+  vtkVolumeOutlineSource(const vtkVolumeOutlineSource&) = delete;
+  void operator=(const vtkVolumeOutlineSource&) = delete;
 };
 
 #endif

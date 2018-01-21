@@ -34,22 +34,36 @@ class VTKIMAGINGCORE_EXPORT vtkImageResample : public vtkImageReslice
 public:
   static vtkImageResample *New();
   vtkTypeMacro(vtkImageResample,vtkImageReslice);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
+  //@{
   /**
    * Set desired spacing.
    * Zero is a reserved value indicating spacing has not been set.
    */
+  void SetOutputSpacing(double sx, double sy, double sz) override;
+  void SetOutputSpacing(const double spacing[3]) override {
+    this->SetOutputSpacing(spacing[0], spacing[1], spacing[2]); }
   void SetAxisOutputSpacing(int axis, double spacing);
+  //@}
 
   //@{
   /**
    * Set/Get Magnification factors.
    * Zero is a reserved value indicating values have not been computed.
    */
+  void SetMagnificationFactors(double fx, double fy, double fz);
+  void SetMagnificationFactors(const double f[3]) {
+    this->SetMagnificationFactors(f[0], f[1], f[2]); }
+  vtkGetVector3Macro(MagnificationFactors, double);
   void SetAxisMagnificationFactor(int axis, double factor);
-  double GetAxisMagnificationFactor(int axis, vtkInformation *inInfo=0);
   //@}
+
+  /**
+   * Get the computed magnification factor for a specific axis.
+   * The input information is required to compute the value.
+   */
+  double GetAxisMagnificationFactor(int axis, vtkInformation *inInfo=nullptr);
 
   //@{
   /**
@@ -64,17 +78,18 @@ public:
 
 protected:
   vtkImageResample();
-  ~vtkImageResample() {}
+  ~vtkImageResample() override {}
 
   double MagnificationFactors[3];
-  double OutputSpacing[3];
   int Dimensionality;
 
-  virtual int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+  int RequestInformation(vtkInformation *,
+                                 vtkInformationVector **,
+                                 vtkInformationVector *) override;
 
 private:
-  vtkImageResample(const vtkImageResample&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkImageResample&) VTK_DELETE_FUNCTION;
+  vtkImageResample(const vtkImageResample&) = delete;
+  void operator=(const vtkImageResample&) = delete;
 };
 
 #endif

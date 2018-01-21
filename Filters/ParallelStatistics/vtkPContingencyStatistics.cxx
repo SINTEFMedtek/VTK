@@ -17,9 +17,6 @@
   Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
   the U.S. Government retains certain rights in this software.
   -------------------------------------------------------------------------*/
-#if defined(_MSC_VER)
-#pragma warning (disable:4503)
-#endif
 
 #include "vtkToolkits.h"
 
@@ -260,10 +257,10 @@ void vtkPContingencyStatistics::Learn( vtkTable* inData,
   vtkIdType rProc = 0;
 
   // (All) gather all xy and kc sizes
-  vtkIdType xySize_l = xyPacked_l.size();
+  vtkIdType xySize_l = static_cast<vtkIdType>(xyPacked_l.size());
   vtkIdType* xySize_g = new vtkIdType[np];
 
-  vtkIdType kcSize_l = kcValues_l.size();
+  vtkIdType kcSize_l = static_cast<vtkIdType>(kcValues_l.size());
   vtkIdType* kcSize_g = new vtkIdType[np];
 
   com->AllGather( &xySize_l,
@@ -511,8 +508,8 @@ bool vtkPContingencyStatistics::Reduce( vtkIdType& xySizeTotal,
   StringVectorToStringBuffer( xyValues_l, xyPacked_l );
 
   // Last, update xy and kc buffer sizes (which have changed because of the reduction)
-  xySizeTotal = xyPacked_l.size();
-  kcSizeTotal = kcValues_l.size();
+  xySizeTotal = static_cast<vtkIdType>(xyPacked_l.size());
+  kcSizeTotal = static_cast<vtkIdType>(kcValues_l.size());
 
   return false;
 }

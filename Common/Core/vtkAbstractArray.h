@@ -76,7 +76,7 @@ class VTKCOMMONCORE_EXPORT vtkAbstractArray : public vtkObject
 {
 public:
   vtkTypeMacro(vtkAbstractArray,vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Allocate memory for this array. Delete old storage only if necessary.
@@ -95,9 +95,9 @@ public:
 
   /**
    * Return the underlying data type. An integer indicating data type is
-   * returned as specified in vtkSetGet.h.
+   * returned as specified in vtkType.h.
    */
-  virtual int GetDataType() =0;
+  virtual int GetDataType() = 0;
 
   //@{
   /**
@@ -330,7 +330,8 @@ public:
   enum DeleteMethod
   {
     VTK_DATA_ARRAY_FREE,
-    VTK_DATA_ARRAY_DELETE
+    VTK_DATA_ARRAY_DELETE,
+    VTK_DATA_ARRAY_ALIGNED_FREE
   };
 
   //@{
@@ -342,8 +343,11 @@ public:
    * actual array provided; it does not copy the data from the supplied
    * array. If specified, the delete method determines how the data array
    * will be deallocated. If the delete method is VTK_DATA_ARRAY_FREE, free()
-   * will be used. If the delete method is DELETE, delete[] will be used. The
-   * default is FREE. (Note not all subclasses can support deleteMethod.)
+   * will be used. If the delete method is VTK_DATA_ARRAY_DELETE, delete[]
+   * will be used. If the delete method is VTK_DATA_ARRAY_ALIGNED_FREE
+   * _aligned_free() will be used on windows, while free() will be used
+   * everywhere else.The default is FREE.
+   * (Note not all subclasses can support deleteMethod.)
    */
   virtual void SetVoidArray(void *vtkNotUsed(array),
                             vtkIdType vtkNotUsed(size),
@@ -431,19 +435,22 @@ public:
   /**
    * Retrieve value from the array as a variant.
    */
-  virtual vtkVariant GetVariantValue(vtkIdType valueIdx);
+  virtual vtkVariant GetVariantValue(vtkIdType valueIdx)
+    VTK_EXPECTS(0 <= valueIdx && valueIdx < GetNumberOfValues());
 
   /**
    * Insert a value into the array from a variant.  This method does
    * bounds checking.
    */
-  virtual void InsertVariantValue(vtkIdType valueIdx, vtkVariant value) = 0;
+  virtual void InsertVariantValue(vtkIdType valueIdx, vtkVariant value)
+    VTK_EXPECTS(0 <= valueIdx) = 0;
 
   /**
    * Set a value in the array from a variant.  This method does NOT do
    * bounds checking.
    */
-  virtual void SetVariantValue(vtkIdType valueIdx, vtkVariant value) = 0;
+  virtual void SetVariantValue(vtkIdType valueIdx, vtkVariant value)
+    VTK_EXPECTS(0 <= valueIdx && valueIdx < GetNumberOfValues()) = 0;
 
   /**
    * Tell the array explicitly that the data has changed.
@@ -533,7 +540,7 @@ public:
    * Inquire if this array has an instance of vtkInformation
    * already associated with it.
    */
-  bool HasInformation(){ return this->Information!=0; }
+  bool HasInformation(){ return this->Information!=nullptr; }
 
   /**
    * Copy information instance. Arrays use information objects
@@ -564,11 +571,28 @@ public:
    * {VTK_DOUBLE_MAX, VTK_DOUBLE_MIN} or (2) call ComputeUniqueValues(component)
    * and ComputeRange(component) <b>before</b> modifying the information object.
    * Otherwise it is possible for modifications to the array to take place
-   * without the bounds on the component being updated since the modification
-   * time of the vtkInformation object is used to determine when the
-   * COMPONENT_RANGE values are out of date.
+   * without the bounds on the component being updated.
    */
   static vtkInformationInformationVectorKey* PER_COMPONENT();
+
+  /**
+   * This key is used to hold a vector of COMPONENT_VALUES (and, for
+   * vtkDataArray subclasses, COMPONENT_RANGE) keys -- one
+   * for each component of the array.  You may add additional per-component
+   * key-value pairs to information objects in this vector. However if you
+   * do so, you must be sure to either (1) set COMPONENT_VALUES to
+   * an invalid variant and set COMPONENT_RANGE to
+   * {VTK_DOUBLE_MAX, VTK_DOUBLE_MIN} or (2) call ComputeUniqueValues(component)
+   * and ComputeFiniteRange(component) <b>before</b> modifying the information object.
+   * Otherwise it is possible for modifications to the array to take place
+   * without the bounds on the component being updated.
+   */
+  static vtkInformationInformationVectorKey* PER_FINITE_COMPONENT();
+
+  /**
+   * Removes out-of-date PER_COMPONENT() and PER_FINITE_COMPONENT() values.
+   */
+  void Modified() override;
 
   /**
    * A key used to hold discrete values taken on either by the tuples of the
@@ -623,7 +647,7 @@ public:
 protected:
   // Construct object with default tuple dimension (number of components) of 1.
   vtkAbstractArray();
-  ~vtkAbstractArray() VTK_OVERRIDE;
+  ~vtkAbstractArray() override;
 
   /**
    * Set an information object that can be used to annotate the array.
@@ -662,8 +686,8 @@ protected:
   vtkInternalComponentNames* ComponentNames; //names for each component
 
 private:
-  vtkAbstractArray(const vtkAbstractArray&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkAbstractArray&) VTK_DELETE_FUNCTION;
+  vtkAbstractArray(const vtkAbstractArray&) = delete;
+  void operator=(const vtkAbstractArray&) = delete;
 };
 
 //@{

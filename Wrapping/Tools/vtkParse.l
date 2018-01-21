@@ -7,20 +7,15 @@ This file must be translated to C and modified to build everywhere.
 
 Run flex like this:
 
-  flex --nodefault -olex.yy.c vtkParse.l
+  flex --nodefault --noline -olex.yy.c vtkParse.l
 
 Modify lex.yy.c:
-  - convert tabs to spaces (8 spaces per tab)
+  - convert tabs to spaces (2 spaces per tab)
   - remove extra space from end of lines
   - remove blank lines from end of file
-  - replace "int yyl;" with "yy_size_t yyl;"
   - compile with gcc and "-Wsign-compare", there should be no warnings
-  - replace "#line" lines with blank lines
-  - remove usage of the "register" keyword
   - add a prototype for isatty
-  - fixed 2 cppcheck warnings about "checking if unsigned variable
-    is less than zero" around lines 3670 and 3683 by changing <= to ==
-
+  - remove unused struct yy_trans_info
 */
 
 /* We do not care of interactive mode */
@@ -52,38 +47,38 @@ Modify lex.yy.c:
  * then skip to the end of the line.
  * Return 0 if no match found.
  */
-static int skip_comment();
+static int skip_comment(void);
 static int skip_trailing_comment(const char *text, size_t l);
 static int skip_ahead_multi(const char *strings[]);
 static int skip_ahead_until(const char *text);
-static int skip_to_next_directive();
-static int skip_conditional_block();
+static int skip_to_next_directive(void);
+static int skip_conditional_block(void);
 
-static void doxygen_comment();
-static void doxygen_cpp_comment();
-static void doxygen_group_start();
-static void doxygen_group_end();
-static void vtk_comment();
-static void vtk_name_comment();
-static void vtk_section_comment();
-static void cpp_comment_line();
-static void blank_line();
+static void doxygen_comment(void);
+static void doxygen_cpp_comment(void);
+static void doxygen_group_start(void);
+static void doxygen_group_end(void);
+static void vtk_comment(void);
+static void vtk_name_comment(void);
+static void vtk_section_comment(void);
+static void cpp_comment_line(void);
+static void blank_line(void);
 
 static const char *raw_string(const char *begin);
 
 static void preprocessor_directive(const char *text, size_t l);
 static void print_preprocessor_error(int result, const char *cp, size_t n);
-static const char *get_macro_arguments();
+static char *get_macro_arguments(void);
 
-static void push_buffer();
-static int pop_buffer();
+static void push_buffer(void);
+static int pop_buffer(void);
 
 static void push_include(const char *filename);
-static void pop_include();
+static void pop_include(void);
 
 static void push_macro(MacroInfo *macro);
-static void pop_macro();
-static int in_macro();
+static void pop_macro(void);
+static int in_macro(void);
 
 %}
 
@@ -142,10 +137,9 @@ ID [a-zA-Z_\x80-\xff][0-9a-zA-Z_\x80-\xff]*
 {ID}"_EXPORT"  /* ignore EXPORT macros */
 
 "vtkNotUsed" { /* let the wrappers see the parameter */
-      const char *args = NULL;
-      const char *cp;
+      char *args = get_macro_arguments();
+      char *cp;
       size_t l = 0;
-      args = get_macro_arguments();
       if (args)
       {
         cp = args;
@@ -155,10 +149,10 @@ ID [a-zA-Z_\x80-\xff][0-9a-zA-Z_\x80-\xff]*
         if (l)
         {
           yylval.str = vtkstrndup(cp, l);
-          free((char *)args);
+          free(args);
           return(ID);
         }
-        free((char *)args);
+        free(args);
       }
     }
 
@@ -256,14 +250,6 @@ ID [a-zA-Z_\x80-\xff][0-9a-zA-Z_\x80-\xff]*
 "compl"         return('~');
 
 "vtkIdType"            return(IdType);
-"vtkSetMacro"          return(SetMacro);
-"vtkGetMacro"          return(GetMacro);
-"vtkSetStringMacro"    return(SetStringMacro);
-"vtkGetStringMacro"    return(GetStringMacro);
-"vtkSetClampMacro"     return(SetClampMacro);
-"vtkSetObjectMacro"    return(SetObjectMacro);
-"vtkGetObjectMacro"    return(GetObjectMacro);
-"vtkBooleanMacro"      return(BooleanMacro);
 "vtkSetVector2Macro"   return(SetVector2Macro);
 "vtkSetVector3Macro"   return(SetVector3Macro);
 "vtkSetVector4Macro"   return(SetVector4Macro);
@@ -276,10 +262,6 @@ ID [a-zA-Z_\x80-\xff][0-9a-zA-Z_\x80-\xff]*
 "vtkGetVectorMacro"    return(GetVectorMacro);
 "vtkViewportCoordinateMacro" return(ViewportCoordinateMacro);
 "vtkWorldCoordinateMacro" return(WorldCoordinateMacro);
-"vtkExportedTypeMacro" return(TypeMacro);
-"vtkExportedTypeRevisionMacro" return(TypeMacro);
-"vtkTypeMacro"         return(TypeMacro);
-"vtkTypeRevisionMacro" return(TypeMacro);
 "VTK_WRAP_EXTERN"      ;
 "VTK_BYTE_SWAP_DECL"   return(VTK_BYTE_SWAP_DECL);
 "vtkTypeInt8"          return(TypeInt8);
@@ -378,6 +360,10 @@ ID [a-zA-Z_\x80-\xff][0-9a-zA-Z_\x80-\xff]*
 
 "_Noreturn"  /* C11 */
 
+"_Pragma"  get_macro_arguments(); /* C99 */
+
+"__pragma"  get_macro_arguments(); /* MSVC */
+
 "__attribute__"  get_macro_arguments(); /* gcc attributes */
 
 "__declspec"  get_macro_arguments(); /* Windows linkage */
@@ -389,7 +375,7 @@ ID [a-zA-Z_\x80-\xff][0-9a-zA-Z_\x80-\xff]*
 "__restrict" /* MSVC extension */
 
 "VTK_LEGACY" {
-      const char *args = get_macro_arguments();
+      char *args = get_macro_arguments();
       if (args && args[0] != '\0' && args[1] != '\0')
       {
         size_t l = strlen(args);
@@ -400,7 +386,7 @@ ID [a-zA-Z_\x80-\xff][0-9a-zA-Z_\x80-\xff]*
         macroEnded = 0;
         yy_switch_to_buffer(yy_scan_bytes(&args[1], l-2));
       }
-      free((char *)args);
+      free(args);
     }
 
 "nullptr" {
@@ -414,7 +400,7 @@ ID [a-zA-Z_\x80-\xff][0-9a-zA-Z_\x80-\xff]*
       int expanded = 0;
       if (macro)
       {
-        const char *args = NULL;
+        char *args = NULL;
         const char *emacro = NULL;
 
         /* make sure that vtkNotUsed is never expanded */
@@ -436,7 +422,7 @@ ID [a-zA-Z_\x80-\xff][0-9a-zA-Z_\x80-\xff]*
               print_preprocessor_error(VTK_PARSE_MACRO_NUMARGS, NULL, 0);
               exit(1);
             }
-            free((char *)args);
+            free(args);
           }
         }
         else if (macro->Definition && macro->Definition[0])
@@ -592,7 +578,7 @@ ID [a-zA-Z_\x80-\xff][0-9a-zA-Z_\x80-\xff]*
 /*
  * Return a parenthetical macro arg list as a new string.
  */
-const char *get_macro_arguments()
+char *get_macro_arguments()
 {
   char *cp = NULL;
   size_t i = 0;
@@ -1082,7 +1068,7 @@ void doxygen_comment()
   int savelineno = yylineno;
   int asterisk, isfirstline = 1;
   int type = DoxygenComment;
-  size_t l = 0, i = 0, base = yyleng;
+  int l = 0, i = 0, base = yyleng;
   int c1 = 0, c2 = input();
   for (l = 0; l < yyleng; l++)
   {
@@ -1174,7 +1160,7 @@ void doxygen_comment()
 void doxygen_cpp_comment()
 {
   int type = DoxygenComment;
-  size_t pos = 2;
+  int pos = 2;
   while (yytext[pos-2] != '/' || yytext[pos-1] != '/') pos++;
   while (pos < yyleng && yytext[pos-1] == '/' && yytext[pos] == '/') pos++;
   if (pos < yyleng && yytext[pos] == '!') pos++;
@@ -1217,7 +1203,7 @@ void vtk_comment()
  */
 void vtk_name_comment()
 {
-  size_t pos = 1;
+  int pos = 1;
   while (yytext[pos-1] != 'M' || yytext[pos] != 'E')
   {
     pos++;
@@ -1232,7 +1218,7 @@ void vtk_name_comment()
  */
 void vtk_section_comment()
 {
-  size_t pos = 1;
+  int pos = 1;
   while (yytext[pos-1] != 'O' || yytext[pos] != 'N')
   {
     pos++;
@@ -1271,7 +1257,7 @@ void vtk_section_comment()
  */
 void cpp_comment_line()
 {
-  size_t pos = 2;
+  int pos = 2;
   while (yytext[pos-2] != '/' || yytext[pos-1] != '/') pos++;
   addCommentLine(&yytext[pos], yyleng - pos, NormalComment);
 }

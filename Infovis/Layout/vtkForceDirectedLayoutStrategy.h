@@ -43,7 +43,7 @@ public:
   static vtkForceDirectedLayoutStrategy *New();
 
   vtkTypeMacro(vtkForceDirectedLayoutStrategy, vtkGraphLayoutStrategy);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -141,7 +141,7 @@ public:
    * This strategy sets up some data structures
    * for faster processing of each Layout() call
    */
-  virtual void Initialize();
+  void Initialize() override;
 
   /**
    * This is the layout method where the graph that was
@@ -150,17 +150,17 @@ public:
    * graph. If you have an iterative layout please implement
    * the IsLayoutComplete() method.
    */
-  virtual void Layout();
+  void Layout() override;
 
   /**
    * I'm an iterative layout so this method lets the caller
    * know if I'm done laying out the graph
    */
-  virtual int IsLayoutComplete() {return this->LayoutComplete;}
+  int IsLayoutComplete() override {return this->LayoutComplete;}
 
 protected:
   vtkForceDirectedLayoutStrategy();
-  ~vtkForceDirectedLayoutStrategy();
+  ~vtkForceDirectedLayoutStrategy() override;
 
   double GraphBounds[6];
   int   AutomaticBoundsComputation;  //Boolean controls automatic bounds calc.
@@ -195,8 +195,8 @@ private:
   vtkLayoutVertex *v;
   vtkLayoutEdge *e;
 
-  vtkForceDirectedLayoutStrategy(const vtkForceDirectedLayoutStrategy&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkForceDirectedLayoutStrategy&) VTK_DELETE_FUNCTION;
+  vtkForceDirectedLayoutStrategy(const vtkForceDirectedLayoutStrategy&) = delete;
+  void operator=(const vtkForceDirectedLayoutStrategy&) = delete;
 };
 
 #endif

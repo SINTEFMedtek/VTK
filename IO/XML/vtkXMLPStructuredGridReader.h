@@ -38,7 +38,7 @@ class VTKIOXML_EXPORT vtkXMLPStructuredGridReader : public vtkXMLPStructuredData
 {
 public:
   vtkTypeMacro(vtkXMLPStructuredGridReader,vtkXMLPStructuredDataReader);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   static vtkXMLPStructuredGridReader *New();
 
   /**
@@ -53,26 +53,26 @@ public:
 
 protected:
   vtkXMLPStructuredGridReader();
-  ~vtkXMLPStructuredGridReader();
+  ~vtkXMLPStructuredGridReader() override;
 
   vtkStructuredGrid* GetPieceInput(int index);
 
-  void SetupEmptyOutput();
-  const char* GetDataSetName();
-  void SetOutputExtent(int* extent);
-  void GetPieceInputExtent(int index, int* extent);
-  int ReadPrimaryElement(vtkXMLDataElement* ePrimary);
-  void SetupOutputData();
-  int ReadPieceData();
-  vtkXMLDataReader* CreatePieceReader();
-  virtual int FillOutputPortInformation(int, vtkInformation*);
+  void SetupEmptyOutput() override;
+  const char* GetDataSetName() override;
+  void SetOutputExtent(int* extent) override;
+  void GetPieceInputExtent(int index, int* extent) override;
+  int ReadPrimaryElement(vtkXMLDataElement* ePrimary) override;
+  void SetupOutputData() override;
+  int ReadPieceData() override;
+  vtkXMLDataReader* CreatePieceReader() override;
+  int FillOutputPortInformation(int, vtkInformation*) override;
 
   // The PPoints element with point information.
   vtkXMLDataElement* PPointsElement;
 
 private:
-  vtkXMLPStructuredGridReader(const vtkXMLPStructuredGridReader&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkXMLPStructuredGridReader&) VTK_DELETE_FUNCTION;
+  vtkXMLPStructuredGridReader(const vtkXMLPStructuredGridReader&) = delete;
+  void operator=(const vtkXMLPStructuredGridReader&) = delete;
 };
 
 #endif

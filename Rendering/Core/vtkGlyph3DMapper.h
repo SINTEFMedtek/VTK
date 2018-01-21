@@ -33,12 +33,15 @@
 #include "vtkGlyph3D.h" // for the constants (VTK_SCALE_BY_SCALAR, ...).
 #include "vtkWeakPointer.h" // needed for vtkWeakPointer.
 
+class vtkCompositeDataDisplayAttributes;
+class vtkDataObjectTree;
+
 class VTKRENDERINGCORE_EXPORT vtkGlyph3DMapper : public vtkMapper
 {
 public:
   static vtkGlyph3DMapper* New();
   vtkTypeMacro(vtkGlyph3DMapper, vtkMapper);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   enum ArrayIndexes
   {
@@ -71,6 +74,16 @@ public:
   void SetSourceData(int idx, vtkPolyData *pd);
 
   /**
+   * Specify a data object tree that will be used for the source table. Requires
+   * UseSourceTableTree to be true. The top-level nodes of the tree are mapped
+   * to the source data inputs.
+   *
+   * Must only contain vtkPolyData instances on the OpenGL backend. May contain
+   * vtkCompositeDataSets with vtkPolyData leaves on OpenGL2.
+   */
+  void SetSourceTableTree(vtkDataObjectTree *tree);
+
+  /**
    * Set the source to use for he glyph.
    * Note that this method does not connect the pipeline. The algorithm will
    * work on the input data as it is without updating the producer of the data.
@@ -82,6 +95,11 @@ public:
    * Get a pointer to a source object at a specified table location.
    */
   vtkPolyData *GetSource(int idx = 0);
+
+  /**
+   * Convenience method to get the source table tree, if it exists.
+   */
+  vtkDataObjectTree* GetSourceTableTree();
 
   //@{
   /**
@@ -192,6 +210,16 @@ public:
 
   //@{
   /**
+   * If true, and the glyph source dataset is a subclass of vtkDataObjectTree,
+   * the top-level members of the tree will be mapped to the glyph source table
+   * used for SourceIndexing.
+   */
+  vtkSetMacro(UseSourceTableTree, bool)
+  vtkGetMacro(UseSourceTableTree, bool)
+  vtkBooleanMacro(UseSourceTableTree, bool)
+
+  //@{
+  /**
    * Turn on/off custom selection ids. If enabled, the id values set with
    * SetSelectionIdArray are returned from pick events.
    */
@@ -203,17 +231,17 @@ public:
   /**
    * Redefined to take into account the bounds of the scaled glyphs.
    */
-  virtual double *GetBounds();
+  double *GetBounds() override;
 
   /**
    * Same as superclass. Appear again to stop warnings about hidden method.
    */
-  virtual void GetBounds(double bounds[6]);
+  void GetBounds(double bounds[6]) override;
 
   /**
    * All the work is done is derived classes.
    */
-  virtual void Render(vtkRenderer *ren, vtkActor *act);
+  void Render(vtkRenderer *ren, vtkActor *act) override;
 
   //@{
   /**
@@ -223,10 +251,13 @@ public:
    * in a parent display list.
    * Not relevant if immediate mode is on.
    * For debugging/profiling purpose. Initial value is true.
+   * @deprecated in 8.1. Only applicable for legacy OpenGL rendering
+   * backend which is also deprecated.
    */
-  vtkSetMacro(NestedDisplayLists, bool);
-  vtkGetMacro(NestedDisplayLists, bool);
-  vtkBooleanMacro(NestedDisplayLists, bool);
+  VTK_LEGACY(void SetNestedDisplayLists(bool));
+  VTK_LEGACY(bool GetNestedDisplayLists());
+  VTK_LEGACY(void NestedDisplayListsOn());
+  VTK_LEGACY(void NestedDisplayListsOff());
   //@}
 
   //@{
@@ -369,9 +400,16 @@ public:
 
   //@{
   /**
-   * Called by vtkGlyphSelectionRenderMode.
+   * When the input data object (not the source) is composite data,
+   * it is possible to control visibility and pickability on a per-block
+   * basis by passing the mapper a vtkCompositeDataDisplayAttributes instance.
+   * The color and opacity in the display-attributes instance are ignored
+   * for now. By default, the mapper does not own a display-attributes
+   * instance. The value of BlockAttributes has no effect when the input
+   * is a poly-data object.
    */
-  vtkSetMacro(SelectMode, int);
+  virtual void SetBlockAttributes(vtkCompositeDataDisplayAttributes* attr);
+  vtkGetObjectMacro(BlockAttributes, vtkCompositeDataDisplayAttributes);
   //@}
 
   /**
@@ -380,20 +418,21 @@ public:
    * Used by vtkHardwareSelector to determine if the prop supports hardware
    * selection.
    */
-  virtual bool GetSupportsSelection()
+  bool GetSupportsSelection() override
     { return true; }
 
 protected:
   vtkGlyph3DMapper();
-  ~vtkGlyph3DMapper();
+  ~vtkGlyph3DMapper() override;
 
   virtual int RequestUpdateExtent(vtkInformation *request,
     vtkInformationVector **inInfo,
     vtkInformationVector *outInfo);
 
-  virtual int FillInputPortInformation(int port, vtkInformation *info);
+  int FillInputPortInformation(int port, vtkInformation *info) override;
 
   vtkPolyData *GetSource(int idx, vtkInformationVector *sourceInfo);
+  vtkPolyData *GetSourceTable(int idx, vtkInformationVector *sourceInfo);
 
   //@{
   /**
@@ -407,6 +446,7 @@ protected:
   vtkUnsignedCharArray* GetColors(vtkDataSet* input);
   //@}
 
+  vtkCompositeDataDisplayAttributes* BlockAttributes;
   bool Scaling; // Determine whether scaling of geometry is performed
   double ScaleFactor; // Scale factor to use to scale geometry
   int ScaleMode; // Scale by scalar value or vector magnitude
@@ -418,14 +458,17 @@ protected:
   bool UseSelectionIds; // Enable/disable custom pick ids
   bool Masking; // Enable/disable masking.
   int OrientationMode;
+#if !defined(VTK_LEGACY_REMOVE)
   bool NestedDisplayLists; // boolean
+#endif
+
+  bool UseSourceTableTree; // Map DataObjectTree glyph source into table
 
   unsigned int SelectionColorId;
-  int SelectMode;
 
 private:
-  vtkGlyph3DMapper(const vtkGlyph3DMapper&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkGlyph3DMapper&) VTK_DELETE_FUNCTION;
+  vtkGlyph3DMapper(const vtkGlyph3DMapper&) = delete;
+  void operator=(const vtkGlyph3DMapper&) = delete;
 
   /**
    * Returns true when valid bounds are returned.

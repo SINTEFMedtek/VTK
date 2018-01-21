@@ -39,7 +39,7 @@ class VTKRENDERINGVOLUME_EXPORT vtkGPUVolumeRayCastMapper : public vtkVolumeMapp
 public:
   static vtkGPUVolumeRayCastMapper *New();
   vtkTypeMacro(vtkGPUVolumeRayCastMapper,vtkVolumeMapper);
-  void PrintSelf( ostream& os, vtkIndent indent );
+  void PrintSelf( ostream& os, vtkIndent indent ) override;
 
   //@{
   /**
@@ -332,7 +332,7 @@ public:
    * Initialize rendering for this volume.
    * \warning INTERNAL METHOD - NOT INTENDED FOR GENERAL USE
    */
-  void Render( vtkRenderer *, vtkVolume * );
+  void Render( vtkRenderer *, vtkVolume * ) override;
 
   /**
    * Handled in the subclass - the actual render method
@@ -346,7 +346,7 @@ public:
    * resources to release.
    * \warning INTERNAL METHOD - NOT INTENDED FOR GENERAL USE
    */
-  void ReleaseGraphicsResources(vtkWindow *) {}
+  void ReleaseGraphicsResources(vtkWindow *) override {}
 
   /**
    * Return how much the dataset has to be reduced in each dimension to
@@ -362,9 +362,40 @@ public:
    */
   virtual void GetReductionRatio(double ratio[3])=0;
 
+  enum TFRangeType
+  {
+    SCALAR = 0, // default
+    NATIVE
+  };
+
+  //@{
+  /**
+   * Set whether to use the scalar range or the native transfer function range
+   * when looking up transfer functions for color and opacity values. When the
+   * range is set to TransferFunctionRange::SCALAR, the function is distributed
+   * over the entire scalar range. If it is set to
+   * TransferFunctionRange::NATIVE, the scalar values outside the native
+   * transfer function range will be truncated to native range. By
+   * default, the volume scalar range is used.
+   *
+   * \note The native range of the transfer function is the range returned by
+   * vtkColorTransferFunction::GetRange() or vtkPiecewiseFunction::GetRange().
+   *
+   * \note There is no special API provided for 2D transfer functions
+   * considering that they are set as a pre-generated vtkImageData on this
+   * class i.e. the range is already encoded.
+   */
+  vtkSetMacro(ColorRangeType, int);
+  vtkGetMacro(ColorRangeType, int);
+  vtkSetMacro(ScalarOpacityRangeType, int);
+  vtkGetMacro(ScalarOpacityRangeType, int);
+  vtkSetMacro(GradientOpacityRangeType, int);
+  vtkGetMacro(GradientOpacityRangeType, int);
+  //@}
+
 protected:
   vtkGPUVolumeRayCastMapper();
-  ~vtkGPUVolumeRayCastMapper();
+  ~vtkGPUVolumeRayCastMapper() override;
 
   // Check to see that the render will be OK
   int ValidateRender( vtkRenderer *, vtkVolume * );
@@ -450,6 +481,11 @@ protected:
 
   int AMRMode;
 
+  // Transfer function range type
+  int ColorRangeType;
+  int ScalarOpacityRangeType;
+  int GradientOpacityRangeType;
+
   // Point data or cell data (or field data, not handled) ?
   int CellFlag;
 
@@ -486,9 +522,8 @@ protected:
   vtkImageData* LastInput;
 
 private:
-  vtkGPUVolumeRayCastMapper(const vtkGPUVolumeRayCastMapper&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkGPUVolumeRayCastMapper&) VTK_DELETE_FUNCTION;
+  vtkGPUVolumeRayCastMapper(const vtkGPUVolumeRayCastMapper&) = delete;
+  void operator=(const vtkGPUVolumeRayCastMapper&) = delete;
 };
 
 #endif
-

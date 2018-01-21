@@ -64,8 +64,6 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkPoints.h"
 
 #include <cctype>
-#include <sys/types.h>
-#include <sys/stat.h>
 
 #include <string>
 #include <vector>
@@ -77,11 +75,11 @@ vtkStandardNewMacro(vtkMNITransformReader);
 //-------------------------------------------------------------------------
 vtkMNITransformReader::vtkMNITransformReader()
 {
-  this->FileName = 0;
-  this->Transform = 0;
+  this->FileName = nullptr;
+  this->Transform = nullptr;
   this->Transforms = vtkCollection::New();
   this->LineNumber = 0;
-  this->Comments = 0;
+  this->Comments = nullptr;
 }
 
 //-------------------------------------------------------------------------
@@ -122,8 +120,8 @@ int vtkMNITransformReader::CanReadFile(const char* fname)
 {
   // First make sure the file exists.  This prevents an empty file
   // from being created on older compilers.
-  struct stat fs;
-  if(stat(fname, &fs) != 0)
+  vtksys::SystemTools::Stat_t fs;
+  if (vtksys::SystemTools::Stat(fname, &fs) != 0)
   {
     return 0;
   }
@@ -572,7 +570,7 @@ int vtkMNITransformReader::ReadThinPlateSplineTransform(
   {
     displacements->Delete();
     points->Delete();
-    vtkErrorMacro("Incorrect nubmer of Displacements in "
+    vtkErrorMacro("Incorrect number of Displacements in "
                   << this->FileName << ":" << this->LineNumber);
     return 0;
   }
@@ -738,7 +736,7 @@ int vtkMNITransformReader::ReadGridTransform(
   vtksys::SystemTools::SplitPath(filename, mincpath);
 
   // Join minc filename to this->FileName if filename is relative
-  if (mincpath[0] == "")
+  if (mincpath[0].empty())
   {
     xfmpath.pop_back();
     xfmpath.insert(xfmpath.end(), mincpath.begin()+1, mincpath.end());
@@ -835,7 +833,7 @@ int vtkMNITransformReader::ReadNextTransform(istream &infile, char linetext[256]
 int vtkMNITransformReader::ReadFile()
 {
   this->Transforms->RemoveAllItems();
-  this->SetTransform(0);
+  this->SetTransform(nullptr);
 
   // Check that the file name has been set.
   if (!this->FileName)
@@ -845,8 +843,8 @@ int vtkMNITransformReader::ReadFile()
   }
 
   // Make sure that the file exists.
-  struct stat fs;
-  if(stat(this->FileName, &fs) != 0)
+  vtksys::SystemTools::Stat_t fs;
+  if (vtksys::SystemTools::Stat(this->FileName, &fs) != 0)
   {
     vtkErrorMacro("ReadFile: Can't open file " << this->FileName);
     return 0;
@@ -1005,7 +1003,7 @@ vtkAbstractTransform *vtkMNITransformReader::GetNthTransform(int i)
 
   if (i < 0 || i >= this->Transforms->GetNumberOfItems())
   {
-    return 0;
+    return nullptr;
   }
 
   return (vtkAbstractTransform *)this->Transforms->GetItemAsObject(i);

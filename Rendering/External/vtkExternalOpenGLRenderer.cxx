@@ -19,7 +19,6 @@
 #include "vtkExternalLight.h"
 #include "vtkExternalOpenGLCamera.h"
 #include "vtkLightCollection.h"
-#include "vtkLightCollection.h"
 #include "vtkLight.h"
 #include "vtkMath.h"
 #include "vtkMatrix4x4.h"
@@ -47,7 +46,7 @@ vtkExternalOpenGLRenderer::vtkExternalOpenGLRenderer()
 vtkExternalOpenGLRenderer::~vtkExternalOpenGLRenderer()
 {
   this->ExternalLights->Delete();
-  this->ExternalLights = NULL;
+  this->ExternalLights = nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -75,7 +74,7 @@ void vtkExternalOpenGLRenderer::Render(void)
   camera->SetViewUp(newViewUp);
 
   // Synchronize camera position
-  double position[4] = {0.0, 0.0, 1.0, 1.0}, newPosition[4];
+  double position[4] = {0.0, 0.0, 0.0, 1.0}, newPosition[4];
   matrix->MultiplyPoint(position, newPosition);
 
   if (newPosition[3] != 0.0)
@@ -88,7 +87,7 @@ void vtkExternalOpenGLRenderer::Render(void)
   camera->SetPosition(newPosition);
 
   // Synchronize focal point
-  double focalPoint[4] = {0.0, 0.0, 0.0, 1.0}, newFocalPoint[4];
+  double focalPoint[4] = {0.0, 0.0, -1.0, 1.0}, newFocalPoint[4];
   matrix->MultiplyPoint(focalPoint, newFocalPoint);
   camera->SetFocalPoint(newFocalPoint);
 
@@ -106,10 +105,9 @@ void vtkExternalOpenGLRenderer::Render(void)
     glGetBooleanv(curLight, &status);
 
     int l_ind = static_cast<int> (curLight - GL_LIGHT0);
-    vtkLight* light = NULL;
     bool light_created = false;
-    light = vtkLight::SafeDownCast(
-              this->GetLights()->GetItemAsObject(l_ind));
+    vtkLight* light = vtkLight::SafeDownCast(
+                        this->GetLights()->GetItemAsObject(l_ind));
     if (light)
     {
       if (!status)
@@ -146,7 +144,7 @@ void vtkExternalOpenGLRenderer::Render(void)
     // light index.
     vtkCollectionSimpleIterator sit;
     vtkExternalLight* eLight;
-    vtkExternalLight* curExtLight = NULL;
+    vtkExternalLight* curExtLight = nullptr;
     for (this->ExternalLights->InitTraversal(sit);
          (eLight = vtkExternalLight::SafeDownCast(
           this->ExternalLights->GetNextLight(sit))); )

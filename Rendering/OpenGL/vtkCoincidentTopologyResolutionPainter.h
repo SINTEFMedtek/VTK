@@ -40,7 +40,7 @@ public:
   static vtkCoincidentTopologyResolutionPainter* New();
   vtkTypeMacro(vtkCoincidentTopologyResolutionPainter,
     vtkPolyDataPainter);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Set/Get a global flag that controls whether coincident topology (e.g., a
@@ -77,16 +77,16 @@ public:
 
 protected:
   vtkCoincidentTopologyResolutionPainter();
-  ~vtkCoincidentTopologyResolutionPainter();
+  ~vtkCoincidentTopologyResolutionPainter() override;
 
   /**
    * Called before RenderInternal() if the Information has been changed
    * since the last time this method was called.
    */
-  virtual void ProcessInformation(vtkInformation*);
+  void ProcessInformation(vtkInformation*) override;
 
   // These are method to set ivars. These are purpisefully protected.
-  // The only means to affect these values is thru information object.
+  // The only means to affect these values is through information object.
   vtkSetMacro(ResolveCoincidentTopology, int);
   vtkSetMacro(ZShift, double);
   vtkSetMacro(OffsetFaces, int);
@@ -108,8 +108,8 @@ protected:
   int OffsetFaces;
 
 private:
-  vtkCoincidentTopologyResolutionPainter(const vtkCoincidentTopologyResolutionPainter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkCoincidentTopologyResolutionPainter&) VTK_DELETE_FUNCTION;
+  vtkCoincidentTopologyResolutionPainter(const vtkCoincidentTopologyResolutionPainter&) = delete;
+  void operator=(const vtkCoincidentTopologyResolutionPainter&) = delete;
 };
 
 

@@ -36,12 +36,14 @@
 #include "vtkRenderingCoreModule.h" // For export macro
 #include "vtkPicker.h"
 
+class vtkDataSet;
+
 class VTKRENDERINGCORE_EXPORT vtkPointPicker : public vtkPicker
 {
 public:
   static vtkPointPicker *New();
   vtkTypeMacro(vtkPointPicker,vtkPicker);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -62,19 +64,26 @@ public:
 
 protected:
   vtkPointPicker();
-  ~vtkPointPicker() {}
+  ~vtkPointPicker() override {}
 
   vtkIdType PointId; //picked point
   int UseCells;  // Use cell points vs. points directly
 
   double IntersectWithLine(double p1[3], double p2[3], double tol,
                           vtkAssemblyPath *path, vtkProp3D *p,
-                          vtkAbstractMapper3D *m);
-  void Initialize();
+                          vtkAbstractMapper3D *m) override;
+  void Initialize() override;
 
+  vtkIdType IntersectDataSetWithLine(double p1[3], double ray[3],
+                                     double rayFactor, double tol,
+                                     vtkDataSet* dataSet,
+                                     double& tMin, double minXYZ[3]);
+  bool UpdateClosestPoint(double x[3], double p1[3],
+                          double ray[3], double rayFactor, double tol,
+                          double& tMin, double& distMin);
 private:
-  vtkPointPicker(const vtkPointPicker&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPointPicker&) VTK_DELETE_FUNCTION;
+  vtkPointPicker(const vtkPointPicker&) = delete;
+  void operator=(const vtkPointPicker&) = delete;
 };
 
 #endif

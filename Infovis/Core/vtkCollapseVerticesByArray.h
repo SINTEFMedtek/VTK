@@ -41,7 +41,7 @@ public:
     static vtkCollapseVerticesByArray* New();
     vtkTypeMacro(vtkCollapseVerticesByArray, vtkGraphAlgorithm);
 
-    void PrintSelf(ostream &os, vtkIndent indent);
+    void PrintSelf(ostream &os, vtkIndent indent) override;
 
     //@{
     /**
@@ -113,19 +113,19 @@ public:
 protected:
 
     vtkCollapseVerticesByArray();
-   ~vtkCollapseVerticesByArray();
+   ~vtkCollapseVerticesByArray() override;
 
    /**
     * Pipeline function.
     */
-   virtual int RequestData(vtkInformation* request,
+   int RequestData(vtkInformation* request,
                            vtkInformationVector** inputVector,
-                           vtkInformationVector* outputVector);
+                           vtkInformationVector* outputVector) override;
 
    /**
     * Pipeline function.
     */
-   virtual int FillOutputPortInformation(int port, vtkInformation* info);
+   int FillOutputPortInformation(int port, vtkInformation* info) override;
 
 
    /**
@@ -141,8 +141,8 @@ protected:
 
 private:
   //@{
-  vtkCollapseVerticesByArray(const vtkCollapseVerticesByArray&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkCollapseVerticesByArray&) VTK_DELETE_FUNCTION;
+  vtkCollapseVerticesByArray(const vtkCollapseVerticesByArray&) = delete;
+  void operator=(const vtkCollapseVerticesByArray&) = delete;
   //@}
 
 

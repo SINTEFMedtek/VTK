@@ -54,14 +54,14 @@ namespace {
 struct TestWorker
 {
   TestWorker()
-    : Array1(NULL), Array2(NULL), Array3(NULL)
+    : Array1(nullptr), Array2(nullptr), Array3(nullptr)
   {}
 
   void Reset()
   {
-    this->Array1 = NULL;
-    this->Array2 = NULL;
-    this->Array3 = NULL;
+    this->Array1 = nullptr;
+    this->Array2 = nullptr;
+    this->Array3 = nullptr;
   }
 
   template <typename Array1T>
@@ -164,8 +164,10 @@ inline bool isIntegral(int vtkType)
     case VTK_ID_TYPE:
     case VTK_LONG_LONG:
     case VTK_UNSIGNED_LONG_LONG:
+#if !defined(VTK_LEGACY_REMOVE)
     case VTK___INT64:
     case VTK_UNSIGNED___INT64:
+#endif
       return true;
   }
   return false;
@@ -239,7 +241,7 @@ int TestDispatchByArray()
     vtkDataArray *array = *it;
     testAssert(!dispatcher.Execute(array, worker),
                "Dispatch should have failed.");
-    testAssert(worker.Array1 == NULL, "Array 1 should be NULL.");
+    testAssert(worker.Array1 == nullptr, "Array 1 should be nullptr.");
     worker.Reset();
   }
 
@@ -270,7 +272,7 @@ int TestDispatchByValueType()
     {
       testAssert(!dispatcher.Execute(array, worker),
                  "Dispatch should have failed.");
-      testAssert(worker.Array1 == NULL, "Array 1 should be NULL.");
+      testAssert(worker.Array1 == nullptr, "Array 1 should be nullptr.");
     }
 
     worker.Reset();
@@ -318,8 +320,8 @@ int TestDispatch2ByArray()
       {
         testAssert(!dispatcher.Execute(array1, array2, worker),
                    "Dispatch should have failed.");
-        testAssert(worker.Array1 == NULL, "Array 1 should be NULL.");
-        testAssert(worker.Array2 == NULL, "Array 2 should be NULL.");
+        testAssert(worker.Array1 == nullptr, "Array 1 should be nullptr.");
+        testAssert(worker.Array2 == nullptr, "Array 2 should be nullptr.");
       }
 
       worker.Reset();
@@ -366,8 +368,8 @@ int TestDispatch2ByValueType()
       {
         testAssert(!dispatcher.Execute(array1, array2, worker),
                    "Dispatch should have failed.");
-        testAssert(worker.Array1 == NULL, "Array 1 should be NULL.");
-        testAssert(worker.Array2 == NULL, "Array 2 should be NULL.");
+        testAssert(worker.Array1 == nullptr, "Array 1 should be nullptr.");
+        testAssert(worker.Array2 == nullptr, "Array 2 should be nullptr.");
       }
 
       worker.Reset();
@@ -416,8 +418,8 @@ int TestDispatch2ByArrayWithSameValueType()
       {
         testAssert(!dispatcher.Execute(array1, array2, worker),
                    "Dispatch should have failed.");
-        testAssert(worker.Array1 == NULL, "Array 1 should be NULL.");
-        testAssert(worker.Array2 == NULL, "Array 2 should be NULL.");
+        testAssert(worker.Array1 == nullptr, "Array 1 should be nullptr.");
+        testAssert(worker.Array2 == nullptr, "Array 2 should be nullptr.");
       }
 
       worker.Reset();
@@ -464,8 +466,8 @@ int TestDispatch2BySameValueType()
       {
         testAssert(!dispatcher.Execute(array1, array2, worker),
                    "Dispatch should have failed.");
-        testAssert(worker.Array1 == NULL, "Array 1 should be NULL.");
-        testAssert(worker.Array2 == NULL, "Array 2 should be NULL.");
+        testAssert(worker.Array1 == nullptr, "Array 1 should be nullptr.");
+        testAssert(worker.Array2 == nullptr, "Array 2 should be nullptr.");
       }
 
       worker.Reset();
@@ -524,9 +526,9 @@ int TestDispatch3ByArray()
         {
           testAssert(!dispatcher.Execute(array1, array2, array3, worker),
                      "Dispatch should have failed.");
-          testAssert(worker.Array1 == NULL, "Array 1 should be NULL.");
-          testAssert(worker.Array2 == NULL, "Array 2 should be NULL.");
-          testAssert(worker.Array3 == NULL, "Array 3 should be NULL.");
+          testAssert(worker.Array1 == nullptr, "Array 1 should be nullptr.");
+          testAssert(worker.Array2 == nullptr, "Array 2 should be nullptr.");
+          testAssert(worker.Array3 == nullptr, "Array 3 should be nullptr.");
         }
 
         worker.Reset();
@@ -584,9 +586,9 @@ int TestDispatch3ByValueType()
         {
           testAssert(!dispatcher.Execute(array1, array2, array3, worker),
                      "Dispatch should have failed.");
-          testAssert(worker.Array1 == NULL, "Array 1 should be NULL.");
-          testAssert(worker.Array2 == NULL, "Array 2 should be NULL.");
-          testAssert(worker.Array3 == NULL, "Array 3 should be NULL.");
+          testAssert(worker.Array1 == nullptr, "Array 1 should be nullptr.");
+          testAssert(worker.Array2 == nullptr, "Array 2 should be nullptr.");
+          testAssert(worker.Array3 == nullptr, "Array 3 should be nullptr.");
         }
 
         worker.Reset();
@@ -648,9 +650,9 @@ int TestDispatch3ByArrayWithSameValueType()
         {
           testAssert(!dispatcher.Execute(array1, array2, array3, worker),
                      "Dispatch should have failed.");
-          testAssert(worker.Array1 == NULL, "Array 1 should be NULL.");
-          testAssert(worker.Array2 == NULL, "Array 2 should be NULL.");
-          testAssert(worker.Array3 == NULL, "Array 3 should be NULL.");
+          testAssert(worker.Array1 == nullptr, "Array 1 should be nullptr.");
+          testAssert(worker.Array2 == nullptr, "Array 2 should be nullptr.");
+          testAssert(worker.Array3 == nullptr, "Array 3 should be nullptr.");
         }
 
         worker.Reset();
@@ -708,9 +710,9 @@ int TestDispatch3BySameValueType()
         {
           testAssert(!dispatcher.Execute(array1, array2, array3, worker),
                      "Dispatch should have failed.");
-          testAssert(worker.Array1 == NULL, "Array 1 should be NULL.");
-          testAssert(worker.Array2 == NULL, "Array 2 should be NULL.");
-          testAssert(worker.Array3 == NULL, "Array 3 should be NULL.");
+          testAssert(worker.Array1 == nullptr, "Array 1 should be nullptr.");
+          testAssert(worker.Array2 == nullptr, "Array 2 should be nullptr.");
+          testAssert(worker.Array3 == nullptr, "Array 3 should be nullptr.");
         }
 
         worker.Reset();

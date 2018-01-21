@@ -40,7 +40,7 @@ class VTKINFOVISLAYOUT_EXPORT vtkEdgeLayout : public vtkGraphAlgorithm
 public:
   static vtkEdgeLayout *New();
   vtkTypeMacro(vtkEdgeLayout, vtkGraphAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -53,11 +53,11 @@ public:
   /**
    * Get the modification time of the layout algorithm.
    */
-  virtual vtkMTimeType GetMTime();
+  vtkMTimeType GetMTime() override;
 
 protected:
   vtkEdgeLayout();
-  ~vtkEdgeLayout();
+  ~vtkEdgeLayout() override;
 
   vtkEdgeLayoutStrategy* LayoutStrategy;
 
@@ -73,14 +73,14 @@ protected:
   int RequestData(
     vtkInformation *,
     vtkInformationVector **,
-    vtkInformationVector *);
+    vtkInformationVector *) override;
 
 private:
 
   vtkGraph *InternalGraph;
 
-  vtkEdgeLayout(const vtkEdgeLayout&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkEdgeLayout&) VTK_DELETE_FUNCTION;
+  vtkEdgeLayout(const vtkEdgeLayout&) = delete;
+  void operator=(const vtkEdgeLayout&) = delete;
 };
 
 #endif

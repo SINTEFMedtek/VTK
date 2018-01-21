@@ -69,7 +69,7 @@ public:
    * Standard methods for the class.
    */
   vtkTypeMacro(vtkTexturedButtonRepresentation2D,vtkButtonRepresentation);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   //@{
@@ -116,9 +116,9 @@ public:
   /**
    * Provide the necessary methods to satisfy the vtkWidgetRepresentation API.
    */
-  virtual int ComputeInteractionState(int X, int Y, int modify=0);
-  virtual void BuildRepresentation();
-  virtual void Highlight(int state);
+  int ComputeInteractionState(int X, int Y, int modify=0) override;
+  void BuildRepresentation() override;
+  void Highlight(int state) override;
   //@}
 
   /**
@@ -128,7 +128,7 @@ public:
    * set to zero. Note that PlaceWidget() is typically called at the end of configuring
    * the button representation.
    */
-  virtual void PlaceWidget(double bounds[6]);
+  void PlaceWidget(double bounds[6]) override;
 
   /**
    * This alternative PlaceWidget() method can be used to anchor the button
@@ -146,17 +146,17 @@ public:
   /**
    * Provide the necessary methods to satisfy the rendering API.
    */
-  virtual void ShallowCopy(vtkProp *prop);
-  virtual double *GetBounds();
-  virtual void GetActors(vtkPropCollection *pc);
-  virtual void ReleaseGraphicsResources(vtkWindow*);
-  virtual int RenderOverlay(vtkViewport*);
-  virtual int HasTranslucentPolygonalGeometry();
+  void ShallowCopy(vtkProp *prop) override;
+  double *GetBounds() override;
+  void GetActors(vtkPropCollection *pc) override;
+  void ReleaseGraphicsResources(vtkWindow*) override;
+  int RenderOverlay(vtkViewport*) override;
+  int HasTranslucentPolygonalGeometry() override;
   //@}
 
 protected:
   vtkTexturedButtonRepresentation2D();
-  ~vtkTexturedButtonRepresentation2D();
+  ~vtkTexturedButtonRepresentation2D() override;
 
   // Representing the button
   vtkBalloonRepresentation *Balloon;
@@ -175,8 +175,8 @@ protected:
   vtkCoordinate *Anchor;
 
 private:
-  vtkTexturedButtonRepresentation2D(const vtkTexturedButtonRepresentation2D&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkTexturedButtonRepresentation2D&) VTK_DELETE_FUNCTION;
+  vtkTexturedButtonRepresentation2D(const vtkTexturedButtonRepresentation2D&) = delete;
+  void operator=(const vtkTexturedButtonRepresentation2D&) = delete;
 };
 
 #endif

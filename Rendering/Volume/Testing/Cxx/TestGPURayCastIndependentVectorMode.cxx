@@ -14,11 +14,13 @@
 =========================================================================*/
 
 /** \description
- * Tests the vector rendering mode in vtkVolumeSmartMapper. VectorMode builds
+ * Tests vector rendering mode in vtkVolumeSmartMapper. VectorMode builds
  * on the independent component support provided by GPURayCastMapper. Each of
  * the components are considered independent vector components. To render the
  * vector's magnitude, an additional data array is computed through vtkImageMagnitude.
  * This test renders a component and the vector magnitude in two separate volumes.
+ * Each mapper switches modes and components to ensure the internal mapper's
+ * resources are managed correctly and no errors are generated.
  */
 
 #include "vtkCamera.h"
@@ -71,20 +73,20 @@ int TestGPURayCastIndependentVectorMode(int argc, char *argv[])
 
   vtkNew<vtkRenderer> ren;
   ren->SetBackground(0.3176, 0.3412, 0.4314);
-  renWin->AddRenderer(ren.GetPointer());
+  renWin->AddRenderer(ren);
 
   vtkNew<vtkRenderWindowInteractor> iren;
   vtkNew<vtkInteractorStyleTrackballCamera> style;
-  iren->SetInteractorStyle(style.GetPointer());
-  iren->SetRenderWindow(renWin.GetPointer());
+  iren->SetInteractorStyle(style);
+  iren->SetRenderWindow(renWin);
 
   renWin->Render();
 
-  // Volume render - Component
+  // Mapper 1 (final render as component)
   vtkNew<vtkSmartVolumeMapper> mapper;
   mapper->AutoAdjustSampleDistancesOff();
   mapper->SetSampleDistance(0.5);
-  mapper->SetInputData(image.GetPointer());
+  mapper->SetInputData(image);
 
   // TFs (known x values from V)
   vtkNew<vtkColorTransferFunction> ctf1;
@@ -99,22 +101,19 @@ int TestGPURayCastIndependentVectorMode(int argc, char *argv[])
 
   vtkNew<vtkVolumeProperty> property;
   property->IndependentComponentsOn();
-  property->SetColor(0, ctf1.GetPointer());
-  property->SetScalarOpacity(0, pf1.GetPointer());
+  property->SetColor(0, ctf1);
+  property->SetScalarOpacity(0, pf1);
 
   vtkNew<vtkVolume> volume;
-  volume->SetMapper(mapper.GetPointer());
-  volume->SetProperty(property.GetPointer());
-  ren->AddVolume(volume.GetPointer());
+  volume->SetMapper(mapper);
+  volume->SetProperty(property);
+  ren->AddVolume(volume);
 
-  mapper->SetVectorMode(vtkSmartVolumeMapper::COMPONENT);
-  mapper->SetVectorComponent(1);
-
-  // Volume render - Magnitude
+  // Mapper 2 (final render as magnitude)
   vtkNew<vtkSmartVolumeMapper> mapperMag;
   mapperMag->AutoAdjustSampleDistancesOff();
   mapperMag->SetSampleDistance(0.5);
-  mapperMag->SetInputData(image.GetPointer());
+  mapperMag->SetInputData(image);
 
   // TFs (known x values from V)
   vtkNew<vtkColorTransferFunction> ctf2;
@@ -128,23 +127,34 @@ int TestGPURayCastIndependentVectorMode(int argc, char *argv[])
   pf2->AddPoint(101, 1.0);
 
   vtkNew<vtkVolumeProperty> propertyMag;
-  propertyMag->SetColor(0, ctf2.GetPointer());
-  propertyMag->SetScalarOpacity(0, pf2.GetPointer());
+  propertyMag->SetColor(0, ctf2);
+  propertyMag->SetScalarOpacity(0, pf2);
 
   vtkNew<vtkVolume> volumeMag;
-  volumeMag->SetMapper(mapperMag.GetPointer());
-  volumeMag->SetProperty(propertyMag.GetPointer());
-  ren->AddVolume(volumeMag.GetPointer());
+  volumeMag->SetMapper(mapperMag);
+  volumeMag->SetProperty(propertyMag);
+  ren->AddVolume(volumeMag);
   volumeMag->SetPosition(20.0, 20.0, 0.0);
-
-  image->Modified();  /* force magnitude update */
-  mapperMag->SetVectorMode(vtkSmartVolumeMapper::MAGNITUDE);
-
-  // Render loop
   ren->ResetCamera();
+
+  // Switch between components and magnitude to ensure no errors
+  // are generated
+  mapper->SetVectorMode(vtkSmartVolumeMapper::COMPONENT);
+  mapper->SetVectorComponent(0);
+  mapperMag->SetVectorMode(vtkSmartVolumeMapper::MAGNITUDE);
   renWin->Render();
 
-  int retVal = vtkRegressionTestImage(renWin.GetPointer());
+  mapper->SetVectorMode(vtkSmartVolumeMapper::MAGNITUDE);
+  mapperMag->SetVectorMode(vtkSmartVolumeMapper::COMPONENT);
+  mapperMag->SetVectorComponent(2);
+  renWin->Render();
+
+  mapper->SetVectorMode(vtkSmartVolumeMapper::COMPONENT);
+  mapper->SetVectorComponent(1);
+  mapperMag->SetVectorMode(vtkSmartVolumeMapper::MAGNITUDE);
+  renWin->Render();
+
+  int retVal = vtkRegressionTestImage(renWin);
   if( retVal == vtkRegressionTester::DO_INTERACTOR)
   {
     iren->Start();

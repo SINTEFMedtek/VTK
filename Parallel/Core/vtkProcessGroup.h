@@ -56,7 +56,7 @@ class VTKPARALLELCORE_EXPORT vtkProcessGroup : public vtkObject
 public:
   vtkTypeMacro(vtkProcessGroup, vtkObject);
   static vtkProcessGroup *New();
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
   //@{
   /**
@@ -139,7 +139,7 @@ public:
 
 protected:
   vtkProcessGroup();
-  virtual ~vtkProcessGroup();
+  ~vtkProcessGroup() override;
 
   int *ProcessIds;
   int NumberOfProcessIds;
@@ -147,8 +147,8 @@ protected:
   vtkCommunicator *Communicator;
 
 private:
-  vtkProcessGroup(const vtkProcessGroup &) VTK_DELETE_FUNCTION;
-  void operator=(const vtkProcessGroup &) VTK_DELETE_FUNCTION;
+  vtkProcessGroup(const vtkProcessGroup &) = delete;
+  void operator=(const vtkProcessGroup &) = delete;
 };
 
 #endif //vtkProcessGroup_h

@@ -46,7 +46,7 @@ class VTKRENDERINGOPENGL2_EXPORT vtkShaderProgram : public vtkObject
 public:
   static vtkShaderProgram *New();
   vtkTypeMacro(vtkShaderProgram, vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -187,6 +187,7 @@ public:
   bool SetUniform2i(const char *name, const int v[2]);
   bool SetUniform2f(const char *name, const float v[2]);
   bool SetUniform3f(const char *name, const float v[3]);
+  bool SetUniform3f(const char *name, const double v[3]);
   bool SetUniform4f(const char *name, const float v[4]);
   bool SetUniform3uc(const char *name, const unsigned char v[3]); // maybe remove
   bool SetUniform4uc(const char *name, const unsigned char v[4]); // maybe remove
@@ -210,10 +211,33 @@ public:
   /**
    * perform in place string substitutions, indicate if a substitution was done
    * this is useful for building up shader strings which typically involve
-   * lots of string substitutions. Return true if a substitution was done.
+   * lots of string substitutions.
+   *
+   * \param[in] shader  The source shader object to perform substitutions on
+   * \param[in] search  The string to search for
+   * \param[in] replace The string replacement
+   * \param[in] all     Whether to replace all matches or just the first one
+   * \return    A boolean indicating whether the replacement was successful
    */
   static bool Substitute(
     std::string &source,
+    const std::string &search,
+    const std::string &replace,
+    bool all = true);
+
+  /**
+   * Perform in-place string substitutions on the shader source string and
+   * indicate if one or all substitutions were done. This is useful for building
+   * up shader strings which typically involve a lot of string substitutions.
+   *
+   * \param[in] shader  The source shader object to perform substitutions on
+   * \param[in] search  The string to search for
+   * \param[in] replace The string replacement
+   * \param[in] all     Whether to replace all matches or just the first one
+   * \return    A boolean indicating whether the replacement was successful
+   */
+  static bool Substitute(
+    vtkShader* shader,
     const std::string &search,
     const std::string &replace,
     bool all = true);
@@ -245,9 +269,31 @@ public:
      }
   };
 
+  //@{
+  /**
+   * When developing shaders, it's often convenient to tweak the shader and
+   * re-render incrementally. This provides a mechanism to do the same. To debug
+   * any shader program, set `FileNamePrefixForDebugging` to a file path e.g.
+   * `/tmp/myshaders`. Subsequently, when `Bind()` is called on the shader
+   * program, it will check for files named `<FileNamePrefixForDebugging>VS.glsl`,
+   * `<FileNamePrefixForDebugging>GS.glsl` and `<FileNamePrefixForDebugging>FS.glsl` for
+   * vertex shader, geometry shader and fragment shader codes respectively. If
+   * a file doesn't exist, then it dumps out the current code to that file.
+   * If the file exists, then the shader is recompiled to use the contents of that file.
+   * Thus, after the files have been dumped in the first render, you can open the files
+   * in a text editor and update as needed. On following render, the modified
+   * contexts from  the file will be used.
+   *
+   * This is only intended for debugging during development and should not be
+   * used in production.
+   */
+  vtkSetStringMacro(FileNamePrefixForDebugging);
+  vtkGetStringMacro(FileNamePrefixForDebugging);
+  //@}
+
 protected:
   vtkShaderProgram();
-  ~vtkShaderProgram();
+  ~vtkShaderProgram() override;
 
   /***************************************************************
    * The following functions are only for use by the shader cache
@@ -335,9 +381,10 @@ private:
   int FindAttributeArray(const char *name);
   int FindUniform(const char *name);
 
-  vtkShaderProgram(const vtkShaderProgram&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkShaderProgram&) VTK_DELETE_FUNCTION;
+  vtkShaderProgram(const vtkShaderProgram&) = delete;
+  void operator=(const vtkShaderProgram&) = delete;
 
+  char* FileNamePrefixForDebugging;
 };
 
 

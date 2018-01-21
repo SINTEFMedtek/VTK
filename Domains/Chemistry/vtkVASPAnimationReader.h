@@ -38,7 +38,7 @@ class VTKDOMAINSCHEMISTRY_EXPORT vtkVASPAnimationReader:
 public:
   static vtkVASPAnimationReader* New();
   vtkTypeMacro(vtkVASPAnimationReader, vtkMoleculeAlgorithm)
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
   //@{
   /**
@@ -50,14 +50,14 @@ public:
 
 protected:
   vtkVASPAnimationReader();
-  ~vtkVASPAnimationReader();
+  ~vtkVASPAnimationReader() override;
 
-  virtual int RequestData(vtkInformation *request,
+  int RequestData(vtkInformation *request,
                           vtkInformationVector **inInfoVecs,
-                          vtkInformationVector *outInfoVec);
-  virtual int RequestInformation(vtkInformation *request,
+                          vtkInformationVector *outInfoVec) override;
+  int RequestInformation(vtkInformation *request,
                                  vtkInformationVector **inInfoVecs,
-                                 vtkInformationVector *outInfoVec);
+                                 vtkInformationVector *outInfoVec) override;
 
   /**
    * Advance @a in to the start of the data for the next timestep. Parses the
@@ -85,8 +85,8 @@ protected:
   vtksys::RegularExpression *AtomParser;
 
 private:
-  vtkVASPAnimationReader(const vtkVASPAnimationReader&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkVASPAnimationReader&) VTK_DELETE_FUNCTION;
+  vtkVASPAnimationReader(const vtkVASPAnimationReader&) = delete;
+  void operator=(const vtkVASPAnimationReader&) = delete;
 };
 
 #endif // vtkVASPAnimationReader_h

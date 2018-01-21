@@ -14,10 +14,10 @@
 =========================================================================*/
 /**
  * @class   vtkRendererCollection
- * @brief   a list of renderers
+ * @brief   an ordered list of renderers
  *
  * vtkRendererCollection represents and provides methods to manipulate a list
- * of renderers (i.e., vtkRenderer and subclasses). The list is unsorted and
+ * of renderers (i.e., vtkRenderer and subclasses). The list is ordered and
  * duplicate entries are not prevented.
  *
  * @sa
@@ -36,10 +36,10 @@ class VTKRENDERINGCORE_EXPORT vtkRendererCollection : public vtkCollection
 public:
   static vtkRendererCollection *New();
   vtkTypeMacro(vtkRendererCollection, vtkCollection);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
-   * Add a Renderer to the list.
+   * Add a Renderer to the bottom of the list.
    */
   void AddItem(vtkRenderer *a)
     { this->vtkCollection::AddItem(a); }
@@ -72,15 +72,15 @@ public:
 
 protected:
   vtkRendererCollection() {}
-  ~vtkRendererCollection() {}
+  ~vtkRendererCollection() override {}
 
 private:
   // hide the standard AddItem from the user and the compiler.
   void AddItem(vtkObject *o)
     { this->vtkCollection::AddItem(o); }
 
-  vtkRendererCollection(const vtkRendererCollection&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkRendererCollection&) VTK_DELETE_FUNCTION;
+  vtkRendererCollection(const vtkRendererCollection&) = delete;
+  void operator=(const vtkRendererCollection&) = delete;
 };
 
 #endif

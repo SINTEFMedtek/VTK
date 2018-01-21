@@ -56,7 +56,7 @@ class VTKPARALLELCORE_EXPORT vtkSubCommunicator : public vtkCommunicator
 public:
   vtkTypeMacro(vtkSubCommunicator, vtkCommunicator);
   static vtkSubCommunicator *New();
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
   //@{
   /**
@@ -70,21 +70,21 @@ public:
   /**
    * Implementation for abstract supercalss.
    */
-  virtual int SendVoidArray(const void *data, vtkIdType length, int type,
-                            int remoteHandle, int tag);
-  virtual int ReceiveVoidArray(void *data, vtkIdType length, int type,
-                               int remoteHandle, int tag);
+  int SendVoidArray(const void *data, vtkIdType length, int type,
+                            int remoteHandle, int tag) override;
+  int ReceiveVoidArray(void *data, vtkIdType length, int type,
+                               int remoteHandle, int tag) override;
   //@}
 
 protected:
   vtkSubCommunicator();
-  virtual ~vtkSubCommunicator();
+  ~vtkSubCommunicator() override;
 
   vtkProcessGroup *Group;
 
 private:
-  vtkSubCommunicator(const vtkSubCommunicator &) VTK_DELETE_FUNCTION;
-  void operator=(const vtkSubCommunicator &) VTK_DELETE_FUNCTION;
+  vtkSubCommunicator(const vtkSubCommunicator &) = delete;
+  void operator=(const vtkSubCommunicator &) = delete;
 };
 
 #endif //vtkSubCommunicator_h

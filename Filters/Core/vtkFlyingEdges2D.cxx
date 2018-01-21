@@ -284,8 +284,8 @@ EdgeCases[16][5] = {
 // Instantiate and initialize key data members. Mostly we build some
 // acceleration structures from the case table.
 template <class T> vtkFlyingEdges2DAlgorithm<T>::
-vtkFlyingEdges2DAlgorithm():XCases(NULL),EdgeMetaData(NULL),Scalars(NULL),
-                            NewScalars(NULL),NewLines(NULL),NewPoints(NULL)
+vtkFlyingEdges2DAlgorithm():XCases(nullptr),EdgeMetaData(nullptr),Scalars(nullptr),
+                            NewScalars(nullptr),NewLines(nullptr),NewPoints(nullptr)
 {
   int j, eCase, numLines;
   const unsigned char *edgeCase;
@@ -636,7 +636,8 @@ ContourImage(vtkFlyingEdges2D *self, T *scalars, vtkPoints *newPts,
   // The only problem with using the update extent is that one or two
   // sources enlarge the update extent.  This behavior is slated to be
   // eliminated.
-  vtkIdType *incs = input->GetIncrements();
+  vtkIdType incs[3];
+  input->GetIncrements(incs);
   int *ext = input->GetExtent();
 
   // Figure out which 2D plane the image lies in. Capture information for
@@ -842,7 +843,7 @@ int vtkFlyingEdges2D::RequestData( vtkInformation *vtkNotUsed(request),
   int *ext =
     inInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT());
   inScalars = this->GetInputArrayToProcess(0,inputVector);
-  if ( inScalars == NULL )
+  if ( inScalars == nullptr )
   {
     vtkErrorMacro(<<"Scalars must be defined for contouring");
     return 1;
@@ -861,7 +862,7 @@ int vtkFlyingEdges2D::RequestData( vtkInformation *vtkNotUsed(request),
   vtkCellArray *newLines = vtkCellArray::New();
   vtkPoints *newPts = vtkPoints::New();
   newPts->SetDataTypeToFloat();
-  vtkDataArray *newScalars = NULL;
+  vtkDataArray *newScalars = nullptr;
 
   if (this->ComputeScalars)
   {

@@ -27,9 +27,11 @@ vtkStandardNewMacro(vtkRenderbuffer);
 //----------------------------------------------------------------------------
 vtkRenderbuffer::vtkRenderbuffer()
 {
-  this->Context = NULL;
+  this->Context = nullptr;
   this->Handle = 0U;
   this->DepthBufferFloat = 0;
+  this->Samples = 0;
+  this->Format = GL_RGBA;
 }
 
 //----------------------------------------------------------------------------
@@ -39,65 +41,17 @@ vtkRenderbuffer::~vtkRenderbuffer()
 }
 
 //----------------------------------------------------------------------------
-bool vtkRenderbuffer::IsSupported(vtkRenderWindow *win)
+bool vtkRenderbuffer::IsSupported(vtkRenderWindow *)
 {
-  bool supported = false;
-
-  vtkOpenGLRenderWindow *glwin = dynamic_cast<vtkOpenGLRenderWindow*>(win);
-  if (glwin)
-  {
-#if GL_ES_VERSION_2_0 != 1
-    if (vtkOpenGLRenderWindow::GetContextSupportsOpenGL32())
-    {
-      return true;
-    }
-    bool floatTex = (glewIsSupported("GL_ARB_texture_float") != 0);
-    bool floatDepth = (glewIsSupported("GL_ARB_depth_buffer_float") != 0);
-#else
-  // some of these may have extensions etc for ES 2.0
-  // setting to false right now as I do not know
-  bool floatTex = false;
-  bool floatDepth = false;
-#if GL_ES_VERSION_3_0 == 1
-  floatTex = true;
-  floatDepth = true;
-#endif
-#endif
-    bool fbo = true;
-
-    supported = floatTex && floatDepth && fbo;
-  }
-
-  return supported;
+  return true;
 }
 
 //----------------------------------------------------------------------------
-bool vtkRenderbuffer::LoadRequiredExtensions(vtkRenderWindow *win)
+bool vtkRenderbuffer::LoadRequiredExtensions(vtkRenderWindow *)
 {
-  bool supported = false;
-
-  vtkOpenGLRenderWindow *glwin = dynamic_cast<vtkOpenGLRenderWindow*>(win);
-  if (glwin)
-  {
-    bool fbo = true;
-
-#if GL_ES_VERSION_2_0 != 1
-    bool floatTex = (glewIsSupported("GL_ARB_texture_float") != 0);
-    this->DepthBufferFloat =
-      (glewIsSupported("GL_ARB_depth_buffer_float") != 0);
-#else
-    bool floatTex = false;
-    this->DepthBufferFloat = false;
-#if GL_ES_VERSION_3_0 == 1
-    floatTex = false;
-    this->DepthBufferFloat = true;
-#endif
-#endif
-
-    supported = floatTex && fbo;
-  }
-
-  return supported;
+  // both texture float and depth float are part of OpenGL 3.0 and later
+  this->DepthBufferFloat = true;
+  return true;
 }
 
 //----------------------------------------------------------------------------
@@ -107,19 +61,19 @@ void vtkRenderbuffer::Alloc()
   vtkOpenGLCheckErrorMacro("failed at glGenRenderbuffers");
 }
 
-//----------------------------------------------------------------------------
-void vtkRenderbuffer::Free()
+void vtkRenderbuffer::ReleaseGraphicsResources(vtkWindow *)
 {
-  // because we don't hold a reference to the render
-  // context we don't have any control on when it is
-  // destroyed. In fact it may be destroyed before
-  // we are(eg smart pointers), in which case we should
-  // do nothing.
   if (this->Context && this->Handle)
   {
     glDeleteRenderbuffers(1, &this->Handle);
     vtkOpenGLCheckErrorMacro("failed at glDeleteRenderBuffers");
   }
+}
+
+//----------------------------------------------------------------------------
+void vtkRenderbuffer::Free()
+{
+  this->ReleaseGraphicsResources(nullptr);
 }
 
 //----------------------------------------------------------------------------
@@ -136,7 +90,7 @@ void vtkRenderbuffer::SetContext(vtkRenderWindow *renWin)
 
   // free previous resources
   this->Free();
-  this->Context = NULL;
+  this->Context = nullptr;
   this->DepthBufferFloat = 0;
   this->Modified();
 
@@ -194,15 +148,66 @@ int vtkRenderbuffer::Create(
       unsigned int width,
       unsigned int height)
 {
+  return this->Create(format, width, height, 0);
+}
+
+int vtkRenderbuffer::Create(
+      unsigned int format,
+      unsigned int width,
+      unsigned int height,
+      unsigned int samples)
+{
   assert(this->Context);
 
   glBindRenderbuffer(GL_RENDERBUFFER, (GLuint)this->Handle);
   vtkOpenGLCheckErrorMacro("failed at glBindRenderBuffer");
 
-  glRenderbufferStorage(GL_RENDERBUFFER, (GLenum)format, width, height);
+  if (samples)
+  {
+    glRenderbufferStorageMultisample(
+      GL_RENDERBUFFER,
+      samples, (GLenum)format,
+      width, height);
+  }
+  else
+  {
+    glRenderbufferStorage(GL_RENDERBUFFER, (GLenum)format, width, height);
+  }
   vtkOpenGLCheckErrorMacro("failed at glRenderbufferStorage");
 
+  this->Width = width;
+  this->Height = height;
+  this->Format = format;
+  this->Samples = samples;
+
   return 1;
+}
+
+void vtkRenderbuffer::Resize(unsigned int width, unsigned int height)
+{
+  if (this->Width == width && this->Height == height)
+  {
+    return;
+  }
+
+  if (this->Context && this->Handle)
+  {
+    glBindRenderbuffer(GL_RENDERBUFFER, (GLuint)this->Handle);
+    if (this->Samples)
+    {
+    glRenderbufferStorageMultisample(
+      GL_RENDERBUFFER,
+      this->Samples, (GLenum)this->Format,
+      width, height);
+    }
+    else
+    {
+      glRenderbufferStorage(GL_RENDERBUFFER,
+        (GLenum)this->Format, width, height);
+    }
+  }
+  this->Width = width;
+  this->Height = height;
 }
 
 // ----------------------------------------------------------------------------

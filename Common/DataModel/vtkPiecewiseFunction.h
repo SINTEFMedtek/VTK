@@ -47,15 +47,15 @@ class VTKCOMMONDATAMODEL_EXPORT vtkPiecewiseFunction : public vtkDataObject
 public:
   static vtkPiecewiseFunction *New();
   vtkTypeMacro(vtkPiecewiseFunction,vtkDataObject);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
-  void DeepCopy( vtkDataObject *f ) VTK_OVERRIDE;
-  void ShallowCopy( vtkDataObject *f ) VTK_OVERRIDE;
+  void DeepCopy( vtkDataObject *f ) override;
+  void ShallowCopy( vtkDataObject *f ) override;
 
   /**
    * Return what type of dataset this is.
    */
-  int GetDataObjectType() VTK_OVERRIDE {return VTK_PIECEWISE_FUNCTION;};
+  int GetDataObjectType() override {return VTK_PIECEWISE_FUNCTION;};
 
   /**
    * Get the number of points used to specify the function
@@ -162,6 +162,16 @@ public:
   //@}
 
   /**
+   * Interpolate between the control points in base-10 logrithmic space.
+   * Default is false.
+   * @{
+   */
+  vtkSetMacro(UseLogScale, bool)
+  vtkGetMacro(UseLogScale, bool)
+  vtkBooleanMacro(UseLogScale, bool)
+  /**@}*/
+
+  /**
    * Return the type of function:
    * Function Types:
    * 0 : Constant        (No change in slope between end points)
@@ -182,7 +192,7 @@ public:
    * is alreay initialized, so there is no need to call this method which
    * in turn simply calls RemoveAllPoints()
    */
-  void Initialize() VTK_OVERRIDE;
+  void Initialize() override;
 
   //@{
   /**
@@ -210,7 +220,7 @@ public:
 
 protected:
   vtkPiecewiseFunction();
-  ~vtkPiecewiseFunction() VTK_OVERRIDE;
+  ~vtkPiecewiseFunction() override;
 
   // Internal method to sort the vector and update the
   // Range whenever a node is added, edited or removed.
@@ -241,9 +251,11 @@ protected:
 
   int AllowDuplicateScalars;
 
+  bool UseLogScale;
+
 private:
-  vtkPiecewiseFunction(const vtkPiecewiseFunction&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPiecewiseFunction&) VTK_DELETE_FUNCTION;
+  vtkPiecewiseFunction(const vtkPiecewiseFunction&) = delete;
+  void operator=(const vtkPiecewiseFunction&) = delete;
 };
 
 #endif

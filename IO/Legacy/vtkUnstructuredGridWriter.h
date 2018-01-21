@@ -34,7 +34,7 @@ class VTKIOLEGACY_EXPORT vtkUnstructuredGridWriter : public vtkDataWriter
 public:
   static vtkUnstructuredGridWriter *New();
   vtkTypeMacro(vtkUnstructuredGridWriter,vtkDataWriter);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -46,18 +46,18 @@ public:
 
 protected:
   vtkUnstructuredGridWriter() {}
-  ~vtkUnstructuredGridWriter() {}
+  ~vtkUnstructuredGridWriter() override {}
 
-  void WriteData();
+  void WriteData() override;
 
   int WriteCellsAndFaces(ostream *fp, vtkUnstructuredGrid *grid,
                          const char *label);
 
-  virtual int FillInputPortInformation(int port, vtkInformation *info);
+  int FillInputPortInformation(int port, vtkInformation *info) override;
 
 private:
-  vtkUnstructuredGridWriter(const vtkUnstructuredGridWriter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkUnstructuredGridWriter&) VTK_DELETE_FUNCTION;
+  vtkUnstructuredGridWriter(const vtkUnstructuredGridWriter&) = delete;
+  void operator=(const vtkUnstructuredGridWriter&) = delete;
 };
 
 #endif

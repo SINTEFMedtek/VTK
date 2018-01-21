@@ -217,7 +217,7 @@ vtkNrrdReader::vtkNrrdReader()
 vtkNrrdReader::~vtkNrrdReader()
 {
   this->DataFiles->Delete();
-  this->DataFiles = NULL;
+  this->DataFiles = nullptr;
 }
 
 void vtkNrrdReader::PrintSelf(ostream &os, vtkIndent indent)
@@ -285,7 +285,7 @@ int vtkNrrdReader::ReadHeaderInternal(vtkCharArray* headerBuffer)
   // the entire file is the header (happens with "detached headers").
   char *bufferStart = headerBuffer->GetPointer(0);
   char *s = bufferStart;
-  while ((s = strchr(s+1, '\n')) != NULL)
+  while ((s = strchr(s+1, '\n')) != nullptr)
   {
     // If you find a double line ending, terminate the string and shorten the
     // buffer.
@@ -424,7 +424,7 @@ int vtkNrrdReader::ReadHeader(vtkCharArray *headerBuffer)
         else if (filepatterninfo.size() >=4)
         {
           // description should be "<format> <min> <max> <step> [<subdim>]"
-          // where <format> is a string to be processed by sprintf and <min>,
+          // where <format> is a string to be processed by snprintf and <min>,
           // <max>, and <step> form the numbers.  <subdim> defines on which
           // dimension the files are split up.
           std::string format = filepatterninfo[0];
@@ -433,10 +433,11 @@ int vtkNrrdReader::ReadHeader(vtkCharArray *headerBuffer)
           int step = atoi(filepatterninfo[3].c_str());
           subDimension = (  (filepatterninfo.size() > 4)
                           ? atoi(filepatterninfo[4].c_str()) : numDimensions );
-          char *filename = new char[format.size() + 20];
+          size_t filenamelen = format.size() + 20;
+          char *filename = new char[filenamelen];
           for (int i = min; i <= max; i += step)
           {
-            sprintf(filename, format.c_str(), i);
+            snprintf(filename, filenamelen, format.c_str(), i);
             this->DataFiles->InsertNextValue(filename);
           }
           delete[] filename;
@@ -465,8 +466,8 @@ int vtkNrrdReader::ReadHeader(vtkCharArray *headerBuffer)
       }
       else if (field == "labels")
       {
-        std::string dataname = description.substr(description.find("\"")+1);
-        dataname = dataname.substr(0, dataname.find("\""));
+        std::string dataname = description.substr(description.find('\"')+1);
+        dataname = dataname.substr(0, dataname.find('\"'));
         delete[] this->ScalarArrayName;
         this->ScalarArrayName = new char[dataname.size()+1];
         strcpy(this->ScalarArrayName, dataname.c_str());
@@ -631,7 +632,7 @@ int vtkNrrdReader::ReadHeader(vtkCharArray *headerBuffer)
     {
       std::string relativePath = this->DataFiles->GetValue(i);
       std::string fullPath
-        = vtksys::SystemTools::CollapseFullPath(relativePath.c_str(),
+        = vtksys::SystemTools::CollapseFullPath(relativePath,
                                                 parentDir.c_str());
       this->DataFiles->SetValue(i, fullPath);
     }
@@ -649,10 +650,10 @@ int vtkNrrdReader::RequestData(vtkInformation *request,
 {
   // Get rid of superclasses FileNames.  We don't support that functionality,
   // but we exploit that of the superclass.
-  if (this->FileNames != NULL)
+  if (this->FileNames != nullptr)
   {
     this->FileNames->Delete();
-    this->FileNames = NULL;
+    this->FileNames = nullptr;
   }
 
   char *saveFileName = this->FileName;
@@ -678,7 +679,7 @@ int vtkNrrdReader::RequestData(vtkInformation *request,
   {
     vtkImageData *outputData = vtkImageData::GetData(outputVector);
     this->AllocateOutputData(outputData, outputVector->GetInformationObject(0));
-    if (outputData == NULL)
+    if (outputData == nullptr)
     {
       vtkErrorMacro(<< "Data not created correctly?");
       return 0;
@@ -693,7 +694,7 @@ int vtkNrrdReader::RequestData(vtkInformation *request,
   }
 
   this->FileName = saveFileName;
-  this->FileNames = NULL;
+  this->FileNames = nullptr;
 
   return result;
 }
@@ -722,7 +723,7 @@ int vtkNrrdReaderReadDataAsciiTemplate(vtkNrrdReader *self,
   std::ifstream file;
   if (self->GetFileDimensionality() == 3)
   {
-    if (filenames != NULL)
+    if (filenames != nullptr)
     {
       filename = filenames->GetValue(0);
     }
@@ -749,7 +750,7 @@ int vtkNrrdReaderReadDataAsciiTemplate(vtkNrrdReader *self,
     if (self->GetFileDimensionality() == 2)
     {
       if (file.is_open()) { file.close(); }
-      if (filenames != NULL)
+      if (filenames != nullptr)
       {
         filename = filenames->GetValue(fileDataIndex[2]);
       }
@@ -816,7 +817,7 @@ int vtkNrrdReader::ReadDataAscii(vtkImageData *output)
                                                         output,
                                                         (VTK_TT *)(outBuffer)));
     default:
-      vtkErrorMacro("Unkown data type");
+      vtkErrorMacro("Unknown data type");
       return 0;
   }
 

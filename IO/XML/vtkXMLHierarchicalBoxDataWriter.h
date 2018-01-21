@@ -32,21 +32,21 @@ class VTKIOXML_EXPORT vtkXMLHierarchicalBoxDataWriter : public vtkXMLUniformGrid
 public:
   static vtkXMLHierarchicalBoxDataWriter* New();
   vtkTypeMacro(vtkXMLHierarchicalBoxDataWriter, vtkXMLUniformGridAMRWriter);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Get the default file extension for files written by this writer.
    */
-  virtual const char* GetDefaultFileExtension()
+  const char* GetDefaultFileExtension() override
     { return "vth"; }
 
 protected:
   vtkXMLHierarchicalBoxDataWriter();
-  ~vtkXMLHierarchicalBoxDataWriter();
+  ~vtkXMLHierarchicalBoxDataWriter() override;
 
 private:
-  vtkXMLHierarchicalBoxDataWriter(const vtkXMLHierarchicalBoxDataWriter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkXMLHierarchicalBoxDataWriter&) VTK_DELETE_FUNCTION;
+  vtkXMLHierarchicalBoxDataWriter(const vtkXMLHierarchicalBoxDataWriter&) = delete;
+  void operator=(const vtkXMLHierarchicalBoxDataWriter&) = delete;
 
 };
 

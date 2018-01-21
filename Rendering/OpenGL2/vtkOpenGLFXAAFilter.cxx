@@ -110,13 +110,15 @@ void vtkOpenGLFXAAFilter::Execute(vtkOpenGLRenderer *ren)
   this->Finalize();
   this->PrintBenchmark();
 
-  this->Renderer = NULL;
+  this->Renderer = nullptr;
 }
 
 //------------------------------------------------------------------------------
 void vtkOpenGLFXAAFilter::ReleaseGraphicsResources()
 {
   this->FreeGLObjects();
+  this->PreparationTimer->ReleaseGraphicsResources();
+  this->FXAATimer->ReleaseGraphicsResources();
 }
 
 //------------------------------------------------------------------------------
@@ -169,11 +171,11 @@ vtkOpenGLFXAAFilter::vtkOpenGLFXAAFilter()
     UseHighQualityEndpoints(true),
     DebugOptionValue(vtkFXAAOptions::FXAA_NO_DEBUG),
     NeedToRebuildShader(true),
-    Renderer(NULL),
-    Input(NULL),
-    Program(NULL),
-    VAO(NULL),
-    VBO(NULL)
+    Renderer(nullptr),
+    Input(nullptr),
+    Program(nullptr),
+    VAO(nullptr),
+    VBO(nullptr)
 {
   std::fill(this->Viewport, this->Viewport + 4, 0);
 }
@@ -226,7 +228,7 @@ template <typename T> void DeleteHelper(T *& ptr)
   if (ptr)
   {
     ptr->Delete();
-    ptr = NULL;
+    ptr = nullptr;
   }
 }
 } // end anon namespace
@@ -251,7 +253,7 @@ void vtkOpenGLFXAAFilter::CreateGLObjects()
 
   // ES doesn't support GL_RGB8, and OpenGL 3 doesn't support GL_RGB.
   // What a world.
-#if defined(GL_ES_VERSION_3_0) || defined(GL_ES_VERSION_2_0)
+#if defined(GL_ES_VERSION_3_0)
   this->Input->SetInternalFormat(GL_RGB);
 #else // OpenGL ES
   this->Input->SetInternalFormat(GL_RGB8);
@@ -291,7 +293,7 @@ void vtkOpenGLFXAAFilter::ApplyFilter()
   {
     DeleteHelper(this->VAO);
     DeleteHelper(this->VBO);
-    this->Program = NULL; // Don't free, shader cache manages these.
+    this->Program = nullptr; // Don't free, shader cache manages these.
     this->NeedToRebuildShader = false;
   }
 
@@ -307,6 +309,11 @@ void vtkOpenGLFXAAFilter::ApplyFilter()
   else
   {
     renWin->GetShaderCache()->ReadyShaderProgram(this->Program);
+  }
+
+  if (!this->Program)
+  {
+    return;
   }
 
   if (!this->VAO)

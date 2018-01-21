@@ -41,7 +41,7 @@ int CheckGrid(vtkUnstructuredGrid* ghostGrid, const int iteration)
   vtkDoubleArray* nodeXYZ =
       vtkArrayDownCast<vtkDoubleArray>(
           ghostGrid->GetPointData()->GetArray("NodeXYZ"));
-  assert("pre: nodeXYZ != NULL" && (nodeXYZ != NULL) );
+  assert("pre: nodeXYZ != nullptr" && (nodeXYZ != nullptr) );
   assert("pre: nodeXYZ numtuples mismatch!" &&
           (ghostGrid->GetNumberOfPoints()==nodeXYZ->GetNumberOfTuples()));
   assert("pre: nodeXYZ numcomponents mismatch!" &&
@@ -148,7 +148,7 @@ void UpdateGrid(const int iteration)
   vtkDoubleArray* nodeXYZ =
       vtkArrayDownCast<vtkDoubleArray>(
           global::Grid->GetPointData()->GetArray("NodeXYZ"));
-  assert("pre: nodeXYZ != NULL" && (nodeXYZ != NULL) );
+  assert("pre: nodeXYZ != nullptr" && (nodeXYZ != nullptr) );
   assert("pre: nodeXYZ numtuples mismatch!" &&
           (global::Grid->GetNumberOfPoints()==nodeXYZ->GetNumberOfTuples()));
   assert("pre: nodeXYZ numcomponents mismatch!" &&
@@ -257,7 +257,7 @@ void GetPoint(
 }
 
 //------------------------------------------------------------------------------
-// Some usefull extent macros
+// Some useful extent macros
 #define IMIN(ext) ext[0]
 #define IMAX(ext) ext[1]
 #define JMIN(ext) ext[2]

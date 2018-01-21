@@ -4,20 +4,20 @@ set(Module_SRCS
   vtkXMLCompositeDataWriter.cxx
   vtkXMLDataReader.cxx
   vtkXMLDataSetWriter.cxx
+  vtkXMLDataObjectWriter.cxx
   vtkXMLFileReadTester.cxx
   vtkXMLGenericDataObjectReader.cxx
   vtkXMLHierarchicalBoxDataFileConverter.cxx
   vtkXMLHierarchicalBoxDataReader.cxx
   vtkXMLHierarchicalBoxDataWriter.cxx
   vtkXMLHierarchicalDataReader.cxx
-  vtkXMLHyperOctreeReader.cxx
-  vtkXMLHyperOctreeWriter.cxx
   vtkXMLImageDataReader.cxx
   vtkXMLImageDataWriter.cxx
   vtkXMLMultiBlockDataReader.cxx
   vtkXMLMultiBlockDataWriter.cxx
   vtkXMLMultiGroupDataReader.cxx
   vtkXMLPDataReader.cxx
+  vtkXMLPDataObjectReader.cxx
   vtkXMLPImageDataReader.cxx
   vtkXMLPolyDataReader.cxx
   vtkXMLPolyDataWriter.cxx
@@ -25,6 +25,7 @@ set(Module_SRCS
   vtkXMLPRectilinearGridReader.cxx
   vtkXMLPStructuredDataReader.cxx
   vtkXMLPStructuredGridReader.cxx
+  vtkXMLPTableReader.cxx
   vtkXMLPUnstructuredDataReader.cxx
   vtkXMLPUnstructuredGridReader.cxx
   vtkXMLReader.cxx
@@ -34,6 +35,8 @@ set(Module_SRCS
   vtkXMLStructuredDataWriter.cxx
   vtkXMLStructuredGridReader.cxx
   vtkXMLStructuredGridWriter.cxx
+  vtkXMLTableReader.cxx
+  vtkXMLTableWriter.cxx
   vtkXMLUniformGridAMRReader.cxx
   vtkXMLUniformGridAMRWriter.cxx
   vtkXMLUnstructuredDataReader.cxx
@@ -43,6 +46,13 @@ set(Module_SRCS
   vtkXMLWriterC.cxx
   vtkXMLWriter.cxx
   )
+
+if (NOT VTK_LEGACY_REMOVE)
+  list(APPEND Module_SRCS
+    vtkXMLHyperOctreeReader.cxx
+    vtkXMLHyperOctreeWriter.cxx
+  )
+endif()
 
 set_source_files_properties(
   vtkXMLCompositeDataReader

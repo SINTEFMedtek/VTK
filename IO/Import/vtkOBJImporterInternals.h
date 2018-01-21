@@ -63,18 +63,34 @@ class vtkOBJPolyDataProcessor : public vtkPolyDataAlgorithm
 public:
   static vtkOBJPolyDataProcessor *New();
   vtkTypeMacro(vtkOBJPolyDataProcessor,vtkPolyDataAlgorithm)
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   // Description:
   // Specify file name of Wavefront .obj file.
   void SetFileName(const char* arg)
-  { // by default assume prefix.obj => prefix.obj.mtl
+  {
+    if (arg == nullptr)
+    {
+      return;
+    }
+    if (!strcmp(this->FileName.c_str(), arg))
+    {
+      return;
+    }
     FileName    = std::string(arg);
-    MTLFileName = FileName + ".mtl";
   }
   void SetMTLfileName( const char* arg )
   {
+    if (arg == nullptr)
+    {
+      return;
+    }
+    if (!strcmp(this->MTLFileName.c_str(), arg))
+    {
+      return;
+    }
     MTLFileName = std::string(arg);
+    this->DefaultMTLFileName = false;
   }
   void SetTexturePath( const char* arg )
   {
@@ -116,6 +132,7 @@ public:
 
   double VertexScale; // scale vertices by this during import
 
+  std::vector<vtkOBJImportedMaterial*>  parsedMTLs;
   std::map<std::string,vtkOBJImportedMaterial*>  mtlName_to_mtlData;
 
   // our internal parsing/storage
@@ -123,8 +140,6 @@ public:
 
   // what gets returned to client code via GetOutput()
   std::vector<vtkSmartPointer<vtkPolyData> >  outVector_of_vtkPolyData;
-
-  std::vector<std::string> outVector_of_textureFilnames;
 
   std::vector<vtkSmartPointer<vtkActor> >  actor_list;
   /////////////////////
@@ -134,20 +149,21 @@ public:
   void ReadVertices(bool gotFirstUseMaterialTag, char *pLine, float xyz, int lineNr, const double v_scale, bool everything_ok, vtkPoints* points, const bool use_scale);
 protected:
   vtkOBJPolyDataProcessor();
-  ~vtkOBJPolyDataProcessor();
+  ~vtkOBJPolyDataProcessor() override;
   int RequestData(vtkInformation *,
-                  vtkInformationVector **, vtkInformationVector *) /*override*/;
+                  vtkInformationVector **, vtkInformationVector *) override /*override*/;
 
   vtkSetMacro(SuccessParsingFiles,int)
 
   std::string FileName;     // filename (.obj) being read
   std::string MTLFileName;  // associated .mtl to *.obj, typically it is *.obj.mtl
+  bool DefaultMTLFileName;  // tells whether default of *.obj.mtl to be used
   std::string TexturePath;
   int         SuccessParsingFiles;
 
 private:
-  vtkOBJPolyDataProcessor(const vtkOBJPolyDataProcessor&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkOBJPolyDataProcessor&) VTK_DELETE_FUNCTION;
+  vtkOBJPolyDataProcessor(const vtkOBJPolyDataProcessor&) = delete;
+  void operator=(const vtkOBJPolyDataProcessor&) = delete;
 };
 
 class vtkRenderWindow;

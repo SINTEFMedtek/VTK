@@ -52,7 +52,7 @@ class VTKFILTERSVERDICT_EXPORT vtkMatrixMathFilter : public vtkDataSetAlgorithm
   };
 
 public:
-  void PrintSelf (ostream&, vtkIndent);
+  void PrintSelf (ostream&, vtkIndent) override;
   vtkTypeMacro(vtkMatrixMathFilter, vtkDataSetAlgorithm);
   static vtkMatrixMathFilter* New ();
 
@@ -81,17 +81,17 @@ public:
   //@}
 
 protected:
- ~vtkMatrixMathFilter ();
+ ~vtkMatrixMathFilter () override;
   vtkMatrixMathFilter ();
 
-  virtual int RequestData
-    (vtkInformation*, vtkInformationVector**, vtkInformationVector*);
+  int RequestData
+    (vtkInformation*, vtkInformationVector**, vtkInformationVector*) override;
 
   int Operation;
 
 private:
-  vtkMatrixMathFilter(const vtkMatrixMathFilter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkMatrixMathFilter&) VTK_DELETE_FUNCTION;
+  vtkMatrixMathFilter(const vtkMatrixMathFilter&) = delete;
+  void operator=(const vtkMatrixMathFilter&) = delete;
 };
 
 #endif // vtkMatrixMathFilter_h

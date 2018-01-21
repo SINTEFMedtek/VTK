@@ -78,16 +78,16 @@ vtkResliceCursorRepresentation::vtkResliceCursorRepresentation()
   this->ThicknessTextActor->SetMapper(this->ThicknessTextMapper);
   this->ThicknessTextActor->VisibilityOff();
 
-  this->Reslice = NULL;
+  this->Reslice = nullptr;
   this->CreateDefaultResliceAlgorithm();
   this->PlaneSource = vtkPlaneSource::New();
 
   this->ThicknessLabelFormat = new char[6];
-  sprintf(this->ThicknessLabelFormat,"%s","%0.3g");
+  snprintf(this->ThicknessLabelFormat,6,"%s","%0.3g");
 
   this->ResliceAxes        = vtkMatrix4x4::New();
   this->NewResliceAxes     = vtkMatrix4x4::New();
-  this->LookupTable        = 0;
+  this->LookupTable        = nullptr;
   this->ColorMap           = vtkImageMapToColors::New();
   this->Texture            = vtkTexture::New();
   this->Texture->SetInputConnection(
@@ -107,7 +107,7 @@ vtkResliceCursorRepresentation::vtkResliceCursorRepresentation()
   texturePlaneMapper->SetResolveCoincidentTopologyToPolygonOffset();
 
   this->Texture->SetQualityTo32Bit();
-  this->Texture->MapColorScalarsThroughLookupTableOff();
+  this->Texture->SetColorMode(VTK_COLOR_MODE_DEFAULT);
   this->Texture->SetInterpolate(1);
   this->Texture->RepeatOff();
   this->Texture->SetLookupTable(this->LookupTable);
@@ -135,7 +135,7 @@ vtkResliceCursorRepresentation::~vtkResliceCursorRepresentation()
   this->ThicknessTextProperty->Delete();
   this->ThicknessTextMapper->Delete();
   this->ThicknessTextActor->Delete();
-  this->SetThicknessLabelFormat(0);
+  this->SetThicknessLabelFormat(nullptr);
   this->ImageActor->Delete();
   if (this->Reslice)
   {
@@ -741,7 +741,9 @@ void vtkResliceCursorRepresentation::InvertTable()
 
     // force the lookuptable to update its InsertTime to avoid
     // rebuilding the array
-    lut->SetTableValue( 0, lut->GetTableValue( 0 ) );
+    double temp[4];
+    lut->GetTableValue( 0, temp );
+    lut->SetTableValue( 0, temp );
   }
 }
 
@@ -789,15 +791,19 @@ void vtkResliceCursorRepresentation::ManageTextDisplay()
   if ( this->ManipulationMode ==
        vtkResliceCursorRepresentation::WindowLevelling )
   {
-    sprintf(this->TextBuff,"Window, Level: ( %g, %g )",
-            this->CurrentWindow, this->CurrentLevel );
+    snprintf(this->TextBuff,
+             VTK_RESLICE_CURSOR_REPRESENTATION_MAX_TEXTBUFF,
+             "Window, Level: ( %g, %g )",
+             this->CurrentWindow, this->CurrentLevel );
   }
   else if (this->ManipulationMode ==
       vtkResliceCursorRepresentation::ResizeThickness )
   {
     // For now all the thickness' are the same anyway.
-    sprintf(this->TextBuff,"Reslice Thickness: %g mm",
-            this->GetResliceCursor()->GetThickness()[0] );
+    snprintf(this->TextBuff,
+             VTK_RESLICE_CURSOR_REPRESENTATION_MAX_TEXTBUFF,
+             "Reslice Thickness: %g mm",
+             this->GetResliceCursor()->GetThickness()[0] );
   }
 
   this->TextActor->SetInput(this->TextBuff);
@@ -819,7 +825,7 @@ vtkTextProperty* vtkResliceCursorRepresentation::GetTextProperty()
 //----------------------------------------------------------------------------
 void vtkResliceCursorRepresentation::GenerateText()
 {
-  sprintf(this->TextBuff,"NA");
+  snprintf(this->TextBuff, VTK_RESLICE_CURSOR_REPRESENTATION_MAX_TEXTBUFF, "NA");
   this->TextActor->SetInput(this->TextBuff);
   this->TextActor->SetTextScaleModeToNone();
 

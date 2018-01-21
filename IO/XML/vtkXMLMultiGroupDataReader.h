@@ -31,21 +31,21 @@ class VTKIOXML_EXPORT vtkXMLMultiGroupDataReader : public vtkXMLMultiBlockDataRe
 public:
   static vtkXMLMultiGroupDataReader* New();
   vtkTypeMacro(vtkXMLMultiGroupDataReader,vtkXMLMultiBlockDataReader);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
 protected:
   vtkXMLMultiGroupDataReader();
-  ~vtkXMLMultiGroupDataReader();
+  ~vtkXMLMultiGroupDataReader() override;
 
   // Get the name of the data set being read.
-  virtual const char* GetDataSetName()
+  const char* GetDataSetName() override
   {
     return "vtkMultiGroupDataSet";
   }
 
 private:
-  vtkXMLMultiGroupDataReader(const vtkXMLMultiGroupDataReader&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkXMLMultiGroupDataReader&) VTK_DELETE_FUNCTION;
+  vtkXMLMultiGroupDataReader(const vtkXMLMultiGroupDataReader&) = delete;
+  void operator=(const vtkXMLMultiGroupDataReader&) = delete;
 };
 
 #endif

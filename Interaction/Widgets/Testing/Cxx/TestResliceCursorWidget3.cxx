@@ -58,7 +58,7 @@ public:
   { return new vtkResliceCursorCallback3; }
 
   void Execute( vtkObject *caller, unsigned long /*ev*/,
-                void *callData ) VTK_OVERRIDE
+                void *callData ) override
   {
     vtkImagePlaneWidget* ipw =
       dynamic_cast< vtkImagePlaneWidget* >( caller );
@@ -287,7 +287,7 @@ int TestResliceCursorWidget3( int argc, char *argv[] )
   ren[2]->SetViewport(0,0.5,0.5,1);
   ren[3]->SetViewport(0.5,0.5,1,1);
 
-  // Set the actors' postions
+  // Set the actors' positions
   //
   renWin->Render();
 

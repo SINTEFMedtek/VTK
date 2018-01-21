@@ -43,16 +43,17 @@
 #include "vtkDataSetAttributes.h" // needed for vtkDataSetAttributes::FieldList
 
 class vtkIdTypeArray;
+class vtkCell;
 class vtkCharArray;
-class vtkMaskPoints;
 class vtkImageData;
+class vtkPointData;
 
 class VTKFILTERSCORE_EXPORT vtkProbeFilter : public vtkDataSetAlgorithm
 {
 public:
   static vtkProbeFilter *New();
   vtkTypeMacro(vtkProbeFilter,vtkDataSetAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -75,6 +76,17 @@ public:
 
   //@{
   /**
+   * Control whether the source point data is to be treated as categorical. If
+   * the data is categorical, then the resultant data will be determined by
+   * a nearest neighbor interpolation scheme.
+   */
+  vtkSetMacro(CategoricalData,int);
+  vtkGetMacro(CategoricalData,int);
+  vtkBooleanMacro(CategoricalData,int);
+  //@}
+
+  //@{
+  /**
    * This flag is used only when a piece is requested to update.  By default
    * the flag is off.  Because no spatial correspondence between input pieces
    * and source pieces is known, all of the source has to be requested no
@@ -94,7 +106,7 @@ public:
    * Get the list of point ids in the output that contain attribute data
    * interpolated from the source.
    */
-  vtkGetObjectMacro(ValidPoints, vtkIdTypeArray);
+  vtkIdTypeArray *GetValidPoints();
   //@}
 
   //@{
@@ -160,7 +172,9 @@ public:
 
 protected:
   vtkProbeFilter();
-  ~vtkProbeFilter() VTK_OVERRIDE;
+  ~vtkProbeFilter() override;
+
+  int CategoricalData;
 
   int PassCellArrays;
   int PassPointArrays;
@@ -172,11 +186,11 @@ protected:
   bool ComputeTolerance;
 
   int RequestData(vtkInformation *, vtkInformationVector **,
-    vtkInformationVector *) VTK_OVERRIDE;
+    vtkInformationVector *) override;
   int RequestInformation(vtkInformation *, vtkInformationVector **,
-    vtkInformationVector *) VTK_OVERRIDE;
+    vtkInformationVector *) override;
   int RequestUpdateExtent(vtkInformation *, vtkInformationVector **,
-    vtkInformationVector *) VTK_OVERRIDE;
+    vtkInformationVector *) override;
 
   /**
    * Call at end of RequestData() to pass attribute data respecting the
@@ -200,6 +214,7 @@ protected:
    * Initializes output and various arrays which keep track for probing status.
    */
   virtual void InitializeForProbing(vtkDataSet *input, vtkDataSet *output);
+  virtual void InitializeOutputArrays(vtkPointData *outPD, vtkIdType numPts);
 
   /**
    * Probe appropriate points
@@ -211,31 +226,30 @@ protected:
   char* ValidPointMaskArrayName;
   vtkIdTypeArray *ValidPoints;
   vtkCharArray* MaskPoints;
-  int NumberOfValidPoints;
 
-  // Agreed, this is sort of a hack to allow subclasses to override the default
-  // behavior of this filter to call NullPoint() for every point that is
-  // not-a-hit when probing. This makes it possible for subclasses to initialize
-  // the arrays with different defaults.
-  bool UseNullPoint;
 
   vtkDataSetAttributes::FieldList* CellList;
   vtkDataSetAttributes::FieldList* PointList;
 private:
-  vtkProbeFilter(const vtkProbeFilter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkProbeFilter&) VTK_DELETE_FUNCTION;
+  vtkProbeFilter(const vtkProbeFilter&) = delete;
+  void operator=(const vtkProbeFilter&) = delete;
 
   // Probe only those points that are marked as not-probed by the MaskPoints
   // array.
   void ProbeEmptyPoints(vtkDataSet *input, int srcIdx, vtkDataSet *source,
     vtkDataSet *output);
+
   // A faster implementation for vtkImageData input.
   void ProbePointsImageData(vtkImageData *input, int srcIdx, vtkDataSet *source,
     vtkImageData *output);
+  void ProbeImagePointsInCell(vtkCell *cell, vtkIdType cellId, vtkDataSet *source,
+    int srcBlockId, const double start[3], const double spacing[3],
+    const int dim[3], vtkPointData *outPD, char *maskArray, double *wtsBuff);
+
+  class ProbeImageDataWorklet;
 
   class vtkVectorOfArrays;
   vtkVectorOfArrays* CellArrays;
-
 };
 
 #endif

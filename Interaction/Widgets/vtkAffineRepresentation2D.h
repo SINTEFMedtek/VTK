@@ -69,7 +69,7 @@ public:
    * Standard methods for instances of this class.
    */
   vtkTypeMacro(vtkAffineRepresentation2D,vtkAffineRepresentation);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   //@{
@@ -107,7 +107,7 @@ public:
    * scale, translate, rotate, shear) are concatenated with the internal
    * transform.
    */
-  virtual void GetTransform(vtkTransform *t);
+  void GetTransform(vtkTransform *t) override;
 
   //@{
   /**
@@ -140,34 +140,34 @@ public:
    * transformation matrix (i.e., sets it to identity). It also sets the
    * origin for scaling and rotation.
    */
-  virtual void PlaceWidget(double bounds[6]);
-  virtual void StartWidgetInteraction(double eventPos[2]);
-  virtual void WidgetInteraction(double eventPos[2]);
-  virtual void EndWidgetInteraction(double eventPos[2]);
-  virtual int ComputeInteractionState(int X, int Y, int modify=0);
-  virtual void BuildRepresentation();
+  void PlaceWidget(double bounds[6]) override;
+  void StartWidgetInteraction(double eventPos[2]) override;
+  void WidgetInteraction(double eventPos[2]) override;
+  void EndWidgetInteraction(double eventPos[2]) override;
+  int ComputeInteractionState(int X, int Y, int modify=0) override;
+  void BuildRepresentation() override;
   //@}
 
   //@{
   /**
    * Methods to make this class behave as a vtkProp.
    */
-  virtual void ShallowCopy(vtkProp *prop);
-  virtual void GetActors2D(vtkPropCollection *);
-  virtual void ReleaseGraphicsResources(vtkWindow *);
-  virtual int RenderOverlay(vtkViewport *viewport);
+  void ShallowCopy(vtkProp *prop) override;
+  void GetActors2D(vtkPropCollection *) override;
+  void ReleaseGraphicsResources(vtkWindow *) override;
+  int RenderOverlay(vtkViewport *viewport) override;
   //@}
 
 protected:
   vtkAffineRepresentation2D();
-  ~vtkAffineRepresentation2D();
+  ~vtkAffineRepresentation2D() override;
 
   // Methods to manipulate the cursor
   void Translate(double eventPos[2]);
   void Scale(double eventPos[2]);
   void Rotate(double eventPos[2]);
   void Shear(double eventPos[2]);
-  void Highlight(int highlight);
+  void Highlight(int highlight) override;
   void UpdateText(const char *text, double eventPos[2]);
 
   // The width of the widget in normalized viewport coordinates.
@@ -186,7 +186,6 @@ protected:
   // The internal transformation matrix
   vtkTransform *CurrentTransform;
   vtkTransform *TotalTransform;
-  vtkTransform *TempTransform;
   double Origin[4]; //the current origin in world coordinates
   double DisplayOrigin[3]; //the current origin in display coordinates
   double CurrentTranslation[3]; //translation this movement
@@ -247,8 +246,8 @@ protected:
   vtkLeaderActor2D    *HYAxis;
 
 private:
-  vtkAffineRepresentation2D(const vtkAffineRepresentation2D&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkAffineRepresentation2D&) VTK_DELETE_FUNCTION;
+  vtkAffineRepresentation2D(const vtkAffineRepresentation2D&) = delete;
+  void operator=(const vtkAffineRepresentation2D&) = delete;
 };
 
 #endif

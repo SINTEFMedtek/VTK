@@ -48,7 +48,7 @@ struct MapPoints
             vtkIdType *map, vtkPointData *inPD, vtkPointData *outPD) :
     InPoints(inPts), OutPoints(outPts), PointMap(map)
   {
-      this->Arrays.AddArrays(numOutPts, inPD, outPD);
+    this->Arrays.AddArrays(numOutPts, inPD, outPD, 0.0, false);
   }
 
   void operator() (vtkIdType ptId, vtkIdType endPtId)
@@ -97,7 +97,7 @@ struct MapOutliers
               vtkIdType *map, vtkPointData *inPD, vtkPointData *outPD2) :
     InPoints(inPts), OutPoints(outPts), PointMap(map)
   {
-      this->Arrays.AddArrays(numOutPts, inPD, outPD2);
+    this->Arrays.AddArrays(numOutPts, inPD, outPD2, 0.0, false);
   }
 
   void operator() (vtkIdType ptId, vtkIdType endPtId)
@@ -139,7 +139,7 @@ struct MapOutliers
 //----------------------------------------------------------------------------
 vtkPointCloudFilter::vtkPointCloudFilter()
 {
-  this->PointMap = NULL;
+  this->PointMap = nullptr;
   this->NumberOfPointsRemoved = 0;
   this->GenerateOutliers = false;
   this->GenerateVertices = false;
@@ -151,10 +151,7 @@ vtkPointCloudFilter::vtkPointCloudFilter()
 //----------------------------------------------------------------------------
 vtkPointCloudFilter::~vtkPointCloudFilter()
 {
-  if ( this->PointMap )
-  {
-    delete [] this->PointMap;
-  }
+  delete [] this->PointMap;
 }
 
 //----------------------------------------------------------------------------
@@ -193,10 +190,8 @@ int vtkPointCloudFilter::RequestData(
 
   // Reset the filter
   this->NumberOfPointsRemoved = 0;
-  if ( this->PointMap )
-  {
-    delete [] this->PointMap; //might have executed previously
-  }
+
+  delete [] this->PointMap; //might have executed previously
 
   // Check input
   if ( !input || !output )
@@ -315,7 +310,7 @@ int vtkPointCloudFilter::RequestData(
 void vtkPointCloudFilter::GenerateVerticesIfRequested(vtkPolyData *output)
 {
   vtkIdType numPts;
-  if ( ! this->GenerateVertices || output->GetPoints() == NULL ||
+  if ( ! this->GenerateVertices || output->GetPoints() == nullptr ||
        (numPts=output->GetNumberOfPoints()) < 1)
   {
     return;

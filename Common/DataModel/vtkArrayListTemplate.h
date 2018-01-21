@@ -29,7 +29,7 @@
  * performs the initial magic of constructing input and output arrays. Then
  * the input attributes, and output attributes, are passed to initialize the
  * internal structures. Essentially these internal structures are pairs of
- * arrays of the same type, which can be efficently accessed and
+ * arrays of the same type, which can be efficiently accessed and
  * assigned. The operations on these array pairs (e.g., interpolation) occur
  * using a typeless, virtual dispatch base class.
  *
@@ -85,11 +85,11 @@ struct ArrayPair : public BaseArrayPair
     BaseArrayPair(num,numComp,outArray), Input(in), Output(out), NullValue(null)
   {
   }
-  ~ArrayPair() VTK_OVERRIDE  //calm down some finicky compilers
+  ~ArrayPair() override  //calm down some finicky compilers
   {
   }
 
-  void Copy(vtkIdType inId, vtkIdType outId) VTK_OVERRIDE
+  void Copy(vtkIdType inId, vtkIdType outId) override
   {
     for (int j=0; j < this->NumComp; ++j)
     {
@@ -98,7 +98,7 @@ struct ArrayPair : public BaseArrayPair
   }
 
   void Interpolate(int numWeights, const vtkIdType *ids,
-                           const double *weights, vtkIdType outId) VTK_OVERRIDE
+                           const double *weights, vtkIdType outId) override
   {
     for (int j=0; j < this->NumComp; ++j)
     {
@@ -111,7 +111,7 @@ struct ArrayPair : public BaseArrayPair
     }
   }
 
-  void InterpolateEdge(vtkIdType v0, vtkIdType v1, double t, vtkIdType outId) VTK_OVERRIDE
+  void InterpolateEdge(vtkIdType v0, vtkIdType v1, double t, vtkIdType outId) override
   {
     double v;
     vtkIdType numComp=this->NumComp;
@@ -123,7 +123,7 @@ struct ArrayPair : public BaseArrayPair
     }
   }
 
-  void AssignNullValue(vtkIdType outId) VTK_OVERRIDE
+  void AssignNullValue(vtkIdType outId) override
   {
     for (int j=0; j < this->NumComp; ++j)
     {
@@ -131,7 +131,7 @@ struct ArrayPair : public BaseArrayPair
     }
   }
 
-  void Realloc(vtkIdType sze) VTK_OVERRIDE
+  void Realloc(vtkIdType sze) override
   {
       this->OutputArray->WriteVoidPointer(0,sze*this->NumComp);
       this->Output = static_cast<T*>(this->OutputArray->GetVoidPointer(0));
@@ -152,11 +152,11 @@ struct RealArrayPair : public BaseArrayPair
     BaseArrayPair(num,numComp,outArray), Input(in), Output(out), NullValue(null)
   {
   }
-  ~RealArrayPair() VTK_OVERRIDE  //calm down some finicky compilers
+  ~RealArrayPair() override  //calm down some finicky compilers
   {
   }
 
-  void Copy(vtkIdType inId, vtkIdType outId) VTK_OVERRIDE
+  void Copy(vtkIdType inId, vtkIdType outId) override
   {
     for (int j=0; j < this->NumComp; ++j)
     {
@@ -165,7 +165,7 @@ struct RealArrayPair : public BaseArrayPair
   }
 
   void Interpolate(int numWeights, const vtkIdType *ids,
-                           const double *weights, vtkIdType outId) VTK_OVERRIDE
+                           const double *weights, vtkIdType outId) override
   {
     for (int j=0; j < this->NumComp; ++j)
     {
@@ -178,7 +178,7 @@ struct RealArrayPair : public BaseArrayPair
     }
   }
 
-  void InterpolateEdge(vtkIdType v0, vtkIdType v1, double t, vtkIdType outId) VTK_OVERRIDE
+  void InterpolateEdge(vtkIdType v0, vtkIdType v1, double t, vtkIdType outId) override
   {
     double v;
     vtkIdType numComp=this->NumComp;
@@ -190,7 +190,7 @@ struct RealArrayPair : public BaseArrayPair
     }
   }
 
-  void AssignNullValue(vtkIdType outId) VTK_OVERRIDE
+  void AssignNullValue(vtkIdType outId) override
   {
     for (int j=0; j < this->NumComp; ++j)
     {
@@ -198,7 +198,7 @@ struct RealArrayPair : public BaseArrayPair
     }
   }
 
-  void Realloc(vtkIdType sze) VTK_OVERRIDE
+  void Realloc(vtkIdType sze) override
   {
       this->OutputArray->WriteVoidPointer(0,sze*this->NumComp);
       this->Output = static_cast<TOutput*>(this->OutputArray->GetVoidPointer(0));
@@ -225,6 +225,10 @@ struct ArrayList
   void AddArrays(vtkIdType numOutPts, vtkDataSetAttributes *inPD,
                  vtkDataSetAttributes *outPD, double nullValue=0.0,
                  bool promote=true);
+
+  // Add an array that interpolates from its own attribute values
+  void AddSelfInterpolatingArrays(vtkIdType numOutPts, vtkDataSetAttributes *attr,
+                                  double nullValue=0.0);
 
   // Add a pair of arrays (manual insertion). Returns the output array created,
   // if any. No array may be created if \c inArray was previously marked as
@@ -300,7 +304,7 @@ struct ArrayList
   // Return the number of arrays
   vtkIdType GetNumberOfArrays()
   {
-      return Arrays.size();
+    return static_cast<vtkIdType>(Arrays.size());
   }
 
 };

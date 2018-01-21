@@ -118,8 +118,8 @@ bool FileStreamReader::open( const char* fileName )
       const char* mode = (magic[0] == 0x1f && magic[1] == 0x8b) ? "rb" : "r";
       this->file = gzopen(fileName,mode);
 
-      this->Eof = (this->file == 0);
-      this->Open = (this->file != 0);
+      this->Eof = (this->file == nullptr);
+      this->Open = (this->file != nullptr);
       this->Pos = BUFF_SIZE;
     }
   }
@@ -249,7 +249,7 @@ public:
     this->NextCharEOL   = false;
     this->TokenIsString = false;
 
-    std::string  retval = "";
+    std::string  retval;
     if ( !this->NextCharValid )
     {
       this->TheNextChar   = this->ASCIIStream.get();
@@ -398,8 +398,8 @@ public:
 
 private:
 
-  vtkTecplotReaderInternal( const vtkTecplotReaderInternal & ) VTK_DELETE_FUNCTION;
-  void operator = ( const vtkTecplotReaderInternal & ) VTK_DELETE_FUNCTION;
+  vtkTecplotReaderInternal( const vtkTecplotReaderInternal & ) = delete;
+  void operator = ( const vtkTecplotReaderInternal & ) = delete;
 };
 // ==========================================================================//
 
@@ -486,7 +486,7 @@ vtkTecplotReader::vtkTecplotReader()
   this->DataArraySelection->AddObserver( vtkCommand::ModifiedEvent,
                                          this->SelectionObserver );
 
-  this->FileName = NULL;
+  this->FileName = nullptr;
   this->Internal = new vtkTecplotReaderInternal;
   this->SetNumberOfInputPorts( 0 );
 
@@ -501,17 +501,17 @@ vtkTecplotReader::~vtkTecplotReader()
   delete [] this->FileName;
 
   delete this->Internal;
-  this->Internal = NULL;
+  this->Internal = nullptr;
 
   this->DataArraySelection->RemoveAllArrays();
   this->DataArraySelection->RemoveObserver( this->SelectionObserver );
   this->DataArraySelection->Delete();
-  this->DataArraySelection = NULL;
+  this->DataArraySelection = nullptr;
 
-  this->SelectionObserver->SetClientData( NULL );
-  this->SelectionObserver->SetCallback( NULL );
+  this->SelectionObserver->SetClientData( nullptr );
+  this->SelectionObserver->SetCallback( nullptr );
   this->SelectionObserver->Delete();
-  this->SelectionObserver  = NULL;
+  this->SelectionObserver  = nullptr;
 }
 
 // ----------------------------------------------------------------------------
@@ -533,7 +533,7 @@ void vtkTecplotReader::SetFileName( const char * fileName )
 {
   if (    fileName
        && strcmp( fileName, "" )
-       && ( ( this->FileName == NULL ) || strcmp( fileName, this->FileName ) )
+       && ( ( this->FileName == nullptr ) || strcmp( fileName, this->FileName ) )
      )
   {
     delete [] this->FileName;
@@ -589,8 +589,8 @@ int vtkTecplotReader::RequestData( vtkInformation *        vtkNotUsed( request )
 
   this->Internal->Completed = 0;
   this->ReadFile( output );
-  outInf = NULL;
-  output = NULL;
+  outInf = nullptr;
+  output = nullptr;
 
   return 1;
 }
@@ -612,7 +612,7 @@ const char * vtkTecplotReader::GetBlockName( int blockIdx )
 {
   if (  blockIdx < 0  ||  blockIdx >= int( this->ZoneNames.size() )  )
   {
-    return NULL;
+    return nullptr;
   }
 
   return this->ZoneNames[ blockIdx ].c_str();
@@ -632,7 +632,7 @@ const char * vtkTecplotReader::GetDataAttributeName( int attrIndx )
 {
   if ( attrIndx < 0 && attrIndx >= this->GetNumberOfDataAttributes() )
   {
-    return NULL;
+    return nullptr;
   }
 
   return this->Variables[ attrIndx +
@@ -738,7 +738,7 @@ void vtkTecplotReader::GetArraysFromPointPackingZone
     !this->Internal->ASCIIStream.is_open()
      )
   {
-    vtkErrorMacro( << "File not open, errors with reading, or NULL vtkPoints /"
+    vtkErrorMacro( << "File not open, errors with reading, or nullptr vtkPoints /"
                    << "vtkPointData." );
     return;
   }
@@ -749,13 +749,12 @@ void vtkTecplotReader::GetArraysFromPointPackingZone
   int     isXcoord;
   int     isYcoord;
   int     isZcoord;
-  int   * anyCoord = NULL; // is any coordinate?
-  int   * coordIdx = NULL; // index of the coordinate array, just in case
-  int   * selected = NULL; // is a selected data array?
-  float * cordsPtr = NULL;
-  float * arrayPtr = NULL;
+  int   * anyCoord; // is any coordinate?
+  int   * coordIdx; // index of the coordinate array, just in case
+  int   * selected; // is a selected data array?
+  float * arrayPtr = nullptr;
   float   theValue;
-  vtkFloatArray * theArray = NULL;
+  vtkFloatArray * theArray = nullptr;
   std::vector< float * > pointers;
   std::vector< vtkFloatArray * > zoneData;
 
@@ -765,7 +764,7 @@ void vtkTecplotReader::GetArraysFromPointPackingZone
   // geoemtry: 3D point coordinates (note that this array must be initialized
   // since only 2D coordinates might be provided by a Tecplot file)
   theNodes->SetNumberOfPoints( numNodes );
-  cordsPtr = static_cast< float * > (  theNodes->GetVoidPointer( 0 )  );
+  float * cordsPtr = static_cast< float * > (  theNodes->GetVoidPointer( 0 )  );
   memset( cordsPtr, 0, sizeof( float ) * 3 * numNodes );
 
   // three arrays used to determine the role of each variable (including
@@ -793,8 +792,8 @@ void vtkTecplotReader::GetArraysFromPointPackingZone
       zoneData.push_back( theArray );
       arrayPtr = static_cast< float * > (  theArray->GetVoidPointer( 0 )  );
       pointers.push_back( arrayPtr );
-      arrayPtr = NULL;
-      theArray = NULL;
+      arrayPtr = nullptr;
+      theArray = nullptr;
     }
   }
 
@@ -825,7 +824,7 @@ void vtkTecplotReader::GetArraysFromPointPackingZone
       }
     }
   }
-  cordsPtr = NULL;
+  cordsPtr = nullptr;
 
   // attach the node-based data attributes to the grid
   zArrayId = 0;
@@ -855,9 +854,9 @@ void vtkTecplotReader::GetArraysFromPointPackingZone
   delete [] anyCoord;
   delete [] coordIdx;
   delete [] selected;
-  anyCoord = NULL;
-  coordIdx = NULL;
-  selected = NULL;
+  anyCoord = nullptr;
+  coordIdx = nullptr;
+  selected = nullptr;
 }
 
 // ----------------------------------------------------------------------------
@@ -872,7 +871,7 @@ void vtkTecplotReader::GetArraysFromBlockPackingZone( int numNodes, int numCells
       !this->Internal->ASCIIStream.is_open()
      )
   {
-    vtkErrorMacro( << "File not open, errors with reading, or NULL vtkPoints /"
+    vtkErrorMacro( << "File not open, errors with reading, or nullptr vtkPoints /"
                    << "vtkPointData / vtkCellData." );
     return;
   }
@@ -883,11 +882,10 @@ void vtkTecplotReader::GetArraysFromBlockPackingZone( int numNodes, int numCells
   int     isXcoord;
   int     isYcoord;
   int     isZcoord;
-  int   * anyCoord = NULL; // is any coordinate?
-  int   * selected = NULL; // is a selected data attribute?
-  float * cordsPtr = NULL;
-  float * arrayPtr = NULL;
-  vtkFloatArray * theArray = NULL;
+  int   * anyCoord; // is any coordinate?
+  int   * selected; // is a selected data attribute?
+  float * arrayPtr = nullptr;
+  vtkFloatArray * theArray = nullptr;
   std::vector< vtkFloatArray * > zoneData;
   vtkDataSetAttributes * attribut[2] = { nodeData, cellData };
 
@@ -896,7 +894,7 @@ void vtkTecplotReader::GetArraysFromBlockPackingZone( int numNodes, int numCells
   // geoemtry: 3D point coordinates (note that this array must be initialized
   // since only 2D coordinates might be provided by a Tecplot file)
   theNodes->SetNumberOfPoints( numNodes );
-  cordsPtr = static_cast< float * > (  theNodes->GetVoidPointer( 0 )  );
+  float * cordsPtr = static_cast< float * > (  theNodes->GetVoidPointer( 0 )  );
   memset( cordsPtr, 0, sizeof( float ) * 3 * numNodes );
 
   // two arrays used to determine the role of each variable (including
@@ -935,7 +933,7 @@ void vtkTecplotReader::GetArraysFromBlockPackingZone( int numNodes, int numCells
       {
         arrayPtr[i] = atof( this->Internal->GetNextToken().c_str() );
       }
-      theArray = NULL;
+      theArray = nullptr;
 
       // three special arrays are 'combined' to fill the 3D coord array
       if ( anyCoord[v] )
@@ -945,10 +943,10 @@ void vtkTecplotReader::GetArraysFromBlockPackingZone( int numNodes, int numCells
         {
           *coordPtr = arrayPtr[i];
         }
-        coordPtr = NULL;
+        coordPtr = nullptr;
       }
 
-      arrayPtr = NULL;
+      arrayPtr = nullptr;
     }
     else
     {
@@ -960,7 +958,7 @@ void vtkTecplotReader::GetArraysFromBlockPackingZone( int numNodes, int numCells
       }
     }
   }
-  cordsPtr = NULL;
+  cordsPtr = nullptr;
 
   // attach the dataset attributes (node-based and cell-based) to the grid
   // NOTE: zoneData[] and this->Variables (and this->CellBased) may differ
@@ -986,12 +984,12 @@ void vtkTecplotReader::GetArraysFromBlockPackingZone( int numNodes, int numCells
     }
   }
   zoneData.clear();
-  attribut[0] = attribut[1] = NULL;
+  attribut[0] = attribut[1] = nullptr;
 
   delete [] anyCoord;
   delete [] selected;
-  anyCoord = NULL;
-  selected = NULL;
+  anyCoord = nullptr;
+  selected = nullptr;
 }
 
 // ----------------------------------------------------------------------------
@@ -1001,7 +999,7 @@ void vtkTecplotReader::GetStructuredGridFromBlockPackingZone
 {
   if ( !zoneName || !multZone )
   {
-    vtkErrorMacro( "Zone name un-specified or NULL vtkMultiBlockDataSet." );
+    vtkErrorMacro( "Zone name un-specified or nullptr vtkMultiBlockDataSet." );
     return;
   }
 
@@ -1035,7 +1033,7 @@ void vtkTecplotReader::GetStructuredGridFromBlockPackingZone
   strcGrid->SetDimensions( gridDims );
   strcGrid->SetPoints( pntCords );
   pntCords->Delete();
-  pntCords = NULL;
+  pntCords = nullptr;
 
   if (    (    this->Internal->TopologyDim == 2
             || this->Internal->TopologyDim == 3
@@ -1050,7 +1048,7 @@ void vtkTecplotReader::GetStructuredGridFromBlockPackingZone
             ->Set( vtkCompositeDataSet::NAME(), zoneName );
   }
   strcGrid->Delete();
-  strcGrid = NULL;
+  strcGrid = nullptr;
 }
 
 // ----------------------------------------------------------------------------
@@ -1060,7 +1058,7 @@ void vtkTecplotReader::GetStructuredGridFromPointPackingZone
 {
   if ( !zoneName || !multZone )
   {
-    vtkErrorMacro( "Zone name un-specified or NULL vtkMultiBlockDataSet." );
+    vtkErrorMacro( "Zone name un-specified or nullptr vtkMultiBlockDataSet." );
     return;
   }
 
@@ -1089,7 +1087,7 @@ void vtkTecplotReader::GetStructuredGridFromPointPackingZone
   strcGrid->SetDimensions( gridDims );
   strcGrid->SetPoints( pntCords );
   pntCords->Delete();
-  pntCords = NULL;
+  pntCords = nullptr;
 
   if (    (    this->Internal->TopologyDim == 2
             || this->Internal->TopologyDim == 3
@@ -1104,7 +1102,7 @@ void vtkTecplotReader::GetStructuredGridFromPointPackingZone
             ->Set( vtkCompositeDataSet::NAME(), zoneName );
   }
   strcGrid->Delete();
-  strcGrid = NULL;
+  strcGrid = nullptr;
 }
 
 // ----------------------------------------------------------------------------
@@ -1114,7 +1112,7 @@ void vtkTecplotReader::GetUnstructuredGridFromBlockPackingZone
 {
   if ( !cellType || !zoneName || !multZone )
   {
-    vtkErrorMacro( << "Zone name / cell type un-specified, or NULL "
+    vtkErrorMacro( << "Zone name / cell type un-specified, or nullptr "
                    << "vtkMultiBlockDataSet object." );
     return;
   }
@@ -1126,7 +1124,7 @@ void vtkTecplotReader::GetUnstructuredGridFromBlockPackingZone
   this->GetUnstructuredGridCells( numCells, cellType, unstruct );
   unstruct->SetPoints( gridPnts );
   gridPnts->Delete();
-  gridPnts = NULL;
+  gridPnts = nullptr;
 
   if (    (    this->Internal->TopologyDim == 2
             || this->Internal->TopologyDim == 3
@@ -1141,7 +1139,7 @@ void vtkTecplotReader::GetUnstructuredGridFromBlockPackingZone
             ->Set( vtkCompositeDataSet::NAME(), zoneName );
   }
   unstruct->Delete();
-  unstruct = NULL;
+  unstruct = nullptr;
 }
 
 // ----------------------------------------------------------------------------
@@ -1151,7 +1149,7 @@ void vtkTecplotReader::GetUnstructuredGridFromPointPackingZone
 {
   if ( !cellType || !zoneName || !multZone )
   {
-    vtkErrorMacro( << "Zone name / cell type un-specified, or NULL "
+    vtkErrorMacro( << "Zone name / cell type un-specified, or nullptr "
                    << "vtkMultiBlockDataSet object." );
     return;
   }
@@ -1163,7 +1161,7 @@ void vtkTecplotReader::GetUnstructuredGridFromPointPackingZone
   this->GetUnstructuredGridCells( numCells, cellType, unstruct );
   unstruct->SetPoints( gridPnts );
   gridPnts->Delete();
-  gridPnts = NULL;
+  gridPnts = nullptr;
 
   if (    (    this->Internal->TopologyDim == 2
             || this->Internal->TopologyDim == 3
@@ -1178,7 +1176,7 @@ void vtkTecplotReader::GetUnstructuredGridFromPointPackingZone
             ->Set( vtkCompositeDataSet::NAME(), zoneName );
   }
   unstruct->Delete();
-  unstruct = NULL;
+  unstruct = nullptr;
 }
 
 // ----------------------------------------------------------------------------
@@ -1187,7 +1185,7 @@ void vtkTecplotReader::GetUnstructuredGridCells( int numberCells,
 {
   if ( !cellTypeStr || !unstrctGrid )
   {
-    vtkErrorMacro( << "Cell type (connectivity type) unspecified or NULL "
+    vtkErrorMacro( << "Cell type (connectivity type) unspecified or nullptr "
                    << "vtkUnstructuredGrid object." );
     return;
   }
@@ -1229,6 +1227,7 @@ void vtkTecplotReader::GetUnstructuredGridCells( int numberCells,
   else
   {
     vtkErrorMacro( << this->FileName << ": Unknown cell type for a zone." );
+    return;
   }
 
   // the storage of each cell begins with the number of points per cell,
@@ -1266,15 +1265,15 @@ void vtkTecplotReader::GetUnstructuredGridCells( int numberCells,
     *cellLocatPtr ++ = locateOffset;
     locateOffset    += numCellPnts + 1;
   }
-  cellInforPtr = NULL;
-  cellTypesPtr = NULL;
-  cellLocatPtr = NULL;
+  cellInforPtr = nullptr;
+  cellTypesPtr = nullptr;
+  cellLocatPtr = nullptr;
 
   // create a cell array object to accept the cell info
   vtkCellArray * theCellArray = vtkCellArray::New();
   theCellArray->SetCells( numberCells, cellInfoList );
   cellInfoList->Delete();
-  cellInfoList = NULL;
+  cellInfoList = nullptr;
 
   // create a vtkUnstructuredGrid object and attach the 3 arrays (types, locations,
   // and cells) to it for export.
@@ -1282,9 +1281,9 @@ void vtkTecplotReader::GetUnstructuredGridCells( int numberCells,
   theCellArray->Delete();
   cellTypeList->Delete();
   cellLocArray->Delete();
-  theCellArray = NULL;
-  cellTypeList = NULL;
-  cellLocArray = NULL;
+  theCellArray = nullptr;
+  cellTypeList = nullptr;
+  cellLocArray = nullptr;
 }
 
 // ----------------------------------------------------------------------------
@@ -1292,7 +1291,7 @@ void vtkTecplotReader::GetDataArraysList()
 {
   if (    ( this->Internal->Completed == 1 )
        || ( this->DataArraySelection->GetNumberOfArrays() > 0 )
-       || ( this->FileName == NULL ) || (  strcmp( this->FileName, "" ) == 0  )
+       || ( this->FileName == nullptr ) || (  strcmp( this->FileName, "" ) == 0  )
      )
   {
     return;
@@ -1307,7 +1306,7 @@ void vtkTecplotReader::GetDataArraysList()
   int             guessedYid = -1;
   int             guessedZid = -1;
   bool            tokenReady = false;
-  std::string  noSpaceTok = "";
+  std::string  noSpaceTok;
 
   this->Variables.clear();
   this->NumberOfVariables = 0;
@@ -1320,7 +1319,7 @@ void vtkTecplotReader::GetDataArraysList()
   {
     tokenReady = false;
 
-    if ( theTpToken == "" )
+    if ( theTpToken.empty() )
     {
       // whitespace: do nothing
     }
@@ -1451,15 +1450,15 @@ void vtkTecplotReader::GetDataArraysList()
 void vtkTecplotReader::ReadFile( vtkMultiBlockDataSet * multZone )
 {
   if (    ( this->Internal->Completed == 1 )
-       || ( this->FileName == NULL ) || (  strcmp( this->FileName, "" ) == 0  )
+       || ( this->FileName == nullptr ) || (  strcmp( this->FileName, "" ) == 0  )
      )
   {
     return;
   }
 
-  if ( multZone == NULL )
+  if ( multZone == nullptr )
   {
-    vtkErrorMacro( "vtkMultiBlockDataSet multZone NULL!" );
+    vtkErrorMacro( "vtkMultiBlockDataSet multZone nullptr!" );
     return;
   }
 
@@ -1481,7 +1480,7 @@ void vtkTecplotReader::ReadFile( vtkMultiBlockDataSet * multZone )
   while ( !this->Internal->NextCharEOF )
   {
     tokenReady = false;
-    if ( tok == "" )
+    if ( tok.empty() )
     {
       // whitespace: do nothing
     }
@@ -1642,10 +1641,10 @@ void vtkTecplotReader::ReadFile( vtkMultiBlockDataSet * multZone )
       int      numNodes    = 0;
       int      numElements = 0;
       char     untitledZoneName[40];
-      sprintf( untitledZoneName, "zone%05d", zoneIndex );
+      snprintf( untitledZoneName, sizeof(untitledZoneName), "zone%05d", zoneIndex );
 
-      std::string format    = "";
-      std::string elemType  = "";
+      std::string format;
+      std::string elemType;
       std::string ZoneName = untitledZoneName;
 
       tok = this->Internal->GetNextToken();
@@ -1673,6 +1672,7 @@ void vtkTecplotReader::ReadFile( vtkMultiBlockDataSet * multZone )
           {
             vtkErrorMacro( << this->FileName << ": Zone titles MUST be "
                            << "quoted." );
+            return;
           }
         }
         else if ( tok == "I" )
@@ -1734,21 +1734,21 @@ void vtkTecplotReader::ReadFile( vtkMultiBlockDataSet * multZone )
             do
             {
               //remove left square bracket, if it exists
-              size_t brack_pos = var_format_type.find("[");
+              size_t brack_pos = var_format_type.find('[');
               if ( brack_pos != std::string::npos )
                 var_format_type.erase(brack_pos, brack_pos+1);
 
               //remove right square bracket, if it exists
-              brack_pos = var_format_type.find("]");
+              brack_pos = var_format_type.find(']');
               if ( brack_pos != std::string::npos )
                 var_format_type.erase(brack_pos,brack_pos+1);
 
               //if a range is defined, then split again, convert to int and set to cell data
               //else if a single value is defined, then just set the flag directly
-              if ( var_format_type.find("-") != std::string::npos )
+              if ( var_format_type.find('-') != std::string::npos )
               {
                 std::vector<std::string> var_range;
-                vtksys::SystemTools::Split(var_format_type.c_str(), var_range, '-');
+                vtksys::SystemTools::Split(var_format_type, var_range, '-');
 
                 int cell_start = atoi(var_range[0].c_str()) - 1;
                 int cell_end = atoi(var_range[1].c_str());
@@ -1779,18 +1779,19 @@ void vtkTecplotReader::ReadFile( vtkMultiBlockDataSet * multZone )
         }
         else if ( tok == "D" )
         {
-          vtkErrorMacro( << this->FileName << "; Tecplot zone record parameter "
+          vtkWarningMacro( << this->FileName << "; Tecplot zone record parameter "
                          << "'D' is currently unsupported." );
+          this->Internal->GetNextToken();
         }
         else if ( tok == "STRANDID" )
         {
-          vtkErrorMacro( << this->FileName << "; Tecplot zone record parameter "
+          vtkWarningMacro( << this->FileName << "; Tecplot zone record parameter "
                          << "'STRANDID' is currently unsupported." );
           this->Internal->GetNextToken();
         }
         else if ( tok == "SOLUTIONTIME" )
         {
-          vtkErrorMacro( << this->FileName << "; Tecplot zone record parameter "
+          vtkWarningMacro( << this->FileName << "; Tecplot zone record parameter "
                          << "'SOLUTIONTIME' is currently unsupported." );
           this->Internal->GetNextToken();
         }
@@ -1821,7 +1822,7 @@ void vtkTecplotReader::ReadFile( vtkMultiBlockDataSet * multZone )
         this->GetStructuredGridFromPointPackingZone
               ( numI, numJ, numK, zoneIndex, ZoneName.c_str(),  multZone );
       }
-      else if ( format == "" )
+      else if ( format.empty() )
       {
         // No format given; we will assume we got a POINT format
         this->GetStructuredGridFromPointPackingZone
@@ -1832,6 +1833,7 @@ void vtkTecplotReader::ReadFile( vtkMultiBlockDataSet * multZone )
         // UNKNOWN FORMAT
         vtkErrorMacro( << this->FileName << ": The format " << format.c_str()
                        << " found in the file is unknown." );
+        return;
       }
 
       zoneIndex ++;
@@ -1853,15 +1855,15 @@ void vtkTecplotReader::ReadFile( vtkMultiBlockDataSet * multZone )
           if( haveVectorExpr )
           {
             // Remove spaces
-            std::string::size_type pos = tok.find( " " );
+            std::string::size_type pos = tok.find( ' ' );
             while( pos != std::string::npos )
             {
               tok.replace( pos, 1, "" );
-              pos = tok.find( " " );
+              pos = tok.find( ' ' );
             }
 
             // Look for '('
-            pos = tok.find( "(" );
+            pos = tok.find( '(' );
             if( pos != std::string::npos )
             {
               std::string  exprName(  tok.substr( 0, pos )  );
@@ -1870,7 +1872,7 @@ void vtkTecplotReader::ReadFile( vtkMultiBlockDataSet * multZone )
               exprDef.replace( 0, 1, "{" );
 
               // Replace ')' with '}'
-              pos = exprDef.find( ")" );
+              pos = exprDef.find( ')' );
               if( pos != std::string::npos )
               {
                 exprDef.replace( pos, 1, "}" );
@@ -1898,6 +1900,7 @@ void vtkTecplotReader::ReadFile( vtkMultiBlockDataSet * multZone )
       // UNKNOWN RECORD TYPE
       vtkErrorMacro( << this->FileName << ": The record type " << tok.c_str()
                      << " found in the file is unknown." );
+      return;
     }
 
     firstToken = false;

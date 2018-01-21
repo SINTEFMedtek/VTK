@@ -28,7 +28,10 @@ vtk_module(vtkIOExport
     ${gl2ps_depends}
     vtkCommonCore
     vtkIOCore
+    vtkIOImage
+    vtkRenderingContext2D
     vtkRenderingCore
+    vtkRenderingFreeType
   PRIVATE_DEPENDS
     vtkCommonDataModel
     vtkCommonMath
@@ -36,4 +39,5 @@ vtk_module(vtkIOExport
     vtkFiltersGeometry
     vtkIOImage
     vtkImagingCore
+    vtklibharu
   )

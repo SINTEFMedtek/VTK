@@ -24,7 +24,7 @@
  * 3D volume.
  *
  * File names are created using FilePattern and FilePrefix as follows:
- * sprintf (filename, FilePattern, FilePrefix, number);
+ * snprintf (filename, sizeof(filename), FilePattern, FilePrefix, number);
  * where number is in the range ImageRange[0] to ImageRange[1]. If
  * ImageRange[1] <= ImageRange[0], then slice number ImageRange[0] is
  * read. Thus to read an image set ImageRange[0] = ImageRange[1] = slice
@@ -52,7 +52,7 @@ class VTKIOIMAGE_EXPORT vtkVolumeReader : public vtkImageAlgorithm
 {
 public:
   vtkTypeMacro(vtkVolumeReader,vtkImageAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -64,7 +64,7 @@ public:
 
   //@{
   /**
-   * The sprintf format used to build filename from FilePrefix and number.
+   * The snprintf format used to build filename from FilePrefix and number.
    */
   vtkSetStringMacro(FilePattern);
   vtkGetStringMacro(FilePattern);
@@ -101,7 +101,7 @@ public:
 
 protected:
   vtkVolumeReader();
-  ~vtkVolumeReader();
+  ~vtkVolumeReader() override;
 
   char *FilePrefix;
   char *FilePattern;
@@ -109,8 +109,8 @@ protected:
   double DataSpacing[3];
   double DataOrigin[3];
 private:
-  vtkVolumeReader(const vtkVolumeReader&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkVolumeReader&) VTK_DELETE_FUNCTION;
+  vtkVolumeReader(const vtkVolumeReader&) = delete;
+  void operator=(const vtkVolumeReader&) = delete;
 };
 
 #endif

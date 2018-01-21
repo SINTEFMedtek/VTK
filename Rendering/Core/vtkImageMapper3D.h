@@ -48,7 +48,7 @@ class VTKRENDERINGCORE_EXPORT vtkImageMapper3D : public vtkAbstractMapper3D
 {
 public:
   vtkTypeMacro(vtkImageMapper3D, vtkAbstractMapper3D);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * This should only be called by the renderer.
@@ -60,7 +60,7 @@ public:
    * this mapper.  The parameter window is used to determine
    * which graphic resources to release.
    */
-  virtual void ReleaseGraphicsResources(vtkWindow *) = 0;
+  void ReleaseGraphicsResources(vtkWindow *) override = 0;
 
   //@{
   /**
@@ -162,22 +162,22 @@ public:
 
 protected:
   vtkImageMapper3D();
-  ~vtkImageMapper3D();
+  ~vtkImageMapper3D() override;
 
   //@{
   /**
    * See algorithm for more info
    */
-  virtual int FillInputPortInformation(int port, vtkInformation* info);
-  virtual int FillOutputPortInformation(int port, vtkInformation* info);
+  int FillInputPortInformation(int port, vtkInformation* info) override;
+  int FillOutputPortInformation(int port, vtkInformation* info) override;
   //@}
 
   /**
    * Handle requests from the pipeline executive.
    */
-  virtual int ProcessRequest(vtkInformation* request,
+  int ProcessRequest(vtkInformation* request,
                              vtkInformationVector** inInfo,
-                             vtkInformationVector* outInfo);
+                             vtkInformationVector* outInfo) override;
 
   /**
    * Checkerboard the alpha component of an RGBA image.  The origin and
@@ -268,8 +268,8 @@ private:
   // The cached data-to-world matrix
   vtkMatrix4x4 *DataToWorldMatrix;
 
-  vtkImageMapper3D(const vtkImageMapper3D&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkImageMapper3D&) VTK_DELETE_FUNCTION;
+  vtkImageMapper3D(const vtkImageMapper3D&) = delete;
+  void operator=(const vtkImageMapper3D&) = delete;
 
   friend class vtkImageToImageMapper3DFriendship;
 };

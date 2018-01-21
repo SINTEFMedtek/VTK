@@ -32,7 +32,7 @@ class VTKFILTERSPARALLEL_EXPORT vtkExtractPolyDataPiece : public vtkPolyDataAlgo
 public:
   static vtkExtractPolyDataPiece *New();
   vtkTypeMacro(vtkExtractPolyDataPiece, vtkPolyDataAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -45,11 +45,11 @@ public:
 
 protected:
   vtkExtractPolyDataPiece();
-  ~vtkExtractPolyDataPiece() {}
+  ~vtkExtractPolyDataPiece() override {}
 
   // Usual data generation method
-  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-  int RequestUpdateExtent(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
+  int RequestUpdateExtent(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
 
   // A method for labeling which piece the cells belong to.
   void ComputeCellTags(vtkIntArray *cellTags, vtkIdList *pointOwnership,
@@ -59,8 +59,8 @@ protected:
 
   int CreateGhostCells;
 private:
-  vtkExtractPolyDataPiece(const vtkExtractPolyDataPiece&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkExtractPolyDataPiece&) VTK_DELETE_FUNCTION;
+  vtkExtractPolyDataPiece(const vtkExtractPolyDataPiece&) = delete;
+  void operator=(const vtkExtractPolyDataPiece&) = delete;
 };
 
 #endif

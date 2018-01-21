@@ -75,7 +75,7 @@ class VTKRENDERINGANNOTATION_EXPORT vtkCaptionActor2D : public vtkActor2D
 {
 public:
   vtkTypeMacro(vtkCaptionActor2D,vtkActor2D);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   static vtkCaptionActor2D *New();
 
@@ -190,7 +190,7 @@ public:
    * Shallow copy of this scaled text actor. Overloads the virtual
    * vtkProp method.
    */
-  void ShallowCopy(vtkProp *prop);
+  void ShallowCopy(vtkProp *prop) override;
 
   //@{
   /**
@@ -209,7 +209,7 @@ public:
    * The parameter window could be used to determine which graphic
    * resources to release.
    */
-  virtual void ReleaseGraphicsResources(vtkWindow *);
+  void ReleaseGraphicsResources(vtkWindow *) override;
 
   //@{
   /**
@@ -217,19 +217,19 @@ public:
    * DO NOT USE THIS METHOD OUTSIDE OF THE RENDERING PROCESS.
    * Draw the legend box to the screen.
    */
-  int RenderOpaqueGeometry(vtkViewport* viewport);
-  virtual int RenderTranslucentPolygonalGeometry(vtkViewport* ) {return 0;}
-  int RenderOverlay(vtkViewport* viewport);
+  int RenderOpaqueGeometry(vtkViewport* viewport) override;
+  int RenderTranslucentPolygonalGeometry(vtkViewport* ) override {return 0;}
+  int RenderOverlay(vtkViewport* viewport) override;
   //@}
 
   /**
    * Does this prop have some translucent polygonal geometry?
    */
-  virtual int HasTranslucentPolygonalGeometry();
+  int HasTranslucentPolygonalGeometry() override;
 
 protected:
   vtkCaptionActor2D();
-  ~vtkCaptionActor2D();
+  ~vtkCaptionActor2D() override;
 
   vtkCoordinate *AttachmentPointCoordinate;
 
@@ -268,8 +268,8 @@ private:
   vtkCaptionActor2DConnection* LeaderGlyphConnectionHolder;
 
 private:
-  vtkCaptionActor2D(const vtkCaptionActor2D&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkCaptionActor2D&) VTK_DELETE_FUNCTION;
+  vtkCaptionActor2D(const vtkCaptionActor2D&) = delete;
+  void operator=(const vtkCaptionActor2D&) = delete;
 };
 
 

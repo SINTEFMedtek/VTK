@@ -43,7 +43,7 @@ public:
   static vtkImageResliceToColors *New();
   vtkTypeMacro(vtkImageResliceToColors, vtkImageReslice);
 
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -85,28 +85,28 @@ public:
 
   /**
    * When determining the modified time of the filter,
-   * this check the modified time of the transform and matrix.
+   * this checks the modified time of the transform and matrix.
    */
-  vtkMTimeType GetMTime();
+  vtkMTimeType GetMTime() override;
 
 protected:
   vtkImageResliceToColors();
-  ~vtkImageResliceToColors();
+  ~vtkImageResliceToColors() override;
 
   vtkScalarsToColors *LookupTable;
   vtkScalarsToColors *DefaultLookupTable;
   int OutputFormat;
   int Bypass;
 
-  int ConvertScalarInfo(int &scalarType, int &numComponents);
+  int ConvertScalarInfo(int &scalarType, int &numComponents) override;
 
   void ConvertScalars(void *inPtr, void *outPtr, int inputType,
                       int inputNumComponents, int count,
-                      int idX, int idY, int idZ, int threadId);
+                      int idX, int idY, int idZ, int threadId) override;
 
 private:
-  vtkImageResliceToColors(const vtkImageResliceToColors&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkImageResliceToColors&) VTK_DELETE_FUNCTION;
+  vtkImageResliceToColors(const vtkImageResliceToColors&) = delete;
+  void operator=(const vtkImageResliceToColors&) = delete;
 };
 
 #endif

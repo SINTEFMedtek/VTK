@@ -28,7 +28,7 @@
 #define vtkApproximatingSubdivisionFilter_h
 
 #include "vtkFiltersGeneralModule.h" // For export macro
-#include "vtkPolyDataAlgorithm.h"
+#include "vtkSubdivisionFilter.h"
 
 class vtkCellArray;
 class vtkCellData;
@@ -37,25 +37,17 @@ class vtkIntArray;
 class vtkPoints;
 class vtkPointData;
 
-class VTKFILTERSGENERAL_EXPORT vtkApproximatingSubdivisionFilter : public vtkPolyDataAlgorithm
+class VTKFILTERSGENERAL_EXPORT vtkApproximatingSubdivisionFilter : public vtkSubdivisionFilter
 {
 public:
-  vtkTypeMacro(vtkApproximatingSubdivisionFilter,vtkPolyDataAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
-
-  //@{
-  /**
-   * Set/get the number of subdivisions.
-   */
-  vtkSetMacro(NumberOfSubdivisions,int);
-  vtkGetMacro(NumberOfSubdivisions,int);
-  //@}
+  vtkTypeMacro(vtkApproximatingSubdivisionFilter, vtkSubdivisionFilter);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
 protected:
   vtkApproximatingSubdivisionFilter();
-  ~vtkApproximatingSubdivisionFilter() VTK_OVERRIDE {}
+  ~vtkApproximatingSubdivisionFilter() override {}
 
-  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) VTK_OVERRIDE;
+  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
   virtual int GenerateSubdivisionPoints (vtkPolyData *inputDS,
                                           vtkIntArray *edgeData,
                                           vtkPoints *outputPts,
@@ -67,10 +59,9 @@ protected:
                 vtkIdType p2, vtkIntArray *edgeData, vtkIdList *cellIds);
   vtkIdType InterpolatePosition (vtkPoints *inputPts, vtkPoints *outputPts,
                                  vtkIdList *stencil, double *weights);
-  int NumberOfSubdivisions;
 private:
-  vtkApproximatingSubdivisionFilter(const vtkApproximatingSubdivisionFilter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkApproximatingSubdivisionFilter&) VTK_DELETE_FUNCTION;
+  vtkApproximatingSubdivisionFilter(const vtkApproximatingSubdivisionFilter&) = delete;
+  void operator=(const vtkApproximatingSubdivisionFilter&) = delete;
 };
 
 #endif

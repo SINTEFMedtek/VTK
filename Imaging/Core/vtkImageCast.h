@@ -42,7 +42,7 @@ class VTKIMAGINGCORE_EXPORT vtkImageCast : public vtkThreadedImageAlgorithm
 public:
   static vtkImageCast *New();
   vtkTypeMacro(vtkImageCast,vtkThreadedImageAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -84,18 +84,18 @@ public:
 
 protected:
   vtkImageCast();
-  ~vtkImageCast() {}
+  ~vtkImageCast() override {}
 
   int ClampOverflow;
   int OutputScalarType;
-  virtual int RequestInformation (vtkInformation *, vtkInformationVector**, vtkInformationVector *);
+  int RequestInformation (vtkInformation *, vtkInformationVector**, vtkInformationVector *) override;
 
   void ThreadedExecute (vtkImageData *inData, vtkImageData *outData,
-                       int ext[6], int id);
+                       int ext[6], int id) override;
 
 private:
-  vtkImageCast(const vtkImageCast&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkImageCast&) VTK_DELETE_FUNCTION;
+  vtkImageCast(const vtkImageCast&) = delete;
+  void operator=(const vtkImageCast&) = delete;
 };
 
 #endif

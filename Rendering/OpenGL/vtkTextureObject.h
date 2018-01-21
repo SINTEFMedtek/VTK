@@ -100,7 +100,7 @@ public:
 
   static vtkTextureObject* New();
   vtkTypeMacro(vtkTextureObject, vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -145,7 +145,7 @@ public:
   //@{
   /**
    * Activate the texture. The texture must have been created using Create().
-   * A side affect is that tex paramteres are sent.
+   * A side effect is that tex parameters are sent.
    * RenderWindow must be set before calling this.
    */
   void Bind();
@@ -609,7 +609,7 @@ public:
 
 protected:
   vtkTextureObject();
-  ~vtkTextureObject();
+  ~vtkTextureObject() override;
 
   /**
    * Load all necessary extensions.
@@ -670,8 +670,8 @@ protected:
   vtkTimeStamp SendParametersTime;
 
 private:
-  vtkTextureObject(const vtkTextureObject&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkTextureObject&) VTK_DELETE_FUNCTION;
+  vtkTextureObject(const vtkTextureObject&) = delete;
+  void operator=(const vtkTextureObject&) = delete;
 
 };
 

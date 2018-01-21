@@ -159,6 +159,8 @@ public:
    */
   static void GetCellNeighbors(vtkIdType cellId, vtkIdList *ptIds,
                                vtkIdList *cellIds, int dim[3]);
+  static void GetCellNeighbors(vtkIdType cellId, vtkIdList *ptIds,
+                                 vtkIdList *cellIds, int dim[3], int seedLoc[3]);
 
   /**
    * Given a location in structured coordinates (i-j-k), and the extent
@@ -233,7 +235,7 @@ public:
 
 protected:
   vtkStructuredData() {}
-  ~vtkStructuredData() VTK_OVERRIDE {}
+  ~vtkStructuredData() override {}
 
   /**
    * Computes the linear index for the given i-j-k structured of a grid with
@@ -273,8 +275,8 @@ protected:
   }
 
 private:
-  vtkStructuredData(const vtkStructuredData&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkStructuredData&) VTK_DELETE_FUNCTION;
+  vtkStructuredData(const vtkStructuredData&) = delete;
+  void operator=(const vtkStructuredData&) = delete;
 };
 
 //------------------------------------------------------------------------------

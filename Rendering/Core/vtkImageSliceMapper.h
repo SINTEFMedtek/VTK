@@ -41,7 +41,7 @@ class VTKRENDERINGCORE_EXPORT vtkImageSliceMapper : public vtkImageMapper3D
 public:
   static vtkImageSliceMapper *New();
   vtkTypeMacro(vtkImageSliceMapper,vtkImageMapper3D);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -95,27 +95,27 @@ public:
   /**
    * This should only be called by the renderer.
    */
-  virtual void Render(vtkRenderer *renderer, vtkImageSlice *prop);
+  void Render(vtkRenderer *renderer, vtkImageSlice *prop) override;
 
   /**
    * Release any graphics resources that are being consumed by
    * this mapper.  The parameter window is used to determine
    * which graphic resources to release.
    */
-  virtual void ReleaseGraphicsResources(vtkWindow *);
+  void ReleaseGraphicsResources(vtkWindow *) override;
 
   /**
    * Get the mtime for the mapper.
    */
-  vtkMTimeType GetMTime();
+  vtkMTimeType GetMTime() override;
 
   //@{
   /**
    * The bounding box (array of six doubles) of data expressed as
    * (xmin,xmax, ymin,ymax, zmin,zmax).
    */
-  double *GetBounds();
-  void GetBounds(double bounds[6]) {
+  double *GetBounds() override;
+  void GetBounds(double bounds[6]) override {
     this->vtkAbstractMapper3D::GetBounds(bounds); };
   //@}
 
@@ -124,19 +124,19 @@ public:
    * equation coefficients.  It is computed from the Orientation
    * and SliceNumber, the propMatrix is unused and can be zero.
    */
-  virtual void GetSlicePlaneInDataCoords(vtkMatrix4x4 *propMatrix,
-                                         double plane[4]);
+  void GetSlicePlaneInDataCoords(vtkMatrix4x4 *propMatrix,
+                                         double plane[4]) override;
 
   /**
    * Handle requests from the pipeline executive.
    */
-  virtual int ProcessRequest(vtkInformation* request,
+  int ProcessRequest(vtkInformation* request,
                              vtkInformationVector** inInfo,
-                             vtkInformationVector* outInfo);
+                             vtkInformationVector* outInfo) override;
 
 protected:
   vtkImageSliceMapper();
-  ~vtkImageSliceMapper();
+  ~vtkImageSliceMapper() override;
 
   /**
    * Set points that describe a polygon on which the slice will
@@ -164,7 +164,7 @@ protected:
    * Set the display extent.  Internal method, for when this mapper
    * is used as a helper class.
    */
-  void SetDisplayExtent(int extent[6]) {
+  void SetDisplayExtent(const int extent[6]) {
     this->DisplayExtent[0] = extent[0];
     this->DisplayExtent[1] = extent[1];
     this->DisplayExtent[2] = extent[2];
@@ -202,8 +202,8 @@ protected:
   vtkPoints *Points;
 
 private:
-  vtkImageSliceMapper(const vtkImageSliceMapper&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkImageSliceMapper&) VTK_DELETE_FUNCTION;
+  vtkImageSliceMapper(const vtkImageSliceMapper&) = delete;
+  void operator=(const vtkImageSliceMapper&) = delete;
 
   friend class vtkImageResliceMapper;
 };

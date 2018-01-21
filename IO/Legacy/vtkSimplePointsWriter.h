@@ -33,22 +33,22 @@ class VTKIOLEGACY_EXPORT vtkSimplePointsWriter : public vtkDataSetWriter
 public:
   static vtkSimplePointsWriter *New();
   vtkTypeMacro(vtkSimplePointsWriter,vtkDataSetWriter);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   vtkGetMacro(DecimalPrecision, int);
   vtkSetMacro(DecimalPrecision, int);
 
 protected:
   vtkSimplePointsWriter();
-  ~vtkSimplePointsWriter(){}
+  ~vtkSimplePointsWriter() override{}
 
-  void WriteData();
+  void WriteData() override;
 
   int DecimalPrecision;
 
 private:
-  vtkSimplePointsWriter(const vtkSimplePointsWriter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkSimplePointsWriter&) VTK_DELETE_FUNCTION;
+  vtkSimplePointsWriter(const vtkSimplePointsWriter&) = delete;
+  void operator=(const vtkSimplePointsWriter&) = delete;
 };
 
 #endif

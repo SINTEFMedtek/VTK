@@ -54,6 +54,23 @@ void vtkCell::Initialize(int npts, vtkIdType *pts, vtkPoints *p)
 }
 
 //----------------------------------------------------------------------------
+// Instantiate cell from outside. A simplified version of
+// vtkCell::Initialize() that assumes point ids are simply the index into the
+// points. This is a convenience function.
+//
+void vtkCell::Initialize(int npts, vtkPoints *p)
+{
+  this->PointIds->Reset();
+  this->Points->Reset();
+
+  for (int i=0; i<npts; i++)
+  {
+    this->PointIds->InsertId(i,i);
+    this->Points->InsertPoint(i,p->GetPoint(i));
+  }
+}
+
+//----------------------------------------------------------------------------
 void vtkCell::ShallowCopy(vtkCell *c)
 {
   this->Points->ShallowCopy(c->Points);
@@ -189,7 +206,7 @@ void vtkCell::PrintSelf(ostream& os, vtkIndent indent)
 
   if ( numIds > 0 )
   {
-    double *bounds=this->GetBounds();
+    const double *bounds=this->GetBounds();
 
     os << indent << "Bounds: \n";
     os << indent << "  Xmin,Xmax: (" << bounds[0] << ", " << bounds[1] << ")\n";
@@ -219,5 +236,5 @@ void vtkCell::PrintSelf(ostream& os, vtkIndent indent)
 // Usually overridden. Only composite cells do not override this.
 double *vtkCell::GetParametricCoords()
 {
-  return NULL;
+  return nullptr;
 }

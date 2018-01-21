@@ -46,7 +46,7 @@ class VTKCHARTSCORE_EXPORT vtkChartXYZ : public vtkContextItem
 {
 public:
   vtkTypeMacro(vtkChartXYZ, vtkContextItem);
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
   static vtkChartXYZ * New();
 
@@ -107,12 +107,12 @@ public:
   /**
    * Perform any updates to the item that may be necessary before rendering.
    */
-  virtual void Update();
+  void Update() override;
 
   /**
    * Paint event for the chart, called whenever the chart needs to be drawn.
    */
-  virtual bool Paint(vtkContext2D *painter);
+  bool Paint(vtkContext2D *painter) override;
 
   /**
    * Adds a plot to the chart.
@@ -140,33 +140,33 @@ public:
   /**
    * Returns true if the transform is interactive, false otherwise.
    */
-  virtual bool Hit(const vtkContextMouseEvent &mouse);
+  bool Hit(const vtkContextMouseEvent &mouse) override;
 
   /**
    * Mouse press event. Keep track of zoom anchor position.
    */
-  virtual bool MouseButtonPressEvent(const vtkContextMouseEvent &mouse);
+  bool MouseButtonPressEvent(const vtkContextMouseEvent &mouse) override;
 
   /**
    * Mouse move event. Perform pan or zoom as specified by the mouse bindings.
    */
-  virtual bool MouseMoveEvent(const vtkContextMouseEvent &mouse);
+  bool MouseMoveEvent(const vtkContextMouseEvent &mouse) override;
 
   /**
    * Mouse wheel event.  Zooms in or out.
    */
-  virtual bool MouseWheelEvent(const vtkContextMouseEvent &mouse, int delta);
+  bool MouseWheelEvent(const vtkContextMouseEvent &mouse, int delta) override;
 
   /**
    * Key press event.  This allows the user to snap the chart to one of three
    * different 2D views.  "x" changes the view so we're looking down the X axis.
    * Similar behavior occurs for "y" or "z".
    */
-  virtual bool KeyPressEvent(const vtkContextKeyEvent &key);
+  bool KeyPressEvent(const vtkContextKeyEvent &key) override;
 
 protected:
   vtkChartXYZ();
-  ~vtkChartXYZ();
+  ~vtkChartXYZ() override;
 
   /**
    * Calculate the transformation matrices used to draw data points and axes
@@ -495,8 +495,8 @@ protected:
   double DataBounds[4];
 
 private:
-  vtkChartXYZ(const vtkChartXYZ &) VTK_DELETE_FUNCTION;
-  void operator=(const vtkChartXYZ &) VTK_DELETE_FUNCTION;
+  vtkChartXYZ(const vtkChartXYZ &) = delete;
+  void operator=(const vtkChartXYZ &) = delete;
 };
 
 #endif

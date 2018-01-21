@@ -69,17 +69,17 @@ class VTKIOIMAGE_EXPORT vtkMetaImageReader : public vtkImageReader2
 {
 public:
   vtkTypeMacro(vtkMetaImageReader,vtkImageReader2);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Construct object with FlipNormals turned off and Normals set to true.
    */
   static vtkMetaImageReader *New();
 
-  virtual const char * GetFileExtensions()
+  const char * GetFileExtensions() override
     { return ".mhd .mha"; }
 
-  virtual const char * GetDescriptiveName()
+  const char * GetDescriptiveName() override
     { return "MetaIO Library: MetaImage"; }
 
   // These duplicate functions in vtkImageReader2, vtkMedicalImageReader.
@@ -95,7 +95,7 @@ public:
     { return this->GetNumberOfScalarComponents(); }
   int GetPixelRepresentation()
     { return this->GetDataScalarType(); }
-  int GetDataByteOrder(void);
+  int GetDataByteOrder(void) override;
 
   vtkGetMacro(RescaleSlope, double);
   vtkGetMacro(RescaleOffset, double);
@@ -117,11 +117,11 @@ public:
    * Test whether the file with the given name can be read by this
    * reader.
    */
-  virtual int CanReadFile(const char* name);
+  int CanReadFile(const char* name) override;
 
 protected:
   vtkMetaImageReader();
-  ~vtkMetaImageReader();
+  ~vtkMetaImageReader() override;
 
   // These functions make no sense for this (or most) file readers
   // and should be hidden from the user...but then the getsettest fails.
@@ -173,15 +173,15 @@ protected:
   unsigned long GetHeaderSize(void)
     { return vtkImageReader2::GetHeaderSize(); }*/
 
-  void ExecuteInformation();
-  void ExecuteDataWithInformation(vtkDataObject *out, vtkInformation *outInfo);
-  virtual int RequestInformation(vtkInformation * request,
+  void ExecuteInformation() override;
+  void ExecuteDataWithInformation(vtkDataObject *out, vtkInformation *outInfo) override;
+  int RequestInformation(vtkInformation * request,
                          vtkInformationVector ** inputVector,
-                         vtkInformationVector * outputVector);
+                         vtkInformationVector * outputVector) override;
 
 private:
-  vtkMetaImageReader(const vtkMetaImageReader&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkMetaImageReader&) VTK_DELETE_FUNCTION;
+  vtkMetaImageReader(const vtkMetaImageReader&) = delete;
+  void operator=(const vtkMetaImageReader&) = delete;
 
   vtkmetaio::MetaImage *MetaImagePtr;
 

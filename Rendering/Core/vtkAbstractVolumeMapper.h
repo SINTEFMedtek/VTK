@@ -39,7 +39,7 @@ class VTKRENDERINGCORE_EXPORT vtkAbstractVolumeMapper : public vtkAbstractMapper
 {
 public:
   vtkTypeMacro(vtkAbstractVolumeMapper,vtkAbstractMapper3D);
-  void PrintSelf( ostream& os, vtkIndent indent );
+  void PrintSelf( ostream& os, vtkIndent indent ) override;
 
   //@{
   /**
@@ -54,8 +54,8 @@ public:
    * Return bounding box (array of six doubles) of data expressed as
    * (xmin,xmax, ymin,ymax, zmin,zmax).
    */
-  virtual double *GetBounds();
-  virtual void GetBounds(double bounds[6])
+  double *GetBounds() override;
+  void GetBounds(double bounds[6]) override
     { this->vtkAbstractMapper3D::GetBounds(bounds); };
   //@}
 
@@ -71,8 +71,9 @@ public:
    * (ScalarModeToUseCellFieldData).  If scalars are coming from a field
    * data array, you must call SelectScalarArray.
    */
-  vtkSetMacro(ScalarMode,int);
-  vtkGetMacro(ScalarMode,int);
+  vtkSetMacro(ScalarMode, int);
+  vtkGetMacro(ScalarMode, int);
+  vtkSetMacro(ArrayAccessMode, int);
   void SetScalarModeToDefault() {
     this->SetScalarMode(VTK_SCALAR_MODE_DEFAULT);};
   void SetScalarModeToUsePointData() {
@@ -132,14 +133,14 @@ public:
    * The parameter window could be used to determine which graphic
    * resources to release.
    */
-  virtual void ReleaseGraphicsResources(vtkWindow *) {}
+  void ReleaseGraphicsResources(vtkWindow *) override {}
 
 protected:
   vtkAbstractVolumeMapper();
-  ~vtkAbstractVolumeMapper();
+  ~vtkAbstractVolumeMapper() override;
 
   // see algorithm for more info
-  virtual int FillInputPortInformation(int port, vtkInformation* info);
+  int FillInputPortInformation(int port, vtkInformation* info) override;
 
   int         ScalarMode;
   char       *ArrayName;
@@ -147,8 +148,8 @@ protected:
   int         ArrayAccessMode;
 
 private:
-  vtkAbstractVolumeMapper(const vtkAbstractVolumeMapper&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkAbstractVolumeMapper&) VTK_DELETE_FUNCTION;
+  vtkAbstractVolumeMapper(const vtkAbstractVolumeMapper&) = delete;
+  void operator=(const vtkAbstractVolumeMapper&) = delete;
 };
 
 

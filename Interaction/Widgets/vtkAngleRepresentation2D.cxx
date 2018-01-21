@@ -195,10 +195,10 @@ void vtkAngleRepresentation2D::GetPoint2DisplayPosition(double pos[3])
 //----------------------------------------------------------------------
 void vtkAngleRepresentation2D::BuildRepresentation()
 {
-  if (this->Point1Representation == NULL ||
-      this->CenterRepresentation == NULL ||
-      this->Point2Representation == NULL ||
-      this->Arc == NULL)
+  if (this->Point1Representation == nullptr ||
+      this->CenterRepresentation == nullptr ||
+      this->Point2Representation == nullptr ||
+      this->Arc == nullptr)
   {
     // for now, return. Could create defaults here.
     return;
@@ -241,7 +241,7 @@ void vtkAngleRepresentation2D::BuildRepresentation()
     vtkMath::Normalize( vector2 );
     double angle = acos( vtkMath::Dot( vector1, vector2 ) );
     char string[512];
-    sprintf( string, this->LabelFormat, vtkMath::DegreesFromRadians( angle ) );
+    snprintf( string, sizeof(string), this->LabelFormat, vtkMath::DegreesFromRadians( angle ) );
     this->Arc->SetLabel(string);
 
     // Place the label and place the arc

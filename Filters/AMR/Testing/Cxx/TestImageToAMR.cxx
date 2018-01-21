@@ -59,7 +59,7 @@ namespace
   vtkIdType FindCell( vtkImageData* image, double point[3])
   {
     double pcoords[3]; int subid=0;
-    return image->vtkImageData::FindCell( point, NULL, -1, 0.1, subid, pcoords, NULL);
+    return image->vtkImageData::FindCell( point, nullptr, -1, 0.1, subid, pcoords, nullptr);
   }
 };
 
@@ -107,7 +107,7 @@ int TestImageToAMR(int, char *[])
 
       vtkIdTypeArray* cd = vtkArrayDownCast<vtkIdTypeArray>(image->GetCellData()->GetArray("vtkIdFilter_Ids"));
       assert(cd);
-      for(std::vector<vtkVector3d>::iterator itr=samples.begin(); itr!=samples.end();itr++)
+      for(std::vector<vtkVector3d>::iterator itr=samples.begin(); itr!=samples.end();++itr)
       {
         double* x =(*itr).GetData();
         vtkIdType cellId = FindCell(image,x);

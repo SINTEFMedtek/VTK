@@ -40,7 +40,7 @@ class VTKWEBGLEXPORTER_EXPORT vtkWebGLObject : public vtkObject
 public:
   static vtkWebGLObject* New();
   vtkTypeMacro(vtkWebGLObject, vtkObject)
-  void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
   virtual void GenerateBinaryData();
   virtual unsigned char* GetBinaryData(int part);
@@ -56,7 +56,7 @@ public:
 
   void SetLayer(int l);
   void SetRendererId(size_t i);
-  void SetId(std::string i);
+  void SetId(const std::string& i);
   void SetWireframeMode(bool wireframe);
   void SetVisibility(bool vis);
   void SetTransformationMatrix(vtkMatrix4x4* m);
@@ -79,7 +79,7 @@ public:
 
 protected:
     vtkWebGLObject();
-    ~vtkWebGLObject();
+    ~vtkWebGLObject() override;
 
     float Matrix[16];
     size_t rendererId;
@@ -95,8 +95,8 @@ protected:
     bool interactAtServer;
 
 private:
-  vtkWebGLObject(const vtkWebGLObject&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkWebGLObject&) VTK_DELETE_FUNCTION;
+  vtkWebGLObject(const vtkWebGLObject&) = delete;
+  void operator=(const vtkWebGLObject&) = delete;
 };
 
 #endif

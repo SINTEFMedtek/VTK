@@ -39,7 +39,7 @@ class VTKIMAGINGCORE_EXPORT vtkImageMask : public vtkThreadedImageAlgorithm
 public:
   static vtkImageMask *New();
   vtkTypeMacro(vtkImageMask,vtkThreadedImageAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * SetGet the value of the output pixel replaced by mask.
@@ -94,28 +94,28 @@ public:
 
 protected:
   vtkImageMask();
-  ~vtkImageMask();
+  ~vtkImageMask() override;
 
   double *MaskedOutputValue;
   int MaskedOutputValueLength;
   int NotMask;
   double MaskAlpha;
 
-  virtual int RequestInformation (vtkInformation *,
+  int RequestInformation (vtkInformation *,
                                   vtkInformationVector **,
-                                  vtkInformationVector *);
+                                  vtkInformationVector *) override;
 
 
-  virtual void ThreadedRequestData(vtkInformation *request,
+  void ThreadedRequestData(vtkInformation *request,
                                    vtkInformationVector **inputVector,
                                    vtkInformationVector *outputVector,
                                    vtkImageData ***inData,
                                    vtkImageData **outData,
-                                   int extent[6], int threadId);
+                                   int extent[6], int threadId) override;
 
 private:
-  vtkImageMask(const vtkImageMask&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkImageMask&) VTK_DELETE_FUNCTION;
+  vtkImageMask(const vtkImageMask&) = delete;
+  void operator=(const vtkImageMask&) = delete;
 };
 
 #endif

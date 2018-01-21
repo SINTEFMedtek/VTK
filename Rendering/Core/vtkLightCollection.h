@@ -14,10 +14,10 @@
 =========================================================================*/
 /**
  * @class   vtkLightCollection
- * @brief   a list of lights
+ * @brief   an ordered list of lights
  *
  * vtkLightCollection represents and provides methods to manipulate a list of
- * lights (i.e., vtkLight and subclasses). The list is unsorted and duplicate
+ * lights (i.e., vtkLight and subclasses). The list is ordered and duplicate
  * entries are not prevented.
  *
  * @sa
@@ -37,10 +37,10 @@ class VTKRENDERINGCORE_EXPORT vtkLightCollection : public vtkCollection
  public:
   static vtkLightCollection *New();
   vtkTypeMacro(vtkLightCollection, vtkCollection);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
-   * Add a light to the list.
+   * Add a light to the bottom of the list.
    */
   void AddItem(vtkLight *a);
 
@@ -58,7 +58,7 @@ class VTKRENDERINGCORE_EXPORT vtkLightCollection : public vtkCollection
 
 protected:
   vtkLightCollection() {}
-  ~vtkLightCollection() {}
+  ~vtkLightCollection() override {}
 
 private:
   // hide the standard AddItem from the user and the compiler.
@@ -66,8 +66,8 @@ private:
     { this->vtkCollection::AddItem(o); }
 
 private:
-  vtkLightCollection(const vtkLightCollection&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkLightCollection&) VTK_DELETE_FUNCTION;
+  vtkLightCollection(const vtkLightCollection&) = delete;
+  void operator=(const vtkLightCollection&) = delete;
 };
 
 #endif

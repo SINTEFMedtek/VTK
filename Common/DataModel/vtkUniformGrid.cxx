@@ -40,7 +40,7 @@ unsigned char vtkUniformGrid::MASKED_CELL_VALUE =
 //----------------------------------------------------------------------------
 vtkUniformGrid::vtkUniformGrid()
 {
-  this->EmptyCell = NULL;
+  this->EmptyCell = nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -181,20 +181,20 @@ void vtkUniformGrid::CopyStructure(vtkDataSet *ds)
   {
     // there is blanking
     this->GetPointData()->AddArray(ds->GetPointGhostArray());
-    this->PointGhostArray = NULL;
+    this->PointGhostArray = nullptr;
   }
   if(ds->HasAnyBlankCells())
   {
     // we assume there is blanking
     this->GetCellData()->AddArray(ds->GetCellGhostArray());
-    this->CellGhostArray = NULL;
+    this->CellGhostArray = nullptr;
   }
 }
 
 //----------------------------------------------------------------------------
 vtkCell *vtkUniformGrid::GetCell(vtkIdType cellId)
 {
-  vtkCell *cell = NULL;
+  vtkCell *cell = nullptr;
   int loc[3];
   vtkIdType idx, npts;
   int iMin, iMax, jMin, jMax, kMin, kMax;
@@ -287,7 +287,7 @@ vtkCell *vtkUniformGrid::GetCell(vtkIdType cellId)
 
     default:
       vtkErrorMacro(<<"Invalid DataDescription.");
-      return NULL;
+      return nullptr;
   }
 
   // Extract point coordinates and point ids
@@ -312,6 +312,125 @@ vtkCell *vtkUniformGrid::GetCell(vtkIdType cellId)
 
   return cell;
 }
+
+//----------------------------------------------------------------------------
+vtkCell *vtkUniformGrid::GetCell(int iMin, int jMin, int kMin)
+{
+  vtkIdType cellId = iMin + (jMin + (kMin * (this->Dimensions[1] - 1))) * (this->Dimensions[0] - 1);
+  vtkCell *cell = nullptr;
+  int loc[3];
+  vtkIdType idx, npts;
+  int iMax = 0, jMax = 0, kMax = 0;
+  double x[3];
+  double *origin = this->GetOrigin();
+  double *spacing = this->GetSpacing();
+  int extent[6];
+  this->GetExtent(extent);
+
+  int dims[3];
+  dims[0] = extent[1] - extent[0] + 1;
+  dims[1] = extent[3] - extent[2] + 1;
+  dims[2] = extent[5] - extent[4] + 1;
+  int d01 = dims[0]*dims[1];
+
+  if (dims[0] == 0 || dims[1] == 0 || dims[2] == 0)
+  {
+    vtkErrorMacro("Requesting a cell from an empty image.");
+    return this->GetEmptyCell();
+  }
+
+  // see whether the cell is blanked
+  if (!this->IsCellVisible(cellId) )
+  {
+    return this->GetEmptyCell();
+  }
+
+  switch (this->GetDataDescription())
+  {
+    case VTK_EMPTY:
+      return this->GetEmptyCell();
+
+    case VTK_SINGLE_POINT: // cellId can only be = 0
+      cell = this->Vertex;
+      break;
+
+    case VTK_X_LINE:
+      iMax = iMin + 1;
+      jMax = jMin = 0;
+      kMax = kMin = 0;
+      cell = this->Line;
+      break;
+
+    case VTK_Y_LINE:
+      iMax = iMin = 0;
+      jMax = jMin + 1;
+      kMax = kMin = 0;
+      cell = this->Line;
+      break;
+
+    case VTK_Z_LINE:
+      iMin = iMax = 0;
+      jMin = jMax = 0;
+      kMax = kMin + 1;
+      cell = this->Line;
+      break;
+
+    case VTK_XY_PLANE:
+      iMax = iMin + 1;
+      jMax = jMin + 1;
+      kMin = kMax = 0;
+      cell = this->Pixel;
+      break;
+
+    case VTK_YZ_PLANE:
+      iMin = iMax = 0;
+      jMax = jMin + 1;
+      kMax = kMin + 1;
+      cell = this->Pixel;
+      break;
+
+    case VTK_XZ_PLANE:
+      iMax = iMin + 1;
+      jMin = jMax = 0;
+      kMax = kMin + 1;
+      cell = this->Pixel;
+      break;
+
+    case VTK_XYZ_GRID:
+      iMax = iMin + 1;
+      jMax = jMin + 1;
+      kMax = kMin + 1;
+      cell = this->Voxel;
+      break;
+
+    default:
+      vtkErrorMacro(<<"Invalid DataDescription.");
+      return nullptr;
+  }
+
+  // Extract point coordinates and point ids
+  // Ids are relative to extent min.
+  npts = 0;
+  for (loc[2]=kMin; loc[2]<=kMax; loc[2]++)
+  {
+    x[2] = origin[2] + (loc[2]+extent[4]) * spacing[2];
+    for (loc[1]=jMin; loc[1]<=jMax; loc[1]++)
+    {
+      x[1] = origin[1] + (loc[1]+extent[2]) * spacing[1];
+      for (loc[0]=iMin; loc[0]<=iMax; loc[0]++)
+      {
+        x[0] = origin[0] + (loc[0]+extent[0]) * spacing[0];
+
+        idx = loc[0] + loc[1]*dims[0] + loc[2]*d01;
+        cell->PointIds->SetId(npts,idx);
+        cell->Points->SetPoint(npts++,x);
+      }
+    }
+  }
+
+  return cell;
+}
+
 
 //----------------------------------------------------------------------------
 void vtkUniformGrid::GetCell(vtkIdType cellId, vtkGenericCell *cell)
@@ -438,7 +557,7 @@ vtkIdType vtkUniformGrid::FindCell(double x[3], vtkCell *vtkNotUsed(cell),
                                    double *weights)
 {
   return
-    this->FindCell( x, static_cast<vtkCell *>(NULL), 0, 0.0, subId, pcoords,
+    this->FindCell( x, static_cast<vtkCell *>(nullptr), 0, 0.0, subId, pcoords,
                     weights );
 }
 
@@ -492,7 +611,7 @@ vtkCell *vtkUniformGrid::FindAndGetCell(double x[3],
   int iMax = 0;
   int jMax = 0;
   int kMax = 0;;
-  vtkCell *cell = NULL;
+  vtkCell *cell = nullptr;
   double *origin = this->GetOrigin();
   double *spacing = this->GetSpacing();
   int extent[6];
@@ -506,7 +625,7 @@ vtkCell *vtkUniformGrid::FindAndGetCell(double x[3],
 
   if ( this->ComputeStructuredCoordinates(x, loc, pcoords) == 0 )
   {
-    return NULL;
+    return nullptr;
   }
 
   vtkIdType cellId = loc[2] * (dims[0]-1)*(dims[1]-1) +
@@ -514,7 +633,7 @@ vtkCell *vtkUniformGrid::FindAndGetCell(double x[3],
 
   if (!this->IsCellVisible(cellId))
   {
-    return NULL;
+    return nullptr;
   }
 
   //
@@ -523,7 +642,7 @@ vtkCell *vtkUniformGrid::FindAndGetCell(double x[3],
   switch (this->GetDataDescription())
   {
     case VTK_EMPTY:
-      return NULL;
+      return nullptr;
 
     case VTK_SINGLE_POINT: // cellId can only be = 0
       iMax = loc[0];
@@ -583,7 +702,7 @@ vtkCell *vtkUniformGrid::FindAndGetCell(double x[3],
 
     default:
       vtkErrorMacro(<<"Invalid DataDescription.");
-      return NULL;
+      return nullptr;
   }
   cell->InterpolateFunctions(pcoords,weights);
 
@@ -958,7 +1077,7 @@ void vtkUniformGrid::GetCellDims( int cellDims[3] )
 //----------------------------------------------------------------------------
 vtkUniformGrid* vtkUniformGrid::GetData(vtkInformation* info)
 {
-  return info ? vtkUniformGrid::SafeDownCast(info->Get(DATA_OBJECT())) : 0;
+  return info ? vtkUniformGrid::SafeDownCast(info->Get(DATA_OBJECT())) : nullptr;
 }
 
 //----------------------------------------------------------------------------

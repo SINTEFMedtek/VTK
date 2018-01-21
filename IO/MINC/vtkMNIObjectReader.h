@@ -81,7 +81,7 @@ public:
   vtkTypeMacro(vtkMNIObjectReader,vtkPolyDataAlgorithm);
 
   static vtkMNIObjectReader *New();
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -115,7 +115,7 @@ public:
 
 protected:
   vtkMNIObjectReader();
-  ~vtkMNIObjectReader();
+  ~vtkMNIObjectReader() override;
 
   char *FileName;
   vtkProperty *Property;
@@ -146,13 +146,13 @@ protected:
 
   virtual int ReadFile(vtkPolyData *output);
 
-  virtual int RequestData(vtkInformation* request,
+  int RequestData(vtkInformation* request,
                           vtkInformationVector** inInfo,
-                          vtkInformationVector* outInfo);
+                          vtkInformationVector* outInfo) override;
 
 private:
-  vtkMNIObjectReader(const vtkMNIObjectReader&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkMNIObjectReader&) VTK_DELETE_FUNCTION;
+  vtkMNIObjectReader(const vtkMNIObjectReader&) = delete;
+  void operator=(const vtkMNIObjectReader&) = delete;
 
 };
 

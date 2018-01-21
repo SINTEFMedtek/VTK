@@ -34,7 +34,7 @@ class  VTKFILTERSPARALLELFLOWPATHS_EXPORT vtkPParticlePathFilter: public vtkPPar
 {
 public:
   vtkTypeMacro(vtkPParticlePathFilter,vtkPParticleTracerBase)
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   static vtkPParticlePathFilter *New();
 
@@ -42,18 +42,18 @@ protected:
   vtkPParticlePathFilter();
   ~vtkPParticlePathFilter();
 
-  virtual void ResetCache();
-  virtual int OutputParticles(vtkPolyData* poly);
-  virtual void InitializeExtraPointDataArrays(vtkPointData* outputPD);
-  virtual void AppendToExtraPointDataArrays(vtkParticleTracerBaseNamespace::ParticleInformation &);
-  void Finalize();
+  virtual void ResetCache() override;
+  virtual int OutputParticles(vtkPolyData* poly) override;
+  virtual void InitializeExtraPointDataArrays(vtkPointData* outputPD) override;
+  virtual void AppendToExtraPointDataArrays(vtkParticleTracerBaseNamespace::ParticleInformation &) override;
+  void Finalize() override;
 
   ParticlePathFilterInternal It;
   vtkDoubleArray* SimulationTime;
   vtkIntArray* SimulationTimeStep;
 
 private:
-  vtkPParticlePathFilter(const vtkPParticlePathFilter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPParticlePathFilter&) VTK_DELETE_FUNCTION;
+  vtkPParticlePathFilter(const vtkPParticlePathFilter&) = delete;
+  void operator=(const vtkPParticlePathFilter&) = delete;
 };
 #endif

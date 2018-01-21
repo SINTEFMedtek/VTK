@@ -69,7 +69,7 @@ class VTKCHARTSCORE_EXPORT vtkAxis : public vtkContextItem
 {
 public:
   vtkTypeMacro(vtkAxis, vtkContextItem);
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
   /**
    * Enumeration of the axis locations in a conventional XY chart. Other
@@ -144,6 +144,14 @@ public:
    * Get the number of tick marks for this axis.
    */
   vtkGetMacro(NumberOfTicks, int);
+  //@}
+
+  //@{
+  /**
+   * Get/set the length of tick marks (in pixels).
+   */
+  vtkSetMacro(TickLength, float);
+  vtkGetMacro(TickLength, float);
   //@}
 
   //@{
@@ -499,12 +507,12 @@ public:
    * Update the geometry of the axis. Takes care of setting up the tick mark
    * locations etc. Should be called by the scene before rendering.
    */
-  virtual void Update();
+  void Update() override;
 
   /**
    * Paint event for the axis, called whenever the axis needs to be drawn.
    */
-  virtual bool Paint(vtkContext2D *painter);
+  bool Paint(vtkContext2D *painter) override;
 
   /**
    * Use this function to autoscale the axes after setting the minimum and
@@ -545,7 +553,7 @@ public:
    * must be of the same length. Returns true on success, false on failure.
    */
   virtual bool SetCustomTickPositions(vtkDoubleArray* positions,
-                                      vtkStringArray* labels = 0);
+                                      vtkStringArray* labels = nullptr);
 
   /**
    * Request the space the axes require to be drawn. This is returned as a
@@ -577,7 +585,7 @@ public:
 
 protected:
   vtkAxis();
-  ~vtkAxis();
+  ~vtkAxis() override;
 
   /**
    * Update whether log scaling will be used for layout and rendering.
@@ -660,6 +668,7 @@ protected:
   vtkVector2f Position1, Position2;
   double TickInterval; // Interval between tick marks in plot space
   int NumberOfTicks;   // The number of tick marks to draw
+  float TickLength;    // The length of the tick marks
   vtkTextProperty* LabelProperties; // Text properties for the labels.
   double Minimum;      // Minimum value of the axis
   double Maximum;      // Maximum values of the axis
@@ -758,8 +767,8 @@ protected:
   vtkTimeStamp BuildTime;
 
 private:
-  vtkAxis(const vtkAxis &) VTK_DELETE_FUNCTION;
-  void operator=(const vtkAxis &) VTK_DELETE_FUNCTION;
+  vtkAxis(const vtkAxis &) = delete;
+  void operator=(const vtkAxis &) = delete;
 
   /**
    * Return true if the value is in range, false otherwise.

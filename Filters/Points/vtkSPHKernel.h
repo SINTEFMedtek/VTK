@@ -73,12 +73,12 @@ public:
    * Standard methods for instantiation, obtaining type information, and printing.
    */
   vtkTypeMacro(vtkSPHKernel,vtkInterpolationKernel);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   //@{
   /**
-   * The user defined intial particle spatial step. This is also referred to as
+   * The user defined initial particle spatial step. This is also referred to as
    * the smoothing length.
    */
   vtkSetClampMacro(SpatialStep,double,0.0,VTK_FLOAT_MAX);
@@ -134,8 +134,8 @@ public:
    * Produce the computational parameters for the kernel. Invoke this method
    * after setting initial values like SpatialStep.
    */
-  virtual void Initialize(vtkAbstractPointLocator *loc, vtkDataSet *ds,
-                          vtkPointData *pd);
+  void Initialize(vtkAbstractPointLocator *loc, vtkDataSet *ds,
+                          vtkPointData *pd) override;
 
   /**
    * Given a point x (and optional associated ptId), determine the points
@@ -145,14 +145,14 @@ public:
    * is called before ComputeWeights(). Note that while ptId is optional in most
    * cases, if a cutoff array is provided, then ptId must be provided.
    */
-  virtual vtkIdType ComputeBasis(double x[3], vtkIdList *pIds, vtkIdType ptId=0);
+  vtkIdType ComputeBasis(double x[3], vtkIdList *pIds, vtkIdType ptId=0) override;
 
   /**
    * Given a point x, and a list of basis points pIds, compute interpolation
    * weights associated with these basis points.
    */
-  virtual vtkIdType ComputeWeights(double x[3], vtkIdList *pIds,
-                                   vtkDoubleArray *weights);
+  vtkIdType ComputeWeights(double x[3], vtkIdList *pIds,
+                                   vtkDoubleArray *weights) override;
 
   /**
    * Given a point x, and a list of basis points pIds, compute interpolation
@@ -185,7 +185,7 @@ public:
 
 protected:
   vtkSPHKernel();
-  ~vtkSPHKernel();
+  ~vtkSPHKernel() override;
 
   // Instance variables
   double SpatialStep; //also known as smoothing length h
@@ -208,8 +208,8 @@ protected:
   bool UseArraysForVolume; //if both mass and density arrays are present
 
 private:
-  vtkSPHKernel(const vtkSPHKernel&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkSPHKernel&) VTK_DELETE_FUNCTION;
+  vtkSPHKernel(const vtkSPHKernel&) = delete;
+  void operator=(const vtkSPHKernel&) = delete;
 };
 
 #endif

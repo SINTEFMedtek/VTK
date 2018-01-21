@@ -198,14 +198,13 @@ int TestOSPRayLights(int argc, char* argv[])
 
   //increase image quality from default (otherwise subsampling artifacts)
   renWin->Render();
-  vtkOSPRayRendererNode *renNode = ospray->GetSceneGraph();
   renderer->UseShadowsOn();
-  renNode->SetMaxFrames(5, renderer);
-  renNode->SetSamplesPerPixel(4, renderer);
+  vtkOSPRayRendererNode::SetMaxFrames(5, renderer);
+  vtkOSPRayRendererNode::SetSamplesPerPixel(4, renderer);
 
   vtkSmartPointer<vtkOSPRayTestInteractor> style =
     vtkSmartPointer<vtkOSPRayTestInteractor>::New();
-  style->SetPipelineControlPoints((vtkOpenGLRenderer*)renderer.Get(), ospray, NULL);
+  style->SetPipelineControlPoints(renderer, ospray, nullptr);
   iren->SetInteractorStyle(style);
   style->SetCurrentRenderer(renderer);
 

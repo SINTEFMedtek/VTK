@@ -50,18 +50,18 @@ class VTKINTERACTIONSTYLE_EXPORT vtkInteractorStyleSwitch
 public:
   static vtkInteractorStyleSwitch *New();
   vtkTypeMacro(vtkInteractorStyleSwitch, vtkInteractorStyleSwitchBase);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * The sub styles need the interactor too.
    */
-  void SetInteractor(vtkRenderWindowInteractor *iren);
+  void SetInteractor(vtkRenderWindowInteractor *iren) override;
 
   /**
    * We must override this method in order to pass the setting down to
    * the underlying styles
    */
-  void SetAutoAdjustCameraClippingRange( int value );
+  void SetAutoAdjustCameraClippingRange( int value ) override;
 
   //@{
   /**
@@ -79,20 +79,20 @@ public:
    * Only care about the char event, which is used to switch between
    * different styles.
    */
-  virtual void OnChar();
+  void OnChar() override;
 
   //@{
   /**
    * Overridden from vtkInteractorObserver because the interactor styles
    * used by this class must also be updated.
    */
-  virtual void SetDefaultRenderer(vtkRenderer*);
-  virtual void SetCurrentRenderer(vtkRenderer*);
+  void SetDefaultRenderer(vtkRenderer*) override;
+  void SetCurrentRenderer(vtkRenderer*) override;
   //@}
 
 protected:
   vtkInteractorStyleSwitch();
-  ~vtkInteractorStyleSwitch();
+  ~vtkInteractorStyleSwitch() override;
 
   void SetCurrentStyle();
 
@@ -108,8 +108,8 @@ protected:
   bool MultiTouch;
 
 private:
-  vtkInteractorStyleSwitch(const vtkInteractorStyleSwitch&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkInteractorStyleSwitch&) VTK_DELETE_FUNCTION;
+  vtkInteractorStyleSwitch(const vtkInteractorStyleSwitch&) = delete;
+  void operator=(const vtkInteractorStyleSwitch&) = delete;
 };
 
 #endif

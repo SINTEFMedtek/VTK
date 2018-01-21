@@ -41,7 +41,7 @@ class VTKINFOVISCORE_EXPORT vtkAddMembershipArray : public vtkPassInputTypeAlgor
 public:
   static vtkAddMembershipArray* New();
   vtkTypeMacro(vtkAddMembershipArray,vtkPassInputTypeAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   enum
   {
@@ -78,14 +78,14 @@ public:
 
 protected:
   vtkAddMembershipArray();
-  ~vtkAddMembershipArray();
+  ~vtkAddMembershipArray() override;
 
-  int FillInputPortInformation(int port, vtkInformation* info);
+  int FillInputPortInformation(int port, vtkInformation* info) override;
 
   int RequestData(
     vtkInformation*,
     vtkInformationVector**,
-    vtkInformationVector*);
+    vtkInformationVector*) override;
 
   int FieldType;
   char* OutputArrayName;
@@ -94,8 +94,8 @@ protected:
   vtkAbstractArray* InputValues;
 
 private:
-  vtkAddMembershipArray(const vtkAddMembershipArray&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkAddMembershipArray&) VTK_DELETE_FUNCTION;
+  vtkAddMembershipArray(const vtkAddMembershipArray&) = delete;
+  void operator=(const vtkAddMembershipArray&) = delete;
 };
 
 #endif

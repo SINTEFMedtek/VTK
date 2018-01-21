@@ -45,17 +45,17 @@ class VTKGEOVISCORE_EXPORT vtkGeoAlignedImageSource : public vtkGeoSource
 public:
   static vtkGeoAlignedImageSource *New();
   vtkTypeMacro(vtkGeoAlignedImageSource, vtkGeoSource);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Fetch the root image.
    */
-  virtual bool FetchRoot(vtkGeoTreeNode* node);
+  bool FetchRoot(vtkGeoTreeNode* node) override;
 
   /**
    * Fetch a child image.
    */
-  virtual bool FetchChild(vtkGeoTreeNode* parent, int index, vtkGeoTreeNode* child);
+  bool FetchChild(vtkGeoTreeNode* parent, int index, vtkGeoTreeNode* child) override;
 
   //@{
   /**
@@ -94,7 +94,7 @@ public:
 
 protected:
   vtkGeoAlignedImageSource();
-  ~vtkGeoAlignedImageSource();
+  ~vtkGeoAlignedImageSource() override;
 
   void CropImageForNode(vtkGeoImageNode* node, vtkImageData* image);
   int PowerOfTwo(int val);
@@ -110,8 +110,8 @@ protected:
   vtkProgressObserver* ProgressObserver;
 
 private:
-  vtkGeoAlignedImageSource(const vtkGeoAlignedImageSource&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkGeoAlignedImageSource&) VTK_DELETE_FUNCTION;
+  vtkGeoAlignedImageSource(const vtkGeoAlignedImageSource&) = delete;
+  void operator=(const vtkGeoAlignedImageSource&) = delete;
 };
 
 #endif

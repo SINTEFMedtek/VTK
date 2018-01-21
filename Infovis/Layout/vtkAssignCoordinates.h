@@ -40,7 +40,7 @@ public:
   static vtkAssignCoordinates *New();
 
   vtkTypeMacro(vtkAssignCoordinates, vtkPassInputTypeAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -75,10 +75,10 @@ public:
 
 protected:
   vtkAssignCoordinates();
-  ~vtkAssignCoordinates();
+  ~vtkAssignCoordinates() override;
 
-  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-  int FillInputPortInformation(int port, vtkInformation* info);
+  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
+  int FillInputPortInformation(int port, vtkInformation* info) override;
 
 private:
 
@@ -87,8 +87,8 @@ private:
   char* ZCoordArrayName;
   bool Jitter;
 
-  vtkAssignCoordinates(const vtkAssignCoordinates&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkAssignCoordinates&) VTK_DELETE_FUNCTION;
+  vtkAssignCoordinates(const vtkAssignCoordinates&) = delete;
+  void operator=(const vtkAssignCoordinates&) = delete;
 };
 
 #endif

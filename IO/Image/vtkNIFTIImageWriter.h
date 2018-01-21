@@ -53,7 +53,7 @@ public:
   /**
    * Print information about this object.
    */
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -140,7 +140,7 @@ public:
    * Set a matrix for the "sform" transformation stored in the file.
    * Unlike the qform matrix, the sform matrix can contain scaling
    * information.  Before being stored in the NIFTI header, the
-   * first three columns of the matrix will be multipled by the voxel
+   * first three columns of the matrix will be multiplied by the voxel
    * spacing. In the NIFTI header, the sform_code will be set to 2.
    */
   void SetSFormMatrix(vtkMatrix4x4 *);
@@ -160,7 +160,7 @@ public:
 
 protected:
   vtkNIFTIImageWriter();
-  ~vtkNIFTIImageWriter();
+  ~vtkNIFTIImageWriter() override;
 
   /**
    * Generate the header information for the file.
@@ -170,9 +170,9 @@ protected:
   /**
    * The main execution method, which writes the file.
    */
-  virtual int RequestData(vtkInformation *request,
+  int RequestData(vtkInformation *request,
                           vtkInformationVector** inputVector,
-                          vtkInformationVector* outputVector);
+                          vtkInformationVector* outputVector) override;
 
   /**
    * Make a new filename by replacing extension "ext1" with "ext2".
@@ -232,8 +232,8 @@ protected:
   bool PlanarRGB;
 
 private:
-  vtkNIFTIImageWriter(const vtkNIFTIImageWriter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkNIFTIImageWriter&) VTK_DELETE_FUNCTION;
+  vtkNIFTIImageWriter(const vtkNIFTIImageWriter&) = delete;
+  void operator=(const vtkNIFTIImageWriter&) = delete;
 };
 
 #endif // vtkNIFTIImageWriter_h

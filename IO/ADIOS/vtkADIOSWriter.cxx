@@ -54,12 +54,12 @@ vtkStandardNewMacro(vtkADIOSWriter);
 
 //----------------------------------------------------------------------------
 vtkADIOSWriter::vtkADIOSWriter()
-: FileName(NULL),
+: FileName(nullptr),
   TransportMethod(static_cast<int>(ADIOS::TransportMethod_POSIX)),
-  TransportMethodArguments(NULL),
+  TransportMethodArguments(nullptr),
   Transform(static_cast<int>(ADIOS::Transform_NONE)),
-  CurrentStep(-1), Controller(NULL),
-  Writer(NULL),
+  CurrentStep(-1), Controller(nullptr),
+  Writer(nullptr),
   NumberOfPieces(-1), RequestPiece(-1), NumberOfGhostLevels(-1),
   WriteAllTimeSteps(false), TimeSteps(), CurrentTimeStepIndex(-1)
 {
@@ -73,9 +73,9 @@ vtkADIOSWriter::vtkADIOSWriter()
 vtkADIOSWriter::~vtkADIOSWriter()
 {
   delete this->Writer;
-  this->SetFileName(NULL);
-  this->SetTransportMethodArguments(NULL);
-  this->SetController(NULL);
+  this->SetFileName(nullptr);
+  this->SetTransportMethodArguments(nullptr);
+  this->SetController(nullptr);
 }
 
 //----------------------------------------------------------------------------
@@ -147,7 +147,7 @@ bool vtkADIOSWriter::DefineAndWrite(vtkDataObject *input)
     // Things to do on the first step, before writing any data
     if(this->CurrentStep == 0)
     {
-      // Before any data can be writen, it's structure must be declared
+      // Before any data can be written, it's structure must be declared
       this->Define("", data);
 
       if(localProc == 0)
@@ -526,7 +526,7 @@ void vtkADIOSWriter::Write(const std::string& path, const vtkDataArray* v)
   if(lut)
   {
     // Only check the mtime here if a LUT is present.  Otherwise it will be
-    // handled apropriately by the abstract array writer
+    // handled appropriately by the abstract array writer
     if(!this->UpdateMTimeTable(path, v))
     {
       return;

@@ -39,7 +39,7 @@ public:
    */
   static vtkExtractPointCloudPiece *New();
   vtkTypeMacro(vtkExtractPointCloudPiece, vtkPolyDataAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   //@{
@@ -55,16 +55,16 @@ public:
 
 protected:
   vtkExtractPointCloudPiece();
-  ~vtkExtractPointCloudPiece() {}
+  ~vtkExtractPointCloudPiece() override {}
 
   // Usual data generation method
-  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-  int RequestUpdateExtent(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
+  int RequestUpdateExtent(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
   bool ModuloOrdering;
 
 private:
-  vtkExtractPointCloudPiece(const vtkExtractPointCloudPiece&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkExtractPointCloudPiece&) VTK_DELETE_FUNCTION;
+  vtkExtractPointCloudPiece(const vtkExtractPointCloudPiece&) = delete;
+  void operator=(const vtkExtractPointCloudPiece&) = delete;
 };
 
 #endif

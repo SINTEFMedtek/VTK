@@ -18,13 +18,12 @@
 #include "vtkDebugLeaks.h"
 #include "vtkObjectFactory.h"
 
-#include <sys/stat.h>
 #include <vtksys/SystemTools.hxx>
 
 vtkStandardNewMacro(vtkDirectory)
 
 vtkDirectory::vtkDirectory()
-  : Path(0)
+  : Path(nullptr)
 {
   this->Files = vtkStringArray::New();
 }
@@ -34,14 +33,14 @@ void vtkDirectory::CleanUpFilesAndPath()
 {
   this->Files->Reset();
   delete [] this->Path;
-  this->Path = 0;
+  this->Path = nullptr;
 }
 
 vtkDirectory::~vtkDirectory()
 {
   this->CleanUpFilesAndPath();
   this->Files->Delete();
-  this->Files = 0;
+  this->Files = nullptr;
 }
 
 
@@ -88,12 +87,12 @@ int vtkDirectory::Open(const char* name)
   if (name[n - 1] == '/')
   {
     buf = new char[n + 1 + 1];
-    sprintf(buf, "%s*", name);
+    snprintf(buf, n + 1 + 1, "%s*", name);
   }
   else
   {
     buf = new char[n + 2 + 1];
-    sprintf(buf, "%s/*", name);
+    snprintf(buf, n + 2 + 1, "%s/*", name);
   }
   struct _finddata_t data;      // data of current file
 
@@ -163,7 +162,7 @@ int vtkDirectory::Open(const char* name)
     return 0;
   }
 
-  vtkdirectory_dirent* d =0;
+  vtkdirectory_dirent* d =nullptr;
 
   for (d = readdir(dir); d; d = readdir(dir))
   {
@@ -196,7 +195,7 @@ const char* vtkDirectory::GetFile(vtkIdType index)
   if(index >= this->Files->GetNumberOfValues() || index < 0)
   {
     vtkErrorMacro( << "Bad index for GetFile on vtkDirectory\n");
-    return 0;
+    return nullptr;
   }
 
   return this->Files->GetValue(index).c_str();
@@ -216,7 +215,7 @@ int vtkDirectory::FileIsDirectory(const char *name)
   // and it will broke KWWidgets. Reverse back to 1.30
   // return vtksys::SystemTools::FileIsDirectory(name);
 
-  if (name == 0)
+  if (name == nullptr)
   {
     return 0;
   }
@@ -285,8 +284,8 @@ int vtkDirectory::FileIsDirectory(const char *name)
   strcpy(&fullPath[n], name);
 
   int result = 0;
-  struct stat fs;
-  if(stat(fullPath, &fs) == 0)
+  vtksys::SystemTools::Stat_t fs;
+  if(vtksys::SystemTools::Stat(fullPath, &fs) == 0)
   {
 #if defined(_WIN32)
     result = ((fs.st_mode & _S_IFDIR) != 0);

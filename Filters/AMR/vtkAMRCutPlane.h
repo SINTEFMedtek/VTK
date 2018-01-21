@@ -49,7 +49,7 @@ class VTKFILTERSAMR_EXPORT vtkAMRCutPlane : public vtkMultiBlockDataSetAlgorithm
 public:
   static vtkAMRCutPlane *New();
   vtkTypeMacro(vtkAMRCutPlane, vtkMultiBlockDataSetAlgorithm);
-  void PrintSelf(ostream &oss, vtkIndent indent );
+  void PrintSelf(ostream &oss, vtkIndent indent ) override;
 
   //@{
   /**
@@ -85,7 +85,7 @@ public:
   //@{
   /**
    * Set/Get a multiprocess controller for parallel processing.
-   * By default this parameter is set to NULL by the constructor.
+   * By default this parameter is set to nullptr by the constructor.
    */
   vtkSetMacro(Controller, vtkMultiProcessController*);
   vtkGetMacro(Controller, vtkMultiProcessController*);
@@ -93,30 +93,30 @@ public:
 
   // Standard pipeline routines
 
-  virtual int RequestData(
-       vtkInformation*,vtkInformationVector**,vtkInformationVector*);
-  virtual int FillInputPortInformation(int port, vtkInformation *info);
-  virtual int FillOutputPortInformation(int port, vtkInformation *info);
+  int RequestData(
+       vtkInformation*,vtkInformationVector**,vtkInformationVector*) override;
+  int FillInputPortInformation(int port, vtkInformation *info) override;
+  int FillOutputPortInformation(int port, vtkInformation *info) override;
 
 
   /**
    * Gets the metadata from upstream module and determines which blocks
    * should be loaded by this instance.
    */
-  virtual int RequestInformation(
+  int RequestInformation(
       vtkInformation *rqst,
       vtkInformationVector **inputVector,
-      vtkInformationVector *outputVector );
+      vtkInformationVector *outputVector ) override;
 
   /**
    * Performs upstream requests to the reader
    */
-  virtual int RequestUpdateExtent(
-      vtkInformation*, vtkInformationVector**, vtkInformationVector* );
+  int RequestUpdateExtent(
+      vtkInformation*, vtkInformationVector**, vtkInformationVector* ) override;
 
 protected:
   vtkAMRCutPlane();
-  virtual ~vtkAMRCutPlane();
+  ~vtkAMRCutPlane() override;
 
   /**
    * Returns the cut-plane defined by a vtkCutPlane instance based on the
@@ -200,8 +200,8 @@ protected:
   std::vector<int> BlocksToLoad;
 
 private:
-  vtkAMRCutPlane(const vtkAMRCutPlane& ) VTK_DELETE_FUNCTION;
-  void operator=(const vtkAMRCutPlane& ) VTK_DELETE_FUNCTION;
+  vtkAMRCutPlane(const vtkAMRCutPlane& ) = delete;
+  void operator=(const vtkAMRCutPlane& ) = delete;
 };
 
 #endif /* vtkAMRCutPlane_h */

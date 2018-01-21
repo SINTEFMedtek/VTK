@@ -38,11 +38,11 @@ class VTKFILTERSPARALLEL_EXPORT vtkCollectGraph : public vtkGraphAlgorithm
 public:
   static vtkCollectGraph *New();
   vtkTypeMacro(vtkCollectGraph, vtkGraphAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
-   * By defualt this filter uses the global controller,
+   * By default this filter uses the global controller,
    * but this method can be used to set another instead.
    */
   virtual void SetController(vtkMultiProcessController*);
@@ -89,22 +89,22 @@ public:
 
 protected:
   vtkCollectGraph();
-  ~vtkCollectGraph();
+  ~vtkCollectGraph() override;
 
   int PassThrough;
   int OutputType;
 
   // Data generation method
-  virtual int RequestUpdateExtent(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-  virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-  virtual int RequestDataObject(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+  int RequestUpdateExtent(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
+  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
+  int RequestDataObject(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
 
   vtkMultiProcessController *Controller;
   vtkSocketController *SocketController;
 
 private:
-  vtkCollectGraph(const vtkCollectGraph&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkCollectGraph&) VTK_DELETE_FUNCTION;
+  vtkCollectGraph(const vtkCollectGraph&) = delete;
+  void operator=(const vtkCollectGraph&) = delete;
 };
 
 #endif

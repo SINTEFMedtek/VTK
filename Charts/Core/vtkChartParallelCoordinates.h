@@ -25,6 +25,7 @@
 #define vtkChartParallelCoordinates_h
 
 #include "vtkChartsCoreModule.h" // For export macro
+#include "vtkNew.h" // For vtkNew
 #include "vtkChart.h"
 
 class vtkIdTypeArray;
@@ -36,7 +37,7 @@ class VTKCHARTSCORE_EXPORT vtkChartParallelCoordinates : public vtkChart
 {
 public:
   vtkTypeMacro(vtkChartParallelCoordinates, vtkChart);
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
   /**
    * Creates a parallel coordinates chart
@@ -48,12 +49,12 @@ public:
    * The scene should take care of calling this on all items before their
    * Paint function is invoked.
    */
-  virtual void Update();
+  void Update() override;
 
   /**
    * Paint event for the chart, called whenever the chart needs to be drawn
    */
-  virtual bool Paint(vtkContext2D *painter);
+  bool Paint(vtkContext2D *painter) override;
 
   /**
    * Set the visibility of the specified column.
@@ -71,38 +72,41 @@ public:
    */
   bool GetColumnVisibility(const vtkStdString& name);
 
-  //@{
   /**
    * Get a list of the columns, and the order in which they are displayed.
    */
-  vtkGetObjectMacro(VisibleColumns, vtkStringArray);
-  //@}
+  virtual vtkStringArray* GetVisibleColumns();
+
+  /**
+   * Set the list of visible columns, and the order in which they will be displayed.
+   */
+  virtual void SetVisibleColumns(vtkStringArray* visColumns);
 
   /**
    * Get the plot at the specified index, returns null if the index is invalid.
    */
-  virtual vtkPlot* GetPlot(vtkIdType index);
+  vtkPlot* GetPlot(vtkIdType index) override;
 
   /**
    * Get the number of plots the chart contains.
    */
-  virtual vtkIdType GetNumberOfPlots();
+  vtkIdType GetNumberOfPlots() override;
 
   /**
    * Get the axis specified by axisIndex.
    */
-  virtual vtkAxis* GetAxis(int axisIndex);
+  vtkAxis* GetAxis(int axisIndex) override;
 
   /**
    * Get the number of axes in the current chart.
    */
-  virtual vtkIdType GetNumberOfAxes();
+  vtkIdType GetNumberOfAxes() override;
 
   /**
    * Request that the chart recalculates the range of its axes. Especially
    * useful in applications after the parameters of plots have been modified.
    */
-  virtual void RecalculateBounds();
+  void RecalculateBounds() override;
 
   /**
    * Set plot to use for the chart. Since this type of chart can
@@ -113,41 +117,41 @@ public:
   /**
    * Return true if the supplied x, y coordinate is inside the item.
    */
-  virtual bool Hit(const vtkContextMouseEvent &mouse);
+  bool Hit(const vtkContextMouseEvent &mouse) override;
 
   /**
    * Mouse enter event.
    */
-  virtual bool MouseEnterEvent(const vtkContextMouseEvent &mouse);
+  bool MouseEnterEvent(const vtkContextMouseEvent &mouse) override;
 
   /**
    * Mouse move event.
    */
-  virtual bool MouseMoveEvent(const vtkContextMouseEvent &mouse);
+  bool MouseMoveEvent(const vtkContextMouseEvent &mouse) override;
 
   /**
    * Mouse leave event.
    */
-  virtual bool MouseLeaveEvent(const vtkContextMouseEvent &mouse);
+  bool MouseLeaveEvent(const vtkContextMouseEvent &mouse) override;
 
   /**
    * Mouse button down event
    */
-  virtual bool MouseButtonPressEvent(const vtkContextMouseEvent &mouse);
+  bool MouseButtonPressEvent(const vtkContextMouseEvent &mouse) override;
 
   /**
    * Mouse button release event.
    */
-  virtual bool MouseButtonReleaseEvent(const vtkContextMouseEvent &mouse);
+  bool MouseButtonReleaseEvent(const vtkContextMouseEvent &mouse) override;
 
   /**
    * Mouse wheel event, positive delta indicates forward movement of the wheel.
    */
-  virtual bool MouseWheelEvent(const vtkContextMouseEvent &mouse, int delta);
+  bool MouseWheelEvent(const vtkContextMouseEvent &mouse, int delta) override;
 
 protected:
   vtkChartParallelCoordinates();
-  ~vtkChartParallelCoordinates();
+  ~vtkChartParallelCoordinates() override;
 
   //@{
   /**
@@ -165,9 +169,9 @@ protected:
   vtkIdTypeArray *Selection;
 
   /**
-   * A list of the visible columns in the chart.
+   * Strongly owned internal data for the column visibility.
    */
-  vtkStringArray *VisibleColumns;
+  vtkNew<vtkStringArray> VisibleColumns;
 
   /**
    * The point cache is marked dirty until it has been initialized.
@@ -175,13 +179,15 @@ protected:
   vtkTimeStamp BuildTime;
 
   void ResetSelection();
+  bool ResetAxeSelection(int axe);
+  void ResetAxesSelection();
   void UpdateGeometry();
   void CalculatePlotTransform();
   void SwapAxes(int a1, int a2);
 
 private:
-  vtkChartParallelCoordinates(const vtkChartParallelCoordinates &) VTK_DELETE_FUNCTION;
-  void operator=(const vtkChartParallelCoordinates &) VTK_DELETE_FUNCTION;
+  vtkChartParallelCoordinates(const vtkChartParallelCoordinates &) = delete;
+  void operator=(const vtkChartParallelCoordinates &) = delete;
 
 };
 

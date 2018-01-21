@@ -25,6 +25,7 @@
 #include "vtkMath.h"
 #include "vtkObjectFactory.h"
 #include "vtkPointData.h"
+#include "vtkSMPTools.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtkUnsignedCharArray.h"
 
@@ -236,14 +237,97 @@ void vtkResampleToImage::PerformResampling(vtkDataObject *input,
   structure->SetSpacing(spacing);
   structure->SetExtent(probingExtent);
 
-  this->Prober->SetInputData(structure.GetPointer());
+  this->Prober->SetInputData(structure);
   this->Prober->SetSourceData(input);
   this->Prober->Update();
 
   output->ShallowCopy(this->Prober->GetOutput());
+  output->GetFieldData()->PassData(input->GetFieldData());
 }
 
 //----------------------------------------------------------------------------
+namespace
+{
+
+class MarkHiddenPoints
+{
+public:
+  MarkHiddenPoints(char *maskArray, vtkUnsignedCharArray *pointGhostArray)
+    : MaskArray(maskArray), PointGhostArray(pointGhostArray)
+  {
+  }
+
+  void operator()(vtkIdType begin, vtkIdType end)
+  {
+    for (vtkIdType i = begin; i < end; ++i)
+    {
+      if (!this->MaskArray[i])
+      {
+        this->PointGhostArray->SetValue(i, this->PointGhostArray->GetValue(i) |
+                                           vtkDataSetAttributes::HIDDENPOINT);
+      }
+    }
+  }
+
+private:
+  char *MaskArray;
+  vtkUnsignedCharArray *PointGhostArray;
+};
+
+class MarkHiddenCells
+{
+public:
+  MarkHiddenCells(vtkImageData *data, char *maskArray,
+                  vtkUnsignedCharArray *cellGhostArray)
+    : Data(data), MaskArray(maskArray), CellGhostArray(cellGhostArray)
+  {
+    this->Data->GetDimensions(this->PointDim);
+    this->PointSliceSize = this->PointDim[0] * this->PointDim[1];
+
+    this->CellDim[0] = this->PointDim[0] - 1;
+    this->CellDim[1] = this->PointDim[1] - 1;
+    this->CellDim[2] = this->PointDim[2] - 1;
+    this->CellSliceSize = this->CellDim[0] * this->CellDim[1];
+  }
+
+  void operator()(vtkIdType begin, vtkIdType end)
+  {
+    for (vtkIdType i = begin; i < end; ++i)
+    {
+      int ptijk[3];
+      ptijk[2] = i/this->CellSliceSize;
+      ptijk[1] = (i%CellSliceSize)/this->CellDim[0];
+      ptijk[0] = (i%CellSliceSize)%this->CellDim[0];
+
+      vtkIdType ptid = ptijk[0] + this->PointDim[0]*ptijk[1] + this->PointSliceSize*ptijk[2];
+      if (!this->MaskArray[ptid] ||
+          !this->MaskArray[ptid + 1] ||
+          !this->MaskArray[ptid + this->PointDim[0]] ||
+          !this->MaskArray[ptid + this->PointDim[0] + 1] ||
+          !this->MaskArray[ptid + this->PointSliceSize] ||
+          !this->MaskArray[ptid + this->PointSliceSize + 1] ||
+          !this->MaskArray[ptid + this->PointDim[0] + this->PointSliceSize] ||
+          !this->MaskArray[ptid + this->PointDim[0] + this->PointSliceSize + 1])
+      {
+        this->CellGhostArray->SetValue(i, this->CellGhostArray->GetValue(i) |
+                                          vtkDataSetAttributes::HIDDENPOINT);
+      }
+    }
+  }
+
+private:
+  vtkImageData *Data;
+  char *MaskArray;
+  vtkUnsignedCharArray *CellGhostArray;
+
+  int PointDim[3];
+  vtkIdType PointSliceSize;
+  int CellDim[3];
+  vtkIdType CellSliceSize;
+};
+
+} // anonymous namespace
+
 void vtkResampleToImage::SetBlankPointsAndCells(vtkImageData *data)
 {
   if (data->GetNumberOfPoints() <= 0)
@@ -259,30 +343,17 @@ void vtkResampleToImage::SetBlankPointsAndCells(vtkImageData *data)
   data->AllocatePointGhostArray();
   vtkUnsignedCharArray *pointGhostArray = data->GetPointGhostArray();
 
+  vtkIdType numPoints = data->GetNumberOfPoints();
+  MarkHiddenPoints pointWorklet(mask, pointGhostArray);
+  vtkSMPTools::For(0, numPoints, pointWorklet);
+
+
   data->AllocateCellGhostArray();
   vtkUnsignedCharArray *cellGhostArray = data->GetCellGhostArray();
 
-  vtkNew<vtkIdList> pointCells;
-  pointCells->Allocate(8);
-
-  vtkIdType numPoints = data->GetNumberOfPoints();
-  for (vtkIdType i = 0; i < numPoints; ++i)
-  {
-    if (!mask[i])
-    {
-      pointGhostArray->SetValue(i, pointGhostArray->GetValue(i) |
-                                   vtkDataSetAttributes::HIDDENPOINT);
-
-      data->GetPointCells(i, pointCells.GetPointer());
-      vtkIdType numCells = pointCells->GetNumberOfIds();
-      for (vtkIdType j = 0; j < numCells; ++j)
-      {
-        vtkIdType cellId = pointCells->GetId(j);
-        cellGhostArray->SetValue(cellId, cellGhostArray->GetValue(cellId) |
-                                         vtkDataSetAttributes::HIDDENPOINT);
-      }
-    }
-  }
+  vtkIdType numCells = data->GetNumberOfCells();
+  MarkHiddenCells cellWorklet(data, mask, cellGhostArray);
+  vtkSMPTools::For(0, numCells, cellWorklet);
 }
 
 //----------------------------------------------------------------------------
@@ -309,7 +380,7 @@ int vtkResampleToImage::RequestData(vtkInformation *vtkNotUsed(request),
     std::copy(this->SamplingBounds, this->SamplingBounds + 6, samplingBounds);
   }
 
-  this->PerformResampling(input, samplingBounds, false, NULL, output);
+  this->PerformResampling(input, samplingBounds, false, nullptr, output);
   this->SetBlankPointsAndCells(output);
 
   return 1;

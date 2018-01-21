@@ -39,10 +39,10 @@ All rights reserve
 #define VTK_MAXIMUM_RATIO 1000.0
 #define VTK_POLAR_ARC_RESOLUTION_PER_DEG 0.2
 
-#include "vtkRenderingAnnotationModule.h" // For export macro
 #include "vtkActor.h"
-#include "vtkAxisActor.h" // access to enum values
-#include <list> // To process exponent list as reference
+#include "vtkAxisActor.h"                 // access to enum values
+#include "vtkRenderingAnnotationModule.h" // For export macro
+#include <list>                           // To process exponent list as reference
 
 class vtkCamera;
 class vtkPolyData;
@@ -55,21 +55,21 @@ class VTKRENDERINGANNOTATION_EXPORT vtkPolarAxesActor : public vtkActor
 {
 public:
   vtkTypeMacro(vtkPolarAxesActor, vtkActor);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Instantiate object with label format "6.3g" and the number of labels
    * per axis set to 3.
    */
-  static vtkPolarAxesActor *New();
+  static vtkPolarAxesActor* New();
 
   //@{
   /**
    * Draw the polar axes
    */
-  virtual int RenderOpaqueGeometry(vtkViewport*);
-  virtual int RenderOverlay(vtkViewport*);
-  virtual int RenderTranslucentPolygonalGeometry(vtkViewport*) {return 0;};
+  int RenderOpaqueGeometry(vtkViewport*) override;
+  int RenderOverlay(vtkViewport*) override;
+  int RenderTranslucentPolygonalGeometry(vtkViewport*) override { return 0; };
   //@}
 
   //@{
@@ -84,7 +84,7 @@ public:
   //@{
   /**
    * Enable/Disable log scale
-   * Default: true
+   * Default: false
    */
   vtkSetMacro(Log, bool);
   vtkGetMacro(Log, bool);
@@ -95,8 +95,8 @@ public:
   /**
    * Gets/Sets the number of radial axes
    */
-  virtual void SetNumberOfRadialAxes(vtkIdType);
-  vtkGetMacro(NumberOfRadialAxes, vtkIdType);
+  vtkSetClampMacro(RequestedNumberOfRadialAxes, vtkIdType, 0, VTK_MAXIMUM_NUMBER_OF_RADIAL_AXES);
+  vtkGetMacro(RequestedNumberOfRadialAxes, vtkIdType);
   //@}
 
   //@{
@@ -140,15 +140,6 @@ public:
    */
   virtual void SetMaximumRadius(double);
   vtkGetMacro(MaximumRadius, double);
-  //@}
-
-  //@{
-  /**
-   * Turn on and off the auto-scaling of the maximum radius.
-   * Default: false
-   */
-  vtkSetMacro(AutoScaleRadius, bool);
-  vtkGetMacro(AutoScaleRadius, bool);
   //@}
 
   //@{
@@ -262,7 +253,7 @@ public:
    * The parameter window could be used to determine which graphic
    * resources to release.
    */
-  void ReleaseGraphicsResources(vtkWindow*);
+  void ReleaseGraphicsResources(vtkWindow*) override;
 
   //@{
   /**
@@ -340,7 +331,7 @@ public:
 
   //@{
   /**
-   * Get/Set the alignement of the radial axes title related to the axis.
+   * Get/Set the alignment of the radial axes title related to the axis.
    * Possible Alignment: VTK_TITLE_BOTTOM, VTK_TITLE_EXTERN
    */
   vtkSetClampMacro(RadialAxisTitleLocation, int, VTK_TITLE_BOTTOM, VTK_TITLE_EXTERN);
@@ -349,7 +340,7 @@ public:
 
   //@{
   /**
-   * Get/Set the alignement of the polar axes title related to the axis.
+   * Get/Set the alignment of the polar axes title related to the axis.
    * Possible Alignment: VTKTITLE_BOTTOM, VTK_TITLE_EXTERN
    */
   vtkSetClampMacro(PolarAxisTitleLocation, int, VTK_TITLE_BOTTOM, VTK_TITLE_EXTERN);
@@ -368,7 +359,8 @@ public:
   //@{
   /**
    * If On, the ticks are drawn from the angle of the polarAxis (i.e. this->MinimalRadius)
-   * and continue counterclockwise with the step DeltaAngle Major/Minor. if Off, the start angle is 0.0, i.e.
+   * and continue counterclockwise with the step DeltaAngle Major/Minor. if Off, the start angle is
+   * 0.0, i.e.
    * the angle on the major radius of the ellipse.
    */
   vtkSetMacro(ArcTicksOriginToPolarAxis, int);
@@ -379,7 +371,8 @@ public:
   //@{
   /**
    * If On, the radial axes are drawn from the angle of the polarAxis (i.e. this->MinimalRadius)
-   * and continue counterclockwise with the step DeltaAngleRadialAxes. if Off, the start angle is 0.0, i.e.
+   * and continue counterclockwise with the step DeltaAngleRadialAxes. if Off, the start angle is
+   * 0.0, i.e.
    * the angle on the major radius of the ellipse.
    */
   vtkSetMacro(RadialAxesOriginToPolarAxis, int);
@@ -609,7 +602,7 @@ public:
   /**
    * Set/Get the polar axis title text property.
    */
-  virtual void SetPolarAxisTitleTextProperty(vtkTextProperty *p);
+  virtual void SetPolarAxisTitleTextProperty(vtkTextProperty* p);
   vtkGetObjectMacro(PolarAxisTitleTextProperty, vtkTextProperty);
   //@}
 
@@ -617,7 +610,7 @@ public:
   /**
    * Set/Get the polar axis labels text property.
    */
-  virtual void SetPolarAxisLabelTextProperty(vtkTextProperty *p);
+  virtual void SetPolarAxisLabelTextProperty(vtkTextProperty* p);
   vtkGetObjectMacro(PolarAxisLabelTextProperty, vtkTextProperty);
   //@}
 
@@ -625,23 +618,23 @@ public:
   /**
    * Set/Get the last radial axis text property.
    */
-  virtual void SetLastRadialAxisTextProperty(vtkTextProperty *p);
+  virtual void SetLastRadialAxisTextProperty(vtkTextProperty* p);
   vtkGetObjectMacro(LastRadialAxisTextProperty, vtkTextProperty);
   //@}
 
-   //@{
-   /**
-    * Set/Get the secondary radial axes text property.
-    */
-  virtual void SetSecondaryRadialAxesTextProperty(vtkTextProperty *p);
+  //@{
+  /**
+   * Set/Get the secondary radial axes text property.
+   */
+  virtual void SetSecondaryRadialAxesTextProperty(vtkTextProperty* p);
   vtkGetObjectMacro(SecondaryRadialAxesTextProperty, vtkTextProperty);
-   //@}
+  //@}
 
   //@{
   /**
    * Get/Set polar axis actor properties.
    */
-  virtual void SetPolarAxisProperty(vtkProperty *);
+  virtual void SetPolarAxisProperty(vtkProperty*);
   vtkGetObjectMacro(PolarAxisProperty, vtkProperty);
   //@}
 
@@ -685,9 +678,9 @@ public:
    * sure that the min's are less than the max's.
    */
   vtkSetVector6Macro(Bounds, double);
-  double *GetBounds();
-  void GetBounds(double& xmin, double& xmax, double& ymin, double& ymax,
-                 double& zmin, double& zmax);
+  double* GetBounds() override;
+  void GetBounds(
+    double& xmin, double& xmax, double& ymin, double& ymax, double& zmin, double& zmax);
   void GetBounds(double bounds[6]);
   //@}
 
@@ -701,7 +694,7 @@ public:
 
 protected:
   vtkPolarAxesActor();
-  ~vtkPolarAxesActor();
+  ~vtkPolarAxesActor() override;
 
   /**
    * Check consistency of vtkPolarAxesActor members.
@@ -712,7 +705,7 @@ protected:
    * Build the axes.
    * Determine coordinates, position, etc.
    */
-  void BuildAxes(vtkViewport *);
+  void BuildAxes(vtkViewport*);
 
   /**
    * Calculate bounds based on maximum radius and angular sector
@@ -741,7 +734,8 @@ protected:
 
   /**
    * Set Range and PolarAxis members value to build axis ticks
-   * this fonction doesn't actually build PolarAxis ticks, it set the DeltaRangeMajor and DeltaMajor attributes
+   * this fonction doesn't actually build PolarAxis ticks, it set the DeltaRangeMajor and DeltaMajor
+   * attributes
    * then PolarAxis itself is in charge of ticks drawing
    */
   void AutoComputeTicksProperties();
@@ -757,9 +751,11 @@ protected:
   void BuildArcTicks();
 
   /**
-   * Init tick point located on an ellipse at angleEllipseRad angle and according to "a" major radius
+   * Init tick point located on an ellipse at angleEllipseRad angle and according to "a" major
+   * radius
    */
-  void StoreTicksPtsFromParamEllipse(double a, double angleEllipseRad, double tickSize, vtkPoints* tickPts);
+  void StoreTicksPtsFromParamEllipse(
+    double a, double angleEllipseRad, double tickSize, vtkPoints* tickPts);
 
   /**
    * Build polar axis labels and arcs with respect to specified pole.
@@ -784,7 +780,7 @@ protected:
   std::string FindExponentAndAdjustValues(std::list<double>& valuesList);
 
   /**
-   * Yield a string array whith the float part of each values. 0.01e-2 -> 0.0001
+   * Yield a string array with the float part of each values. 0.01e-2 -> 0.0001
    */
   void GetSignificantPartFromValues(vtkStringArray* valuesStr, std::list<double>& valuesList);
 
@@ -809,6 +805,10 @@ protected:
   static double ComputeEllipseAngle(double angleInDegrees, double ratio);
 
   /**
+   * Compute delta angle of radial axes.
+   */
+  virtual void ComputeDeltaAngleRadialAxes(vtkIdType);
+  /**
    * Coordinates of the pole
    * Default: (0,0,0).
    */
@@ -818,6 +818,11 @@ protected:
    * Number of radial axes
    */
   int NumberOfRadialAxes;
+
+  /**
+   * Requested Number of radial axes
+   */
+  int RequestedNumberOfRadialAxes;
 
   /**
    * Whether the number of polar axis ticks and arcs should be automatically calculated.
@@ -900,29 +905,24 @@ protected:
    */
   double SmallestVisiblePolarAngle;
 
-  /**
-   * Explicit actor bounds
-   */
-  double Bounds[6];
-
   // Structures for principal polar arc
-  vtkPolyData        *PolarArcs;
-  vtkPolyDataMapper  *PolarArcsMapper;
-  vtkActor           *PolarArcsActor;
+  vtkPolyData* PolarArcs;
+  vtkPolyDataMapper* PolarArcsMapper;
+  vtkActor* PolarArcsActor;
 
   //@{
   /**
    * Structures for secondary polar arcs
    */
-  vtkPolyData        *SecondaryPolarArcs;
-  vtkPolyDataMapper  *SecondaryPolarArcsMapper;
-  vtkActor           *SecondaryPolarArcsActor;
+  vtkPolyData* SecondaryPolarArcs;
+  vtkPolyDataMapper* SecondaryPolarArcsMapper;
+  vtkActor* SecondaryPolarArcsActor;
   //@}
 
   /**
    * Camera attached to the polar axes system
    */
-  vtkCamera *Camera;
+  vtkCamera* Camera;
 
   /**
    * Control variables for polar axis
@@ -939,14 +939,14 @@ protected:
    * Title to be used for the polar axis
    * NB: Non-polar radial axes use the polar angle as title and have no labels
    */
-  char *PolarAxisTitle;
-  char  *PolarLabelFormat;
+  char* PolarAxisTitle;
+  char* PolarLabelFormat;
   //@}
 
   /**
    * String to format angle values displayed on the radial axes.
    */
-  char *RadialAngleFormat;
+  char* RadialAngleFormat;
 
   /**
    * Display angle units (degrees) to label radial axes
@@ -973,7 +973,7 @@ protected:
   int EnableViewAngleLOD;
 
   /**
-   * This determines at what view angle to geometry will make the geometry not visibile.
+   * This determines at what view angle to geometry will make the geometry not visible.
    * Default is 0.3.
    */
   double ViewAngleLODThreshold;
@@ -989,7 +989,8 @@ protected:
 
   /**
    * Describes the tick orientation for the graph elements involved by this property.
-   * The ticks are drawn according to the direction of the 2 orthogonal axes, of the axisBase defined for a vtkAxisActor.
+   * The ticks are drawn according to the direction of the 2 orthogonal axes, of the axisBase
+   * defined for a vtkAxisActor.
    * For an ellipse, tick directions are defined from ellipse center to tick origin and
    * the orthogonal direction of the ellipse plane.
    */
@@ -1001,17 +1002,19 @@ protected:
   int PolarTickVisibility;
 
   /**
-   * If On, the ticks are drawn from the angle of the polarAxis (i.e. this->MinimalRadius)
-   * and continue counterclockwise with the step DeltaAngle Major/Minor. if Off, the start angle is 0.0, i.e.
+   * If On, the ticks are drawn from the angle of the polarAxis (i.e. this->MinimumAngle)
+   * and continue counterclockwise with the step DeltaAngle Major/Minor. if Off, the start angle is
+   * 0.0, i.e.
    * the angle on the major radius of the ellipse.
    */
   int ArcTicksOriginToPolarAxis;
 
-   /**
-    * If On, the radial axes are drawn from the angle of the polarAxis (i.e. this->MinimalRadius)
-    * and continue counterclockwise with the step DeltaAngleRadialAxes. if Off, the start angle is 0.0, i.e.
-    * the angle on the major radius of the ellipse.
-    */
+  /**
+   * If On, the radial axes are drawn from the angle of the polarAxis (i.e. this->MinimalRadius)
+   * and continue counterclockwise with the step DeltaAngleRadialAxes. if Off, the start angle is
+   * 0.0, i.e.
+   * the angle on the major radius of the ellipse.
+   */
   int RadialAxesOriginToPolarAxis;
 
   /**
@@ -1053,12 +1056,12 @@ protected:
   //@}
 
   /**
-   * Define the alignement of the title related to the radial axis. (BOTTOM or EXTERN)
+   * Define the alignment of the title related to the radial axis. (BOTTOM or EXTERN)
    */
   int RadialAxisTitleLocation;
 
   /**
-   * Define the alignement of the title related to the polar axis. (BOTTOM or EXTERN)
+   * Define the alignment of the title related to the polar axis. (BOTTOM or EXTERN)
    */
   int PolarAxisTitleLocation;
 
@@ -1074,12 +1077,12 @@ protected:
   int PolarArcsVisibility;
 
   /**
-   * Visibility of the inner axes (overriden to 0 if RadialAxesVisibility is set to 0)
+   * Visibility of the inner axes (overridden to 0 if RadialAxesVisibility is set to 0)
    */
   int DrawRadialGridlines;
 
   /**
-   * Visibility of the inner arcs (overriden to 0 if PolarArcsVisibility is set to 0)
+   * Visibility of the inner arcs (overridden to 0 if PolarArcsVisibility is set to 0)
    */
   int DrawPolarArcsGridlines;
 
@@ -1109,19 +1112,19 @@ protected:
   /**
    * Text properties of polar axis title and labels
    */
-  vtkTextProperty   *PolarAxisTitleTextProperty;
-  vtkTextProperty   *PolarAxisLabelTextProperty;
+  vtkTextProperty* PolarAxisTitleTextProperty;
+  vtkTextProperty* PolarAxisLabelTextProperty;
   //@}
 
   /**
    * Text properties of last radial axis
    */
-  vtkTextProperty   *LastRadialAxisTextProperty;
+  vtkTextProperty* LastRadialAxisTextProperty;
 
   /**
    * Text properties of secondary radial axes
    */
-  vtkTextProperty   *SecondaryRadialAxesTextProperty;
+  vtkTextProperty* SecondaryRadialAxesTextProperty;
 
   /**
    * General properties of polar axis
@@ -1157,8 +1160,8 @@ protected:
   double ScreenSize;
 
 private:
-  vtkPolarAxesActor(const vtkPolarAxesActor&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPolarAxesActor&) VTK_DELETE_FUNCTION;
+  vtkPolarAxesActor(const vtkPolarAxesActor&) = delete;
+  void operator=(const vtkPolarAxesActor&) = delete;
 };
 
 #endif

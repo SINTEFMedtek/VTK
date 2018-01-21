@@ -18,6 +18,7 @@
 #include "vtkMath.h"
 #include "vtkCell.h"
 #include "vtkCellArray.h"
+#include "vtkCellIterator.h"
 #include "vtkEdgeTable.h"
 #include "vtkIdList.h"
 #include "vtkInformation.h"
@@ -29,13 +30,14 @@
 
 vtkStandardNewMacro(vtkLoopSubdivisionFilter);
 
-static double LoopWeights[4] =
+static const double LoopWeights[4] =
   {.375, .375, .125, .125};
 
-int vtkLoopSubdivisionFilter::GenerateSubdivisionPoints (vtkPolyData *inputDS,vtkIntArray *edgeData, vtkPoints *outputPts, vtkPointData *outputPD)
+//----------------------------------------------------------------------------
+int vtkLoopSubdivisionFilter::GenerateSubdivisionPoints (vtkPolyData *inputDS, vtkIntArray *edgeData, vtkPoints *outputPts, vtkPointData *outputPD)
 {
   double *weights;
-  vtkIdType *pts = 0;
+  vtkIdType *pts = nullptr;
   vtkIdType numPts, cellId, newId;
   int edgeId;
   vtkIdType npts;
@@ -43,34 +45,35 @@ int vtkLoopSubdivisionFilter::GenerateSubdivisionPoints (vtkPolyData *inputDS,vt
   vtkCellArray *inputPolys=inputDS->GetPolys();
   vtkSmartPointer<vtkIdList> cellIds = vtkSmartPointer<vtkIdList>::New();
   vtkSmartPointer<vtkIdList> stencil = vtkSmartPointer<vtkIdList>::New();
+  vtkSmartPointer<vtkEdgeTable> edgeTable = vtkSmartPointer<vtkEdgeTable>::New();
   vtkPoints *inputPts=inputDS->GetPoints();
   vtkPointData *inputPD=inputDS->GetPointData();
 
   weights = new double[256];
 
   // Create an edge table to keep track of which edges we've processed
-  vtkSmartPointer<vtkEdgeTable> edgeTable =
-    vtkSmartPointer<vtkEdgeTable>::New();
   edgeTable->InitEdgeInsertion(inputDS->GetNumberOfPoints());
 
   // Generate even points. these are derived from the old points
   numPts = inputDS->GetNumberOfPoints();
   for (vtkIdType ptId=0; ptId < numPts; ptId++)
   {
-    this->GenerateEvenStencil (ptId, inputDS, stencil, weights);
-    this->InterpolatePosition (inputPts, outputPts, stencil, weights);
-    outputPD->InterpolatePoint (inputPD, ptId, stencil, weights);
+    if (this->GenerateEvenStencil (ptId, inputDS, stencil, weights))
+    {
+      this->InterpolatePosition (inputPts, outputPts, stencil, weights);
+      outputPD->InterpolatePoint (inputPD, ptId, stencil, weights);
+    }
+    else
+    {
+      delete [] weights;
+      return 0;
+    }
   }
 
   // Generate odd points. These will be inserted into the new dataset
   for (cellId=0, inputPolys->InitTraversal();
        inputPolys->GetNextCell(npts, pts); cellId++)
   {
-    if ( inputDS->GetCellType(cellId) != VTK_TRIANGLE )
-    {
-      continue;
-    }
-
     // start with one edge
     p1 = pts[2];
     p2 = pts[0];
@@ -98,7 +101,7 @@ int vtkLoopSubdivisionFilter::GenerateSubdivisionPoints (vtkPolyData *inputDS,vt
         else
         {
           delete [] weights;
-          vtkErrorMacro ("Dataset is non-manifold and cannot be subdivided.");
+          vtkErrorMacro ("Dataset is non-manifold and cannot be subdivided. Edge shared by " << cellIds->GetNumberOfIds() << " cells");
           return 0;
         }
         newId = this->InterpolatePosition (inputPts, outputPts,
@@ -118,18 +121,20 @@ int vtkLoopSubdivisionFilter::GenerateSubdivisionPoints (vtkPolyData *inputDS,vt
     } // each interior edge
   } // each cell
 
+
   // cleanup
   delete [] weights;
   return 1;
 }
 
-void vtkLoopSubdivisionFilter::GenerateEvenStencil (vtkIdType p1,
+//----------------------------------------------------------------------------
+int vtkLoopSubdivisionFilter::GenerateEvenStencil (vtkIdType p1,
                                                     vtkPolyData *polys,
                                                     vtkIdList *stencilIds,
                                                     double *weights)
 {
-  vtkIdList *cellIds = vtkIdList::New();
-  vtkIdList *ptIds = vtkIdList::New();
+  vtkSmartPointer<vtkIdList> cellIds = vtkSmartPointer<vtkIdList>::New();
+  vtkSmartPointer<vtkIdList> ptIds = vtkSmartPointer<vtkIdList>::New();
   vtkCell *cell;
 
   int i;
@@ -147,7 +152,7 @@ void vtkLoopSubdivisionFilter::GenerateEvenStencil (vtkIdType p1,
   {
       vtkWarningMacro("numCellsInLoop < 1: " << numCellsInLoop);
       stencilIds->Reset();
-      return;
+      return 0;
   }
   // Find an edge to start with that contains p1
   polys->GetCellPoints (cellIds->GetId(0), ptIds);
@@ -237,13 +242,12 @@ void vtkLoopSubdivisionFilter::GenerateEvenStencil (vtkIdType p1,
   else
   {
     K = stencilIds->GetNumberOfIds();
-   // Remove last id. It's a duplicate of the first
+    // Remove last id. It's a duplicate of the first
     K--;
     if (K > 3)
     {
       // Generate weights
-#define VTK_PI vtkMath::Pi()
-      cosSQ = .375 + .25 * cos (2.0 * VTK_PI / (double) K);
+      cosSQ = .375 + .25 * cos (2.0 * vtkMath::Pi() / (double) K);
       cosSQ = cosSQ * cosSQ;
       beta = (.625 -  cosSQ) / (double) K;
     }
@@ -258,16 +262,16 @@ void vtkLoopSubdivisionFilter::GenerateEvenStencil (vtkIdType p1,
     weights[K] = 1.0 - K * beta;
     stencilIds->SetId (K,p1);
   }
-  cellIds->Delete();
-  ptIds->Delete();
+  return 1;
 }
 
+//----------------------------------------------------------------------------
 void vtkLoopSubdivisionFilter::GenerateOddStencil (vtkIdType p1, vtkIdType p2,
                                                    vtkPolyData *polys,
                                                    vtkIdList *stencilIds,
                                                    double *weights)
 {
-  vtkIdList *cellIds = vtkIdList::New();
+  vtkSmartPointer<vtkIdList> cellIds = vtkSmartPointer<vtkIdList>::New();
   vtkCell *cell;
   int i;
   vtkIdType cell0, cell1;
@@ -304,9 +308,9 @@ void vtkLoopSubdivisionFilter::GenerateOddStencil (vtkIdType p1, vtkIdType p2,
   {
     weights[i] = LoopWeights[i];
   }
-  cellIds->Delete();
 }
 
+//----------------------------------------------------------------------------
 int vtkLoopSubdivisionFilter::RequestUpdateExtent(
   vtkInformation *request,
   vtkInformationVector **inputVector,
@@ -334,41 +338,4 @@ int vtkLoopSubdivisionFilter::RequestUpdateExtent(
   }
 
   return 1;
-}
-
-int vtkLoopSubdivisionFilter::RequestData(
-  vtkInformation *request,
-  vtkInformationVector **inputVector,
-  vtkInformationVector *outputVector)
-{
-  vtkInformation *inInfo = inputVector[0]->GetInformationObject(0);
-
-  vtkPolyData *input = vtkPolyData::SafeDownCast(
-    inInfo->Get(vtkDataObject::DATA_OBJECT()));
-  vtkCellArray *polys = input->GetPolys();
-  int hasTris = 0;
-  vtkIdType numPts = 0, *pts = 0;
-
-  input->BuildLinks();
-
-  polys->InitTraversal();
-  while (polys->GetNextCell(numPts, pts))
-  {
-    if (numPts == 3)
-    {
-      if (input->IsTriangle(pts[0], pts[1], pts[2]))
-      {
-        hasTris = 1;
-        break;
-      }
-    }
-  }
-
-  if (!hasTris)
-  {
-    vtkWarningMacro("vtkLoopSubdivisionFilter only operates on triangles, but this data set has no triangles to operate on.")
-    return 0;
-  }
-
-  return this->Superclass::RequestData(request, inputVector, outputVector);
 }

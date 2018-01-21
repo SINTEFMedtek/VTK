@@ -38,7 +38,7 @@ class VTKIOXML_EXPORT vtkXMLPolyDataReader : public vtkXMLUnstructuredDataReader
 {
 public:
   vtkTypeMacro(vtkXMLPolyDataReader,vtkXMLUnstructuredDataReader);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   static vtkXMLPolyDataReader *New();
 
   //@{
@@ -61,28 +61,28 @@ public:
 
 protected:
   vtkXMLPolyDataReader();
-  ~vtkXMLPolyDataReader();
+  ~vtkXMLPolyDataReader() override;
 
-  const char* GetDataSetName();
-  void GetOutputUpdateExtent(int& piece, int& numberOfPieces, int& ghostLevel);
-  void SetupOutputTotals();
-  void SetupNextPiece();
-  void SetupPieces(int numPieces);
-  void DestroyPieces();
+  const char* GetDataSetName() override;
+  void GetOutputUpdateExtent(int& piece, int& numberOfPieces, int& ghostLevel) override;
+  void SetupOutputTotals() override;
+  void SetupNextPiece() override;
+  void SetupPieces(int numPieces) override;
+  void DestroyPieces() override;
 
-  void SetupOutputData();
-  int ReadPiece(vtkXMLDataElement* ePiece);
-  int ReadPieceData();
+  void SetupOutputData() override;
+  int ReadPiece(vtkXMLDataElement* ePiece) override;
+  int ReadPieceData() override;
 
   // Read a data array whose tuples coorrespond to cells.
-  virtual int ReadArrayForCells(vtkXMLDataElement* da,
-    vtkAbstractArray* outArray);
+  int ReadArrayForCells(vtkXMLDataElement* da,
+    vtkAbstractArray* outArray) override;
 
   // Get the number of cells in the given piece.  Valid after
   // UpdateInformation.
-  virtual vtkIdType GetNumberOfCellsInPiece(int piece);
+  vtkIdType GetNumberOfCellsInPiece(int piece) override;
 
-  virtual int FillOutputPortInformation(int, vtkInformation*);
+  int FillOutputPortInformation(int, vtkInformation*) override;
 
   // The size of the UpdatePiece.
   int TotalNumberOfVerts;
@@ -115,8 +115,8 @@ protected:
   unsigned long PolysOffset;
 
 private:
-  vtkXMLPolyDataReader(const vtkXMLPolyDataReader&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkXMLPolyDataReader&) VTK_DELETE_FUNCTION;
+  vtkXMLPolyDataReader(const vtkXMLPolyDataReader&) = delete;
+  void operator=(const vtkXMLPolyDataReader&) = delete;
 };
 
 #endif

@@ -39,17 +39,17 @@ vtkLeaderActor2D::vtkLeaderActor2D()
 
   this->Position2Coordinate->SetCoordinateSystemToNormalizedViewport();
   this->Position2Coordinate->SetValue(0.75, 0.75);
-  this->Position2Coordinate->SetReferenceCoordinate(NULL);
+  this->Position2Coordinate->SetReferenceCoordinate(nullptr);
 
   this->Radius = 0.0;
   this->Length = 0.0;
   this->Angle = 0.0;
 
-  this->Label = NULL;
+  this->Label = nullptr;
   this->LabelFactor = 1.0;
   this->AutoLabel = 0;
   this->LabelFormat = new char[8];
-  sprintf(this->LabelFormat,"%s","%-#6.3g");
+  snprintf(this->LabelFormat,8,"%s","%-#6.3g");
 
   this->ArrowPlacement = vtkLeaderActor2D::VTK_ARROW_BOTH;
   this->ArrowStyle = vtkLeaderActor2D::VTK_ARROW_FILLED;
@@ -101,10 +101,10 @@ vtkLeaderActor2D::~vtkLeaderActor2D()
   this->LabelActor->Delete();
 
   delete [] this->Label;
-  this->Label = NULL;
+  this->Label = nullptr;
 
   delete [] this->LabelFormat;
-  this->LabelFormat = NULL;
+  this->LabelFormat = nullptr;
 
   this->LeaderPoints->Delete();
   this->LeaderLines->Delete();
@@ -113,7 +113,7 @@ vtkLeaderActor2D::~vtkLeaderActor2D()
   this->LeaderMapper->Delete();
   this->LeaderActor->Delete();
 
-  this->SetLabelTextProperty(NULL);
+  this->SetLabelTextProperty(nullptr);
 }
 
 //----------------------------------------------------------------------------
@@ -221,13 +221,13 @@ void vtkLeaderActor2D::BuildLeader(vtkViewport *viewport)
   double *x2 = this->Position2Coordinate->GetComputedWorldValue(viewport);
   this->Length = sqrt(vtkMath::Distance2BetweenPoints(x1,x2));
 
-  if ( this->AutoLabel || (this->Label != NULL && this->Label[0] != 0) )
+  if ( this->AutoLabel || (this->Label != nullptr && this->Label[0] != 0) )
   {
     int stringSize[2];
     if ( this->AutoLabel )
     {
       char string[512];
-      sprintf(string, this->LabelFormat, this->Length);
+      snprintf(string, sizeof(string), this->LabelFormat, this->Length);
       this->LabelMapper->SetInput(string);
     }
     else
@@ -454,7 +454,7 @@ int vtkLeaderActor2D::ClipLeader(double center[3], int box[2], double p1[3],
   t = ( fabs(tx-0.5) < fabs(ty-0.5) ? tx : ty );
   if ( fabs(t-0.5) > 0.45 )
   {
-    return 0; //wont fit along line
+    return 0; //won't fit along line
   }
   else
   {
@@ -534,13 +534,13 @@ void vtkLeaderActor2D::BuildCurvedLeader(double p1[3], double p2[3], double ray[
 
   // Now insert lines. Only those not clipped by the string are added.
   this->Angle = vtkMath::DegreesFromRadians( theta1 - theta2);
-  if ( this->AutoLabel || (this->Label != NULL && this->Label[0] != 0) )
+  if ( this->AutoLabel || (this->Label != nullptr && this->Label[0] != 0) )
   {
     int stringSize[2];
     if ( this->AutoLabel )
     {
       char string[512];
-      sprintf(string, this->LabelFormat, this->Angle);
+      snprintf(string, sizeof(string), this->LabelFormat, this->Angle);
       this->LabelMapper->SetInput(string);
     }
     else
@@ -628,8 +628,8 @@ int vtkLeaderActor2D::RenderOpaqueGeometry(vtkViewport *viewport)
   this->BuildLeader(viewport);
 
   // Everything is built, just have to render
-  if ( (this->Label != NULL && this->Label[0]) || \
-       (this->AutoLabel && this->LabelMapper->GetInput() != NULL ) )
+  if ( (this->Label != nullptr && this->Label[0]) || \
+       (this->AutoLabel && this->LabelMapper->GetInput() != nullptr ) )
   {
     renderedSomething += this->LabelActor->RenderOpaqueGeometry(viewport);
   }
@@ -647,8 +647,8 @@ int vtkLeaderActor2D::RenderOverlay(vtkViewport *viewport)
   this->BuildLeader(viewport);
 
   // Everything is built, just have to render
-  if ( (this->Label != NULL && this->Label[0]) || \
-       (this->AutoLabel && this->LabelMapper->GetInput() != NULL ) )
+  if ( (this->Label != nullptr && this->Label[0]) || \
+       (this->AutoLabel && this->LabelMapper->GetInput() != nullptr ) )
   {
     renderedSomething += this->LabelActor->RenderOverlay(viewport);
   }
@@ -669,7 +669,7 @@ int vtkLeaderActor2D::HasTranslucentPolygonalGeometry()
 void vtkLeaderActor2D::ShallowCopy(vtkProp *prop)
 {
   vtkLeaderActor2D *a = vtkLeaderActor2D::SafeDownCast(prop);
-  if ( a != NULL )
+  if ( a != nullptr )
   {
     this->SetLabel(a->GetLabel());
     this->SetLabelTextProperty(a->GetLabelTextProperty());

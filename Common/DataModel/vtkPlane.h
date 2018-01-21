@@ -37,21 +37,21 @@ public:
   static vtkPlane *New();
 
   vtkTypeMacro(vtkPlane,vtkImplicitFunction);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
    * Evaluate plane equation for point x[3].
    */
-  double EvaluateFunction(double x[3]) VTK_OVERRIDE;
-  double EvaluateFunction(double x, double y, double z)
-    {return this->vtkImplicitFunction::EvaluateFunction(x, y, z); } ;
+  using vtkImplicitFunction::EvaluateFunction;
+  void EvaluateFunction(vtkDataArray* input, vtkDataArray* output) override;
+  double EvaluateFunction(double x[3]) override;
   //@}
 
   /**
    * Evaluate function gradient at point x[3].
    */
-  void EvaluateGradient(double x[3], double g[3]) VTK_OVERRIDE;
+  void EvaluateGradient(double x[3], double g[3]) override;
 
   //@{
   /**
@@ -140,16 +140,17 @@ public:
 
 protected:
   vtkPlane();
-  ~vtkPlane() VTK_OVERRIDE {}
+  ~vtkPlane() override {}
 
   double Normal[3];
   double Origin[3];
 
 private:
-  vtkPlane(const vtkPlane&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPlane&) VTK_DELETE_FUNCTION;
+  vtkPlane(const vtkPlane&) = delete;
+  void operator=(const vtkPlane&) = delete;
 };
 
+// Generally the normal should be normalized
 inline double vtkPlane::Evaluate(double normal[3],
                                  double origin[3], double x[3])
 {
@@ -157,6 +158,7 @@ inline double vtkPlane::Evaluate(double normal[3],
          normal[2]*(x[2]-origin[2]);
 }
 
+// Assumes normal is normalized
 inline double vtkPlane::DistanceToPlane(double x[3], double n[3], double p0[3])
 {
 #define vtkPlaneAbs(x) ((x)<0?-(x):(x))
@@ -165,5 +167,3 @@ inline double vtkPlane::DistanceToPlane(double x[3], double n[3], double p0[3])
 }
 
 #endif
-
-

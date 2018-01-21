@@ -46,7 +46,7 @@ class VTKINFOVISLAYOUT_EXPORT vtkGraphLayoutStrategy : public vtkObject
 {
 public:
   vtkTypeMacro(vtkGraphLayoutStrategy,vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Setting the graph for the layout strategy
@@ -94,15 +94,15 @@ public:
 
 protected:
   vtkGraphLayoutStrategy();
-  ~vtkGraphLayoutStrategy();
+  ~vtkGraphLayoutStrategy() override;
 
   vtkGraph *Graph;
   char     *EdgeWeightField;
   bool     WeightEdges;
 private:
 
-  vtkGraphLayoutStrategy(const vtkGraphLayoutStrategy&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkGraphLayoutStrategy&) VTK_DELETE_FUNCTION;
+  vtkGraphLayoutStrategy(const vtkGraphLayoutStrategy&) = delete;
+  void operator=(const vtkGraphLayoutStrategy&) = delete;
 };
 
 #endif

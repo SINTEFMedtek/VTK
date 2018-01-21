@@ -32,16 +32,23 @@ void vtkOpenGLRenderPass::PrintSelf(std::ostream &os, vtkIndent indent)
 }
 
 //------------------------------------------------------------------------------
-bool vtkOpenGLRenderPass::ReplaceShaderValues(std::string &, std::string &,
-                                              std::string &,
-                                              vtkAbstractMapper *, vtkProp *)
+bool vtkOpenGLRenderPass::PreReplaceShaderValues(
+  std::string &, std::string &, std::string &,
+  vtkAbstractMapper *, vtkProp *)
+{
+  return true;
+}
+bool vtkOpenGLRenderPass::PostReplaceShaderValues(
+  std::string &, std::string &, std::string &,
+  vtkAbstractMapper *, vtkProp *)
 {
   return true;
 }
 
 //------------------------------------------------------------------------------
 bool vtkOpenGLRenderPass::SetShaderParameters(vtkShaderProgram *,
-                                              vtkAbstractMapper *, vtkProp *)
+                                              vtkAbstractMapper *, vtkProp *,
+                                              vtkOpenGLVertexArrayObject *)
 {
   return true;
 }

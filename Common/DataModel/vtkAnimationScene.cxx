@@ -30,7 +30,6 @@ vtkAnimationScene::vtkAnimationScene()
   this->Loop = 0;
   this->InPlay = 0;
   this->StopPlay = 0;
-  this->AnimationTime = 0.0;
 
   this->AnimationCues = vtkCollection::New();
   this->AnimationCuesIterator = this->AnimationCues->NewIterator();
@@ -172,7 +171,7 @@ void vtkAnimationScene::Play()
     (this->PlayMode == PLAYMODE_SEQUENCE)?  (1.0 / this->FrameRate) : 1;
   do
   {
-    this->Initialize(); // Set the Scene in unintialized mode.
+    this->Initialize(); // Set the Scene in uninitialized mode.
     this->AnimationTimer->StartTimer();
     double timer_start_time = currenttime;
     double deltatime = 0.0;
@@ -298,5 +297,4 @@ void vtkAnimationScene::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "Loop: " << this->Loop << endl;
   os << indent << "InPlay: " << this->InPlay << endl;
   os << indent << "StopPlay: " << this->StopPlay << endl;
-  os << indent << "AnimationTime: " << this->AnimationTime << endl;
 }

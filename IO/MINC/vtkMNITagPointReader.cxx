@@ -63,8 +63,6 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkStringArray.h"
 
 #include <cctype>
-#include <sys/types.h>
-#include <sys/stat.h>
 
 #include <string>
 #include <vector>
@@ -76,10 +74,10 @@ vtkStandardNewMacro(vtkMNITagPointReader);
 //-------------------------------------------------------------------------
 vtkMNITagPointReader::vtkMNITagPointReader()
 {
-  this->FileName = 0;
+  this->FileName = nullptr;
   this->NumberOfVolumes = 1;
   this->LineNumber = 0;
-  this->Comments = 0;
+  this->Comments = nullptr;
 
   this->SetNumberOfInputPorts(0);
   this->SetNumberOfOutputPorts(2);
@@ -110,8 +108,8 @@ int vtkMNITagPointReader::CanReadFile(const char* fname)
 {
   // First make sure the file exists.  This prevents an empty file
   // from being created on older compilers.
-  struct stat fs;
-  if(stat(fname, &fs) != 0)
+  vtksys::SystemTools::Stat_t fs;
+  if (vtksys::SystemTools::Stat(fname, &fs) != 0)
   {
     return 0;
   }
@@ -369,7 +367,7 @@ int vtkMNITagPointReader::ParseIntValues(
   while (pos != linetext.end() && *pos != ';' && i < n)
   {
     const char *cp = linetext.c_str() + (pos - linetext.begin());
-    char *ep = 0;
+    char *ep = nullptr;
     long val = strtol(cp, &ep, 10);
     if (ep == cp)
     {
@@ -405,7 +403,7 @@ int vtkMNITagPointReader::ParseFloatValues(
   while (pos != linetext.end() && *pos != ';' && i < n)
   {
     const char *cp = linetext.c_str() + (pos - linetext.begin());
-    char *ep = 0;
+    char *ep = nullptr;
     double val = strtod(cp, &ep);
     if (ep == cp)
     {
@@ -440,8 +438,8 @@ int vtkMNITagPointReader::ReadFile(
   }
 
   // Make sure that the file exists.
-  struct stat fs;
-  if(stat(this->FileName, &fs) != 0)
+  vtksys::SystemTools::Stat_t fs;
+  if (vtksys::SystemTools::Stat(this->FileName, &fs) != 0)
   {
     vtkErrorMacro("ReadFile: Can't open file " << this->FileName);
     return 0;
@@ -638,7 +636,7 @@ vtkPoints *vtkMNITagPointReader::GetPoints(int port)
 
   if (port < 0 || port >= this->NumberOfVolumes)
   {
-    return 0;
+    return nullptr;
   }
 
   vtkPolyData *output = static_cast<vtkPolyData *>(
@@ -649,7 +647,7 @@ vtkPoints *vtkMNITagPointReader::GetPoints(int port)
     return output->GetPoints();
   }
 
-  return 0;
+  return nullptr;
 }
 
 //-------------------------------------------------------------------------
@@ -666,7 +664,7 @@ vtkStringArray *vtkMNITagPointReader::GetLabelText()
       output->GetPointData()->GetAbstractArray("LabelText"));
   }
 
-  return 0;
+  return nullptr;
 }
 
 //-------------------------------------------------------------------------
@@ -683,7 +681,7 @@ vtkDoubleArray *vtkMNITagPointReader::GetWeights()
       output->GetPointData()->GetArray("Weights"));
   }
 
-  return 0;
+  return nullptr;
 }
 
 //-------------------------------------------------------------------------
@@ -700,7 +698,7 @@ vtkIntArray *vtkMNITagPointReader::GetStructureIds()
       output->GetPointData()->GetArray("StructureIds"));
   }
 
-  return 0;
+  return nullptr;
 }
 
 //-------------------------------------------------------------------------
@@ -717,7 +715,7 @@ vtkIntArray *vtkMNITagPointReader::GetPatientIds()
       output->GetPointData()->GetArray("PatientIds"));
   }
 
-  return 0;
+  return nullptr;
 }
 
 //-------------------------------------------------------------------------

@@ -42,7 +42,7 @@
  * DEP   - depth test and copy to back buffer
  *
  * The result of each stage is cached in a texture so that during interaction
- * a stage may be skipped if the user has not modified its paramters or input
+ * a stage may be skipped if the user has not modified its parameters or input
  * data.
  *
  * The parallel parts of algorithm are implemented in vtkPSurfaceLICPainter.
@@ -72,14 +72,14 @@ class VTKRENDERINGLIC_EXPORT vtkSurfaceLICPainter : public vtkPainter
 public:
   static vtkSurfaceLICPainter* New();
   vtkTypeMacro(vtkSurfaceLICPainter, vtkPainter);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Release any graphics resources that are being consumed by this mapper.
    * The parameter window could be used to determine which graphic
    * resources to release. In this case, releases the display lists.
    */
-  virtual void ReleaseGraphicsResources(vtkWindow * win);
+  void ReleaseGraphicsResources(vtkWindow * win) override;
 
   /**
    * Get the output data object from this painter.
@@ -87,7 +87,7 @@ public:
    * the deletage painters. This is required by the internal GLSL shader
    * programs used for generating LIC.
    */
-  virtual vtkDataObject* GetOutput();
+  vtkDataObject* GetOutput() override;
 
   //@{
   /**
@@ -158,7 +158,7 @@ public:
   /**
    * The MaskThreshold controls the rendering of fragments in stagnant
    * regions of flow.  // In these regions LIC noise texture will be masked,
-   * where |V| < MaskThreshold is satisifed. The masking process blends a
+   * where |V| < MaskThreshold is satisfied. The masking process blends a
    * the MaskColor with the scalar color of the surface proportional to
    * MaskIntesnsity. See MaskIntensity for more information on the blending
    * algorithm. This blending allows one control over the masking process
@@ -234,7 +234,7 @@ public:
    * of m and M are the min and max taken over all fragments.
 
    * This increase the dynamic range and contrast in the LIC'd image, both of
-   * which are natuarly attenuated by the convolution proccess.
+   * which are natuarly attenuated by the convolution process.
 
    * Values
 
@@ -299,7 +299,7 @@ public:
   /**
    * Set/Get the color mode. The color mode controls how scalar colors are
    * combined with the LIC in the final image. The BLEND mode combines scalar
-   * colors with LIC intensities with proportional blending controled by the
+   * colors with LIC intensities with proportional blending controlled by the
    * LICIntensity parameter. The MAP mode combines scalar colors with LIC,
    * by multiplication the HSL represntation of color's lightness.
 
@@ -483,14 +483,14 @@ public:
 
 protected:
   vtkSurfaceLICPainter();
-  ~vtkSurfaceLICPainter();
+  ~vtkSurfaceLICPainter() override;
 
   /**
    * Called before RenderInternal() if the Information has been changed
    * since the last time this method was called. We use this to detect
    * when LUT has changed.
    */
-  virtual void ProcessInformation(vtkInformation* info);
+  void ProcessInformation(vtkInformation* info) override;
 
   /**
    * Get the min/max across all ranks. min/max are in/out.
@@ -530,7 +530,7 @@ protected:
   /**
    * Take part in garbage collection.
    */
-  void ReportReferences(vtkGarbageCollector *collector) VTK_OVERRIDE;
+  void ReportReferences(vtkGarbageCollector *collector) override;
 
   /**
    * Updates the noise texture, downsampling by the requested sample rate.
@@ -544,11 +544,11 @@ protected:
    * DelegatePainter is in sync with this painter i.e. UpdateDelegatePainter()
    * has been called.
    */
-  virtual void RenderInternal(
+  void RenderInternal(
         vtkRenderer* renderer,
         vtkActor* actor,
         unsigned long typeflags,
-        bool forceCompileOnly);
+        bool forceCompileOnly) override;
 
 
   /**
@@ -634,8 +634,8 @@ protected:
   vtkInternals* Internals;
 
 private:
-  vtkSurfaceLICPainter(const vtkSurfaceLICPainter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkSurfaceLICPainter&) VTK_DELETE_FUNCTION;
+  vtkSurfaceLICPainter(const vtkSurfaceLICPainter&) = delete;
+  void operator=(const vtkSurfaceLICPainter&) = delete;
 };
 
 #endif

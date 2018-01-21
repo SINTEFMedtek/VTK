@@ -14,9 +14,9 @@
 =========================================================================*/
 #include "vtkXMLWriter.h"
 
+#include "vtkAOSDataArrayTemplate.h"
 #include "vtkArrayDispatch.h"
 #include "vtkArrayIteratorIncludes.h"
-#include "vtkAOSDataArrayTemplate.h"
 #include "vtkBase64OutputStream.h"
 #include "vtkByteSwap.h"
 #include "vtkCellData.h"
@@ -36,6 +36,7 @@
 #include "vtkInformationStringVectorKey.h"
 #include "vtkInformationUnsignedLongKey.h"
 #include "vtkInformationVector.h"
+#include "vtkLZ4DataCompressor.h"
 #include "vtkNew.h"
 #include "vtkOutputStream.h"
 #include "vtkPointData.h"
@@ -68,10 +69,7 @@
 # include <io.h> /* unlink */
 #endif
 
-#if defined(__BORLANDC__)
-#include <cctype> // isalnum is defined here for some versions of Borland
-#endif
-
+#include <cctype> // for isalnum
 #include <locale> // C++ locale
 
 
@@ -164,13 +162,18 @@ struct WriteBinaryDataBlockWorker
     vtkXMLWriterHelper::SetProgressPartial(this->Writer, 1);
   }
 
+#if defined(__clang__) && defined(__has_warning)
+  #if __has_warning("-Wunused-template")
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Wunused-template"
+  #endif
+#endif
+
   //----------------------------------------------------------------------------
   // Specialize for non-AoS generic arrays:
-  template <class ArrayT>
-  void operator()(ArrayT *array)
+  template <class DerivedType, typename ValueType>
+  void operator()(vtkGenericDataArray<DerivedType, ValueType> *array)
   {
-    typedef typename ArrayT::ValueType ValueType;
-
     // generic implementation for fixed component length arrays.
     size_t blockWords = this->Writer->GetBlockSize() / this->OutWordSize;
 
@@ -227,6 +230,13 @@ struct WriteBinaryDataBlockWorker
 
     vtkXMLWriterHelper::SetProgressPartial(this->Writer, 1);
   }
+
+// Undo warning suppression.
+#if defined(__clang__) && defined(__has_warning)
+  #if __has_warning("-Wunused-template")
+    #pragma clang diagnostic pop
+  #endif
+#endif
 
 }; // End WriteBinaryDataBlockWorker
 
@@ -308,8 +318,8 @@ static int vtkXMLWriterWriteBinaryDataBlocks(
            int wordType, size_t outWordSize, size_t numStrings, int)
 {
   vtkXMLWriterHelper::SetProgressPartial(writer, 0);
-  vtkStdString::value_type* allocated_buffer = 0;
-  vtkStdString::value_type* temp_buffer = 0;
+  vtkStdString::value_type* allocated_buffer = nullptr;
+  vtkStdString::value_type* temp_buffer = nullptr;
   if (vtkXMLWriterHelper::GetInt32IdTypeBuffer(writer))
   {
     temp_buffer = reinterpret_cast<vtkStdString::value_type*>(
@@ -341,16 +351,17 @@ static int vtkXMLWriterWriteBinaryDataBlocks(
     size_t cur_offset = 0; // offset into the temp_buffer.
     while (index < numStrings && cur_offset < maxCharsPerBlock)
     {
-      vtkStdString &str = iter->GetValue(index);
+      vtkStdString &str = iter->GetValue(static_cast<vtkIdType>(index));
       vtkStdString::size_type length = str.size();
       const char* data = str.c_str();
       data += stringOffset; // advance by the chars already written.
       length -= stringOffset;
-      stringOffset = 0;
       if (length == 0)
       {
         // just write the string termination char.
         temp_buffer[cur_offset++] = 0x0;
+        stringOffset = 0;
+        index++; // advance to the next string
       }
       else
       {
@@ -360,16 +371,18 @@ static int vtkXMLWriterWriteBinaryDataBlocks(
           memcpy(&temp_buffer[cur_offset], data, length);
           cur_offset += length;
           temp_buffer[cur_offset++] = 0x0;
+          stringOffset = 0;
+          index++; // advance to the next string
         }
         else
         {
           size_t bytes_to_copy =  (maxCharsPerBlock - cur_offset);
-          stringOffset = bytes_to_copy;
+          stringOffset += static_cast<vtkIdType>(bytes_to_copy);
           memcpy(&temp_buffer[cur_offset], data, bytes_to_copy);
           cur_offset += bytes_to_copy;
+          // do not advance, only partially written current string
         }
       }
-      index++;
     }
     if (cur_offset > 0)
     {
@@ -383,7 +396,7 @@ static int vtkXMLWriterWriteBinaryDataBlocks(
   }
 
   delete [] allocated_buffer;
-  allocated_buffer = 0;
+  allocated_buffer = nullptr;
 
   vtkXMLWriterHelper::SetProgressPartial(writer, 1);
   return result;
@@ -396,8 +409,8 @@ vtkCxxSetObjectMacro(vtkXMLWriter, Compressor, vtkDataCompressor);
 //----------------------------------------------------------------------------
 vtkXMLWriter::vtkXMLWriter()
 {
-  this->FileName = 0;
-  this->Stream = 0;
+  this->FileName = nullptr;
+  this->Stream = nullptr;
   this->WriteToOutputString = 0;
 
   // Default binary data mode is base-64 encoding.
@@ -421,9 +434,9 @@ vtkXMLWriter::vtkXMLWriter()
   // Initialize compression data.
   this->BlockSize = 32768; //2^15
   this->Compressor = vtkZLibDataCompressor::New();
-  this->CompressionHeader = 0;
-  this->Int32IdTypeBuffer = 0;
-  this->ByteSwapBuffer = 0;
+  this->CompressionHeader = nullptr;
+  this->Int32IdTypeBuffer = nullptr;
+  this->ByteSwapBuffer = nullptr;
 
   this->EncodeAppendedData = 1;
   this->AppendedDataPosition = 0;
@@ -434,14 +447,14 @@ vtkXMLWriter::vtkXMLWriter()
   this->SetNumberOfOutputPorts(0);
   this->SetNumberOfInputPorts(1);
 
-  this->OutFile = 0;
-  this->OutStringStream = 0;
+  this->OutFile = nullptr;
+  this->OutStringStream = nullptr;
 
   // Time support
   this->NumberOfTimeSteps = 1;
   this->CurrentTimeIndex = 0;
   this->UserContinueExecuting = -1; //invalid state
-  this->NumberOfTimeValues = NULL;
+  this->NumberOfTimeValues = nullptr;
   this->FieldDataOM = new OffsetsManagerGroup;
   this->UsePreviousVersion = true;
 }
@@ -449,13 +462,13 @@ vtkXMLWriter::vtkXMLWriter()
 //----------------------------------------------------------------------------
 vtkXMLWriter::~vtkXMLWriter()
 {
-  this->SetFileName(0);
+  this->SetFileName(nullptr);
   this->DataStream->Delete();
-  this->SetCompressor(0);
+  this->SetCompressor(nullptr);
   delete this->OutFile;
-  this->OutFile = 0;
+  this->OutFile = nullptr;
   delete this->OutStringStream;
-  this->OutStringStream = 0;
+  this->OutStringStream = nullptr;
   delete this->FieldDataOM;
   delete[] this->NumberOfTimeValues;
 }
@@ -468,22 +481,31 @@ void vtkXMLWriter::SetCompressorType(int compressorType)
     if (this->Compressor)
     {
       this->Compressor->Delete();
-      this->Compressor = 0;
+      this->Compressor = nullptr;
       this->Modified();
     }
-    return;
   }
-
-  if (compressorType == ZLIB)
+  else if (compressorType == ZLIB)
   {
     if (this->Compressor && !this->Compressor->IsTypeOf("vtkZLibDataCompressor"))
     {
       this->Compressor->Delete();
     }
-
     this->Compressor = vtkZLibDataCompressor::New();
     this->Modified();
-    return;
+  }
+  else if (compressorType == LZ4)
+  {
+    if (this->Compressor &&
+        !this->Compressor->IsTypeOf("vtkLZ4DataCompressor")) {
+      this->Compressor->Delete();
+    }
+    this->Compressor = vtkLZ4DataCompressor::New();
+    this->Modified();
+  }
+  else
+  {
+    vtkWarningMacro("Invalid compressorType:" << compressorType);
   }
 }
 
@@ -559,7 +581,7 @@ vtkDataObject* vtkXMLWriter::GetInput(int port)
 {
   if (this->GetNumberOfInputConnections(port) < 1)
   {
-    return 0;
+    return nullptr;
   }
   return this->GetExecutive()->GetInputData(port, 0);
 }
@@ -815,7 +837,7 @@ int vtkXMLWriter::OpenStream()
 int vtkXMLWriter::OpenFile()
 {
   delete this->OutFile;
-  this->OutFile = 0;
+  this->OutFile = nullptr;
 
   // Strip trailing whitespace from the filename.
   int len = static_cast<int>(strlen(this->FileName));
@@ -861,7 +883,7 @@ int vtkXMLWriter::OpenString()
 void vtkXMLWriter::CloseStream()
 {
   // Cleanup the output streams.
-  this->DataStream->SetStream(0);
+  this->DataStream->SetStream(nullptr);
 
   if (this->WriteToOutputString)
   {
@@ -872,7 +894,7 @@ void vtkXMLWriter::CloseStream()
     this->CloseFile();
   }
 
-  this->Stream = 0;
+  this->Stream = nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -882,7 +904,7 @@ void vtkXMLWriter::CloseFile()
   {
     // We opened a file.  Close it.
     delete this->OutFile;
-    this->OutFile = 0;
+    this->OutFile = nullptr;
   }
 }
 
@@ -893,7 +915,7 @@ void vtkXMLWriter::CloseString()
   {
     this->OutputString = this->OutStringStream->str();
     delete this->OutStringStream;
-    this->OutStringStream = 0;
+    this->OutStringStream = nullptr;
   }
 }
 
@@ -1248,7 +1270,7 @@ int vtkXMLWriter::WriteBinaryData(vtkAbstractArray* a)
 
     // Destroy the compression header if it was used.
     delete this->CompressionHeader;
-    this->CompressionHeader = 0;
+    this->CompressionHeader = nullptr;
 
     return result;
   }
@@ -1383,8 +1405,10 @@ int vtkXMLWriter::WriteBinaryDataInternal(vtkAbstractArray* a)
     {
         switch (wordType)
         {
+#if !defined(VTK_LEGACY_REMOVE)
           case VTK___INT64:
           case VTK_UNSIGNED___INT64:
+#endif
           case VTK_LONG_LONG:
           case VTK_UNSIGNED_LONG_LONG:
 #ifdef VTK_USE_64BIT_IDS
@@ -1399,7 +1423,7 @@ int vtkXMLWriter::WriteBinaryDataInternal(vtkAbstractArray* a)
 
       switch (wordType)
       {
-        vtkTemplateMacro(WriteDataArrayFallback(static_cast<VTK_TT*>(0),
+        vtkTemplateMacro(WriteDataArrayFallback(static_cast<VTK_TT*>(nullptr),
                                                 da,worker));
       default:
         vtkWarningMacro("Unsupported data type: " << wordType);
@@ -1419,13 +1443,13 @@ int vtkXMLWriter::WriteBinaryDataInternal(vtkAbstractArray* a)
   if (!this->Int32IdTypeBuffer)
   {
     delete [] this->ByteSwapBuffer;
-    this->ByteSwapBuffer = 0;
+    this->ByteSwapBuffer = nullptr;
   }
 
 #ifdef VTK_USE_64BIT_IDS
   // Free the id-type conversion buffer if it was allocated.
   delete [] this->Int32IdTypeBuffer;
-  this->Int32IdTypeBuffer = 0;
+  this->Int32IdTypeBuffer = nullptr;
 #endif
   return ret;
 }
@@ -1531,12 +1555,12 @@ void vtkXMLWriter::SetDataStream(vtkOutputStream* arg)
 {
   if (this->DataStream != arg)
   {
-    if (this->DataStream != NULL)
+    if (this->DataStream != nullptr)
     {
       this->DataStream->UnRegister(this);
     }
     this->DataStream = arg;
-    if (this->DataStream != NULL)
+    if (this->DataStream != nullptr)
     {
       this->DataStream->Register(this);
       this->DataStream->SetStream(this->Stream);
@@ -1670,7 +1694,7 @@ size_t vtkXMLWriter::GetWordTypeSize(int dataType)
   switch (dataType)
   {
     vtkTemplateMacro(
-      size = vtkXMLWriterGetWordTypeSize(static_cast<VTK_TT*>(0)));
+      size = vtkXMLWriterGetWordTypeSize(static_cast<VTK_TT*>(nullptr)));
 
     case VTK_STRING:
       size = sizeof(vtkStdString::value_type);
@@ -1701,7 +1725,7 @@ const char* vtkXMLWriter::GetWordTypeName(int dataType)
       {
         case vtkXMLWriter::Int32: return "Int32";
         case vtkXMLWriter::Int64: return "Int64";
-        default: return 0;
+        default: return nullptr;
       }
     }
 #if VTK_TYPE_CHAR_IS_SIGNED
@@ -1723,7 +1747,7 @@ const char* vtkXMLWriter::GetWordTypeName(int dataType)
     {
     vtkWarningMacro("Unsupported data type: " << dataType); } break;
   }
-  const char* type = 0;
+  const char* type = nullptr;
   switch (size)
   {
     case 1: type = isSigned? "Int8"  : "UInt8";  break;
@@ -1921,7 +1945,7 @@ void writeScalarInfo(KeyType *key, vtkInformation *info, std::ostream &os,
                      vtkIndent indent)
 {
   vtkNew<vtkXMLDataElement> element;
-  prepElementForInfo(key, element.Get());
+  prepElementForInfo(key, element);
 
   std::ostringstream str;
   str.precision(11); // Same used for ASCII array data.
@@ -1940,7 +1964,7 @@ void writeVectorInfo(KeyType *key, vtkInformation *info, std::ostream &os,
                      vtkIndent indent)
 {
   vtkNew<vtkXMLDataElement> element;
-  prepElementForInfo(key, element.Get());
+  prepElementForInfo(key, element);
 
   std::ostringstream str;
   str.precision(11); // Same used for ASCII array data.
@@ -1962,7 +1986,7 @@ void writeVectorInfo(KeyType *key, vtkInformation *info, std::ostream &os,
     value->SetCharacterData(str.str().c_str(),
                             static_cast<int>(str.str().size()));
 
-    element->AddNestedElement(value.Get());
+    element->AddNestedElement(value);
   }
 
   element->PrintXML(os, indent);
@@ -1978,21 +2002,21 @@ bool vtkXMLWriter::WriteInformation(vtkInformation *info, vtkIndent indent)
   bool result = false;
   vtkNew<vtkInformationIterator> iter;
   iter->SetInformationWeak(info);
-  vtkInformationKey *key = NULL;
+  vtkInformationKey *key = nullptr;
   vtkIndent nextIndent = indent.GetNextIndent();
   for (iter->InitTraversal(); (key = iter->GetCurrentKey());
        iter->GoToNextItem())
   {
-    vtkInformationDoubleKey *dKey = NULL;
-    vtkInformationDoubleVectorKey *dvKey = NULL;
-    vtkInformationIdTypeKey *idKey = NULL;
-    vtkInformationIntegerKey *iKey = NULL;
-    vtkInformationIntegerVectorKey *ivKey = NULL;
-    vtkInformationStringKey *sKey = NULL;
-    vtkInformationStringVectorKey *svKey = NULL;
-    vtkInformationUnsignedLongKey *ulKey = NULL;
+    vtkInformationDoubleKey *dKey = nullptr;
+    vtkInformationDoubleVectorKey *dvKey = nullptr;
+    vtkInformationIdTypeKey *idKey = nullptr;
+    vtkInformationIntegerKey *iKey = nullptr;
+    vtkInformationIntegerVectorKey *ivKey = nullptr;
+    vtkInformationStringKey *sKey = nullptr;
+    vtkInformationStringVectorKey *svKey = nullptr;
+    vtkInformationUnsignedLongKey *ulKey = nullptr;
     typedef vtkInformationQuadratureSchemeDefinitionVectorKey QuadDictKey;
-    QuadDictKey *qdKey = NULL;
+    QuadDictKey *qdKey = nullptr;
     if ((dKey = vtkInformationDoubleKey::SafeDownCast(key)))
     {
       writeScalarInfo(dKey, info, *this->Stream, nextIndent);
@@ -2036,7 +2060,7 @@ bool vtkXMLWriter::WriteInformation(vtkInformation *info, vtkIndent indent)
     else if ((qdKey = QuadDictKey::SafeDownCast(key)))
     { // Special case:
       vtkNew<vtkXMLDataElement> element;
-      qdKey->SaveState(info, element.Get());
+      qdKey->SaveState(info, element);
       element->PrintXML(*this->Stream, nextIndent);
       result = true;
     }
@@ -2255,7 +2279,7 @@ void vtkXMLWriter::WriteArrayHeader(vtkAbstractArray* a,  vtkIndent indent,
 
   //always write out component names, even if only 1 component
   std::ostringstream buff;
-  const char* compName = NULL;
+  const char* compName = nullptr;
   for (int i = 0; i < a->GetNumberOfComponents(); ++i)
   {
     //get the component names
@@ -2264,7 +2288,7 @@ void vtkXMLWriter::WriteArrayHeader(vtkAbstractArray* a,  vtkIndent indent,
     if (compName)
     {
       this->WriteStringAttribute(buff.str().c_str(), compName);
-      compName = NULL;
+      compName = nullptr;
     }
     buff.str("");
     buff.clear();
@@ -2806,7 +2830,7 @@ void vtkXMLWriter::WritePointsAppended(vtkPoints* points, vtkIndent indent,
     for (int t = 0; t< this->NumberOfTimeSteps; ++t)
     {
       this->WriteArrayAppended(points->GetData(),
-        indent.GetNextIndent(), *ptManager, 0, 0, t);
+        indent.GetNextIndent(), *ptManager, nullptr, 0, t);
     }
   }
   os << indent << "</Points>\n";
@@ -2960,7 +2984,7 @@ vtkXMLWriter::WriteCoordinatesAppended(vtkDataArray* xc, vtkDataArray* yc,
       for (int t = 0; t < this->NumberOfTimeSteps; ++t)
       {
         this->WriteArrayAppended(allcoords[i], indent.GetNextIndent(),
-          coordManager->GetElement(i), 0, 0, t);
+          coordManager->GetElement(i), nullptr, 0, t);
         if (this->ErrorCode != vtkErrorCode::NoError)
         {
           return ;
@@ -3194,7 +3218,7 @@ char** vtkXMLWriter::CreateStringArray(int numStrings)
   char** strings = new char*[numStrings];
   for (int i = 0; i < numStrings; ++i)
   {
-    strings[i] = 0;
+    strings[i] = nullptr;
   }
   return strings;
 }
@@ -3264,7 +3288,7 @@ void vtkXMLWriter::WritePrimaryElementAttributes(ostream &os, vtkIndent indent)
   if (this->NumberOfTimeSteps > 1)
   {
     // First thing allocate NumberOfTimeValues
-    assert(this->NumberOfTimeValues == NULL);
+    assert(this->NumberOfTimeValues == nullptr);
     this->NumberOfTimeValues = new vtkTypeInt64[this->NumberOfTimeSteps];
     os << indent << "TimeValues=\"\n";
 

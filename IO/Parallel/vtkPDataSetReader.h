@@ -31,7 +31,7 @@ class vtkDataSet;
 class VTKIOPARALLEL_EXPORT vtkPDataSetReader : public vtkDataSetAlgorithm
 {
 public:
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   vtkTypeMacro(vtkPDataSetReader,vtkDataSetAlgorithm);
   static vtkPDataSetReader *New();
 
@@ -58,11 +58,11 @@ public:
 
 protected:
   vtkPDataSetReader();
-  ~vtkPDataSetReader();
+  ~vtkPDataSetReader() override;
 
-  virtual int RequestDataObject(vtkInformation* request,
+  int RequestDataObject(vtkInformation* request,
                                 vtkInformationVector** inputVector,
-                                vtkInformationVector* outputVector);
+                                vtkInformationVector* outputVector) override;
   void ReadPVTKFileInformation(ifstream *fp,
                                vtkInformation* request,
                                vtkInformationVector** inputVector,
@@ -72,13 +72,13 @@ protected:
                                vtkInformationVector** inputVector,
                                vtkInformationVector* outputVector);
 
-  virtual int RequestInformation(vtkInformation*,
+  int RequestInformation(vtkInformation*,
                                  vtkInformationVector**,
-                                 vtkInformationVector*);
+                                 vtkInformationVector*) override;
 
-  virtual int RequestData(vtkInformation*,
+  int RequestData(vtkInformation*,
                           vtkInformationVector**,
-                          vtkInformationVector*);
+                          vtkInformationVector*) override;
   int PolyDataExecute(vtkInformation*,
                       vtkInformationVector**,
                       vtkInformationVector*);
@@ -111,8 +111,8 @@ protected:
   int **PieceExtents;
 
 private:
-  vtkPDataSetReader(const vtkPDataSetReader&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPDataSetReader&) VTK_DELETE_FUNCTION;
+  vtkPDataSetReader(const vtkPDataSetReader&) = delete;
+  void operator=(const vtkPDataSetReader&) = delete;
 };
 
 #endif

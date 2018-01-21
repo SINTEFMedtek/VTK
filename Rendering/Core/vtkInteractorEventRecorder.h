@@ -43,11 +43,11 @@ class VTKRENDERINGCORE_EXPORT vtkInteractorEventRecorder : public vtkInteractorO
 public:
   static vtkInteractorEventRecorder *New();
   vtkTypeMacro(vtkInteractorEventRecorder,vtkInteractorObserver);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   // Satisfy the superclass API. Enable/disable listening for events.
-  virtual void SetEnabled(int);
-  virtual void SetInteractor(vtkRenderWindowInteractor* iren);
+  void SetEnabled(int) override;
+  void SetInteractor(vtkRenderWindowInteractor* iren) override;
 
   //@{
   /**
@@ -99,7 +99,7 @@ public:
 
 protected:
   vtkInteractorEventRecorder();
-  ~vtkInteractorEventRecorder();
+  ~vtkInteractorEventRecorder() override;
 
   // file to read/write from
   char *FileName;
@@ -141,8 +141,8 @@ protected:
   static float StreamVersion;
 
 private:
-  vtkInteractorEventRecorder(const vtkInteractorEventRecorder&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkInteractorEventRecorder&) VTK_DELETE_FUNCTION;
+  vtkInteractorEventRecorder(const vtkInteractorEventRecorder&) = delete;
+  void operator=(const vtkInteractorEventRecorder&) = delete;
 
 };
 

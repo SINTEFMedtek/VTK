@@ -505,7 +505,7 @@ int checkFunctionSignature(ClassInfo *data)
     return 0;
   }
 
-  /* The GetInput() in vtkMapper cannot be overriden with a
+  /* The GetInput() in vtkMapper cannot be overridden with a
    * different return type, Java doesn't allow this */
   if (strcmp(data->Name, "vtkMapper") == 0 &&
       strcmp(currentFunction->Name, "GetInput") == 0)
@@ -866,6 +866,9 @@ int main(int argc, char *argv[])
     {
       /* resolve using declarations within the header files */
       vtkWrap_ApplyUsingDeclarations(data, file_info, hierarchyInfo);
+
+      /* expand typedefs */
+      vtkWrap_ExpandTypedefs(data, file_info, hierarchyInfo);
     }
   }
 

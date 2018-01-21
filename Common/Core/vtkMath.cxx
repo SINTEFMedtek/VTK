@@ -56,7 +56,7 @@ public:
   std::vector<vtkTypeInt64> MemoizeFactorial;
 private:
   vtkMathInternal();
-  ~vtkMathInternal() VTK_OVERRIDE;
+  ~vtkMathInternal() override;
 };
 
 vtkMathInternal::vtkMathInternal()
@@ -90,7 +90,7 @@ union vtkIEEE754Bits {
   double d;
 };
 
-#if defined(__BORLANDC__)
+#if defined(__BORLANDC__) && (__BORLANDC__ < 0x660)
 // Borland C++ union initializers are broken.
 // Use an otherwise-discouraged aliasing trick:
 static vtkTypeUInt64 vtkMathNanBits    = 0x7FF8000000000000i64;
@@ -105,7 +105,7 @@ static union vtkIEEE754Bits vtkMathNegInfBits = { 0xFFF0000000000000LL };
 #endif //VTK_HAS_STD_NUMERIC_LIMITS
 
 #if defined(VTK_NON_FINITE_CAUSES_EXCEPTIONS)
-#if defined(__BORLANDC__)
+#if defined(__BORLANDC__) && (__BORLANDC__ < 0x660)
 const vtkTypeInt64 vtkMathDoubleExponent = 0x7FF0000000000000i64;
 const vtkTypeInt64 vtkMathDoubleMantissa = 0x000FFFFFFFFFFFFFi64;
 #else
@@ -246,7 +246,7 @@ int* vtkMath::BeginCombination( int m, int n )
 {
   if ( m < n )
   {
-    return 0;
+    return nullptr;
   }
 
   int* r = new int[ n ];
@@ -646,6 +646,7 @@ void vtkMath::LUSolveLinearSystem(double **A, int *index,
 // output eigenvalues in w; and output eigenvectors in v. Resulting
 // eigenvalues/vectors are sorted in decreasing order; eigenvectors are
 // normalized.
+// It assumes a is symmetric and uses only its upper right triangular part.
 template<class T>
 int vtkJacobiN(T **a, int n, T *w, T **v)
 {
@@ -1027,7 +1028,7 @@ int vtkMath::SolveLeastSquares(int numberOfSamples, double **xt, int xOrder,
 
   int someHomogeneous = 0;
   int allHomogeneous = 1;
-  double **hmt = NULL;
+  double **hmt = nullptr;
   int homogRC = 0;
   int *homogenFlags = new int[yOrder];
   int successFlag;
@@ -1910,6 +1911,94 @@ void vtkMath::MultiplyQuaternion( const float q1[4], const float q2[4], float q[
 void vtkMath::MultiplyQuaternion( const double q1[4], const double q2[4], double q[4] )
 {
   vtkQuaternionMultiplication( q1, q2, q );
+}
+
+void vtkMath::RotateVectorByNormalizedQuaternion(const float v[3], const float q[4], float r[3])
+{
+  float f = sqrt(q[1]*q[1] + q[2]*q[2] + q[3]*q[3]);
+  float a[3];
+  if (f != 0.0)
+  {
+    a[0] = q[1] / f;
+    a[1] = q[2] / f;
+    a[2] = q[3] / f;
+
+    // atan2() provides a more accurate angle result than acos()
+    float t = 2.0*atan2(f, q[0]);
+
+    float cosT = cos(t);
+    float sinT = sin(t);
+    float dotKV = a[0]*v[0] + a[1]*v[1] + a[2]*v[2];
+    float crossKV[3];
+    vtkMath::Cross(a, v, crossKV);
+
+    r[0] = v[0]*cosT + crossKV[0]*sinT + a[0]*dotKV*(1.0 - cosT);
+    r[1] = v[1]*cosT + crossKV[1]*sinT + a[1]*dotKV*(1.0 - cosT);
+    r[2] = v[2]*cosT + crossKV[2]*sinT + a[2]*dotKV*(1.0 - cosT);
+  }
+  else
+  {
+    r[0] = v[0];
+    r[1] = v[1];
+    r[2] = v[2];
+  }
+}
+
+void vtkMath::RotateVectorByNormalizedQuaternion(const double v[3], const double q[4], double r[3])
+{
+  double f = sqrt(q[1]*q[1] + q[2]*q[2] + q[3]*q[3]);
+  double a[3];
+  if (f != 0.0)
+  {
+    a[0] = q[1] / f;
+    a[1] = q[2] / f;
+    a[2] = q[3] / f;
+
+    // atan2() provides a more accurate angle result than acos()
+    double t = 2.0*atan2(f, q[0]);
+
+    double cosT = cos(t);
+    double sinT = sin(t);
+    double dotKV = a[0]*v[0] + a[1]*v[1] + a[2]*v[2];
+    double crossKV[3];
+    vtkMath::Cross(a, v, crossKV);
+
+    r[0] = v[0]*cosT + crossKV[0]*sinT + a[0]*dotKV*(1.0 - cosT);
+    r[1] = v[1]*cosT + crossKV[1]*sinT + a[1]*dotKV*(1.0 - cosT);
+    r[2] = v[2]*cosT + crossKV[2]*sinT + a[2]*dotKV*(1.0 - cosT);
+  }
+  else
+  {
+    r[0] = v[0];
+    r[1] = v[1];
+    r[2] = v[2];
+  }
+}
+
+void vtkMath::RotateVectorByWXYZ(const float v[3], const float q[4], float r[3])
+{
+  float cosT = cos(q[0]);
+  float sinT = sin(q[0]);
+  float dotKV = q[1]*v[0] + q[2]*v[1] + q[3]*v[2];
+  float crossKV[3];
+  vtkMath::Cross(&(q[1]), v, crossKV);
+
+  r[0] = v[0]*cosT + crossKV[0]*sinT + q[1]*dotKV*(1.0 - cosT);
+  r[1] = v[1]*cosT + crossKV[1]*sinT + q[2]*dotKV*(1.0 - cosT);
+  r[2] = v[2]*cosT + crossKV[2]*sinT + q[3]*dotKV*(1.0 - cosT);
+}
+
+void vtkMath::RotateVectorByWXYZ(const double v[3], const double q[4], double r[3])
+{
+  double cosT = cos(q[0]);
+  double sinT = sin(q[0]);
+  double dotKV = q[1]*v[0] + q[2]*v[1] + q[3]*v[2];
+  double crossKV[3];
+  vtkMath::Cross(&(q[1]), v, crossKV);
+
+  r[0] = v[0]*cosT + crossKV[0]*sinT + q[1]*dotKV*(1.0 - cosT);
+  r[1] = v[1]*cosT + crossKV[1]*sinT + q[2]*dotKV*(1.0 - cosT);
+  r[2] = v[2]*cosT + crossKV[2]*sinT + q[3]*dotKV*(1.0 - cosT);
 }
 
 //----------------------------------------------------------------------------
@@ -3008,6 +3097,73 @@ vtkTypeBool vtkMath::PointIsWithinBounds(double point[3], double bounds[6], doub
 }
 
 //-----------------------------------------------------------------------------
+int vtkMath::PlaneIntersectsAABB(double const bounds[6],
+    double const normal[3], double const point[3])
+{
+  if (!bounds || !point || !normal)
+  {
+    return -2;
+  }
+
+  double nPoint[3];
+  double pPoint[3];
+
+  // X Component
+  if(normal[0] >= 0)
+  {
+    nPoint[0] = bounds[0];
+    pPoint[0] = bounds[1];
+  }
+  else
+  {
+    nPoint[0] = bounds[1];
+    pPoint[0] = bounds[0];
+  }
+
+  // Y Component
+  if(normal[1] >= 0)
+  {
+    nPoint[1] = bounds[2];
+    pPoint[1] = bounds[3];
+  }
+  else
+  {
+    nPoint[1] = bounds[3];
+    pPoint[1] = bounds[2];
+  }
+
+  // Z Component
+  if(normal[2] >= 0)
+  {
+    nPoint[2] = bounds[4];
+    pPoint[2] = bounds[5];
+  }
+  else
+  {
+    nPoint[2] = bounds[5];
+    pPoint[2] = bounds[4];
+  }
+
+  // Compute distances from nPoint/pPoint to the plane
+  // Distance = unit_N  *  (P_x - P_plane)
+  //          = a * px_1 + b * px_2 + c * px_3 - d
+  double const d = vtkMath::Dot(normal, point);
+
+  if ((nPoint[0] * normal[0] + nPoint[1] * normal[1] +
+    nPoint[2] * normal[2] - d) > 0)
+  {
+    return 1;
+  }
+  else if ((pPoint[0] * normal[0] + pPoint[1] * normal[1] +
+    pPoint[2] * normal[2] - d) < 0)
+  {
+    return -1;
+  }
+
+  return 0;
+}
+
+//-----------------------------------------------------------------------------
 double vtkMath::AngleBetweenVectors(const double v1[3], const double v2[3])
 {
   double cross[3];
@@ -3095,7 +3251,7 @@ double vtkMath::Inf()
 {
 #if defined(VTK_HAS_STD_NUMERIC_LIMITS)
   return std::numeric_limits<double>::infinity();
-#elif defined(__BORLANDC__)
+#elif defined(__BORLANDC__) && (__BORLANDC__ < 0x660)
   return *reinterpret_cast<double*>(&vtkMathInfBits);
 #else
   return vtkMathInfBits.d;
@@ -3107,7 +3263,7 @@ double vtkMath::NegInf()
 {
 #if defined(VTK_HAS_STD_NUMERIC_LIMITS)
   return -std::numeric_limits<double>::infinity();
-#elif defined(__BORLANDC__)
+#elif defined(__BORLANDC__) && (__BORLANDC__ < 0x660)
   return *reinterpret_cast<double*>(&vtkMathNegInfBits);
 #else
   return vtkMathNegInfBits.d;
@@ -3119,7 +3275,7 @@ double vtkMath::Nan()
 {
 #if defined(VTK_HAS_STD_NUMERIC_LIMITS)
   return std::numeric_limits<double>::quiet_NaN();
-#elif defined(__BORLANDC__)
+#elif defined(__BORLANDC__) && (__BORLANDC__ < 0x660)
   return *reinterpret_cast<double*>(&vtkMathNanBits);
 #else
   return vtkMathNanBits.d;

@@ -39,16 +39,16 @@ class VTKIOMOVIE_EXPORT vtkOggTheoraWriter : public vtkGenericMovieWriter
 public:
   static vtkOggTheoraWriter *New();
   vtkTypeMacro(vtkOggTheoraWriter,vtkGenericMovieWriter);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
    * These methods start writing an Movie file, write a frame to the file
    * and then end the writing process.
    */
-  void Start();
-  void Write();
-  void End();
+  void Start() override;
+  void Write() override;
+  void End() override;
   //@}
 
   //@{
@@ -80,7 +80,7 @@ public:
 
 protected:
   vtkOggTheoraWriter();
-  ~vtkOggTheoraWriter();
+  ~vtkOggTheoraWriter() override;
 
   vtkOggTheoraWriterInternal *Internals;
 
@@ -90,8 +90,8 @@ protected:
   int Subsampling;
 
 private:
-  vtkOggTheoraWriter(const vtkOggTheoraWriter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkOggTheoraWriter&) VTK_DELETE_FUNCTION;
+  vtkOggTheoraWriter(const vtkOggTheoraWriter&) = delete;
+  void operator=(const vtkOggTheoraWriter&) = delete;
 };
 
 #endif

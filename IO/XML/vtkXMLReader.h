@@ -44,7 +44,15 @@ class VTKIOXML_EXPORT vtkXMLReader : public vtkAlgorithm
 {
 public:
   vtkTypeMacro(vtkXMLReader, vtkAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
+
+  enum FieldType
+  {
+    POINT_DATA,
+    CELL_DATA,
+    OTHER
+  };
+
 
   //@{
   /**
@@ -61,7 +69,7 @@ public:
   vtkSetMacro(ReadFromInputString, int);
   vtkGetMacro(ReadFromInputString, int);
   vtkBooleanMacro(ReadFromInputString, int);
-  void SetInputString(std::string s) { this->InputString = s; }
+  void SetInputString(const std::string& s) { this->InputString = s; }
   //@}
 
   /**
@@ -88,34 +96,39 @@ public:
    */
   vtkGetObjectMacro(PointDataArraySelection, vtkDataArraySelection);
   vtkGetObjectMacro(CellDataArraySelection, vtkDataArraySelection);
+  vtkGetObjectMacro(ColumnArraySelection, vtkDataArraySelection);
   //@}
 
   //@{
   /**
-   * Get the number of point or cell arrays available in the input.
+   * Get the number of point, cell or column arrays available in the input.
    */
   int GetNumberOfPointArrays();
   int GetNumberOfCellArrays();
+  int GetNumberOfColumnArrays();
   //@}
 
   //@{
   /**
-   * Get the name of the point or cell array with the given index in
+   * Get the name of the point, cell or column array with the given index in
    * the input.
    */
   const char* GetPointArrayName(int index);
   const char* GetCellArrayName(int index);
+  const char* GetColumnArrayName(int index);
   //@}
 
   //@{
   /**
-   * Get/Set whether the point or cell array with the given name is to
+   * Get/Set whether the point, cell or column array with the given name is to
    * be read.
    */
   int GetPointArrayStatus(const char* name);
   int GetCellArrayStatus(const char* name);
   void SetPointArrayStatus(const char* name, int status);
   void SetCellArrayStatus(const char* name, int status);
+  int GetColumnArrayStatus(const char* name);
+  void SetColumnArrayStatus(const char* name, int status);
   //@}
 
   // For the specified port, copy the information this reader sets up in
@@ -149,9 +162,9 @@ public:
     return this->XMLParser;
   }
 
-  virtual int ProcessRequest(vtkInformation *request,
+  int ProcessRequest(vtkInformation *request,
                              vtkInformationVector **inputVector,
-                             vtkInformationVector *outputVector);
+                             vtkInformationVector *outputVector) override;
 
   //@{
   /**
@@ -173,7 +186,7 @@ public:
 
 protected:
   vtkXMLReader();
-  ~vtkXMLReader();
+  ~vtkXMLReader() override;
 
   // Pipeline execution methods to be defined by subclass.  Called by
   // corresponding RequestData methods after appropriate setup has been
@@ -256,6 +269,14 @@ protected:
   char** CreateStringArray(int numStrings);
   void DestroyStringArray(int numStrings, char** strings);
 
+  // Read an Array values starting at the given index and up to numValues.
+  // This method assumes that the array is of correct size to
+  // accommodate all numValues values. arrayIndex is the value index at which the read
+  // values will be put in the array.
+  virtual int ReadArrayValues(
+    vtkXMLDataElement* da, vtkIdType arrayIndex, vtkAbstractArray* array,
+    vtkIdType startIndex, vtkIdType numValues, FieldType type = OTHER);
+
   // Setup the data array selections for the input's set of arrays.
   void SetDataArraySelections(vtkXMLDataElement* eDSA,
                               vtkDataArraySelection* sel);
@@ -297,6 +318,7 @@ protected:
   // The array selections.
   vtkDataArraySelection* PointDataArraySelection;
   vtkDataArraySelection* CellDataArraySelection;
+  vtkDataArraySelection* ColumnArraySelection;
 
   // The observer to modify this object when the array selections are
   // modified.
@@ -357,6 +379,15 @@ protected:
   vtkDataObject* GetCurrentOutput();
   vtkInformation* GetCurrentOutputInformation();
 
+  // Flag for whether DataProgressCallback should actually update
+  // progress.
+  int InReadData;
+
+  virtual void ConvertGhostLevelsToGhostType(
+    FieldType, vtkAbstractArray*, vtkIdType, vtkIdType) {}
+
+  void ReadFieldData();
+
 private:
   // The stream used to read the input if it is in a file.
   ifstream* FileStream;
@@ -371,8 +402,8 @@ private:
   vtkInformation* CurrentOutputInformation;
 
 private:
-  vtkXMLReader(const vtkXMLReader&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkXMLReader&) VTK_DELETE_FUNCTION;
+  vtkXMLReader(const vtkXMLReader&) = delete;
+  void operator=(const vtkXMLReader&) = delete;
 
   vtkCommand *ReaderErrorObserver;
   vtkCommand *ParserErrorObserver;

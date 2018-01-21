@@ -81,10 +81,10 @@ vtkStandardNewMacro(vtkMNITransformWriter);
 //-------------------------------------------------------------------------
 vtkMNITransformWriter::vtkMNITransformWriter()
 {
-  this->FileName = 0;
-  this->Transform = 0;
+  this->FileName = nullptr;
+  this->Transform = nullptr;
   this->Transforms = vtkCollection::New();
-  this->Comments = 0;
+  this->Comments = nullptr;
 }
 
 //-------------------------------------------------------------------------
@@ -141,11 +141,11 @@ int vtkMNITransformWriter::WriteLinearTransform(
   for (int i = 0; i < 3; i++)
   {
     outfile << "\n";
-    sprintf(text, " %.15g %.15g %.15g %.15g",
-            matrix->GetElement(i, 0),
-            matrix->GetElement(i, 1),
-            matrix->GetElement(i, 2),
-            matrix->GetElement(i, 3));
+    snprintf(text, sizeof(text), " %.15g %.15g %.15g %.15g",
+             matrix->GetElement(i, 0),
+             matrix->GetElement(i, 1),
+             matrix->GetElement(i, 2),
+             matrix->GetElement(i, 3));
     outfile << text;
   }
   outfile << ";\n";
@@ -231,7 +231,7 @@ int vtkMNITransformWriter::WriteThinPlateSplineTransform(
     for (j = 0; j < ndim; j++)
     {
       char text[64];
-      sprintf(text, " %.15g", p[j]);
+      snprintf(text, sizeof(text), " %.15g", p[j]);
 
       outfile << text;
     }
@@ -319,7 +319,7 @@ int vtkMNITransformWriter::WriteThinPlateSplineTransform(
     for (j = 0; j < ndim; j++)
     {
       char text[64];
-      sprintf(text, " %.15g", X[j][i]);
+      snprintf(text, sizeof(text), " %.15g", X[j][i]);
 
       outfile << text;
     }
@@ -347,7 +347,7 @@ int vtkMNITransformWriter::WriteGridTransform(
   // Split FileName into directory and filename
   std::vector<std::string> xfmpath;
   vtksys::SystemTools::SplitPath(this->FileName, xfmpath);
-  if (xfmpath.size() < 1)
+  if (xfmpath.empty())
   {
     vtkErrorMacro("Can't split filename " << this->FileName);
     return 0;
@@ -554,7 +554,7 @@ void vtkMNITransformWriter::Write()
 //-------------------------------------------------------------------------
 int vtkMNITransformWriter::GetNumberOfTransforms()
 {
-  if (this->Transform == 0)
+  if (this->Transform == nullptr)
   {
     return 0;
   }
@@ -570,12 +570,12 @@ void vtkMNITransformWriter::SetTransform(vtkAbstractTransform *transform)
     return;
   }
 
-  if (this->Transform != 0)
+  if (this->Transform != nullptr)
   {
     this->Transform->Delete();
   }
 
-  if (transform != 0)
+  if (transform != nullptr)
   {
     transform->Register(this);
   }
@@ -588,12 +588,12 @@ void vtkMNITransformWriter::SetTransform(vtkAbstractTransform *transform)
 //-------------------------------------------------------------------------
 void vtkMNITransformWriter::AddTransform(vtkAbstractTransform *transform)
 {
-  if (transform == 0)
+  if (transform == nullptr)
   {
     return;
   }
 
-  if (this->Transform == 0)
+  if (this->Transform == nullptr)
   {
     this->SetTransform(transform);
   }

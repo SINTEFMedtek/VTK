@@ -34,11 +34,12 @@
 
 class vtkImplicitFunction;
 
+#if !defined(VTK_LEGACY_REMOVE)
 class VTKFILTERSHYPERTREE_EXPORT vtkHyperOctreeSampleFunction : public vtkHyperOctreeAlgorithm
 {
 public:
   vtkTypeMacro(vtkHyperOctreeSampleFunction,vtkHyperOctreeAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   static vtkHyperOctreeSampleFunction *New();
 
@@ -200,7 +201,7 @@ public:
   /**
    * Return the MTime also considering the implicit function.
    */
-  vtkMTimeType GetMTime();
+  vtkMTimeType GetMTime() override;
 
 protected:
   //@{
@@ -211,15 +212,15 @@ protected:
    * Threshold is 0.1.
    */
   vtkHyperOctreeSampleFunction();
-  ~vtkHyperOctreeSampleFunction();
+  ~vtkHyperOctreeSampleFunction() override;
   //@}
 
 
   int RequestInformation (vtkInformation * vtkNotUsed(request),
                           vtkInformationVector ** vtkNotUsed( inputVector ),
-                          vtkInformationVector *outputVector);
+                          vtkInformationVector *outputVector) override;
 
-  virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
 
   void Subdivide(vtkHyperOctreeCursor *cursor,
                  int level,
@@ -236,8 +237,9 @@ protected:
   double Threshold;
 
 private:
-  vtkHyperOctreeSampleFunction(const vtkHyperOctreeSampleFunction&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkHyperOctreeSampleFunction&) VTK_DELETE_FUNCTION;
+  vtkHyperOctreeSampleFunction(const vtkHyperOctreeSampleFunction&) = delete;
+  void operator=(const vtkHyperOctreeSampleFunction&) = delete;
 };
+#endif // LEGACY remove
 
 #endif

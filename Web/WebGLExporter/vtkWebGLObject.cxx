@@ -48,7 +48,7 @@ std::string vtkWebGLObject::GetId()
 }
 
 //-----------------------------------------------------------------------------
-void vtkWebGLObject::SetId(std::string i)
+void vtkWebGLObject::SetId(const std::string& i)
 {
   this->id = i;
 }
@@ -172,7 +172,7 @@ void vtkWebGLObject::GetBinaryData(int part, vtkUnsignedCharArray* buffer)
 {
   if (!buffer)
   {
-    vtkErrorMacro("Buffer must not be NULL.");
+    vtkErrorMacro("Buffer must not be nullptr.");
     return;
   }
 
@@ -191,7 +191,7 @@ void vtkWebGLObject::GetBinaryData(int part, vtkUnsignedCharArray* buffer)
 //-----------------------------------------------------------------------------
 void vtkWebGLObject::GenerateBinaryData(){this->hasChanged = false;}
 //-----------------------------------------------------------------------------
-unsigned char* vtkWebGLObject::GetBinaryData(int vtkNotUsed(part)){return NULL;}
+unsigned char* vtkWebGLObject::GetBinaryData(int vtkNotUsed(part)){return nullptr;}
 //-----------------------------------------------------------------------------
 int vtkWebGLObject::GetBinarySize(int vtkNotUsed(part)){return 0;}
 //-----------------------------------------------------------------------------

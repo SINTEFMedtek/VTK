@@ -55,7 +55,7 @@ public:
    * Standard methods for type information and printing.
    */
   vtkTypeMacro(vtkBarChartActor,vtkActor2D);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   /**
@@ -170,26 +170,26 @@ public:
   /**
    * Draw the bar plot.
    */
-  int RenderOverlay(vtkViewport*);
-  int RenderOpaqueGeometry(vtkViewport*);
-  virtual int RenderTranslucentPolygonalGeometry(vtkViewport* ) {return 0;}
+  int RenderOverlay(vtkViewport*) override;
+  int RenderOpaqueGeometry(vtkViewport*) override;
+  int RenderTranslucentPolygonalGeometry(vtkViewport* ) override {return 0;}
   //@}
 
   /**
    * Does this prop have some translucent polygonal geometry?
    */
-  virtual int HasTranslucentPolygonalGeometry();
+  int HasTranslucentPolygonalGeometry() override;
 
   /**
    * Release any graphics resources that are being consumed by this actor.
    * The parameter window could be used to determine which graphic
    * resources to release.
    */
-  void ReleaseGraphicsResources(vtkWindow *);
+  void ReleaseGraphicsResources(vtkWindow *) override;
 
 protected:
   vtkBarChartActor();
-  ~vtkBarChartActor();
+  ~vtkBarChartActor() override;
 
 private:
   vtkDataObject *Input;        // List of data sets to plot
@@ -238,8 +238,8 @@ private:
   int BuildPlot(vtkViewport*);
 
 private:
-  vtkBarChartActor(const vtkBarChartActor&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkBarChartActor&) VTK_DELETE_FUNCTION;
+  vtkBarChartActor(const vtkBarChartActor&) = delete;
+  void operator=(const vtkBarChartActor&) = delete;
 };
 
 

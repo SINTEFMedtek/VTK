@@ -41,7 +41,7 @@ class VTKINTERACTIONWIDGETS_EXPORT vtkPolyLineRepresentation : public vtkCurveRe
 public:
   static vtkPolyLineRepresentation* New();
   vtkTypeMacro(vtkPolyLineRepresentation, vtkCurveRepresentation);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Grab the polydata (including points) that defines the poly line.
@@ -51,23 +51,23 @@ public:
    * provides the vtkPolyData and the points and polyline are added to
    * it.
    */
-  void GetPolyData(vtkPolyData *pd);
+  void GetPolyData(vtkPolyData *pd) override;
 
   /**
    * Set the number of handles for this widget.
    */
-  virtual void SetNumberOfHandles(int npts);
+  void SetNumberOfHandles(int npts) override;
 
   /**
    * Get the positions of the handles.
    */
-  virtual vtkDoubleArray* GetHandlePositions();
+  vtkDoubleArray* GetHandlePositions() override;
 
   /**
    * Get the true length of the poly line. Calculated as the summed
    * lengths of the individual straight line segments.
    */
-  double GetSummedLength();
+  double GetSummedLength() override;
 
   /**
    * Convenience method to allocate and set the handles from a
@@ -75,26 +75,26 @@ public:
    * the poly line sets Closed to on and disregards the last point,
    * otherwise Closed remains unchanged.
    */
-  virtual void InitializeHandles(vtkPoints* points);
+  void InitializeHandles(vtkPoints* points) override;
 
   /**
    * Build the representation for the poly line.
    */
-  virtual void BuildRepresentation();
+  void BuildRepresentation() override;
 
 protected:
   vtkPolyLineRepresentation();
-  ~vtkPolyLineRepresentation();
+  ~vtkPolyLineRepresentation() override;
 
   // The poly line source
   vtkPolyLineSource *PolyLineSource;
 
   // Specialized method to insert a handle on the poly line.
-  virtual void InsertHandleOnLine(double* pos);
+  void InsertHandleOnLine(double* pos) override;
 
 private:
-  vtkPolyLineRepresentation(const vtkPolyLineRepresentation&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPolyLineRepresentation&) VTK_DELETE_FUNCTION;
+  vtkPolyLineRepresentation(const vtkPolyLineRepresentation&) = delete;
+  void operator=(const vtkPolyLineRepresentation&) = delete;
 
 };
 

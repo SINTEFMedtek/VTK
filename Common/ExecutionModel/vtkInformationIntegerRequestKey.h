@@ -20,7 +20,7 @@
  * UPDATE_NUMBER_OF_PIECES where downstream can request that upstream provides
  * data partitioned into a certain number of pieces. There are several components
  * that make this work. First, the key will copy itself upstream during
- * REQUEST_UPDATE_EXTENT. Second, after a successfull execution, it will stor
+ * REQUEST_UPDATE_EXTENT. Second, after a successful execution, it will stor
  * its value into a data object's information using a specific key defined by
  * its data member DataKey. Third, before execution, it will check if the requested
  * value matched the value in the data object's information. If not, it will ask
@@ -42,10 +42,10 @@ class VTKCOMMONEXECUTIONMODEL_EXPORT vtkInformationIntegerRequestKey : public vt
 {
 public:
   vtkTypeMacro(vtkInformationIntegerRequestKey,vtkInformationIntegerKey);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   vtkInformationIntegerRequestKey(const char* name, const char* location);
-  ~vtkInformationIntegerRequestKey() VTK_OVERRIDE;
+  ~vtkInformationIntegerRequestKey() override;
 
   /**
    * This method simply returns a new vtkInformationIntegerRequestKey,
@@ -63,7 +63,7 @@ public:
    * this key.
    */
   bool NeedToExecute(vtkInformation* pipelineInfo,
-                             vtkInformation* dobjInfo) VTK_OVERRIDE;
+                             vtkInformation* dobjInfo) override;
 
   /**
    * Copies the value stored in pipelineInfo using this key into
@@ -71,7 +71,7 @@ public:
    */
   void StoreMetaData(vtkInformation* request,
                              vtkInformation* pipelineInfo,
-                             vtkInformation* dobjInfo) VTK_OVERRIDE;
+                             vtkInformation* dobjInfo) override;
 
   /**
    * Copies the value stored in fromInfo using this key into toInfo
@@ -79,14 +79,14 @@ public:
    */
   void CopyDefaultInformation(vtkInformation* request,
                                       vtkInformation* fromInfo,
-                                      vtkInformation* toInfo) VTK_OVERRIDE;
+                                      vtkInformation* toInfo) override;
 
 protected:
   vtkInformationIntegerKey* DataKey;
 
 private:
-  vtkInformationIntegerRequestKey(const vtkInformationIntegerRequestKey&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkInformationIntegerRequestKey&) VTK_DELETE_FUNCTION;
+  vtkInformationIntegerRequestKey(const vtkInformationIntegerRequestKey&) = delete;
+  void operator=(const vtkInformationIntegerRequestKey&) = delete;
 
 };
 

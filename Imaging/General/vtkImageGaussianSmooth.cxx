@@ -156,7 +156,7 @@ vtkImageGaussianSmoothExecute(vtkImageGaussianSmooth *self, int axis,
 {
   int maxC, max0 = 0, max1 = 0;
   int idxC, idx0, idx1, idxK;
-  vtkIdType *inIncs, *outIncs;
+  vtkIdType inIncs[3], outIncs[3];
   vtkIdType inInc0 = 0, inInc1 = 0, inIncK, outInc0 = 0, outInc1 = 0;
   T *outPtr1, *outPtr0;
   T *inPtr1, *inPtr0, *inPtrK;
@@ -166,8 +166,8 @@ vtkImageGaussianSmoothExecute(vtkImageGaussianSmooth *self, int axis,
   // is more important than cache misses from shuffled access.
 
   // Do the correct shuffling of the axes (increments, extents)
-  inIncs = inData->GetIncrements();
-  outIncs = outData->GetIncrements();
+  inData->GetIncrements(inIncs);
+  outData->GetIncrements(outIncs);
   inIncK = inIncs[axis];
   maxC = outData->GetNumberOfScalarComponents();
   switch (axis)
@@ -265,18 +265,19 @@ void vtkImageGaussianSmooth::ExecuteAxis(int axis,
   void *inPtr;
   void *outPtr;
   int coords[3];
-  vtkIdType *outIncs, outIncA;
+  vtkIdType outIncs[3], outIncA;
 
   // Get the correct starting pointer of the output
   outPtr = outData->GetScalarPointerForExtent(outExt);
-  outIncs = outData->GetIncrements();
+  outData->GetIncrements(outIncs);
   outIncA = outIncs[axis];
 
   // trick to account for the scalar type of the output(used to be only float)
   switch (outData->GetScalarType())
   {
     vtkTemplateMacro(
-      outIncA *= vtkImageGaussianSmoothGetTypeSize(static_cast<VTK_TT*>(0))
+      outIncA *= static_cast<vtkIdType>(
+        vtkImageGaussianSmoothGetTypeSize(static_cast<VTK_TT*>(nullptr)))
       );
     default:
       vtkErrorMacro("Unknown scalar type");

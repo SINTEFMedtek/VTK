@@ -17,6 +17,7 @@
 
 #include "vtkOpenGLRenderWindow.h"
 #include "vtkOpenGLBufferObject.h"
+#include "vtkOpenGLVertexBufferObject.h"
 #include "vtkShaderProgram.h"
 
 #include <map>
@@ -134,7 +135,7 @@ public:
   AttributeMap Attributes;
 };
 
-#define BUFFER_OFFSET(i) ((char *)NULL + (i))
+#define BUFFER_OFFSET(i) (reinterpret_cast<char *>(i))
 
 vtkOpenGLVertexArrayObject::vtkOpenGLVertexArrayObject()
 {
@@ -181,7 +182,6 @@ void vtkOpenGLVertexArrayObject::Bind()
                                 BUFFER_OFFSET(attrIt->Offset + attrIt->Stride*i/attrIt->Size));
           if (attrIt->Divisor > 0)
           {
-#if GL_ES_VERSION_2_0 != 1 || GL_ES_VERSION_3_0 == 1
 #if GL_ES_VERSION_3_0 == 1
             glVertexAttribDivisor(attrIt->Index+i, 1);
 #else
@@ -189,7 +189,6 @@ void vtkOpenGLVertexArrayObject::Bind()
             {
               glVertexAttribDivisorARB(attrIt->Index+i, 1);
             }
-#endif
 #endif
           }
         }
@@ -219,7 +218,6 @@ void vtkOpenGLVertexArrayObject::Release()
         {
           if (attrIt->Divisor > 0)
           {
-#if GL_ES_VERSION_2_0 != 1 || GL_ES_VERSION_3_0 == 1
 #if GL_ES_VERSION_3_0 == 1
             glVertexAttribDivisor(attrIt->Index+i, 0);
 #else
@@ -227,7 +225,6 @@ void vtkOpenGLVertexArrayObject::Release()
             {
               glVertexAttribDivisorARB(attrIt->Index+i, 0);
             }
-#endif
 #endif
           }
           glDisableVertexAttribArray(attrIt->Index+i);
@@ -256,6 +253,20 @@ void vtkOpenGLVertexArrayObject::ReleaseGraphicsResources()
 {
   this->ShaderProgramChanged();
   this->Internal->ReleaseGraphicsResources();
+}
+
+bool vtkOpenGLVertexArrayObject::AddAttributeArray(
+  vtkShaderProgram *program,
+  vtkOpenGLVertexBufferObject *buffer,
+  const std::string &name,
+  int offset, bool normalize)
+{
+  return this->AddAttributeArrayWithDivisor(
+    program, buffer, name, offset,
+    buffer->GetStride(),
+    buffer->GetDataType(),
+    buffer->GetNumberOfComponents(),
+    normalize, 0, false);
 }
 
 bool vtkOpenGLVertexArrayObject::AddAttributeArrayWithDivisor(vtkShaderProgram *program,
@@ -291,7 +302,7 @@ bool vtkOpenGLVertexArrayObject::AddAttributeArrayWithDivisor(vtkShaderProgram *
     return false;
   }
 
-  // Perform initalization if necessary, ensure program matches VAOs.
+  // Perform initialization if necessary, ensure program matches VAOs.
   if (this->Internal->HandleProgram == 0)
   {
     this->Internal->HandleProgram = static_cast<GLuint>(program->GetHandle());
@@ -331,7 +342,6 @@ bool vtkOpenGLVertexArrayObject::AddAttributeArrayWithDivisor(vtkShaderProgram *
 
   if (divisor > 0)
   {
-#if GL_ES_VERSION_2_0 != 1 || GL_ES_VERSION_3_0 == 1
 #if GL_ES_VERSION_3_0 == 1
     glVertexAttribDivisor(attribs.Index, 1);
 #else
@@ -339,7 +349,6 @@ bool vtkOpenGLVertexArrayObject::AddAttributeArrayWithDivisor(vtkShaderProgram *
     {
       glVertexAttribDivisorARB(attribs.Index, 1);
     }
-#endif
 #endif
   }
 
@@ -406,7 +415,6 @@ bool vtkOpenGLVertexArrayObject::AddAttributeMatrixWithDivisor(
                           BUFFER_OFFSET(offset + stride*i/elementTupleSize));
     if (divisor > 0)
     {
-#if GL_ES_VERSION_2_0 != 1 || GL_ES_VERSION_3_0 == 1
 #if GL_ES_VERSION_3_0 == 1
       glVertexAttribDivisor(attribs.Index+i, 1);
 #else
@@ -414,7 +422,6 @@ bool vtkOpenGLVertexArrayObject::AddAttributeMatrixWithDivisor(
       {
         glVertexAttribDivisorARB(attribs.Index+i, 1);
       }
-#endif
 #endif
     }
   }

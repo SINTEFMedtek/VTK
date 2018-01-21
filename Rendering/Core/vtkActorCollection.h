@@ -14,10 +14,10 @@
 =========================================================================*/
 /**
  * @class   vtkActorCollection
- * @brief   a list of actors
+ * @brief   an ordered list of actors
  *
  * vtkActorCollection represents and provides methods to manipulate a list of
- * actors (i.e., vtkActor and subclasses). The list is unsorted and duplicate
+ * actors (i.e., vtkActor and subclasses). The list is ordered and duplicate
  * entries are not prevented.
  *
  * @sa
@@ -38,10 +38,10 @@ class VTKRENDERINGCORE_EXPORT vtkActorCollection : public vtkPropCollection
 public:
   static vtkActorCollection *New();
   vtkTypeMacro(vtkActorCollection,vtkPropCollection);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
-   * Add an actor to the list.
+   * Add an actor to the bottom of the list.
    */
   void AddItem(vtkActor *a);
 
@@ -79,7 +79,7 @@ public:
 
 protected:
   vtkActorCollection() {}
-  ~vtkActorCollection() {}
+  ~vtkActorCollection() override {}
 
 
 private:
@@ -88,8 +88,8 @@ private:
   void AddItem(vtkProp *o) { this->vtkPropCollection::AddItem(o); };
 
 private:
-  vtkActorCollection(const vtkActorCollection&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkActorCollection&) VTK_DELETE_FUNCTION;
+  vtkActorCollection(const vtkActorCollection&) = delete;
+  void operator=(const vtkActorCollection&) = delete;
 };
 
 inline void vtkActorCollection::AddItem(vtkActor *a)
@@ -104,9 +104,9 @@ inline vtkActor *vtkActorCollection::GetNextActor()
 
 inline vtkActor *vtkActorCollection::GetLastActor()
 {
-  if ( this->Bottom == NULL )
+  if ( this->Bottom == nullptr )
   {
-    return NULL;
+    return nullptr;
   }
   else
   {

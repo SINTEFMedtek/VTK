@@ -59,13 +59,13 @@ public:
    * Standard VTK methods.
    */
   vtkTypeMacro(vtkDistanceRepresentation3D,vtkDistanceRepresentation);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   /**
    * Satisfy the superclasses API.
    */
-  virtual double GetDistance()
+  double GetDistance() override
     {return this->Distance;}
 
   //@{
@@ -113,6 +113,7 @@ public:
    * control the appearance of the label.
    */
   vtkGetObjectMacro(LabelActor, vtkFollower);
+  virtual void SetLabelActor(vtkFollower *);
   //@}
 
   //@{
@@ -121,34 +122,34 @@ public:
    * this representation. Note that methods are available for both
    * display and world coordinates.
    */
-  double* GetPoint1WorldPosition();
-  double* GetPoint2WorldPosition();
-  void GetPoint1WorldPosition(double pos[3]);
-  void GetPoint2WorldPosition(double pos[3]);
-  void SetPoint1WorldPosition(double pos[3]);
-  void SetPoint2WorldPosition(double pos[3]);
+  double* GetPoint1WorldPosition() override;
+  double* GetPoint2WorldPosition() override;
+  void GetPoint1WorldPosition(double pos[3]) override;
+  void GetPoint2WorldPosition(double pos[3]) override;
+  void SetPoint1WorldPosition(double pos[3]) override;
+  void SetPoint2WorldPosition(double pos[3]) override;
   //@}
 
-  void SetPoint1DisplayPosition(double pos[3]);
-  void SetPoint2DisplayPosition(double pos[3]);
-  void GetPoint1DisplayPosition(double pos[3]);
-  void GetPoint2DisplayPosition(double pos[3]);
+  void SetPoint1DisplayPosition(double pos[3]) override;
+  void SetPoint2DisplayPosition(double pos[3]) override;
+  void GetPoint1DisplayPosition(double pos[3]) override;
+  void GetPoint2DisplayPosition(double pos[3]) override;
 
   //@{
   /**
    * Method to satisfy superclasses' API.
    */
-  virtual void BuildRepresentation();
-  virtual double *GetBounds();
+  void BuildRepresentation() override;
+  double *GetBounds() override;
   //@}
 
   //@{
   /**
    * Methods required by vtkProp superclass.
    */
-  virtual void ReleaseGraphicsResources(vtkWindow *w);
-  virtual int RenderOpaqueGeometry(vtkViewport *viewport);
-  virtual int RenderTranslucentPolygonalGeometry(vtkViewport *viewport);
+  void ReleaseGraphicsResources(vtkWindow *w) override;
+  int RenderOpaqueGeometry(vtkViewport *viewport) override;
+  int RenderTranslucentPolygonalGeometry(vtkViewport *viewport) override;
   //@}
 
   //@{
@@ -175,7 +176,7 @@ public:
 
 protected:
   vtkDistanceRepresentation3D();
-  ~vtkDistanceRepresentation3D();
+  ~vtkDistanceRepresentation3D() override;
 
   // The line
   vtkPoints         *LinePoints;
@@ -218,8 +219,8 @@ protected:
   double LabelPosition;
 
 private:
-  vtkDistanceRepresentation3D(const vtkDistanceRepresentation3D&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkDistanceRepresentation3D&) VTK_DELETE_FUNCTION;
+  vtkDistanceRepresentation3D(const vtkDistanceRepresentation3D&) = delete;
+  void operator=(const vtkDistanceRepresentation3D&) = delete;
 
   // Internal method to update the position of the label.
   void UpdateLabelPosition();

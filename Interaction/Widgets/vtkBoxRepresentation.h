@@ -69,7 +69,7 @@ public:
    * Standard methods for the class.
    */
   vtkTypeMacro(vtkBoxRepresentation,vtkWidgetRepresentation);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   /**
@@ -189,22 +189,22 @@ public:
   /**
    * These are methods that satisfy vtkWidgetRepresentation's API.
    */
-  virtual void PlaceWidget(double bounds[6]);
-  virtual void BuildRepresentation();
-  virtual int  ComputeInteractionState(int X, int Y, int modify=0);
-  virtual void StartWidgetInteraction(double e[2]);
-  virtual void WidgetInteraction(double e[2]);
-  virtual double *GetBounds();
+  void PlaceWidget(double bounds[6]) override;
+  void BuildRepresentation() override;
+  int  ComputeInteractionState(int X, int Y, int modify=0) override;
+  void StartWidgetInteraction(double e[2]) override;
+  void WidgetInteraction(double e[2]) override;
+  double *GetBounds() override;
   //@}
 
   //@{
   /**
    * Methods supporting, and required by, the rendering process.
    */
-  virtual void ReleaseGraphicsResources(vtkWindow*);
-  virtual int  RenderOpaqueGeometry(vtkViewport*);
-  virtual int  RenderTranslucentPolygonalGeometry(vtkViewport*);
-  virtual int  HasTranslucentPolygonalGeometry();
+  void ReleaseGraphicsResources(vtkWindow*) override;
+  int  RenderOpaqueGeometry(vtkViewport*) override;
+  int  RenderTranslucentPolygonalGeometry(vtkViewport*) override;
+  int  HasTranslucentPolygonalGeometry() override;
   //@}
 
   // Used to manage the state of the widget
@@ -223,7 +223,7 @@ public:
 
 protected:
   vtkBoxRepresentation();
-  ~vtkBoxRepresentation();
+  ~vtkBoxRepresentation() override;
 
   // Manage how the representation appears
   double LastEventPosition[3];
@@ -264,7 +264,7 @@ protected:
   vtkCellPicker *LastPicker;
 
   // Register internal Pickers within PickingManager
-  virtual void RegisterPickers();
+  void RegisterPickers() override;
 
   // Transform the hexahedral points (used for rotations)
   vtkTransform *Transform;
@@ -316,8 +316,8 @@ protected:
 
 
 private:
-  vtkBoxRepresentation(const vtkBoxRepresentation&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkBoxRepresentation&) VTK_DELETE_FUNCTION;
+  vtkBoxRepresentation(const vtkBoxRepresentation&) = delete;
+  void operator=(const vtkBoxRepresentation&) = delete;
 };
 
 #endif

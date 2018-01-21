@@ -26,6 +26,7 @@ Before you begin, perform initial setup:
 
         $ git clone https://gitlab.kitware.com/vtk/vtk.git VTK
         $ cd VTK
+        $ git submodule update --init
     The main repository will be configured as your `origin` remote.
 
 4.  Run the [developer setup script][] to prepare your VTK work tree and
@@ -35,7 +36,7 @@ Before you begin, perform initial setup:
     This will prompt for your GitLab user name and configure a remote
     called `gitlab` to refer to it.
 
-5.  (Optional but highly recommended.)
+5.  (Optional, but highly recommended.)
     [Register](https://open.cdash.org/register.php) with the VTK project
     on Kitware's CDash instance to better know how your code performs in
     regression tests.  After registering and signing in, click on
@@ -273,7 +274,7 @@ A well written merge request will motivate your reviewers, and bring them up
 to speed faster. Future software developers will be able to understand the
 reasons why something was done, and possibly avoid chasing down dead ends,
 Although it may take you a little more time to write a good merge request,
-you’ll likely see payback in faster reviews and better understood and
+you'll likely see payback in faster reviews and better understood and
 maintainable software.
 
 
@@ -311,9 +312,8 @@ following votes followed by nothing but whitespace before the end
 of the line:
 
 *   `-1` or :-1: (`:-1:`) means "The change is not ready for integration."
-*   `+1` or :+1: (`:+1:`) means "I like the change but defer to others."
-*   `+2` means "The change is ready for integration."
-*   `+3` means "I have tested the change and verified it works."
+*   `+1` or :+1: (`:+1:`) means "The change is ready for integration."
+*   `+2` means "I have tested the change and verified it works."
 
 #### Middle Lines ####
 
@@ -384,9 +384,6 @@ results when it schedules builds.
 
 The `Do: test` command accepts the following arguments:
 
-  * `--oneshot`
-        only build the *current* hash of the branch; updates will not be built
-        using this command
   * `--stop`
         clear the list of commands for the merge request
   * `--superbuild`
@@ -399,9 +396,10 @@ The `Do: test` command accepts the following arguments:
         excludes builds on builders matching `<arg>` (a Python regular
         expression)
 
-Multiple `Do: test` commands may be given. Upon each update to the branch,
-buildbot will reconsider all of the active commands to determine which builders
-to schedule.
+Multiple `Do: test` commands may be given in separate comments. A new `Do: test`
+command must be explicitly issued for each branch update for which testing is
+desired. Buildbot may skip tests for older branch updates that have not started
+before a test for a new update is requested.
 
 Builder names always follow this pattern:
 
@@ -414,7 +412,11 @@ Builder names always follow this pattern:
   * buildtype: `release` or `debug`
   * feature: alphabetical list of features enabled for the build
 
-For a list of all builders, see:
+For a list of all builders, visit the
+[VTK project on open.cdash.org](https://open.cdash.org/index.php?project=VTK).
+
+Otherwise, `Expected`, `Superbuild`, or `Experimental` builds can be
+directly accesssed from within Kitware at the following sites:
 
   * [vtk-expected](https://buildbot.kitware.com/builders?category=vtk-expected)
   * [vtk-superbuild](https://buildbot.kitware.com/builders?category=vtk-superbuild)

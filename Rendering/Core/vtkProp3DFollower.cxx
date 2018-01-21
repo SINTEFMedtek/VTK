@@ -34,8 +34,8 @@ vtkCxxSetObjectMacro(vtkProp3DFollower,Camera,vtkCamera);
 // Creates a follower with no camera set
 vtkProp3DFollower::vtkProp3DFollower()
 {
-  this->Camera = NULL;
-  this->Device = NULL;
+  this->Camera = nullptr;
+  this->Device = nullptr;
 
   this->InternalMatrix = vtkMatrix4x4::New();
 }
@@ -61,12 +61,12 @@ void vtkProp3DFollower::SetProp3D(vtkProp3D *prop)
 {
   if (this->Device != prop)
   {
-    if ( this->Device != NULL )
+    if ( this->Device != nullptr )
     {
       this->Device->Delete();
     }
     this->Device = prop;
-    if ( this->Device != NULL )
+    if ( this->Device != nullptr )
     {
       this->Device->Register(this);
     }
@@ -193,7 +193,7 @@ double *vtkProp3DFollower::GetBounds()
   }
   else
   {
-    return NULL;
+    return nullptr;
   }
 }
 
@@ -229,7 +229,10 @@ int vtkProp3DFollower::RenderOpaqueGeometry(vtkViewport *vp)
   {
     this->ComputeMatrix();
     this->Device->SetUserMatrix(this->Matrix);
-
+    if (this->GetPropertyKeys())
+    {
+      this->Device->SetPropertyKeys(this->GetPropertyKeys());
+    }
     if (this->GetVisibility())
     {
       return this->Device->RenderOpaqueGeometry(vp);
@@ -245,6 +248,10 @@ int vtkProp3DFollower::RenderTranslucentPolygonalGeometry(vtkViewport *vp)
   {
     this->ComputeMatrix();
     this->Device->SetUserMatrix(this->Matrix);
+    if (this->GetPropertyKeys())
+    {
+      this->Device->SetPropertyKeys(this->GetPropertyKeys());
+    }
     if (this->GetVisibility())
     {
       return this->Device->RenderTranslucentPolygonalGeometry(vp);
@@ -260,6 +267,10 @@ int vtkProp3DFollower::RenderVolumetricGeometry(vtkViewport *vp)
   {
     this->ComputeMatrix();
     this->Device->SetUserMatrix(this->Matrix);
+    if (this->GetPropertyKeys())
+    {
+      this->Device->SetPropertyKeys(this->GetPropertyKeys());
+    }
     if (this->GetVisibility())
     {
       return this->Device->RenderVolumetricGeometry(vp);
@@ -272,7 +283,7 @@ int vtkProp3DFollower::RenderVolumetricGeometry(vtkViewport *vp)
 void vtkProp3DFollower::ShallowCopy(vtkProp *prop)
 {
   vtkProp3DFollower *f = vtkProp3DFollower::SafeDownCast(prop);
-  if ( f != NULL )
+  if ( f != nullptr )
   {
     this->SetCamera(f->GetCamera());
   }
@@ -299,7 +310,7 @@ vtkAssemblyPath *vtkProp3DFollower::GetNextPath()
   }
   else
   {
-    return NULL;
+    return nullptr;
   }
 }
 

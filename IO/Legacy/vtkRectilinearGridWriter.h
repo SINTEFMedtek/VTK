@@ -36,7 +36,7 @@ class VTKIOLEGACY_EXPORT vtkRectilinearGridWriter : public vtkDataWriter
 public:
   static vtkRectilinearGridWriter *New();
   vtkTypeMacro(vtkRectilinearGridWriter,vtkDataWriter);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -46,17 +46,32 @@ public:
   vtkRectilinearGrid* GetInput(int port);
   //@}
 
+  //@{
+  /**
+  * When WriteExtent is on, vtkStructuredPointsWriter writes
+  * data extent in the output file. Otherwise, it writes dimensions.
+  * The only time this option is useful is when the extents do
+  * not start at (0, 0, 0). This is an options to support writing
+  * of older formats while still using a newer VTK.
+  */
+  vtkSetMacro(WriteExtent, bool);
+  vtkGetMacro(WriteExtent, bool);
+  vtkBooleanMacro(WriteExtent, bool);
+  //@}
+
 protected:
-  vtkRectilinearGridWriter() {}
-  ~vtkRectilinearGridWriter() {}
+  vtkRectilinearGridWriter() : WriteExtent(false) {}
+  ~vtkRectilinearGridWriter() override {}
 
-  void WriteData();
+  void WriteData() override;
 
-  virtual int FillInputPortInformation(int port, vtkInformation *info);
+  int FillInputPortInformation(int port, vtkInformation *info) override;
+
+  bool WriteExtent;
 
 private:
-  vtkRectilinearGridWriter(const vtkRectilinearGridWriter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkRectilinearGridWriter&) VTK_DELETE_FUNCTION;
+  vtkRectilinearGridWriter(const vtkRectilinearGridWriter&) = delete;
+  void operator=(const vtkRectilinearGridWriter&) = delete;
 };
 
 #endif

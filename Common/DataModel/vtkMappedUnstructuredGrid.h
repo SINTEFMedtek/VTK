@@ -69,7 +69,7 @@
  * Note that since the implementation class is used as a compile-time template
  * parameter in vtkMappedUnstructuredGrid, the above methods do not need be
  * virtuals. The compiler will statically bind the calls, making dynamic vtable
- * lookups unneccessary and giving a slight performance boost.
+ * lookups unnecessary and giving a slight performance boost.
  *
  * Adapting a filter or algorithm to safely traverse the
  * vtkMappedUnstructuredGrid's topology requires removing calls the following
@@ -157,33 +157,34 @@ public:
   typedef CellIterator CellIteratorType;
 
   // Virtuals from various base classes:
-  void PrintSelf(ostream &os, vtkIndent indent);
-  void CopyStructure(vtkDataSet *pd);
-  void ShallowCopy(vtkDataObject *src);
-  vtkIdType GetNumberOfCells();
-  vtkCell* GetCell(vtkIdType cellId);
-  void GetCell(vtkIdType cellId, vtkGenericCell *cell);
-  int GetCellType(vtkIdType cellId);
-  void GetCellPoints(vtkIdType cellId, vtkIdList *ptIds);
-  vtkCellIterator* NewCellIterator();
-  void GetPointCells(vtkIdType ptId, vtkIdList *cellIds);
-  int GetMaxCellSize();
-  void GetIdsOfCellsOfType(int type, vtkIdTypeArray *array);
-  int IsHomogeneous();
-  void Allocate(vtkIdType numCells, int extSize = 1000);
-  vtkIdType InsertNextCell(int type, vtkIdList *ptIds);
-  vtkIdType InsertNextCell(int type, vtkIdType npts, vtkIdType *ptIds);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
+  void CopyStructure(vtkDataSet *pd) override;
+  void ShallowCopy(vtkDataObject *src) override;
+  vtkIdType GetNumberOfCells() override;
+  using vtkDataSet::GetCell;
+  vtkCell* GetCell(vtkIdType cellId) override;
+  void GetCell(vtkIdType cellId, vtkGenericCell *cell) override;
+  int GetCellType(vtkIdType cellId) override;
+  void GetCellPoints(vtkIdType cellId, vtkIdList *ptIds) override;
+  vtkCellIterator* NewCellIterator() override;
+  void GetPointCells(vtkIdType ptId, vtkIdList *cellIds) override;
+  int GetMaxCellSize() override;
+  void GetIdsOfCellsOfType(int type, vtkIdTypeArray *array) override;
+  int IsHomogeneous() override;
+  void Allocate(vtkIdType numCells, int extSize = 1000) override;
+  vtkIdType InsertNextCell(int type, vtkIdList *ptIds) override;
+  vtkIdType InsertNextCell(int type, vtkIdType npts, vtkIdType *ptIds) override;
   vtkIdType InsertNextCell(int type, vtkIdType npts, vtkIdType *ptIds,
-                           vtkIdType nfaces, vtkIdType *faces);
-  void ReplaceCell(vtkIdType cellId, int npts, vtkIdType *pts);
-  vtkMTimeType GetMTime() VTK_OVERRIDE;
+                           vtkIdType nfaces, vtkIdType *faces) override;
+  void ReplaceCell(vtkIdType cellId, int npts, vtkIdType *pts) override;
+  vtkMTimeType GetMTime() override;
 
   void SetImplementation(ImplementationType *impl);
   ImplementationType *GetImplementation();
 
 protected:
   vtkMappedUnstructuredGrid();
-  ~vtkMappedUnstructuredGrid();
+  ~vtkMappedUnstructuredGrid() override;
 
   // For convenience...
   typedef vtkMappedUnstructuredGrid<Implementation, CellIterator> ThisType;
@@ -191,8 +192,8 @@ protected:
   vtkSmartPointer<ImplementationType> Impl;
 
 private:
-  vtkMappedUnstructuredGrid(const vtkMappedUnstructuredGrid &) VTK_DELETE_FUNCTION;
-  void operator=(const vtkMappedUnstructuredGrid &) VTK_DELETE_FUNCTION;
+  vtkMappedUnstructuredGrid(const vtkMappedUnstructuredGrid &) = delete;
+  void operator=(const vtkMappedUnstructuredGrid &) = delete;
 
   vtkNew<vtkGenericCell> TempCell;
 };
@@ -218,7 +219,7 @@ protected: \
     this->SetImplementation(i); \
     i->Delete(); \
   } \
-  ~_className() {} \
+  ~_className() override {} \
 private: \
   _className(const _className&); \
   void operator=(const _className&); \
@@ -239,7 +240,7 @@ protected: \
     this->SetImplementation(i); \
     i->Delete(); \
   } \
-  ~_className() {} \
+  ~_className() override {} \
 private: \
   _className(const _className&); \
   void operator=(const _className&); \
@@ -256,7 +257,7 @@ public: \
   static _className* New(); \
 protected: \
   _className() {} \
-  ~_className() {} \
+  ~_className() override {} \
 private: \
   _className(const _className&); \
   void operator=(const _className&); \
@@ -271,7 +272,7 @@ public: \
   static _className* New(); \
 protected: \
   _className() {} \
-  ~_className() {} \
+  ~_className() override {} \
 private: \
   _className(const _className&); \
   void operator=(const _className&); \

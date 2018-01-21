@@ -32,32 +32,32 @@ class VTKRENDERINGOPENGL2_EXPORT vtkOpenGLPointGaussianMapper : public vtkPointG
 public:
   static vtkOpenGLPointGaussianMapper* New();
   vtkTypeMacro(vtkOpenGLPointGaussianMapper, vtkPointGaussianMapper)
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Release any graphics resources that are being consumed by this mapper.
    * The parameter window could be used to determine which graphic
    * resources to release.
    */
-  void ReleaseGraphicsResources(vtkWindow *);
+  void ReleaseGraphicsResources(vtkWindow *) override;
 
   /**
    * Is this mapper opqaue? currently always false.
    */
-  virtual bool GetIsOpaque();
+  bool GetIsOpaque() override;
 
 protected:
   vtkOpenGLPointGaussianMapper();
-  ~vtkOpenGLPointGaussianMapper();
+  ~vtkOpenGLPointGaussianMapper() override;
 
-  virtual void RenderPiece(vtkRenderer *ren, vtkActor *act);
+  void RenderPiece(vtkRenderer *ren, vtkActor *act) override;
 
   vtkOpenGLPointGaussianMapperHelper *Helper;
   vtkTimeStamp HelperUpdateTime;
 
 private:
-  vtkOpenGLPointGaussianMapper(const vtkOpenGLPointGaussianMapper&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkOpenGLPointGaussianMapper&) VTK_DELETE_FUNCTION;
+  vtkOpenGLPointGaussianMapper(const vtkOpenGLPointGaussianMapper&) = delete;
+  void operator=(const vtkOpenGLPointGaussianMapper&) = delete;
 };
 
 #endif

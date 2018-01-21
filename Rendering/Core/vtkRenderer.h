@@ -58,7 +58,7 @@ class VTKRENDERINGCORE_EXPORT vtkRenderer : public vtkViewport
 {
 public:
   vtkTypeMacro(vtkRenderer,vtkViewport);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Create a vtkRenderer with a black background, a white ambient light,
@@ -302,6 +302,8 @@ public:
    * UpdateTranslucentPolygonalGeometry().
    * Subclasses of vtkRenderer that can deal with depth peeling must
    * override this method.
+   * If UseDepthPeeling and UseDepthPeelingForVolumes are true, volumetric data
+   * will be rendered here as well.
    * It updates boolean ivar LastRenderingUsedDepthPeeling.
    */
   virtual void DeviceRenderTranslucentPolygonalGeometry();
@@ -342,7 +344,7 @@ public:
    * Reset the camera clipping range based on the bounds of the
    * visible actors. This ensures that no props are cut off
    */
-  void ResetCameraClippingRange();
+  virtual void ResetCameraClippingRange();
 
   //@{
   /**
@@ -351,8 +353,8 @@ public:
    * If Deering frustrum is used then the bounds get expanded
    * by the camera's modelview matrix.
    */
-  void ResetCameraClippingRange( double bounds[6] );
-  void ResetCameraClippingRange( double xmin, double xmax,
+  virtual void ResetCameraClippingRange( double bounds[6] );
+  virtual void ResetCameraClippingRange( double xmin, double xmax,
                                  double ymin, double ymax,
                                  double zmin, double zmax);
   //@}
@@ -410,7 +412,7 @@ public:
    */
   void SetRenderWindow(vtkRenderWindow *);
   vtkRenderWindow *GetRenderWindow() {return this->RenderWindow;};
-  virtual vtkWindow *GetVTKWindow();
+  vtkWindow *GetVTKWindow() override;
   //@}
 
   //@{
@@ -487,20 +489,20 @@ public:
   /**
    * Convert world point coordinates to view coordinates.
    */
-  void WorldToView();
+  void WorldToView() override;
 
   //@{
   /**
    * Convert view point coordinates to world coordinates.
    */
-  void ViewToWorld();
-  virtual void ViewToWorld(double &wx, double &wy, double &wz);
+  void ViewToWorld() override;
+  void ViewToWorld(double &wx, double &wy, double &wz) override;
   //@}
 
   /**
    * Convert world point coordinates to view coordinates.
    */
-  virtual void WorldToView(double &wx, double &wy, double &wz);
+  void WorldToView(double &wx, double &wy, double &wz) override;
 
   /**
    * Given a pixel location, return the Z value. The z value is
@@ -511,7 +513,7 @@ public:
   /**
    * Return the MTime of the renderer also considering its ivars.
    */
-  vtkMTimeType GetMTime();
+  vtkMTimeType GetMTime() override;
 
   //@{
   /**
@@ -538,12 +540,12 @@ public:
    * If nothing was picked then NULL is returned.  This method selects from
    * the renderers Prop list.
    */
-  vtkAssemblyPath* PickProp(double selectionX, double selectionY)
+  vtkAssemblyPath* PickProp(double selectionX, double selectionY) override
   {
     return this->PickProp(selectionX, selectionY, selectionX, selectionY);
   }
   vtkAssemblyPath* PickProp(double selectionX1, double selectionY1,
-                            double selectionX2, double selectionY2);
+                            double selectionX2, double selectionY2) override;
   //@}
 
   /**
@@ -567,7 +569,7 @@ public:
    * ActiveCamera does not yet exist.
    */
   int IsActiveCameraCreated()
-    { return (this->ActiveCamera != NULL); }
+    { return (this->ActiveCamera != nullptr); }
 
 
   //@{
@@ -585,6 +587,15 @@ public:
   vtkGetMacro(UseDepthPeeling,int);
   vtkBooleanMacro(UseDepthPeeling,int);
   //@}
+
+  /**
+   * This this flag is on and the GPU supports it, depth-peel volumes along with
+   * the translucent geometry. Only supported on OpenGL2 with dual-depth
+   * peeling. Default is false.
+   */
+  vtkSetMacro(UseDepthPeelingForVolumes, bool)
+  vtkGetMacro(UseDepthPeelingForVolumes, bool)
+  vtkBooleanMacro(UseDepthPeelingForVolumes, bool)
 
   //@{
   /**
@@ -713,7 +724,7 @@ public:
 
 protected:
   vtkRenderer();
-  ~vtkRenderer();
+  ~vtkRenderer() override;
 
   // internal method for doing a render for picking purposes
   virtual void PickRender(vtkPropCollection *props);
@@ -894,6 +905,12 @@ protected:
   int UseDepthPeeling;
 
   /**
+   * This this flag is on and the GPU supports it, depth-peel volumes along with
+   * the translucent geometry. Default is false;
+   */
+  bool UseDepthPeelingForVolumes;
+
+  /**
    * In case of use of depth peeling technique for rendering translucent
    * material, define the threshold under which the algorithm stops to
    * iterate over peel layers. This is the ratio of the number of pixels
@@ -944,8 +961,8 @@ protected:
   vtkInformation* Information;
 
 private:
-  vtkRenderer(const vtkRenderer&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkRenderer&) VTK_DELETE_FUNCTION;
+  vtkRenderer(const vtkRenderer&) = delete;
+  void operator=(const vtkRenderer&) = delete;
 
 };
 

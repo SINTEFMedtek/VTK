@@ -40,7 +40,7 @@ class VTKIMAGINGHYBRID_EXPORT vtkSampleFunction : public vtkImageAlgorithm
 {
 public:
   vtkTypeMacro(vtkSampleFunction,vtkImageAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Construct with ModelBounds=(-1,1,-1,1,-1,1), SampleDimensions=(50,50,50),
@@ -158,26 +158,26 @@ public:
   /**
    * Return the MTime also considering the implicit function.
    */
-  vtkMTimeType GetMTime();
+  vtkMTimeType GetMTime() override;
 
 protected:
   /**
    * Default constructor.
    * Construct with ModelBounds=(-1,1,-1,1,-1,1), SampleDimensions=(50,50,50),
    * Capping turned off, CapValue=VTK_DOUBLE_MAX, normal generation on,
-   * OutputScalarType set to VTK_DOUBLE, ImplicitFunction set to NULL,
+   * OutputScalarType set to VTK_DOUBLE, ImplicitFunction set to nullptr,
    * ScalarArrayName is "" and NormalArrayName is "".
    */
   vtkSampleFunction();
 
-  ~vtkSampleFunction();
+  ~vtkSampleFunction() override;
 
-  void ReportReferences(vtkGarbageCollector*) VTK_OVERRIDE;
+  void ReportReferences(vtkGarbageCollector*) override;
 
-  void ExecuteDataWithInformation(vtkDataObject *, vtkInformation *);
-  virtual int RequestInformation (vtkInformation *,
+  void ExecuteDataWithInformation(vtkDataObject *, vtkInformation *) override;
+  int RequestInformation (vtkInformation *,
                                   vtkInformationVector **,
-                                  vtkInformationVector *);
+                                  vtkInformationVector *) override;
   void Cap(vtkDataArray *s);
 
   int OutputScalarType;
@@ -191,8 +191,8 @@ protected:
   char *NormalArrayName;
 
 private:
-  vtkSampleFunction(const vtkSampleFunction&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkSampleFunction&) VTK_DELETE_FUNCTION;
+  vtkSampleFunction(const vtkSampleFunction&) = delete;
+  void operator=(const vtkSampleFunction&) = delete;
 };
 
 #endif

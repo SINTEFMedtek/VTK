@@ -19,17 +19,13 @@
 #include "vtkCell.h"
 #include "vtkDataSet.h"
 
-#if defined(_MSC_VER)
-# pragma warning (disable: 4996) /* 'std::_Copy_opt' was declared deprecated */
-#endif
-
 vtkStandardNewMacro(vtkDataSetEdgeSubdivisionCriterion);
 
 vtkDataSetEdgeSubdivisionCriterion::vtkDataSetEdgeSubdivisionCriterion()
 {
-  this->CurrentMesh = 0;
+  this->CurrentMesh = nullptr;
   this->CurrentCellId = -1;
-  this->CurrentCellData = 0;
+  this->CurrentCellData = nullptr;
   this->ChordError2 = 1e-6;
   // We require this->FieldError2 to be a valid address at all times -- it
   // may never be null

@@ -35,34 +35,34 @@ class VTKRENDERINGOPENGL_EXPORT vtkOpenGLHardwareSelector : public vtkHardwareSe
 public:
   static vtkOpenGLHardwareSelector* New();
   vtkTypeMacro(vtkOpenGLHardwareSelector, vtkHardwareSelector);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Called by the mapper (vtkHardwareSelectionPolyDataPainter) before and after
    * rendering each prop.
    */
-  virtual void BeginRenderProp()
+  void BeginRenderProp() override
     { this->vtkHardwareSelector::BeginRenderProp(); }
 
-  virtual void EndRenderProp()
+  void EndRenderProp() override
     { this->vtkHardwareSelector::EndRenderProp(); }
 
 protected:
   vtkOpenGLHardwareSelector();
-  virtual ~vtkOpenGLHardwareSelector();
+  ~vtkOpenGLHardwareSelector() override;
 
   // Called internally before and after each prop is rendered
   // for device specific configuration/preparation etc.
-  virtual void BeginRenderProp(vtkRenderWindow *);
-  virtual void EndRenderProp(vtkRenderWindow *);
+  void BeginRenderProp(vtkRenderWindow *) override;
+  void EndRenderProp(vtkRenderWindow *) override;
 
   // for internal state
   class vtkInternals;
   vtkInternals* Internals;
 
 private:
-  vtkOpenGLHardwareSelector(const vtkOpenGLHardwareSelector&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkOpenGLHardwareSelector&) VTK_DELETE_FUNCTION;
+  vtkOpenGLHardwareSelector(const vtkOpenGLHardwareSelector&) = delete;
+  void operator=(const vtkOpenGLHardwareSelector&) = delete;
 };
 
 #endif

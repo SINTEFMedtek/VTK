@@ -148,8 +148,8 @@ vtkVoxelGrid::vtkVoxelGrid()
 vtkVoxelGrid::~vtkVoxelGrid()
 {
   this->Locator->UnRegister(this);
-  this->Locator = NULL;
-  this->SetKernel(NULL);
+  this->Locator = nullptr;
+  this->SetKernel(nullptr);
 }
 
 //----------------------------------------------------------------------------
@@ -218,6 +218,7 @@ int vtkVoxelGrid::RequestData(
   }
   this->Locator->SetDataSet(input);
   this->Locator->BuildLocator();
+  this->Locator->GetDivisions(this->Divisions);
 
   // Run through the locator and compute the number of output points,
   // and build a map of the bin number to output point. This is a prefix sum.
@@ -238,7 +239,7 @@ int vtkVoxelGrid::RequestData(
   vtkPointData *outPD = output->GetPointData();
   outPD->InterpolateAllocate(inPD,numOutPts);
 
-  // Finally run over all of the bins, and those that are not emoty are
+  // Finally run over all of the bins, and those that are not empty are
   // processed. The processing consists of averaging all of the points found
   // in the bin, and setting the average point position in the output points.
   vtkPoints *points = input->GetPoints()->NewInstance();

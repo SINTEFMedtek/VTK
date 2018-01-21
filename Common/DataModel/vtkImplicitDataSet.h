@@ -49,7 +49,7 @@ class VTKCOMMONDATAMODEL_EXPORT vtkImplicitDataSet : public vtkImplicitFunction
 {
 public:
   vtkTypeMacro(vtkImplicitDataSet,vtkImplicitFunction);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Construct an vtkImplicitDataSet with no initial dataset; the OutValue
@@ -60,22 +60,21 @@ public:
   /**
    * Return the MTime also considering the DataSet dependency.
    */
-  vtkMTimeType GetMTime() VTK_OVERRIDE;
+  vtkMTimeType GetMTime() override;
 
   //@{
   /**
    * Evaluate the implicit function. This returns the interpolated scalar value
    * at x[3].
    */
-  double EvaluateFunction(double x[3]) VTK_OVERRIDE;
-  double EvaluateFunction(double x, double y, double z)
-    {return this->vtkImplicitFunction::EvaluateFunction(x, y, z); } ;
+  using vtkImplicitFunction::EvaluateFunction;
+  double EvaluateFunction(double x[3]) override;
   //@}
 
   /**
    * Evaluate implicit function gradient.
    */
-  void EvaluateGradient(double x[3], double n[3]) VTK_OVERRIDE;
+  void EvaluateGradient(double x[3], double n[3]) override;
 
   //@{
   /**
@@ -103,9 +102,9 @@ public:
 
 protected:
   vtkImplicitDataSet();
-  ~vtkImplicitDataSet() VTK_OVERRIDE;
+  ~vtkImplicitDataSet() override;
 
-  void ReportReferences(vtkGarbageCollector*) VTK_OVERRIDE;
+  void ReportReferences(vtkGarbageCollector*) override;
 
   vtkDataSet *DataSet;
   double OutValue;
@@ -115,8 +114,8 @@ protected:
   int Size; //keeps track of length of weights array
 
 private:
-  vtkImplicitDataSet(const vtkImplicitDataSet&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkImplicitDataSet&) VTK_DELETE_FUNCTION;
+  vtkImplicitDataSet(const vtkImplicitDataSet&) = delete;
+  void operator=(const vtkImplicitDataSet&) = delete;
 };
 
 #endif

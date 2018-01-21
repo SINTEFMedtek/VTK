@@ -62,16 +62,16 @@ Requirements
 
 In general VTK tries to be as portable as possible; the specific configurations below are known to work and tested.
 
-VTK supports the following compilers:
-1. Microsoft Visual Studio 2008 (aka MSVC++ 9.0) or newer
-2. gcc 4.2 or newer
-3. Apple gcc 4.2 (from Xcode 3.1.4 or newer)
-4. Clang 3.0 or newer
-5. Apple Clang 3.0 (from Xcode 4.2) or newer
+VTK supports the following C++11 compilers:
+1. Microsoft Visual Studio 2013 or newer
+2. gcc 4.8.3 or newer
+3. Clang 3.3 or newer
+4. Apple Clang 5.0 (from Xcode 5.0) or newer
+5. Intel 14.0 or newer
 
 VTK supports the following operating systems:
 1. Windows Vista or newer
-2. Mac OS X 10.6.8 or newer
+2. Mac OS X 10.7 or newer
 3. Linux (ex: Ubuntu 12.04 or newer, Debian 4 or newer)
 
 Contributing

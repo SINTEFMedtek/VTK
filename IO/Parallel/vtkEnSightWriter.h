@@ -43,7 +43,7 @@ class VTKIOPARALLEL_EXPORT vtkEnSightWriter : public vtkWriter
 
 public:
   vtkTypeMacro(vtkEnSightWriter,vtkWriter);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
 
@@ -152,11 +152,11 @@ public:
 
 protected:
   vtkEnSightWriter();
-  virtual ~vtkEnSightWriter();
+  ~vtkEnSightWriter() override;
 
-  virtual int FillInputPortInformation(int port, vtkInformation* info);
+  int FillInputPortInformation(int port, vtkInformation* info) override;
 
-  virtual void WriteData(); // method to allow this class to be instantiated and delegated to
+  void WriteData() override; // method to allow this class to be instantiated and delegated to
 
   virtual void WriteStringToFile(const char* string, FILE* file);
   virtual void WriteTerminatedStringToFile(const char* string, FILE* file);
@@ -186,8 +186,8 @@ protected:
   int GhostLevel;
   vtkUnstructuredGrid* TmpInput;
 
-  vtkEnSightWriter(const vtkEnSightWriter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkEnSightWriter&) VTK_DELETE_FUNCTION;
+  vtkEnSightWriter(const vtkEnSightWriter&) = delete;
+  void operator=(const vtkEnSightWriter&) = delete;
 
 };
 

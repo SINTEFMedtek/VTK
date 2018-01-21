@@ -75,7 +75,7 @@ public:
    * Standard methods for the class.
    */
   vtkTypeMacro(vtkImplicitCylinderRepresentation,vtkWidgetRepresentation);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   //@{
@@ -295,24 +295,24 @@ public:
   /**
    * Methods to interface with the vtkImplicitCylinderWidget.
    */
-  virtual int ComputeInteractionState(int X, int Y, int modify=0);
-  virtual void PlaceWidget(double bounds[6]);
-  virtual void BuildRepresentation();
-  virtual void StartWidgetInteraction(double eventPos[2]);
-  virtual void WidgetInteraction(double newEventPos[2]);
-  virtual void EndWidgetInteraction(double newEventPos[2]);
+  int ComputeInteractionState(int X, int Y, int modify=0) override;
+  void PlaceWidget(double bounds[6]) override;
+  void BuildRepresentation() override;
+  void StartWidgetInteraction(double eventPos[2]) override;
+  void WidgetInteraction(double newEventPos[2]) override;
+  void EndWidgetInteraction(double newEventPos[2]) override;
   //@}
 
   //@{
   /**
    * Methods supporting the rendering process.
    */
-  virtual double *GetBounds();
-  virtual void GetActors(vtkPropCollection *pc);
-  virtual void ReleaseGraphicsResources(vtkWindow*);
-  virtual int RenderOpaqueGeometry(vtkViewport*);
-  virtual int RenderTranslucentPolygonalGeometry(vtkViewport*);
-  virtual int HasTranslucentPolygonalGeometry();
+  double *GetBounds() override;
+  void GetActors(vtkPropCollection *pc) override;
+  void ReleaseGraphicsResources(vtkWindow*) override;
+  int RenderOpaqueGeometry(vtkViewport*) override;
+  int RenderTranslucentPolygonalGeometry(vtkViewport*) override;
+  int HasTranslucentPolygonalGeometry() override;
   //@}
 
   //@{
@@ -379,7 +379,7 @@ public:
 
 protected:
   vtkImplicitCylinderRepresentation();
-  ~vtkImplicitCylinderRepresentation();
+  ~vtkImplicitCylinderRepresentation() override;
 
   int RepresentationState;
 
@@ -461,7 +461,7 @@ protected:
   vtkCellPicker *CylPicker;
 
   // Register internal Pickers within PickingManager
-  virtual void RegisterPickers();
+  void RegisterPickers() override;
 
   // Transform the normal (used for rotation)
   vtkTransform *Transform;
@@ -495,8 +495,8 @@ protected:
   vtkBox *BoundingBox;
 
 private:
-  vtkImplicitCylinderRepresentation(const vtkImplicitCylinderRepresentation&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkImplicitCylinderRepresentation&) VTK_DELETE_FUNCTION;
+  vtkImplicitCylinderRepresentation(const vtkImplicitCylinderRepresentation&) = delete;
+  void operator=(const vtkImplicitCylinderRepresentation&) = delete;
 };
 
 #endif

@@ -66,7 +66,7 @@ public:
   bool OriginalBlending;
 
   vtkInternals() :
-    Context(NULL),
+    Context(nullptr),
     MultisampleSupport(false),
     OriginalMultisample(false),
     OriginalBlending(false)
@@ -77,10 +77,20 @@ public:
   // extensions.
   void SetContext(vtkRenderWindow *context)
   {
-    if (this->Context != context)
+    if (this->Context == context)
     {
-      this->MultisampleSupport = true;
+      return;
     }
+
+    if (context)
+    {
+      this->MultisampleSupport = (context->GetMultiSamples() > 0);
+    }
+    else
+    {
+      this->MultisampleSupport = false;
+    }
+    this->Context = static_cast<vtkOpenGLRenderWindow *>(context);
   }
 
   // Description:
@@ -89,7 +99,7 @@ public:
   {
     if (this->MultisampleSupport)
     {
-#if GL_ES_VERSION_2_0 != 1
+#if GL_ES_VERSION_3_0 != 1
       if (mode)
       {
         glEnable(GL_MULTISAMPLE);
@@ -106,7 +116,7 @@ public:
   // Check if multisample is enabled.
   bool QueryMultisampling()
   {
-#if GL_ES_VERSION_2_0 != 1
+#if GL_ES_VERSION_3_0 != 1
     if (this->MultisampleSupport && glIsEnabled(GL_MULTISAMPLE))
     {
       return true;
@@ -175,11 +185,23 @@ void vtkOpenGLHardwareSelector::PreCapturePass(int pass)
 {
   annotate(std::string("Starting pass: ") +
            this->PassTypeToString(static_cast<PassTypes>(pass)));
+
+  // Disable multisample, and blending
+  vtkRenderWindow *rwin = this->Renderer->GetRenderWindow();
+  this->Internals->SetContext(rwin);
+  this->Internals->OriginalMultisample = this->Internals->QueryMultisampling();
+  this->Internals->EnableMultisampling(false);
+
+  this->Internals->OriginalBlending = this->Internals->QueryBlending();
+  this->Internals->EnableBlending(false);
 }
 
 //----------------------------------------------------------------------------
 void vtkOpenGLHardwareSelector::PostCapturePass(int pass)
 {
+  // Restore multisample, and blending.
+  this->Internals->EnableMultisampling(this->Internals->OriginalMultisample);
+  this->Internals->EnableBlending(this->Internals->OriginalBlending);
   annotate(std::string("Pass complete: ") +
            this->PassTypeToString(static_cast<PassTypes>(pass)));
 }
@@ -191,9 +213,22 @@ void vtkOpenGLHardwareSelector::BeginSelection()
   if (this->FieldAssociation == vtkDataObject::FIELD_ASSOCIATION_POINTS)
   {
     vtkRenderWindow *rwin = this->Renderer->GetRenderWindow();
+    this->Internals->SetContext(rwin);
+
+    // Disable multisample, and blending before writing the zbuffer
+    this->Internals->OriginalMultisample = this->Internals->QueryMultisampling();
+    this->Internals->EnableMultisampling(false);
+
+    this->Internals->OriginalBlending = this->Internals->QueryBlending();
+    this->Internals->EnableBlending(false);
+
     rwin->SwapBuffersOff();
     rwin->Render();
     this->Renderer->PreserveDepthBufferOn();
+
+    // Restore multisample, and blending.
+    this->Internals->EnableMultisampling(this->Internals->OriginalMultisample);
+    this->Internals->EnableBlending(this->Internals->OriginalBlending);
   }
 
   return this->Superclass::BeginSelection();
@@ -238,20 +273,12 @@ void vtkOpenGLHardwareSelector::SavePixelBuffer(int passNo)
 }
 
 //----------------------------------------------------------------------------
-void vtkOpenGLHardwareSelector::BeginRenderProp(vtkRenderWindow *context)
+void vtkOpenGLHardwareSelector::BeginRenderProp(vtkRenderWindow *)
 {
   #ifdef vtkOpenGLHardwareSelectorDEBUG
   cerr << "=====vtkOpenGLHardwareSelector::BeginRenderProp" << endl;
   #endif
 
-  this->Internals->SetContext(context);
-
-  // Disable multisample, and blending.
-  this->Internals->OriginalMultisample = this->Internals->QueryMultisampling();
-  this->Internals->EnableMultisampling(false);
-
-  this->Internals->OriginalBlending = this->Internals->QueryBlending();
-  this->Internals->EnableBlending(false);
 }
 
 //----------------------------------------------------------------------------
@@ -260,10 +287,6 @@ void vtkOpenGLHardwareSelector::EndRenderProp(vtkRenderWindow *)
   #ifdef vtkOpenGLHardwareSelectorDEBUG
   cerr << "=====vtkOpenGLHardwareSelector::EndRenderProp" << endl;
   #endif
-
-  // Restore multisample, and blending.
-  this->Internals->EnableMultisampling(this->Internals->OriginalMultisample);
-  this->Internals->EnableBlending(this->Internals->OriginalBlending);
 }
 
 //----------------------------------------------------------------------------

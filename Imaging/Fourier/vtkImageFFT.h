@@ -41,24 +41,24 @@ public:
 
 protected:
   vtkImageFFT() {}
-  ~vtkImageFFT() {}
+  ~vtkImageFFT() override {}
 
-  virtual int IterativeRequestInformation(vtkInformation* in,
-                                          vtkInformation* out);
-  virtual int IterativeRequestUpdateExtent(vtkInformation* in,
-                                           vtkInformation* out);
+  int IterativeRequestInformation(vtkInformation* in,
+                                          vtkInformation* out) override;
+  int IterativeRequestUpdateExtent(vtkInformation* in,
+                                           vtkInformation* out) override;
 
-  virtual void ThreadedRequestData(
+  void ThreadedRequestData(
     vtkInformation* vtkNotUsed( request ),
     vtkInformationVector** inputVector,
     vtkInformationVector* vtkNotUsed( outputVector ),
     vtkImageData ***inDataVec,
     vtkImageData **outDataVec,
     int outExt[6],
-    int threadId);
+    int threadId) override;
 private:
-  vtkImageFFT(const vtkImageFFT&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkImageFFT&) VTK_DELETE_FUNCTION;
+  vtkImageFFT(const vtkImageFFT&) = delete;
+  void operator=(const vtkImageFFT&) = delete;
 };
 
 #endif

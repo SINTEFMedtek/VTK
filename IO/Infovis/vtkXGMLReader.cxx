@@ -39,10 +39,7 @@ PURPOSE.  See the above copyright notice for more information.
 #include <fstream>
 #include <sstream>
 #include <map>
-
-#if defined (__BORLANDC__)
 #include <cctype> // for isspace, isdigit
-#endif
 
 // Copied from vtkTulipReader.cxx ..
 static int my_getline(std::istream& stream, vtkStdString &output, char delim='\n');
@@ -52,13 +49,13 @@ vtkStandardNewMacro(vtkXGMLReader);
 vtkXGMLReader::vtkXGMLReader()
 {
   // Default values for the origin vertex
-  this->FileName = 0;
+  this->FileName = nullptr;
   this->SetNumberOfInputPorts(0);
 }
 
 vtkXGMLReader::~vtkXGMLReader()
 {
-  this->SetFileName(0);
+  this->SetFileName(nullptr);
 }
 
 void vtkXGMLReader::PrintSelf(std::ostream& os, vtkIndent indent)
@@ -191,7 +188,7 @@ int vtkXGMLReader::RequestData(
   vtkIdTypeArray *edgeIds, *nodeIds;
 
 
-  if (this->FileName == NULL)
+  if (this->FileName == nullptr)
   {
     vtkErrorMacro("File name undefined");
     return 0;

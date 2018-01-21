@@ -61,13 +61,13 @@ public:
    * Standard methods for instances of this class.
    */
   vtkTypeMacro(vtkParallelopipedRepresentation,vtkWidgetRepresentation);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   /**
    * Methods to satisfy the superclass.
    */
-  virtual void GetActors(vtkPropCollection *pc);
+  void GetActors(vtkPropCollection *pc) override;
 
   //@{
   /**
@@ -85,7 +85,7 @@ public:
    * Corner 3 - 7 - 4 - 0 - 3  forms a face
    */
   virtual void PlaceWidget(double corners[8][3]);
-  virtual void PlaceWidget(double bounds[6]);
+  void PlaceWidget(double bounds[6]) override;
   //@}
 
   //@{
@@ -113,7 +113,7 @@ public:
   /**
    * The parallelopiped polydata.
    */
-  virtual double *GetBounds();
+  double *GetBounds() override;
 
   //@{
   /**
@@ -161,22 +161,22 @@ public:
    * This actually constructs the geometry of the widget from the various
    * data parameters.
    */
-  virtual void BuildRepresentation();
+  void BuildRepresentation() override;
 
   //@{
   /**
    * Methods required by vtkProp superclass.
    */
-  virtual void ReleaseGraphicsResources(vtkWindow *w);
-  virtual int  RenderOverlay(vtkViewport *viewport);
-  virtual int  RenderOpaqueGeometry(vtkViewport *viewport);
+  void ReleaseGraphicsResources(vtkWindow *w) override;
+  int  RenderOverlay(vtkViewport *viewport) override;
+  int  RenderOpaqueGeometry(vtkViewport *viewport) override;
   //@}
 
   /**
    * Given and x-y display coordinate, compute the interaction state of
    * the widget.
    */
-  virtual int ComputeInteractionState(int X, int Y, int modify=0);
+  int ComputeInteractionState(int X, int Y, int modify=0) override;
 
   // Manage the state of the widget
   enum _InteractionState
@@ -221,7 +221,7 @@ public:
 
 protected:
   vtkParallelopipedRepresentation();
-  ~vtkParallelopipedRepresentation();
+  ~vtkParallelopipedRepresentation() override;
 
   /**
    * Translate the nth PtId (0 <= n <= 15) by the specified amount.
@@ -303,8 +303,8 @@ protected:
   double                              AbsoluteMinimumThickness;
 
 private:
-  vtkParallelopipedRepresentation(const vtkParallelopipedRepresentation&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkParallelopipedRepresentation&) VTK_DELETE_FUNCTION;
+  vtkParallelopipedRepresentation(const vtkParallelopipedRepresentation&) = delete;
+  void operator=(const vtkParallelopipedRepresentation&) = delete;
 };
 
 #endif

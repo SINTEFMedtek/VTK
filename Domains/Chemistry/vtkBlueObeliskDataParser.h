@@ -63,7 +63,7 @@ class VTKDOMAINSCHEMISTRY_EXPORT vtkBlueObeliskDataParser : public vtkXMLParser
   /**
    * Start parsing
    */
-  virtual int Parse();
+  int Parse() override;
 
   //@{
   /**
@@ -71,18 +71,18 @@ class VTKDOMAINSCHEMISTRY_EXPORT vtkBlueObeliskDataParser : public vtkXMLParser
    * virtual overloads. This function simply call Parse(); the arguments are
    * ignored.
    */
-  virtual int Parse(const char *);
-  virtual int Parse(const char *, unsigned int);
+  int Parse(const char *) override;
+  int Parse(const char *, unsigned int) override;
   //@}
 
 protected:
   vtkBlueObeliskDataParser();
-  ~vtkBlueObeliskDataParser();
+  ~vtkBlueObeliskDataParser() override;
 
-  void StartElement(const char *name, const char **attr);
-  void EndElement(const char *name);
+  void StartElement(const char *name, const char **attr) override;
+  void EndElement(const char *name) override;
 
-  void CharacterDataHandler(const char *data, int length);
+  void CharacterDataHandler(const char *data, int length) override;
 
   void SetCurrentValue(const char *data, int length);
   void SetCurrentValue(const char *data);
@@ -141,8 +141,8 @@ protected:
   unsigned int CurrentGroup;
 
 private:
-  vtkBlueObeliskDataParser(const vtkBlueObeliskDataParser&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkBlueObeliskDataParser&) VTK_DELETE_FUNCTION;
+  vtkBlueObeliskDataParser(const vtkBlueObeliskDataParser&) = delete;
+  void operator=(const vtkBlueObeliskDataParser&) = delete;
 
   //@{
   /**

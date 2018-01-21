@@ -48,7 +48,7 @@ class VTKIMAGINGCORE_EXPORT vtkImageDifference : public vtkThreadedImageAlgorith
 public:
   static vtkImageDifference *New();
   vtkTypeMacro(vtkImageDifference,vtkThreadedImageAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -111,7 +111,7 @@ public:
 
 protected:
   vtkImageDifference();
-  ~vtkImageDifference() {}
+  ~vtkImageDifference() override {}
 
   // Parameters
   int AllowShift;
@@ -123,22 +123,22 @@ protected:
   double Error;
   double ThresholdedError;
 
-  virtual int RequestInformation (vtkInformation *,
+  int RequestInformation (vtkInformation *,
                                   vtkInformationVector **,
-                                  vtkInformationVector *);
-  virtual int RequestUpdateExtent(vtkInformation *,
+                                  vtkInformationVector *) override;
+  int RequestUpdateExtent(vtkInformation *,
                                   vtkInformationVector **,
-                                  vtkInformationVector *);
-  virtual int RequestData(vtkInformation *,
+                                  vtkInformationVector *) override;
+  int RequestData(vtkInformation *,
                           vtkInformationVector **,
-                          vtkInformationVector *);
+                          vtkInformationVector *) override;
 
-  virtual void ThreadedRequestData(vtkInformation *request,
+  void ThreadedRequestData(vtkInformation *request,
                                    vtkInformationVector **inputVector,
                                    vtkInformationVector *outputVector,
                                    vtkImageData ***inData,
                                    vtkImageData **outData,
-                                   int extent[6], int threadId);
+                                   int extent[6], int threadId) override;
 
   // Used for vtkMultiThreader operation.
   vtkImageDifferenceThreadData *ThreadData;
@@ -147,8 +147,8 @@ protected:
   vtkImageDifferenceSMPThreadLocal *SMPThreadData;
 
 private:
-  vtkImageDifference(const vtkImageDifference&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkImageDifference&) VTK_DELETE_FUNCTION;
+  vtkImageDifference(const vtkImageDifference&) = delete;
+  void operator=(const vtkImageDifference&) = delete;
 
   friend class vtkImageDifferenceSMPFunctor;
 };

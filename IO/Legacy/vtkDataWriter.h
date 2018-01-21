@@ -46,7 +46,7 @@ class VTKIOLEGACY_EXPORT vtkDataWriter : public vtkWriter
 {
 public:
   vtkTypeMacro(vtkDataWriter,vtkWriter);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Created object with default header, ASCII format, and default names for
@@ -92,7 +92,7 @@ public:
   vtkStdString GetOutputStdString();
 
   /**
-   * This convenience method returns the string, sets the IVAR to NULL,
+   * This convenience method returns the string, sets the IVAR to nullptr,
    * so that the user is responsible for deleting the string.
    * I am not sure what the name should be, so it may change in the future.
    */
@@ -217,7 +217,7 @@ public:
   //@}
 
   /**
-   * Open a vtk data file. Returns NULL if error.
+   * Open a vtk data file. Returns nullptr if error.
    */
   virtual ostream *OpenVTKFile();
 
@@ -290,13 +290,13 @@ public:
 
 protected:
   vtkDataWriter();
-  ~vtkDataWriter();
+  ~vtkDataWriter() override;
 
   int WriteToOutputString;
   char *OutputString;
   int OutputStringLength;
 
-  void WriteData(); //dummy method to allow this class to be instantiated and delegated to
+  void WriteData() override; //dummy method to allow this class to be instantiated and delegated to
 
   char *FileName;
   char *Header;
@@ -316,15 +316,15 @@ protected:
   char* EdgeFlagsName;
 
   int WriteArray(ostream *fp, int dataType, vtkAbstractArray *data, const char *format,
-                 int num, int numComp);
-  int WriteScalarData(ostream *fp, vtkDataArray *s, int num);
-  int WriteVectorData(ostream *fp, vtkDataArray *v, int num);
-  int WriteNormalData(ostream *fp, vtkDataArray *n, int num);
-  int WriteTCoordData(ostream *fp, vtkDataArray *tc, int num);
-  int WriteTensorData(ostream *fp, vtkDataArray *t, int num);
-  int WriteGlobalIdData(ostream *fp, vtkDataArray *g, int num);
-  int WritePedigreeIdData(ostream *fp, vtkAbstractArray *p, int num);
-  int WriteEdgeFlagsData(ostream *fp, vtkDataArray *edgeFlags, int num);
+                 vtkIdType num, vtkIdType numComp);
+  int WriteScalarData(ostream *fp, vtkDataArray *s, vtkIdType num);
+  int WriteVectorData(ostream *fp, vtkDataArray *v, vtkIdType num);
+  int WriteNormalData(ostream *fp, vtkDataArray *n, vtkIdType num);
+  int WriteTCoordData(ostream *fp, vtkDataArray *tc, vtkIdType num);
+  int WriteTensorData(ostream *fp, vtkDataArray *t, vtkIdType num);
+  int WriteGlobalIdData(ostream *fp, vtkDataArray *g, vtkIdType num);
+  int WritePedigreeIdData(ostream *fp, vtkAbstractArray *p, vtkIdType num);
+  int WriteEdgeFlagsData(ostream *fp, vtkDataArray *edgeFlags, vtkIdType num);
 
   bool CanWriteInformationKey(vtkInformation *info, vtkInformationKey *key);
 
@@ -334,8 +334,8 @@ protected:
   int WriteInformation(ostream *fp, vtkInformation *info);
 
 private:
-  vtkDataWriter(const vtkDataWriter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkDataWriter&) VTK_DELETE_FUNCTION;
+  vtkDataWriter(const vtkDataWriter&) = delete;
+  void operator=(const vtkDataWriter&) = delete;
 };
 
 #endif

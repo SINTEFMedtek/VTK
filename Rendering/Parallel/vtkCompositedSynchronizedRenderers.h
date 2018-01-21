@@ -33,7 +33,7 @@ class VTKRENDERINGPARALLEL_EXPORT vtkCompositedSynchronizedRenderers : public vt
 public:
   static vtkCompositedSynchronizedRenderers* New();
   vtkTypeMacro(vtkCompositedSynchronizedRenderers, vtkSynchronizedRenderers);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -45,16 +45,16 @@ public:
 
 protected:
   vtkCompositedSynchronizedRenderers();
-  ~vtkCompositedSynchronizedRenderers();
+  ~vtkCompositedSynchronizedRenderers() override;
 
-  virtual void MasterEndRender();
-  virtual void SlaveEndRender();
+  void MasterEndRender() override;
+  void SlaveEndRender() override;
   void CaptureRenderedDepthBuffer(vtkFloatArray* depth_buffer);
 
   vtkCompositer* Compositer;
 private:
-  vtkCompositedSynchronizedRenderers(const vtkCompositedSynchronizedRenderers&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkCompositedSynchronizedRenderers&) VTK_DELETE_FUNCTION;
+  vtkCompositedSynchronizedRenderers(const vtkCompositedSynchronizedRenderers&) = delete;
+  void operator=(const vtkCompositedSynchronizedRenderers&) = delete;
 
 };
 

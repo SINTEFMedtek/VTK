@@ -21,6 +21,9 @@ set_source_files_properties(
     WRAP_EXCLUDE_PYTHON 1
 )
 
+if (Module_vtkRenderingOculus)
+   message(SEND_ERROR "The oculus module is currently under construction due to changes in the Oculus SDK. Please disable this module.")
+endif()
 
 # This option determines if the VR rendering code will become
 # the default renderer
@@ -64,7 +67,8 @@ if (VTK_OCULUS_OBJECT_FACTORY)
     for (oic->InitTraversal(); oi = oic->GetNextItem(); )\n\
       {\n\
       oi->GetObjectFactory()->Disable(\"vtkRenderer\");\n\
-      }\n")
+      }\n\
+    oic->Delete();\n")
   vtk_object_factory_configure("${vtk_module_overrides}")
 
   set(Module_SRCS ${Module_SRCS}

@@ -36,7 +36,7 @@ class VTKIMAGINGCORE_EXPORT vtkImageCacheFilter : public vtkImageAlgorithm
 public:
   static vtkImageCacheFilter *New();
   vtkTypeMacro(vtkImageCacheFilter,vtkImageAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -49,15 +49,15 @@ public:
 
 protected:
   vtkImageCacheFilter();
-  ~vtkImageCacheFilter();
+  ~vtkImageCacheFilter() override;
 
   // Create a default executive.
-  virtual vtkExecutive* CreateDefaultExecutive();
-  virtual void ExecuteData(vtkDataObject *);
+  vtkExecutive* CreateDefaultExecutive() override;
+  void ExecuteData(vtkDataObject *) override;
 
 private:
-  vtkImageCacheFilter(const vtkImageCacheFilter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkImageCacheFilter&) VTK_DELETE_FUNCTION;
+  vtkImageCacheFilter(const vtkImageCacheFilter&) = delete;
+  void operator=(const vtkImageCacheFilter&) = delete;
 };
 
 

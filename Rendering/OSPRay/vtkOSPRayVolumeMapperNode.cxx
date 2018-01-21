@@ -14,10 +14,12 @@
  =========================================================================*/
 #include "vtkOSPRayVolumeMapperNode.h"
 
+//#include "vtkAbstractArray.h"
 #include "vtkAbstractVolumeMapper.h"
 #include "vtkCellData.h"
 #include "vtkColorTransferFunction.h"
 #include "vtkDataArray.h"
+#include "vtkInformation.h"
 #include "vtkImageData.h"
 #include "vtkObjectFactory.h"
 #include "vtkOSPRayRendererNode.h"
@@ -39,8 +41,8 @@ vtkOSPRayVolumeMapperNode::vtkOSPRayVolumeMapperNode()
 {
   this->SamplingRate=0.0;
   this->NumColors = 128;
-  this->OSPRayVolume = NULL;
-  this->TransferFunction = NULL;
+  this->OSPRayVolume = nullptr;
+  this->TransferFunction = nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -81,7 +83,7 @@ void vtkOSPRayVolumeMapperNode::Render(bool prepass)
     osp::Model* OSPRayModel = orn->GetOModel();
 
     // make sure that we have scalar input and update the scalar input
-    if ( mapper->GetDataSetInput() == NULL )
+    if ( mapper->GetDataSetInput() == nullptr )
     {
       //OK - PV cli/srv for instance vtkErrorMacro("VolumeMapper had no input!");
       return;
@@ -92,26 +94,44 @@ void vtkOSPRayVolumeMapperNode::Render(bool prepass)
     vtkImageData *data = vtkImageData::SafeDownCast(mapper->GetDataSetInput());
     if (!data)
     {
-      vtkErrorMacro("VolumeMapper's Input has no data!");
+      //vtkErrorMacro("VolumeMapper's Input has no data!");
       return;
     }
-    vtkDataArray *sa = mapper->GetDataSetInput()->GetPointData()->GetScalars();
-    bool onPoints = true;
-    if (!sa)
-    {
-      onPoints = false;
-      sa = mapper->GetDataSetInput()->GetCellData()->GetScalars();
-    }
+
+    int fieldAssociation;
+    vtkDataArray *sa = vtkDataArray::SafeDownCast
+      (this->GetArrayToProcess(data, fieldAssociation));
     if (!sa)
     {
       vtkErrorMacro("VolumeMapper's Input has no scalar array!");
       return;
     }
+    vtkDataArray *sca = nullptr;
+    int ncomp = sa->GetNumberOfComponents();
+    if (ncomp>1)
+    {
+      int comp = 0;//mapper->GetArrayComponent(); not yet supported
+      /*
+      if (comp<0)
+      {
+        comp = 0;
+      }
+      if (comp>ncomp-1)
+      {
+        comp = ncomp-1;
+      }
+      */
+      sca = sa->NewInstance();
+      sca->SetNumberOfComponents(1);
+      sca->SetNumberOfTuples(sa->GetNumberOfTuples());
+      sca->CopyComponent(0, sa, comp);
+      sa = sca;
+    }
     int ScalarDataType = sa->GetDataType();
     void* ScalarDataPointer = sa->GetVoidPointer(0);
     int dim[3];
     data->GetDimensions(dim);
-    if (!onPoints)
+    if (fieldAssociation == vtkDataObject::FIELD_ASSOCIATION_CELLS)
     {
       dim[0] = dim[0]-1;
       dim[1] = dim[1]-1;
@@ -126,6 +146,14 @@ void vtkOSPRayVolumeMapperNode::Render(bool prepass)
     else if (ScalarDataType == VTK_UNSIGNED_CHAR)
     {
       voxelType = "uchar";
+    }
+    else if (ScalarDataType == VTK_UNSIGNED_SHORT)
+    {
+      voxelType = "ushort";
+    }
+    else if (ScalarDataType == VTK_SHORT)
+    {
+      voxelType = "ushort";
     }
     else if (ScalarDataType == VTK_DOUBLE)
     {
@@ -156,7 +184,7 @@ void vtkOSPRayVolumeMapperNode::Render(bool prepass)
       double scale[3];
       data->GetOrigin(origin);
       vol->GetScale(scale);
-      double *bds = vol->GetBounds();
+      const double *bds = vol->GetBounds();
       origin[0] = bds[0];
       origin[1] = bds[2];
       origin[2] = bds[4];
@@ -177,7 +205,7 @@ void vtkOSPRayVolumeMapperNode::Render(bool prepass)
       ospSetRegion(this->OSPRayVolume, ScalarDataPointer, ll, uu);
 
       ospSet2f(this->TransferFunction, "valueRange",
-               data->GetScalarRange()[0], data->GetScalarRange()[1]);
+               sa->GetRange()[0], sa->GetRange()[1]);
     }
 
     // test for modifications to volume properties
@@ -191,12 +219,12 @@ void vtkOSPRayVolumeMapperNode::Render(bool prepass)
 
       this->TFVals.resize(this->NumColors*3);
       this->TFOVals.resize(this->NumColors);
-      scalarTF->GetTable(data->GetScalarRange()[0],
-                         data->GetScalarRange()[1],
+      scalarTF->GetTable(sa->GetRange()[0],
+                         sa->GetRange()[1],
                          this->NumColors,
                          &TFOVals[0]);
-      colorTF->GetTable(data->GetScalarRange()[0],
-                        data->GetScalarRange()[1],
+      colorTF->GetTable(sa->GetRange()[0],
+                        sa->GetRange()[1],
                         this->NumColors,
                         &this->TFVals[0]);
 
@@ -213,31 +241,47 @@ void vtkOSPRayVolumeMapperNode::Render(bool prepass)
 
       ospSet1i(this->OSPRayVolume, "gradientShadingEnabled",
                volProperty->GetShade());
-      PropertyTime.Modified();
+      this->PropertyTime.Modified();
       ospRelease(colorData);
       ospRelease(tfAlphaData);
     }
 
+    ospSet1f(OSPRayVolume, "adaptiveMaxSamplingRate", 1.2f);
+    ospSet1f(OSPRayVolume, "adaptiveBacktrack", 0.01f);
+    ospSet1i(OSPRayVolume, "adaptiveSampling", 1);
     if (this->SamplingRate == 0.0f)  // 0 means automatic sampling rate
     {
       //automatically determine sampling rate
-      int maxBound = std::max(dim[0],dim[1]);
-      maxBound = std::max(maxBound,dim[2]);
-      if (maxBound < 1000)
+      int minBound = std::min(std::min(dim[0],dim[1]),dim[2]);
+      float minSamplingRate = 0.075f; // lower for min adaptive sampling step
+      if (minBound < 100)
       {
-        float s = 1000.0f - maxBound;
-        s = (s/1000.0f*4.0f + 0.25f);
-        ospSet1f(this->OSPRayVolume, "samplingRate", s);
+        float s = (100.0f - minBound)/100.0f;
+        ospSet1f(this->OSPRayVolume, "samplingRate", s*6.f + 1.f);
+        ospSet1i(this->OSPRayVolume, "adaptiveSampling", 0); //turn off preIntegration
+      }
+      else if (minBound < 1000)
+      {
+        float s = std::min((900.0f - minBound)/1000.0f, 1.f);
+        float s_new = (s*s*s*(0.5f-minSamplingRate) + minSamplingRate);
+        ospSet1f(this->OSPRayVolume, "samplingRate", s_new);
+        ospSet1f(this->OSPRayVolume, "adaptiveMaxSamplingRate", 2.f);
       }
       else
       {
-        ospSet1f(this->OSPRayVolume, "samplingRate", 0.25f);
+        ospSet1f(this->OSPRayVolume, "samplingRate", minSamplingRate);
       }
     }
     else
     {
       ospSet1f(this->OSPRayVolume, "samplingRate", this->SamplingRate);
     }
+    ospSet1f(this->OSPRayVolume, "adaptiveScalar", 15.f);
+    float rs = static_cast<float>(volProperty->GetSpecular(0)/16.); //16 chosen because near GL
+    float gs = static_cast<float>(volProperty->GetSpecular(1)/16.);
+    float bs = static_cast<float>(volProperty->GetSpecular(2)/16.);
+    ospSet3f(this->OSPRayVolume, "specular", rs,gs,bs);
+    ospSet1i(this->OSPRayVolume, "preIntegration", 0); //turn off preIntegration
 
     this->RenderTime = volNode->GetMTime();
     this->BuildTime.Modified();
@@ -245,6 +289,47 @@ void vtkOSPRayVolumeMapperNode::Render(bool prepass)
     ospCommit(this->TransferFunction);
     ospCommit(this->OSPRayVolume);
     ospAddVolume(OSPRayModel, this->OSPRayVolume);
-    //ospCommit(OSPRayModel);
+
+    if (sca)
+    {
+      sca->Delete();
+    }
   }
+}
+
+//------------------------------------------------------------------------------
+void vtkOSPRayVolumeMapperNode::UpdateTransferFunction(vtkVolume* vol)
+{
+  vtkVolumeProperty* volProperty = vol->GetProperty();
+  vtkColorTransferFunction* colorTF =
+    volProperty->GetRGBTransferFunction(0);
+  vtkPiecewiseFunction *scalarTF = volProperty->GetScalarOpacity(0);
+  double* tfRangeD = colorTF->GetRange();
+  osp::vec2f tfRange = {float(tfRangeD[0]), float(tfRangeD[1])};
+
+  this->TFVals.resize(this->NumColors*3);
+  this->TFOVals.resize(this->NumColors);
+  scalarTF->GetTable(tfRangeD[0],
+                     tfRangeD[1],
+                     this->NumColors,
+                     &TFOVals[0]);
+  colorTF->GetTable(tfRangeD[0],
+                    tfRangeD[1],
+                    this->NumColors,
+                    &this->TFVals[0]);
+
+  OSPData colorData = ospNewData(this->NumColors,
+                                 OSP_FLOAT3,
+                                 &this->TFVals[0]);
+  ospSetData(this->TransferFunction, "colors", colorData);
+
+  OSPData tfAlphaData = ospNewData(this->NumColors, OSP_FLOAT, &TFOVals[0]);
+  ospSetData(this->TransferFunction, "opacities", tfAlphaData);
+  ospSetVec2f(this->TransferFunction, "valueRange", tfRange);
+  ospCommit(this->TransferFunction);
+  ospSetObject(this->OSPRayVolume, "transferFunction",
+               this->TransferFunction);
+
+  ospRelease(colorData);
+  ospRelease(tfAlphaData);
 }

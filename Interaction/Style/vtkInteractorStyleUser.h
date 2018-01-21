@@ -44,7 +44,7 @@ class VTKINTERACTIONSTYLE_EXPORT vtkInteractorStyleUser : public vtkInteractorSt
 public:
   static vtkInteractorStyleUser *New();
   vtkTypeMacro(vtkInteractorStyleUser,vtkInteractorStyle);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -68,7 +68,7 @@ public:
   //@{
   /**
    * Test whether modifiers were held down when mouse button or key
-   * was pressed
+   * was pressed.
    */
   vtkGetMacro(ShiftKey,int);
   vtkGetMacro(CtrlKey,int);
@@ -83,8 +83,8 @@ public:
 
   //@{
   /**
-   * Get the KeySym (in the same format as Tk KeySyms) for a
-   * KeyPress or KeyRelease method.
+   * Get the KeySym (in the same format as vtkRenderWindowInteractor KeySyms)
+   * for a KeyPress or KeyRelease method.
    */
   vtkGetStringMacro(KeySym);
   //@}
@@ -101,42 +101,42 @@ public:
   /**
    * Generic event bindings
    */
-  virtual void OnMouseMove();
-  virtual void OnLeftButtonDown();
-  virtual void OnLeftButtonUp();
-  virtual void OnMiddleButtonDown();
-  virtual void OnMiddleButtonUp();
-  virtual void OnRightButtonDown();
-  virtual void OnRightButtonUp();
-  virtual void OnMouseWheelForward();
-  virtual void OnMouseWheelBackward();
+  void OnMouseMove() override;
+  void OnLeftButtonDown() override;
+  void OnLeftButtonUp() override;
+  void OnMiddleButtonDown() override;
+  void OnMiddleButtonUp() override;
+  void OnRightButtonDown() override;
+  void OnRightButtonUp() override;
+  void OnMouseWheelForward() override;
+  void OnMouseWheelBackward() override;
   //@}
 
   //@{
   /**
    * Keyboard functions
    */
-  virtual void OnChar();
-  virtual void OnKeyPress();
-  virtual void OnKeyRelease();
+  void OnChar() override;
+  void OnKeyPress() override;
+  void OnKeyRelease() override;
   //@}
 
   //@{
   /**
    * These are more esoteric events, but are useful in some cases.
    */
-  virtual void OnExpose();
-  virtual void OnConfigure();
-  virtual void OnEnter();
-  virtual void OnLeave();
+  void OnExpose() override;
+  void OnConfigure() override;
+  void OnEnter() override;
+  void OnLeave() override;
   //@}
 
-  virtual void OnTimer();
+  void OnTimer() override;
 
 protected:
 
   vtkInteractorStyleUser();
-  ~vtkInteractorStyleUser();
+  ~vtkInteractorStyleUser() override;
 
   int LastPos[2];
   int OldPos[2];
@@ -148,8 +148,8 @@ protected:
   int Button;
 
 private:
-  vtkInteractorStyleUser(const vtkInteractorStyleUser&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkInteractorStyleUser&) VTK_DELETE_FUNCTION;
+  vtkInteractorStyleUser(const vtkInteractorStyleUser&) = delete;
+  void operator=(const vtkInteractorStyleUser&) = delete;
 };
 
 #endif

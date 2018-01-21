@@ -59,25 +59,6 @@
   std::cout << "PASSED\n"; \
   return EXIT_SUCCESS; \
   }
-#define CHECK_ERROR_MSG(msg) \
-  { \
-  std::string expectedMsg(msg); \
-  if (!errorObserver->GetError()) \
-  { \
-    std::cout << "Failed to catch any error. Expected the error message to contain \"" << expectedMsg << std::endl; \
-    status++; \
-  } \
-  else \
-  { \
-    std::string gotMsg(errorObserver->GetErrorMessage()); \
-    if (gotMsg.find(expectedMsg) == std::string::npos) \
-    { \
-      std::cout << "Error message does not contain \"" << expectedMsg << "\" got \n\"" << gotMsg << std::endl; \
-      status++; \
-    } \
-  } \
-  } \
-  errorObserver->Clear()
 
 SCALAR_FUNC(TestAbs,abs,std::abs);
 SCALAR_FUNC(TestAcos,acos,std::acos);
@@ -96,6 +77,8 @@ SCALAR_FUNC(TestSqrt,sqrt,std::sqrt);
 SCALAR_FUNC(TestTan,tan,std::tan);
 SCALAR_FUNC(TestTanh,tanh,std::tanh);
 static int TestScalars();
+static int TestVariableNames();
+static int TestSpacing();
 static int TestUnaryOperations();
 static int TestScientificNotation();
 static int TestVectors();
@@ -127,6 +110,8 @@ int UnitTestFunctionParser(int,char *[])
   status += TestTanh(-1.0, 1.0);
 
   status += TestScalars();
+  status += TestVariableNames();
+  status += TestSpacing();
   status += TestUnaryOperations();
   status += TestScientificNotation();
   status += TestVectors();
@@ -210,6 +195,54 @@ int TestScalars()
   parser->SetFunction( "+(x-y)/(x-y) * -(x-y)/(x-y) + (x - x)");
   double result = parser->GetScalarResult();
   if (result != -1.0)
+  {
+    std::cout << "FAILED\n";
+    return 1;
+  }
+  else
+  {
+    std::cout << "PASSED\n";
+    return 0;
+  }
+}
+
+int TestVariableNames()
+{
+  std::cout << "Testing variable names similar to math ops with parentheses " << "...";
+  vtkSmartPointer<vtkFunctionParser> parser =
+    vtkSmartPointer<vtkFunctionParser>::New();
+  parser->SetScalarVariableValue("absolutex", 1.0);
+  parser->SetScalarVariableValue("y", 2.0);
+  parser->SetFunction( "absolutex - (y)");
+  double result = parser->GetScalarResult();
+  if (result != -1.0)
+  {
+    std::cout << "FAILED\n";
+    return 1;
+  }
+  else
+  {
+    std::cout << "PASSED\n";
+    return 0;
+  }
+}
+
+int TestSpacing()
+{
+  std::cout << "Testing spacing with math ops " << "...";
+  vtkSmartPointer<vtkFunctionParser> parser =
+    vtkSmartPointer<vtkFunctionParser>::New();
+  parser->SetScalarVariableValue("x", -1.0);
+  parser->SetFunction( "abs(x)");
+  double result = parser->GetScalarResult();
+  if (result != 1.0)
+  {
+    std::cout << "FAILED\n";
+    return 1;
+  }
+  parser->SetFunction( "abs  (x)");
+  result = parser->GetScalarResult();
+  if (result != 1.0)
   {
     std::cout << "FAILED\n";
     return 1;
@@ -881,9 +914,9 @@ int TestErrors()
 
   // Parse: no function has been set
   parser->SetFunction("cos(a)");
-  parser->SetFunction(NULL);
+  parser->SetFunction(nullptr);
   parser->IsScalarResult();
-  CHECK_ERROR_MSG("Parse: no function has been set");
+  status += errorObserver->CheckErrorMessage("Parse: no function has been set");
 
   double s = -2.0;
   double v[3] = {1.0, 2.0, 3.0};
@@ -896,182 +929,181 @@ int TestErrors()
   // addition expects either 2 vectors or 2 scalars
   parser->SetFunction("s + v");
   parser->IsScalarResult();
-  CHECK_ERROR_MSG("addition expects either 2 vectors or 2 scalars");
+  status += errorObserver->CheckErrorMessage("addition expects either 2 vectors or 2 scalars");
 
   // subtraction expects either 2 vectors or 2 scalars
   parser->SetFunction("s - v");
   parser->IsScalarResult();
-  CHECK_ERROR_MSG("subtraction expects either 2 vectors or 2 scalars");
+  status += errorObserver->CheckErrorMessage("subtraction expects either 2 vectors or 2 scalars");
 
   // multiply expecting either 2 scalars or a scalar and a vector
   parser->SetFunction("v * w");
   parser->IsScalarResult();
-  CHECK_ERROR_MSG("multiply expecting either 2 scalars or a scalar and a vector");
+  status += errorObserver->CheckErrorMessage("multiply expecting either 2 scalars or a scalar and a vector");
 
   // can't divide vectors
   parser->SetFunction("v / w");
   parser->IsScalarResult();
-  CHECK_ERROR_MSG("can't divide vectors");
+  status += errorObserver->CheckErrorMessage("can't divide vectors");
 
   // can't raise a vector to a power
   parser->SetFunction("v ^ 2");
   parser->IsScalarResult();
-  CHECK_ERROR_MSG("can't raise a vector to a power");
+  status += errorObserver->CheckErrorMessage("can't raise a vector to a power");
 
   // Vectors cannot be used in boolean expressions
   parser->SetFunction("v | w");
   parser->IsScalarResult();
-  CHECK_ERROR_MSG("Vectors cannot be used in boolean expressions");
+  status += errorObserver->CheckErrorMessage("Vectors cannot be used in boolean expressions");
 
   // expecting a scalar, but got a vector
   parser->SetFunction("cos(v)");
   parser->IsScalarResult();
-  CHECK_ERROR_MSG("expecting a scalar, but got a vector");
+  status += errorObserver->CheckErrorMessage("expecting a scalar, but got a vector");
 
   // can't apply min to vectors
   parser->SetFunction("min(v,w)");
   parser->IsScalarResult();
-  CHECK_ERROR_MSG("can't apply min to vectors");
-
+  status += errorObserver->CheckErrorMessage("can't apply min to vectors");
   // can't apply max to vectors
   parser->SetFunction("max(v,w)");
   parser->IsScalarResult();
-  CHECK_ERROR_MSG("can't apply max to vectors");
+  status += errorObserver->CheckErrorMessage("can't apply max to vectors");
 
   // can't apply cross to scalars
   parser->SetFunction("cross(s,w)");
   parser->IsScalarResult();
-  CHECK_ERROR_MSG("can't apply cross to scalars");
+  status += errorObserver->CheckErrorMessage("can't apply cross to scalars");
 
   // dot product does not operate on scalars
   parser->SetFunction("s . v");
   parser->IsScalarResult();
-  CHECK_ERROR_MSG("dot product does not operate on scalars");
+  status += errorObserver->CheckErrorMessage("dot product does not operate on scalars");
 
   // magnitude expects a vector, but got a scalar
   parser->SetFunction("mag(s)");
   parser->IsScalarResult();
-  CHECK_ERROR_MSG("magnitude expects a vector, but got a scalar");
+  status += errorObserver->CheckErrorMessage("magnitude expects a vector, but got a scalar");
 
   // normalize expects a vector, but got a scalar
   parser->SetFunction("norm(s)");
   parser->IsScalarResult();
-  CHECK_ERROR_MSG("normalize expects a vector, but got a scalar");
+  status += errorObserver->CheckErrorMessage("normalize expects a vector, but got a scalar");
 
   // first argument of if(bool,valtrue,valfalse) cannot be a vector
   parser->SetFunction("if(v,s,s)");
   parser->IsScalarResult();
-  CHECK_ERROR_MSG("first argument of if(bool,valtrue,valfalse) cannot be a vector");
+  status += errorObserver->CheckErrorMessage("first argument of if(bool,valtrue,valfalse) cannot be a vector");
 
   // first argument of if(bool,valtrue,valfalse) cannot be a vector
   parser->SetFunction("if(v,s,s)");
   parser->IsScalarResult();
-  CHECK_ERROR_MSG("first argument of if(bool,valtrue,valfalse) cannot be a vector");
+  status += errorObserver->CheckErrorMessage("first argument of if(bool,valtrue,valfalse) cannot be a vector");
 
   // the if function expects the second and third arguments to be either 2 vectors or 2 scalars
   parser->SetFunction("if(s,v,s)");
   parser->IsScalarResult();
-  CHECK_ERROR_MSG("the if function expects the second and third arguments to be either 2 vectors or 2 scalars");
+  status += errorObserver->CheckErrorMessage("the if function expects the second and third arguments to be either 2 vectors or 2 scalars");
 
   // Trying to take a natural logarithm of a negative value
   parser->SetFunction("ln(s)");
   parser->IsScalarResult();
-  CHECK_ERROR_MSG("Trying to take a natural logarithm of a negative value");
+  status += errorObserver->CheckErrorMessage("Trying to take a natural logarithm of a negative value");
 
   // Trying to take a natural logarithm of a negative value
   parser->SetFunction("ln(s)");
   parser->IsScalarResult();
-  CHECK_ERROR_MSG("Trying to take a natural logarithm of a negative value");
+  status += errorObserver->CheckErrorMessage("Trying to take a natural logarithm of a negative value");
 
   // Trying to take a log10 of a negative value
   parser->SetFunction("log10(s)");
   parser->IsScalarResult();
-  CHECK_ERROR_MSG("Trying to take a log10 of a negative value");
+  status += errorObserver->CheckErrorMessage("Trying to take a log10 of a negative value");
 
   // Trying to take a square root of a negative value
   parser->SetFunction("sqrt(s)");
   parser->IsScalarResult();
-  CHECK_ERROR_MSG("Trying to take a square root of a negative value");
+  status += errorObserver->CheckErrorMessage("Trying to take a square root of a negative value");
 
   // Trying to take asin of a value < -1 or > 1
   parser->SetFunction("asin(s)");
   parser->IsScalarResult();
-  CHECK_ERROR_MSG("Trying to take asin of a value < -1 or > 1");
+  status += errorObserver->CheckErrorMessage("Trying to take asin of a value < -1 or > 1");
 
   // Trying to take acos of a value < -1 or > 1
   parser->SetFunction("acos(s)");
   parser->IsScalarResult();
-  CHECK_ERROR_MSG("Trying to take acos of a value < -1 or > 1");
+  status += errorObserver->CheckErrorMessage("Trying to take acos of a value < -1 or > 1");
 
   // Trying to divide by zero<
   parser->SetFunction("s/zero");
   parser->IsScalarResult();
-  CHECK_ERROR_MSG("Trying to divide by zero");
+  status += errorObserver->CheckErrorMessage("Trying to divide by zero");
 
   // GetScalarResult: no valid scalar result
   parser->SetFunction("cross(v,w)");
   parser->GetScalarResult();
-  CHECK_ERROR_MSG("GetScalarResult: no valid scalar result");
+  status += errorObserver->CheckErrorMessage("GetScalarResult: no valid scalar result");
 
   // GetVectorResult: no valid vector result
   parser->SetFunction("v . w");
   parser->GetVectorResult();
-  CHECK_ERROR_MSG("GetVectorResult: no valid vector result");
+  status += errorObserver->CheckErrorMessage("GetVectorResult: no valid vector result");
 
   // GetScalarVariableValue: scalar variable name ... does not exist
   parser->GetScalarVariableValue("xyz");
-  CHECK_ERROR_MSG("GetScalarVariableValue: scalar variable name");
+  status += errorObserver->CheckErrorMessage("GetScalarVariableValue: scalar variable name");
 
   // GetScalarVariableValue: scalar variable number ... does not exist
   parser->GetScalarVariableValue(128);
-  CHECK_ERROR_MSG("GetScalarVariableValue: scalar variable number");
+  status += errorObserver->CheckErrorMessage("GetScalarVariableValue: scalar variable number");
 
   // GetVectorVariableValue: vector variable name ... does not exist
   parser->GetVectorVariableValue("xyz");
-  CHECK_ERROR_MSG("GetVectorVariableValue: vector variable name");
+  status += errorObserver->CheckErrorMessage("GetVectorVariableValue: vector variable name");
 
   // GetVectorVariableValue: vector variable number ... does not exist
   parser->GetVectorVariableValue(128);
-  CHECK_ERROR_MSG("GetVectorVariableValue: vector variable number");
+  status += errorObserver->CheckErrorMessage("GetVectorVariableValue: vector variable number");
 
   // Syntax error: expecting a variable name
   parser->SetFunction("acos()");
   parser->IsScalarResult();
-  CHECK_ERROR_MSG("Syntax error: expecting a variable name");
+  status += errorObserver->CheckErrorMessage("Syntax error: expecting a variable name");
 
   // Parse errors
   parser->SetFunction("-");
   parser->IsScalarResult();
-  CHECK_ERROR_MSG("Syntax error: unary minus with no operand");
+  status += errorObserver->CheckErrorMessage("Syntax error: unary minus with no operand");
 
   parser->SetFunction("s *");
   parser->IsScalarResult();
-  CHECK_ERROR_MSG("Syntax error: expecting a variable name");
+  status += errorObserver->CheckErrorMessage("Syntax error: expecting a variable name");
 
   parser->SetFunction("cross(v)");
   parser->IsScalarResult();
-  CHECK_ERROR_MSG("Syntax Error: two parameters separated by commas expected");
+  status += errorObserver->CheckErrorMessage("Syntax Error: two parameters separated by commas expected");
 
   parser->SetFunction("if(v,s)");
   parser->IsScalarResult();
-  CHECK_ERROR_MSG("Syntax Error: three parameters separated by commas expected");
+  status += errorObserver->CheckErrorMessage("Syntax Error: three parameters separated by commas expected");
 
   parser->SetFunction("s * (v + w");
   parser->IsScalarResult();
-  CHECK_ERROR_MSG("Syntax Error: missing closing parenthesis");
+  status += errorObserver->CheckErrorMessage("Syntax Error: missing closing parenthesis");
 
   parser->SetFunction("v + w)*s");
   parser->IsScalarResult();
-  CHECK_ERROR_MSG("Syntax Error: mismatched parenthesis");
+  status += errorObserver->CheckErrorMessage("Syntax Error: mismatched parenthesis");
 
   parser->SetFunction("s s");
   parser->IsScalarResult();
-  CHECK_ERROR_MSG("Syntax error: operator expected");
+  status += errorObserver->CheckErrorMessage("Syntax error: operator expected");
 
 #if 0
   parser->SetFunction("s*()");
   parser->IsScalarResult();
-  CHECK_ERROR_MSG("Syntax Error: empty parentheses");
+  status += errorObserver->CheckErrorMessage("Syntax Error: empty parentheses");
 #endif
 
   if (status== 0)

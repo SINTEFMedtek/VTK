@@ -68,12 +68,10 @@ set(Module_SRCS
   vtkHexahedron.cxx
   vtkHierarchicalBoxDataIterator.cxx
   vtkHierarchicalBoxDataSet.cxx
-  vtkHyperOctreeCursor.cxx
-  vtkHyperOctree.cxx
-  vtkHyperOctreePointsGrabber.cxx
   vtkHyperTree.cxx
   vtkHyperTreeCursor.cxx
   vtkHyperTreeGrid.cxx
+  vtkHyperTreeGridCursor.cxx
   vtkImageData.cxx
   vtkImageIterator.cxx
   vtkImplicitBoolean.cxx
@@ -94,6 +92,13 @@ set(Module_SRCS
   vtkKdNode.cxx
   vtkKdTree.cxx
   vtkKdTreePointLocator.cxx
+  vtkLagrangeCurve.cxx
+  vtkLagrangeHexahedron.cxx
+  vtkLagrangeInterpolation.cxx
+  vtkLagrangeQuadrilateral.cxx
+  vtkLagrangeTetra.cxx
+  vtkLagrangeTriangle.cxx
+  vtkLagrangeWedge.cxx
   vtkLine.cxx
   vtkLocator.cxx
   vtkMappedUnstructuredGrid.txx
@@ -161,6 +166,7 @@ set(Module_SRCS
   vtkSpline.cxx
   vtkStaticCellLinks.cxx
   vtkStaticCellLinksTemplate.txx
+  vtkStaticCellLocator.cxx
   vtkStaticPointLocator.cxx
   vtkStructuredData.cxx
   vtkStructuredExtent.cxx
@@ -212,6 +218,14 @@ set(Module_SRCS
   vtkUniformGridAMR.cxx
   vtkUniformGridAMRDataIterator.cxx
   )
+
+if (NOT VTK_LEGACY_REMOVE)
+  list(APPEND Module_SRCS
+    vtkHyperOctree.cxx
+    vtkHyperOctreeCursor.cxx
+    vtkHyperOctreePointsGrabber.cxx
+  )
+endif()
 
 set(${vtk-module}_HDRS
   vtkArrayListTemplate.h
@@ -291,6 +305,11 @@ set_source_files_properties(
 set_source_files_properties(
   vtkDispatcher_Private
   PROPERTIES WRAP_EXCLUDE_PYTHON 1
-  )
+)
+
+set_source_files_properties(
+  vtkLagrangeInterpolation.cxx
+  PROPERTIES WRAP_EXCLUDE 1
+)
 
 vtk_module_library(vtkCommonDataModel ${Module_SRCS})

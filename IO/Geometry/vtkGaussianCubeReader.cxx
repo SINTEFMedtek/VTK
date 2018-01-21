@@ -34,7 +34,6 @@ vtkStandardNewMacro(vtkGaussianCubeReader);
 // Construct object with merging set to true.
 vtkGaussianCubeReader::vtkGaussianCubeReader()
 {
-  this->FileName = NULL;
   this->Transform = vtkTransform::New();
   // Add the second output for the grid data
 
@@ -49,7 +48,6 @@ vtkGaussianCubeReader::vtkGaussianCubeReader()
 //----------------------------------------------------------------------------
 vtkGaussianCubeReader::~vtkGaussianCubeReader()
 {
-  delete [] this->FileName;
 
   this->Transform->Delete();
   // must delete the second output added
@@ -84,7 +82,7 @@ int vtkGaussianCubeReader::RequestData(
     return 0;
   }
 
-  if ((fp = fopen(this->FileName, "r")) == NULL)
+  if ((fp = fopen(this->FileName, "r")) == nullptr)
   {
     vtkErrorMacro(<< "File " << this->FileName << " not found");
     return 0;
@@ -97,11 +95,11 @@ int vtkGaussianCubeReader::RequestData(
     fclose (fp);
     return 0;
   }
-  if(strtok(title, ":") != NULL)
+  if(strtok(title, ":") != nullptr)
   {
-    if(strtok(NULL, ":") != NULL)
+    if(strtok(nullptr, ":") != nullptr)
     {
-      strcpy(data_name, strtok(NULL, ":"));
+      strcpy(data_name, strtok(nullptr, ":"));
       fprintf(stderr,"label = %s\n", data_name);
     }
   }
@@ -258,7 +256,7 @@ vtkImageData *vtkGaussianCubeReader::GetGridOutput()
 {
   if (this->GetNumberOfOutputPorts() < 2)
   {
-    return NULL;
+    return nullptr;
   }
   return vtkImageData::SafeDownCast(
     this->GetExecutive()->GetOutputData(1));
@@ -301,7 +299,7 @@ int vtkGaussianCubeReader::RequestInformation(
     return 0;
   }
 
-  if ((fp = fopen(this->FileName, "r")) == NULL)
+  if ((fp = fopen(this->FileName, "r")) == nullptr)
   {
     vtkErrorMacro(<< "File " << this->FileName << " not found");
     return 0;

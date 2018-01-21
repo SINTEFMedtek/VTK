@@ -41,8 +41,8 @@ class vtkMapType : public MapBase {};
 
 vtkMapArrayValues::vtkMapArrayValues()
 {
-  this->InputArrayName = 0;
-  this->OutputArrayName = 0;
+  this->InputArrayName = nullptr;
+  this->OutputArrayName = nullptr;
   this->SetOutputArrayName("ArrayMap");
   this->FieldType = vtkMapArrayValues::POINT_DATA;
   this->OutputArrayType = VTK_INT;
@@ -54,42 +54,52 @@ vtkMapArrayValues::vtkMapArrayValues()
 
 vtkMapArrayValues::~vtkMapArrayValues()
 {
-  this->SetInputArrayName(0);
-  this->SetOutputArrayName(0);
+  this->SetInputArrayName(nullptr);
+  this->SetOutputArrayName(nullptr);
   delete this->Map;
 }
 
 void vtkMapArrayValues::AddToMap(char *from, int to)
 {
-  this->Map->insert(std::make_pair< vtkVariant, vtkVariant >(from, to));
+  vtkVariant fromVar(from);
+  vtkVariant toVar(to);
+  this->Map->insert(std::make_pair(fromVar, toVar));
 
   this->Modified();
 }
 
 void vtkMapArrayValues::AddToMap(int from, int to)
 {
-  this->Map->insert(std::make_pair< vtkVariant, vtkVariant >(from, to));
+  vtkVariant fromVar(from);
+  vtkVariant toVar(to);
+  this->Map->insert(std::make_pair(fromVar, toVar));
 
   this->Modified();
 }
 
 void vtkMapArrayValues::AddToMap(int from, char *to)
 {
-  this->Map->insert(std::make_pair< vtkVariant, vtkVariant >(from, to));
+  vtkVariant fromVar(from);
+  vtkVariant toVar(to);
+  this->Map->insert(std::make_pair(fromVar, toVar));
 
   this->Modified();
 }
 
 void vtkMapArrayValues::AddToMap(char *from, char *to)
 {
-  this->Map->insert(std::make_pair< vtkVariant, vtkVariant >(from, to));
+  vtkVariant fromVar(from);
+  vtkVariant toVar(to);
+  this->Map->insert(std::make_pair(fromVar, toVar));
 
   this->Modified();
 }
 
 void vtkMapArrayValues::AddToMap(vtkVariant from, vtkVariant to)
 {
-  this->Map->insert(std::make_pair(from, to));
+  vtkVariant fromVar(from);
+  vtkVariant toVar(to);
+  this->Map->insert(std::make_pair(fromVar, toVar));
 
   this->Modified();
 }
@@ -126,7 +136,7 @@ int vtkMapArrayValues::RequestData(
     return 1;
   }
 
-  vtkDataSetAttributes* ods=0;
+  vtkDataSetAttributes* ods=nullptr;
   if (vtkDataSet::SafeDownCast(input))
   {
     vtkDataSet *dsInput = vtkDataSet::SafeDownCast(input);

@@ -36,43 +36,43 @@ class VTKTESTINGGENERICBRIDGE_EXPORT vtkBridgePointIteratorOnCell : public vtkGe
 public:
   static vtkBridgePointIteratorOnCell *New();
   vtkTypeMacro(vtkBridgePointIteratorOnCell,vtkGenericPointIterator);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Move iterator to first position if any (loop initialization).
    */
-  void Begin();
+  void Begin() override;
 
   /**
    * Is there no point at iterator position? (exit condition).
    */
-  int IsAtEnd();
+  int IsAtEnd() override;
 
   /**
    * Move iterator to next position. (loop progression).
    * \pre not_off: !IsAtEnd()
    */
-  void Next();
+  void Next() override;
 
   /**
    * Point at iterator position.
    * \pre not_off: !IsAtEnd()
    * \post result_exists: result!=0
    */
-  double *GetPosition();
+  double *GetPosition() override;
 
   /**
    * Point at iterator position.
    * \pre not_off: !IsAtEnd()
    * \pre x_exists: x!=0
    */
-  void GetPosition(double x[3]);
+  void GetPosition(double x[3]) override;
 
   /**
    * Unique identifier for the point, could be non-contiguous
    * \pre not_off: !IsAtEnd()
    */
-  vtkIdType GetId();
+  vtkIdType GetId() override;
 
   /**
    * The iterator will iterate over the point of a cell
@@ -89,7 +89,7 @@ protected:
   /**
    * Destructor.
    */
-  virtual ~vtkBridgePointIteratorOnCell();
+  ~vtkBridgePointIteratorOnCell() override;
 
   vtkBridgeDataSet *DataSet; // the structure on which the objet iterates.
   vtkIdType Cursor; // current position
@@ -97,8 +97,8 @@ protected:
   vtkIdList *PtIds; // list of points of the cell
 
 private:
-  vtkBridgePointIteratorOnCell(const vtkBridgePointIteratorOnCell&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkBridgePointIteratorOnCell&) VTK_DELETE_FUNCTION;
+  vtkBridgePointIteratorOnCell(const vtkBridgePointIteratorOnCell&) = delete;
+  void operator=(const vtkBridgePointIteratorOnCell&) = delete;
 };
 
 #endif

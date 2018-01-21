@@ -50,7 +50,7 @@ class VTKRENDERINGANNOTATION_EXPORT vtkProp3DAxisFollower
    * Standard VTK methods for type and printing.
    */
   vtkTypeMacro(vtkProp3DAxisFollower,vtkProp3DFollower);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
  //@{
@@ -105,7 +105,7 @@ class VTKRENDERINGANNOTATION_EXPORT vtkProp3DAxisFollower
  //@{
  /**
   * Set view angle LOD threshold (0.0 - 1.0).This determines at what view
-  * angle to geometry will make the geometry not visibile.
+  * angle to geometry will make the geometry not visible.
   * Default is 0.34.
   */
  vtkSetClampMacro(ViewAngleLODThreshold, double, 0.0, 1.0);
@@ -133,12 +133,12 @@ class VTKRENDERINGANNOTATION_EXPORT vtkProp3DAxisFollower
    * Generate the matrix based on ivars. This method overloads its superclasses
    * ComputeMatrix() method due to the special vtkProp3DAxisFollower matrix operations.
    */
-  virtual void ComputeMatrix();
+  void ComputeMatrix() override;
 
   /**
    * Shallow copy of a follower. Overloads the virtual vtkProp method.
    */
-  void ShallowCopy(vtkProp *prop);
+  void ShallowCopy(vtkProp *prop) override;
 
  /**
   * Calculate scale factor to maintain same size of a object
@@ -153,9 +153,9 @@ class VTKRENDERINGANNOTATION_EXPORT vtkProp3DAxisFollower
    * property, texture map and then mapper. If a property hasn't been
    * assigned, then the actor will create one automatically.
    */
-  virtual int RenderOpaqueGeometry(vtkViewport *viewport);
-  virtual int RenderTranslucentPolygonalGeometry(vtkViewport *viewport);
-  virtual int RenderVolumetricGeometry(vtkViewport *viewport);
+  int RenderOpaqueGeometry(vtkViewport *viewport) override;
+  int RenderTranslucentPolygonalGeometry(vtkViewport *viewport) override;
+  int RenderVolumetricGeometry(vtkViewport *viewport) override;
   //@}
 
   virtual void SetViewport(vtkViewport* viewport);
@@ -163,7 +163,7 @@ class VTKRENDERINGANNOTATION_EXPORT vtkProp3DAxisFollower
 
 protected:
   vtkProp3DAxisFollower();
-  ~vtkProp3DAxisFollower();
+  ~vtkProp3DAxisFollower() override;
 
  void CalculateOrthogonalVectors(double Rx[3], double Ry[3], double Rz[3],
                                  vtkAxisActor *axis1, double *dop,
@@ -195,8 +195,8 @@ protected:
   vtkWeakPointer<vtkAxisActor> Axis;
   vtkWeakPointer<vtkViewport> Viewport;
 private:
-  vtkProp3DAxisFollower(const vtkProp3DAxisFollower&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkProp3DAxisFollower&) VTK_DELETE_FUNCTION;
+  vtkProp3DAxisFollower(const vtkProp3DAxisFollower&) = delete;
+  void operator=(const vtkProp3DAxisFollower&) = delete;
 
   int TextUpsideDown;
   int VisibleAtCurrentViewAngle;

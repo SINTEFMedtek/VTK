@@ -25,33 +25,29 @@
 
 vtkStandardNewMacro(vtkButterflySubdivisionFilter);
 
-static double butterflyWeights[8] =
+static const double butterflyWeights[8] =
   {.5, .5, .125, .125, -.0625, -.0625, -.0625, -.0625};
 
+//----------------------------------------------------------------------------
 int vtkButterflySubdivisionFilter::GenerateSubdivisionPoints(
   vtkPolyData *inputDS, vtkIntArray *edgeData, vtkPoints *outputPts,
   vtkPointData *outputPD)
 {
   double *weights, *weights1, *weights2;
-  vtkIdType *pts = 0;
+  vtkIdType *pts = nullptr;
   vtkIdType cellId, newId, i, j;
   int edgeId;
   vtkIdType npts = 0;
   vtkIdType p1, p2;
   int valence1, valence2;
   vtkCellArray *inputPolys=inputDS->GetPolys();
-  vtkSmartPointer<vtkIdList> cellIds =
-    vtkSmartPointer<vtkIdList>::New();
-  vtkSmartPointer<vtkIdList> p1CellIds =
-    vtkSmartPointer<vtkIdList>::New();
-  vtkSmartPointer<vtkIdList> p2CellIds =
-    vtkSmartPointer<vtkIdList>::New();
-  vtkSmartPointer<vtkIdList> stencil =
-    vtkSmartPointer<vtkIdList>::New();
-  vtkSmartPointer<vtkIdList> stencil1 =
-    vtkSmartPointer<vtkIdList>::New();
-  vtkSmartPointer<vtkIdList> stencil2 =
-    vtkSmartPointer<vtkIdList>::New();
+  vtkSmartPointer<vtkEdgeTable> edgeTable = vtkSmartPointer<vtkEdgeTable>::New();
+  vtkSmartPointer<vtkIdList> cellIds = vtkSmartPointer<vtkIdList>::New();
+  vtkSmartPointer<vtkIdList> p1CellIds = vtkSmartPointer<vtkIdList>::New();
+  vtkSmartPointer<vtkIdList> p2CellIds = vtkSmartPointer<vtkIdList>::New();
+  vtkSmartPointer<vtkIdList> stencil = vtkSmartPointer<vtkIdList>::New();
+  vtkSmartPointer<vtkIdList> stencil1 = vtkSmartPointer<vtkIdList>::New();
+  vtkSmartPointer<vtkIdList> stencil2 = vtkSmartPointer<vtkIdList>::New();
   vtkPoints *inputPts=inputDS->GetPoints();
   vtkPointData *inputPD=inputDS->GetPointData();
 
@@ -60,19 +56,12 @@ int vtkButterflySubdivisionFilter::GenerateSubdivisionPoints(
   weights2 = new double[256];
 
   // Create an edge table to keep track of which edges we've processed
-  vtkSmartPointer<vtkEdgeTable> edgeTable =
-    vtkSmartPointer<vtkEdgeTable>::New();
   edgeTable->InitEdgeInsertion(inputDS->GetNumberOfPoints());
 
   // Generate new points for subdivisions surface
   for (cellId=0, inputPolys->InitTraversal();
        inputPolys->GetNextCell(npts, pts); cellId++)
   {
-    if ( inputDS->GetCellType(cellId) != VTK_TRIANGLE )
-    {
-      continue;
-    }
-
     p1 = pts[2];
     p2 = pts[0];
 
@@ -143,12 +132,14 @@ int vtkButterflySubdivisionFilter::GenerateSubdivisionPoints(
         }
         else
         {
-          delete [] weights; delete [] weights1; delete [] weights2;
+          delete [] weights;
+          delete [] weights1;
+          delete [] weights2;
           vtkErrorMacro ("Dataset is non-manifold and cannot be subdivided.");
           return 0;
         }
-          newId = this->InterpolatePosition (inputPts, outputPts, stencil, weights);
-          outputPD->InterpolatePoint (inputPD, newId, stencil, weights);
+        newId = this->InterpolatePosition (inputPts, outputPts, stencil, weights);
+        outputPD->InterpolatePoint (inputPD, newId, stencil, weights);
       }
       else // we have already created a point on this edge. find it
       {
@@ -164,16 +155,19 @@ int vtkButterflySubdivisionFilter::GenerateSubdivisionPoints(
   } // each cell
 
   // cleanup
-  delete [] weights; delete [] weights1; delete [] weights2;
+  delete [] weights;
+  delete [] weights1;
+  delete [] weights2;
 
   return 1;
 }
 
+//----------------------------------------------------------------------------
 void vtkButterflySubdivisionFilter::GenerateLoopStencil(
   vtkIdType p1, vtkIdType p2, vtkPolyData *polys, vtkIdList *stencilIds,
   double *weights)
 {
-  vtkIdList *cellIds = vtkIdList::New();
+  vtkSmartPointer<vtkIdList> cellIds = vtkSmartPointer<vtkIdList>::New();
   vtkCell *cell;
   vtkIdType startCell, nextCell, tp2, p;
   int shift[255];
@@ -210,7 +204,7 @@ void vtkButterflySubdivisionFilter::GenerateLoopStencil(
     if (cellIds->GetNumberOfIds() != 1)
     {
       boundary = 1;
-       break;
+      break;
     }
     nextCell = cellIds->GetId(0);
   }
@@ -220,24 +214,22 @@ void vtkButterflySubdivisionFilter::GenerateLoopStencil(
   {
     this->GenerateButterflyStencil (p1, p2,
                                     polys, stencilIds, weights);
-    cellIds->Delete();
     return;
   }
 
   // Generate weights
-#define VTK_PI vtkMath::Pi()
   vtkIdType K = stencilIds->GetNumberOfIds();
   if (K >= 5)
   {
     for (vtkIdType j = 0; j < K; j++)
     {
-      weights[j] = (.25 +  cos (2.0 * VTK_PI * shift[j] / static_cast<double>(K))
-                    + .5 * cos (4.0 * VTK_PI * shift[j] / static_cast<double>(K))) / static_cast<double>(K);
+      weights[j] = (.25 +  cos (2.0 * vtkMath::Pi() * shift[j] / static_cast<double>(K))
+                    + .5 * cos (4.0 * vtkMath::Pi() * shift[j] / static_cast<double>(K))) / static_cast<double>(K);
     }
   }
   else if (K == 4)
   {
-    static double weights4[4] = {3.0/8.0, 0.0, -1.0/8.0, 0.0};
+    static const double weights4[4] = {3.0/8.0, 0.0, -1.0/8.0, 0.0};
     weights[0] = weights4[abs(shift[0])];
     weights[1] = weights4[abs(shift[1])];
     weights[2] = weights4[abs(shift[2])];
@@ -245,7 +237,7 @@ void vtkButterflySubdivisionFilter::GenerateLoopStencil(
   }
   else if (K == 3)
   {
-    static double weights3[3] = {5.0/12.0, -1.0/12.0, -1.0/12.0};
+    static const double weights3[3] = {5.0/12.0, -1.0/12.0, -1.0/12.0};
     weights[0] = weights3[abs(shift[0])];
     weights[1] = weights3[abs(shift[1])];
     weights[2] = weights3[abs(shift[2])];
@@ -270,15 +262,14 @@ void vtkButterflySubdivisionFilter::GenerateLoopStencil(
   // add in the extraordinary vertex
   weights[stencilIds->GetNumberOfIds()] = .75;
   stencilIds->InsertNextId (p1);
-
-  cellIds->Delete();
 }
 
+//----------------------------------------------------------------------------
 void vtkButterflySubdivisionFilter::GenerateBoundaryStencil(
   vtkIdType p1, vtkIdType p2, vtkPolyData *polys, vtkIdList *stencilIds,
   double *weights)
 {
-  vtkIdList *cellIds = vtkIdList::New();
+  vtkSmartPointer<vtkIdList> cellIds = vtkSmartPointer<vtkIdList>::New();
   vtkIdType *cells;
   unsigned short ncells;
   vtkIdType *pts;
@@ -326,24 +317,31 @@ void vtkButterflySubdivisionFilter::GenerateBoundaryStencil(
       }
     }
   }
-  stencilIds->SetNumberOfIds (4);
+  if (p3 == -1)
+  {
+    stencilIds->SetNumberOfIds (3);
+  }
+  else
+  {
+    stencilIds->SetNumberOfIds (4);
+    stencilIds->SetId (3, p3);
+  }
   stencilIds->SetId (0, p0);
   stencilIds->SetId (1, p1);
   stencilIds->SetId (2, p2);
-  stencilIds->SetId (3, p3);
+
   weights[0] = -.0625;
   weights[1] = .5625;
   weights[2] = .5625;
   weights[3] = -.0625;
-
-  cellIds->Delete();
 }
 
+//----------------------------------------------------------------------------
 void vtkButterflySubdivisionFilter::GenerateButterflyStencil (
   vtkIdType p1, vtkIdType p2, vtkPolyData *polys, vtkIdList *stencilIds,
   double *weights)
 {
-  vtkIdList *cellIds = vtkIdList::New();
+  vtkSmartPointer<vtkIdList> cellIds = vtkSmartPointer<vtkIdList>::New();
   vtkCell *cell;
   int i;
   vtkIdType cell0, cell1;
@@ -428,7 +426,7 @@ void vtkButterflySubdivisionFilter::GenerateButterflyStencil (
     {
       if ((p = cell->GetPointId(i)) != p2 && cell->GetPointId(i) != p4)
       {
-        p8= p;
+        p8 = p;
         break;
       }
     }
@@ -462,7 +460,7 @@ void vtkButterflySubdivisionFilter::GenerateButterflyStencil (
   }
   else
   {
-      vtkWarningMacro (<< "bad p6, p4 " << p6 << ", " << p4);
+    vtkWarningMacro (<< "bad p6, p4 " << p6 << ", " << p4);
   }
 
   if (p7 != -1)
@@ -475,7 +473,7 @@ void vtkButterflySubdivisionFilter::GenerateButterflyStencil (
   }
   else
   {
-      vtkWarningMacro (<< "bad p7, p3 " << p7 << ", " << p3);
+    vtkWarningMacro (<< "bad p7, p3 " << p7 << ", " << p3);
   }
 
   if (p8 != -1)
@@ -488,7 +486,7 @@ void vtkButterflySubdivisionFilter::GenerateButterflyStencil (
   }
   else
   {
-      vtkWarningMacro (<< "bad p8, p3 " << p8 << ", " << p3);
+    vtkWarningMacro (<< "bad p8, p3 " << p8 << ", " << p3);
   }
 
 
@@ -496,5 +494,4 @@ void vtkButterflySubdivisionFilter::GenerateButterflyStencil (
   {
     weights[i] = butterflyWeights[i];
   }
-  cellIds->Delete();
 }

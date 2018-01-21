@@ -61,7 +61,7 @@ public:
   static vtkAssemblyNode *New();
 
   vtkTypeMacro(vtkAssemblyNode, vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -87,19 +87,19 @@ public:
    * Override the standard GetMTime() to check for the modified times
    * of the prop and matrix.
    */
-  virtual vtkMTimeType GetMTime();
+  vtkMTimeType GetMTime() override;
 
 protected:
   vtkAssemblyNode();
-  ~vtkAssemblyNode();
+  ~vtkAssemblyNode() override;
 
 private:
   vtkProp *ViewProp; //reference to vtkProp
   vtkMatrix4x4 *Matrix; //associated matrix
 
 private:
-  void operator=(const vtkAssemblyNode&) VTK_DELETE_FUNCTION;
-  vtkAssemblyNode(const vtkAssemblyNode&) VTK_DELETE_FUNCTION;
+  void operator=(const vtkAssemblyNode&) = delete;
+  vtkAssemblyNode(const vtkAssemblyNode&) = delete;
 };
 
 #endif

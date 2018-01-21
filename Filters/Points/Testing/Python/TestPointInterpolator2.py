@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 import vtk
-from vtk.test import Testing
 from vtk.util.misc import vtkGetDataRoot
 VTK_DATA_ROOT = vtkGetDataRoot()
 
 # Interpolate onto a volume
 
 # Parameters for debugging
-res = 100
+res = 40
 
 # create pipeline
 #
@@ -79,6 +78,7 @@ outlineActor.SetMapper(outlineMapper)
 #
 ren0 = vtk.vtkRenderer()
 renWin = vtk.vtkRenderWindow()
+renWin.SetMultiSamples(0)
 renWin.AddRenderer(ren0)
 iren = vtk.vtkRenderWindowInteractor()
 iren.SetRenderWindow(renWin)
@@ -103,4 +103,4 @@ iren.Initialize()
 #
 renWin.Render()
 
-#iren.Start()
+iren.Start()

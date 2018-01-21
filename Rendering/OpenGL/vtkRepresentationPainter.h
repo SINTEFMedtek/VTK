@@ -32,15 +32,15 @@ class VTKRENDERINGOPENGL_EXPORT vtkRepresentationPainter : public vtkPolyDataPai
 public:
   static vtkRepresentationPainter* New();
   vtkTypeMacro(vtkRepresentationPainter, vtkPolyDataPainter);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
 protected:
   vtkRepresentationPainter();
-  ~vtkRepresentationPainter();
+  ~vtkRepresentationPainter() override;
 
 private:
-  vtkRepresentationPainter(const vtkRepresentationPainter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkRepresentationPainter&) VTK_DELETE_FUNCTION;
+  vtkRepresentationPainter(const vtkRepresentationPainter&) = delete;
+  void operator=(const vtkRepresentationPainter&) = delete;
 };
 
 #endif

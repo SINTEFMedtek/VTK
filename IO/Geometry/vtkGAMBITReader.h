@@ -41,7 +41,7 @@ class VTKIOGEOMETRY_EXPORT vtkGAMBITReader : public vtkUnstructuredGridAlgorithm
 public:
   static vtkGAMBITReader *New();
   vtkTypeMacro(vtkGAMBITReader,vtkUnstructuredGridAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -77,9 +77,9 @@ public:
 
 protected:
   vtkGAMBITReader();
-  ~vtkGAMBITReader();
-  int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+  ~vtkGAMBITReader() override;
+  int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
+  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
 
   char *FileName;
 
@@ -116,8 +116,8 @@ private:
   void ReadMaterialTypes(vtkUnstructuredGrid *output);
   void ReadBoundaryConditionSets(vtkUnstructuredGrid *output);
 
-  vtkGAMBITReader(const vtkGAMBITReader&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkGAMBITReader&) VTK_DELETE_FUNCTION;
+  vtkGAMBITReader(const vtkGAMBITReader&) = delete;
+  void operator=(const vtkGAMBITReader&) = delete;
 };
 
 #endif

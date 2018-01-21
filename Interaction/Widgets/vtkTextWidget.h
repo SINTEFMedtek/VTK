@@ -50,7 +50,7 @@ public:
    * Standard VTK methods.
    */
   vtkTypeMacro(vtkTextWidget,vtkBorderWidget);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   /**
@@ -76,15 +76,15 @@ public:
   /**
    * Create the default widget representation if one is not set.
    */
-  virtual void CreateDefaultRepresentation();
+  void CreateDefaultRepresentation() override;
 
 protected:
   vtkTextWidget();
-  ~vtkTextWidget();
+  ~vtkTextWidget() override;
 
 private:
-  vtkTextWidget(const vtkTextWidget&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkTextWidget&) VTK_DELETE_FUNCTION;
+  vtkTextWidget(const vtkTextWidget&) = delete;
+  void operator=(const vtkTextWidget&) = delete;
 };
 
 #endif

@@ -59,7 +59,7 @@ vtkEnsembleSource::vtkEnsembleSource()
 
   this->CurrentMember = 0;
 
-  this->MetaData = 0;
+  this->MetaData = nullptr;
 }
 
 vtkEnsembleSource::~vtkEnsembleSource()
@@ -69,7 +69,7 @@ vtkEnsembleSource::~vtkEnsembleSource()
   if (this->MetaData)
   {
     this->MetaData->Delete();
-    this->MetaData = 0;
+    this->MetaData = nullptr;
   }
 }
 
@@ -109,7 +109,7 @@ int vtkEnsembleSource::ProcessRequest(vtkInformation *request,
         this->Internal->Algorithms.begin();
       std::vector<vtkSmartPointer<vtkAlgorithm> >::iterator end =
         this->Internal->Algorithms.end();
-      for(; iter != end; iter++)
+      for(; iter != end; ++iter)
       {
         int retVal = (*iter)->ProcessRequest(request, inputVector, outputVector);
         if (!retVal)
@@ -153,7 +153,7 @@ vtkAlgorithm* vtkEnsembleSource::GetCurrentReader(vtkInformation* outInfo)
   }
   if (currentMember >= this->GetNumberOfMembers())
   {
-    return 0;
+    return nullptr;
   }
   return this->Internal->Algorithms[currentMember];
 }
@@ -176,6 +176,6 @@ void vtkEnsembleSource::PrintSelf(ostream& os, vtkIndent indent)
   }
   else
   {
-    os << indent << "(NULL)" << endl;
+    os << indent << "(nullptr)" << endl;
   }
 }

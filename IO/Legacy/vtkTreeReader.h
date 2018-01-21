@@ -41,7 +41,7 @@ class VTKIOLEGACY_EXPORT vtkTreeReader : public vtkDataReader
 public:
   static vtkTreeReader *New();
   vtkTypeMacro(vtkTreeReader,vtkDataReader);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -54,21 +54,21 @@ public:
 
 protected:
   vtkTreeReader();
-  ~vtkTreeReader();
+  ~vtkTreeReader() override;
 
-  virtual int RequestData(vtkInformation *, vtkInformationVector **,
-                          vtkInformationVector *);
+  int RequestData(vtkInformation *, vtkInformationVector **,
+                          vtkInformationVector *) override;
 
   // Since the Outputs[0] has the same UpdateExtent format
   // as the generic DataObject we can copy the UpdateExtent
   // as a default behavior.
-  virtual int RequestUpdateExtent(vtkInformation *, vtkInformationVector **,
-                                  vtkInformationVector *);
+  int RequestUpdateExtent(vtkInformation *, vtkInformationVector **,
+                                  vtkInformationVector *) override;
 
-  virtual int FillOutputPortInformation(int, vtkInformation*);
+  int FillOutputPortInformation(int, vtkInformation*) override;
 private:
-  vtkTreeReader(const vtkTreeReader&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkTreeReader&) VTK_DELETE_FUNCTION;
+  vtkTreeReader(const vtkTreeReader&) = delete;
+  void operator=(const vtkTreeReader&) = delete;
 };
 
 #endif

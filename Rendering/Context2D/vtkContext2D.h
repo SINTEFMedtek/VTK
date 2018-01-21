@@ -45,6 +45,7 @@ class vtkContextDevice2D;
 class vtkPen;
 class vtkBrush;
 class vtkImageData;
+class vtkPolyData;
 class vtkTransform2D;
 class vtkAbstractContextBufferId;
 
@@ -52,7 +53,7 @@ class VTKRENDERINGCONTEXT2D_EXPORT vtkContext2D : public vtkObject
 {
 public:
   vtkTypeMacro(vtkContext2D, vtkObject);
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
   /**
    * Creates a 2D Painter object.
@@ -264,6 +265,28 @@ public:
   void DrawPolygon(float *points, int n);
 
   /**
+   * Draw a polygon specified specified by the points using the x and y arrays
+   * supplied
+   */
+  void DrawPolygon(float *x, float *y, int n,
+                   unsigned char *color, int nc_comps);
+
+  /**
+   * Draw a polygon defined by the specified points - fastest code path due to
+   * memory layout of the coordinates.
+   */
+  void DrawPolygon(vtkPoints2D *points,
+                   unsigned char *color, int nc_comps);
+
+  /**
+   * Draw a polygon defined by the specified points, where the float array is
+   * of size 2*n and the points are packed x1, y1, x2, y2 etc.
+   * Note: Fastest code path - points packed in x and y.
+   */
+  void DrawPolygon(float *points, int n,
+                   unsigned char *color, int nc_comps);
+
+  /**
    * Draw an ellipse with center at x, y and radii rx, ry.
    * \pre positive_rx: rx>=0
    * \pre positive_ry: ry>=0
@@ -334,6 +357,13 @@ public:
    */
   void DrawImage(const vtkRectf& pos, vtkImageData *image);
 
+  /**
+   * Draw the supplied polyData at the given x, y position (bottom corner).
+   * \note Supports only 2D meshes.
+   */
+  void DrawPolyData(float x, float y, vtkPolyData* polyData,
+    vtkUnsignedCharArray* colors, int scalarMode);
+
   //@{
   /**
    * Draw some text to the screen in a bounding rectangle with the alignment
@@ -377,8 +407,7 @@ public:
 
   /**
    * Compute the bounds of the supplied string while taking into account the
-   * justification of the currently applied text property. Simple rotations
-   * (0, 90, 180, 270 degrees) are also propertly taken into account.
+   * justification and rotation of the currently applied text property.
    */
   void ComputeJustifiedStringBounds(const char* string, float bounds[4]);
 
@@ -521,7 +550,7 @@ public:
 
 protected:
   vtkContext2D();
-  ~vtkContext2D();
+  ~vtkContext2D() override;
 
   vtkContextDevice2D *Device; // The underlying device
   vtkTransform2D *Transform;  // Current transform
@@ -530,8 +559,8 @@ protected:
   vtkContext3D *Context3D; // May be very temporary - get at a 3D version.
 
 private:
-  vtkContext2D(const vtkContext2D &) VTK_DELETE_FUNCTION;
-  void operator=(const vtkContext2D &) VTK_DELETE_FUNCTION;
+  vtkContext2D(const vtkContext2D &) = delete;
+  void operator=(const vtkContext2D &) = delete;
 
   /**
    * Calculate position of text for rendering in a rectangle.

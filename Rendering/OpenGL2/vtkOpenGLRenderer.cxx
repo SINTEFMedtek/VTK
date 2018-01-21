@@ -18,6 +18,7 @@ PURPOSE.  See the above copyright notice for more information.
 
 #include "vtkCellArray.h"
 #include "vtkDepthPeelingPass.h"
+#include "vtkDualDepthPeelingPass.h"
 #include "vtkFloatArray.h"
 #include "vtkHardwareSelector.h"
 #include "vtkHiddenLineRemovalPass.h"
@@ -35,6 +36,7 @@ PURPOSE.  See the above copyright notice for more information.
 #include "vtkPolyDataMapper2D.h"
 #include "vtkRenderPass.h"
 #include "vtkRenderState.h"
+#include "vtkRenderTimerLog.h"
 #include "vtkShadowMapBakerPass.h"
 #include "vtkShadowMapPass.h"
 #include "vtkTexture.h"
@@ -44,16 +46,15 @@ PURPOSE.  See the above copyright notice for more information.
 #include "vtkTranslucentPass.h"
 #include "vtkTrivialProducer.h"
 #include "vtkUnsignedCharArray.h"
+#include "vtkVolumetricPass.h"
 
-// Dual depth peeling requires GL_MAX blending, which is unavailable on ES2.
-#if GL_ES_VERSION_2_0 != 1
-#include "vtkDualDepthPeelingPass.h"
-#endif
+#include <vtksys/RegularExpression.hxx>
 
 #include <cmath>
 #include <cassert>
 #include <cstdlib>
 #include <list>
+#include <sstream>
 #include <string>
 
 class vtkGLPickInfo
@@ -74,12 +75,12 @@ vtkOpenGLRenderer::vtkOpenGLRenderer()
   this->PickInfo->NumPicked = 0;
   this->PickedZ = 0;
 
-  this->FXAAFilter = 0;
-  this->DepthPeelingPass = 0;
-  this->ShadowMapPass = 0;
+  this->FXAAFilter = nullptr;
+  this->DepthPeelingPass = nullptr;
+  this->ShadowMapPass = nullptr;
   this->DepthPeelingHigherLayer=0;
 
-  this->BackgroundTexture = 0;
+  this->BackgroundTexture = nullptr;
   this->HaveApplePrimitiveIdBugValue = false;
   this->HaveApplePrimitiveIdBugChecked = false;
 }
@@ -88,6 +89,9 @@ vtkOpenGLRenderer::vtkOpenGLRenderer()
 int vtkOpenGLRenderer::UpdateLights ()
 {
   vtkOpenGLClearErrorMacro();
+
+  VTK_SCOPED_RENDER_EVENT("vtkOpenGLRenderer::UpdateLights",
+                          this->GetRenderWindow()->GetRenderTimer());
 
   vtkLight *light;
   float status;
@@ -144,11 +148,11 @@ void vtkOpenGLRenderer::DeviceRender(void)
 {
   vtkTimerLog::MarkStartEvent("OpenGL Dev Render");
 
-  if(this->Pass!=0)
+  if(this->Pass!=nullptr)
   {
     vtkRenderState s(this);
     s.SetPropArrayAndCount(this->PropArray, this->PropArrayCount);
-    s.SetFrameBuffer(0);
+    s.SetFrameBuffer(nullptr);
     this->Pass->Render(&s);
   }
   else
@@ -175,6 +179,9 @@ void vtkOpenGLRenderer::DeviceRender(void)
 // visualization network to update.
 int vtkOpenGLRenderer::UpdateGeometry()
 {
+  vtkRenderTimerLog *timer = this->GetRenderWindow()->GetRenderTimer();
+  VTK_SCOPED_RENDER_EVENT("vtkOpenGLRenderer::UpdateGeometry", timer);
+
   int        i;
 
   this->NumberOfPropsRendered = 0;
@@ -186,6 +193,8 @@ int vtkOpenGLRenderer::UpdateGeometry()
 
   if (this->Selector)
   {
+    VTK_SCOPED_RENDER_EVENT2("Selection", timer, selectionEvent);
+
     // When selector is present, we are performing a selection,
     // so do the selection rendering pass instead of the normal passes.
     // Delegate the rendering of the props to the selector itself.
@@ -198,8 +207,11 @@ int vtkOpenGLRenderer::UpdateGeometry()
 
   // if we are suing shadows then let the renderpasses handle it
   // for opaque and translucent
+  int hasTranslucentPolygonalGeometry = 0;
   if (this->UseShadows)
   {
+    VTK_SCOPED_RENDER_EVENT2("Shadows", timer, shadowsEvent);
+
     if (!this->ShadowMapPass)
     {
       this->ShadowMapPass = vtkShadowMapPass::New();
@@ -213,11 +225,12 @@ int vtkOpenGLRenderer::UpdateGeometry()
   else
   {
     // Opaque geometry first:
+    timer->MarkStartEvent("Opaque Geometry");
     this->DeviceRenderOpaqueGeometry();
+    timer->MarkEndEvent();
 
     // do the render library specific stuff about translucent polygonal geometry.
     // As it can be expensive, do a quick check if we can skip this step
-    int hasTranslucentPolygonalGeometry=0;
     for ( i = 0; !hasTranslucentPolygonalGeometry && i < this->PropArrayCount;
           i++ )
     {
@@ -226,7 +239,9 @@ int vtkOpenGLRenderer::UpdateGeometry()
     }
     if(hasTranslucentPolygonalGeometry)
     {
+      timer->MarkStartEvent("Translucent Geometry");
       this->DeviceRenderTranslucentPolygonalGeometry();
+      timer->MarkEndEvent();
     }
   }
 
@@ -234,6 +249,7 @@ int vtkOpenGLRenderer::UpdateGeometry()
   // are usually things like text, which are already antialiased.
   if (this->UseFXAA)
   {
+    timer->MarkStartEvent("FXAA");
     if (!this->FXAAFilter)
     {
       this->FXAAFilter = vtkOpenGLFXAAFilter::New();
@@ -244,23 +260,31 @@ int vtkOpenGLRenderer::UpdateGeometry()
     }
 
     this->FXAAFilter->Execute(this);
+    timer->MarkEndEvent();
   }
 
   // loop through props and give them a chance to
   // render themselves as volumetric geometry.
-  for ( i = 0; i < this->PropArrayCount; i++ )
+  if (hasTranslucentPolygonalGeometry == 0 || !this->UseDepthPeelingForVolumes)
   {
-    this->NumberOfPropsRendered +=
-      this->PropArray[i]->RenderVolumetricGeometry(this);
+    timer->MarkStartEvent("Volumes");
+    for ( i = 0; i < this->PropArrayCount; i++ )
+    {
+      this->NumberOfPropsRendered +=
+        this->PropArray[i]->RenderVolumetricGeometry(this);
+    }
+    timer->MarkEndEvent();
   }
 
   // loop through props and give them a chance to
   // render themselves as an overlay (or underlay)
+  timer->MarkStartEvent("Overlay");
   for ( i = 0; i < this->PropArrayCount; i++ )
   {
     this->NumberOfPropsRendered +=
       this->PropArray[i]->RenderOverlay(this);
   }
+  timer->MarkEndEvent();
 
   this->RenderTime.Modified();
 
@@ -284,7 +308,7 @@ void vtkOpenGLRenderer::DeviceRenderOpaqueGeometry()
     vtkNew<vtkHiddenLineRemovalPass> hlrPass;
     vtkRenderState s(this);
     s.SetPropArrayAndCount(this->PropArray, this->PropArrayCount);
-    s.SetFrameBuffer(0);
+    s.SetFrameBuffer(nullptr);
     hlrPass->Render(&s);
     this->NumberOfPropsRendered += hlrPass->GetNumberOfRenderedProps();
   }
@@ -320,63 +344,19 @@ void vtkOpenGLRenderer::DeviceRenderTranslucentPolygonalGeometry()
   }
   else   // depth peeling.
   {
+#if GL_ES_VERSION_3_0 == 1
+    vtkErrorMacro("Built in Dual Depth Peeling is not supported on ES3. "
+      "Please see TestFramebufferPass.cxx for an example that should work "
+      "on OpenGL ES 3.");
+    this->UpdateTranslucentPolygonalGeometry();
+#else
     if (!this->DepthPeelingPass)
     {
-      // Dual depth peeling requires:
-      // - float textures (ARB_texture_float)
-      // - RG textures (ARB_texture_rg)
-      // - MAX blending (not available in ES2, but added in ES3).
-      bool dualDepthPeelingSupported = false;
-#if GL_ES_VERSION_2_0 != 1
-      dualDepthPeelingSupported = context->GetContextSupportsOpenGL32() ||
-          (GLEW_ARB_texture_float && GLEW_ARB_texture_rg);
-#elif GL_ES_VERSION_3_0 == 1
-      // ES3 is supported:
-      dualDepthPeelingSupported = true;
-#endif
-
-      // There's a bug on current mesa master that prevents dual depth peeling
-      // from functioning properly, something in the texture sampler is causing
-      // all lookups to return NaN. See discussion on
-      // https://bugs.freedesktop.org/show_bug.cgi?id=94955
-      // We'll always fallback to regular depth peeling until this is fixed.
-      // Only disable for mesa + llvmpipe/SWR, since those are the drivers that
-      // seem to be affected by this.
-      std::string glVersion =
-          reinterpret_cast<const char *>(glGetString(GL_VERSION));
-      if (glVersion.find("Mesa") != std::string::npos)
+      if (this->IsDualDepthPeelingSupported())
       {
-        std::string glRenderer =
-            reinterpret_cast<const char *>(glGetString(GL_RENDERER));
-        if (glRenderer.find("llvmpipe") != std::string::npos ||
-            glRenderer.find("SWR") != std::string::npos)
-        {
-          vtkDebugMacro("Disabling dual depth peeling -- mesa bug detected. "
-                        "GL_VERSION = '" << glVersion << "'; "
-                        "GL_RENDERER = '" << glRenderer << "'.");
-          dualDepthPeelingSupported = false;
-        }
-      }
-
-      // The old implemention can be force by defining the environment var
-      // "VTK_USE_LEGACY_DEPTH_PEELING":
-      if (dualDepthPeelingSupported)
-      {
-        const char *forceLegacy = getenv("VTK_USE_LEGACY_DEPTH_PEELING");
-        if (forceLegacy)
-        {
-          vtkDebugMacro("Disabling dual depth peeling -- "
-                        "VTK_USE_LEGACY_DEPTH_PEELING defined in environment.");
-          dualDepthPeelingSupported = false;
-        }
-      }
-
-      if (dualDepthPeelingSupported)
-      {
-#if GL_ES_VERSION_2_0 != 1 // vtkDualDepthPeelingPass is not built on ES2
         vtkDebugMacro("Using dual depth peeling.");
-        this->DepthPeelingPass = vtkDualDepthPeelingPass::New();
-#endif
+        vtkDualDepthPeelingPass *ddpp = vtkDualDepthPeelingPass::New();
+        this->DepthPeelingPass = ddpp;
       }
       else
       {
@@ -388,13 +368,43 @@ void vtkOpenGLRenderer::DeviceRenderTranslucentPolygonalGeometry()
       this->DepthPeelingPass->SetTranslucentPass(tp);
       tp->Delete();
     }
+
+    if (this->UseDepthPeelingForVolumes)
+    {
+      vtkDualDepthPeelingPass *ddpp = vtkDualDepthPeelingPass::SafeDownCast(
+            this->DepthPeelingPass);
+      if (!ddpp)
+      {
+        vtkWarningMacro("UseDepthPeelingForVolumes requested, but unsupported "
+                        "since DualDepthPeeling is not available.");
+        this->UseDepthPeelingForVolumes = false;
+      }
+      else if (!ddpp->GetVolumetricPass())
+      {
+        vtkVolumetricPass *vp = vtkVolumetricPass::New();
+        ddpp->SetVolumetricPass(vp);
+        vp->Delete();
+      }
+    }
+    else
+    {
+      vtkDualDepthPeelingPass *ddpp = vtkDualDepthPeelingPass::SafeDownCast(
+            this->DepthPeelingPass);
+      if (ddpp)
+      {
+        ddpp->SetVolumetricPass(nullptr);
+      }
+    }
+
     this->DepthPeelingPass->SetMaximumNumberOfPeels(this->MaximumNumberOfPeels);
     this->DepthPeelingPass->SetOcclusionRatio(this->OcclusionRatio);
     vtkRenderState s(this);
     s.SetPropArrayAndCount(this->PropArray, this->PropArrayCount);
-    s.SetFrameBuffer(0);
+    s.SetFrameBuffer(nullptr);
     this->LastRenderingUsedDepthPeeling=1;
     this->DepthPeelingPass->Render(&s);
+    this->NumberOfPropsRendered += this->DepthPeelingPass->GetNumberOfRenderedProps();
+#endif
   }
 
   vtkOpenGLCheckErrorMacro("failed after DeviceRenderTranslucentPolygonalGeometry");
@@ -426,17 +436,16 @@ void vtkOpenGLRenderer::Clear(void)
     }
     else
     {
-      glClearColor( static_cast<GLclampf>(this->Background[0]),
-                    static_cast<GLclampf>(this->Background[1]),
-                    static_cast<GLclampf>(this->Background[2]),
-                    static_cast<GLclampf>(0.0));
+      glClearColor(static_cast<GLclampf>(this->Background[0]),
+        static_cast<GLclampf>(this->Background[1]), static_cast<GLclampf>(this->Background[2]),
+        static_cast<GLclampf>(this->BackgroundAlpha));
     }
     clear_mask |= GL_COLOR_BUFFER_BIT;
   }
 
   if (!this->GetPreserveDepthBuffer())
   {
-#if GL_ES_VERSION_2_0 == 1
+#if GL_ES_VERSION_3_0 == 1
     glClearDepthf(static_cast<GLclampf>(1.0));
 #else
     glClearDepth(static_cast<GLclampf>(1.0));
@@ -469,7 +478,7 @@ void vtkOpenGLRenderer::Clear(void)
     points->SetPoint(1, size[0], 0, 0);
     points->SetPoint(2, size[0], size[1], 0);
     points->SetPoint(3, 0, size[1], 0);
-    polydata->SetPoints(points.Get());
+    polydata->SetPoints(points);
 
     vtkNew<vtkCellArray> tris;
     tris->InsertNextCell(3);
@@ -480,14 +489,14 @@ void vtkOpenGLRenderer::Clear(void)
     tris->InsertCellPoint(0);
     tris->InsertCellPoint(2);
     tris->InsertCellPoint(3);
-    polydata->SetPolys(tris.Get());
+    polydata->SetPolys(tris);
 
     vtkNew<vtkTrivialProducer> prod;
-    prod->SetOutput(polydata.Get());
+    prod->SetOutput(polydata);
 
     // Set some properties.
     mapper->SetInputConnection(prod->GetOutputPort());
-    actor->SetMapper(mapper.Get());
+    actor->SetMapper(mapper);
 
     if(this->TexturedBackground && this->BackgroundTexture)
     {
@@ -507,7 +516,7 @@ void vtkOpenGLRenderer::Clear(void)
       tcoords->SetTuple(2,tmp);
       tmp[0] = 0.0;
       tcoords->SetTuple(3,tmp);
-      polydata->GetPointData()->SetTCoords(tcoords.Get());
+      polydata->GetPointData()->SetTCoords(tcoords);
     }
     else // gradient
     {
@@ -526,7 +535,7 @@ void vtkOpenGLRenderer::Clear(void)
       tmp[2] = this->Background2[2]*255;
       colors->SetTuple(2,tmp);
       colors->SetTuple(3,tmp);
-      polydata->GetPointData()->SetScalars(colors.Get());
+      polydata->GetPointData()->SetScalars(colors);
     }
 
     glDisable(GL_DEPTH_TEST);
@@ -555,7 +564,7 @@ void vtkOpenGLRenderer::StartPick(unsigned int vtkNotUsed(pickFromSize))
   glGenTextures(1, &this->PickInfo->PickingTexture);
   glBindTexture(GL_TEXTURE_2D, this->PickInfo->PickingTexture);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32UI, size[0], size[1],
-              0, GL_RGB_INTEGER, GL_UNSIGNED_INT, NULL);
+              0, GL_RGB_INTEGER, GL_UNSIGNED_INT, nullptr);
   glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
               this->PickInfo->PickingTexture, 0);
 
@@ -563,7 +572,7 @@ void vtkOpenGLRenderer::StartPick(unsigned int vtkNotUsed(pickFromSize))
   glGenTextures(1, &this->PickInfo->DepthTexture);
   glBindTexture(GL_TEXTURE_2D, this->PickInfo->DepthTexture);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, size[0], size[1],
-              0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+              0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
   glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
               this->PickInfo->DepthTexture, 0);
 
@@ -594,6 +603,7 @@ void vtkOpenGLRenderer::StartPick(unsigned int vtkNotUsed(pickFromSize))
   this->PickInfo->NumPicked = 0;
   this->PickInfo->PickedId = 0;
 
+  this->UpdateCamera();
   this->Clear();
 
   vtkOpenGLCheckErrorMacro("failed after StartPick");
@@ -635,6 +645,15 @@ void vtkOpenGLRenderer::DevicePickRender()
   this->RenderWindow->MakeCurrent();
   vtkOpenGLClearErrorMacro();
 
+#if GL_ES_VERSION_3_0 != 1
+  bool msaaWasEnabled = false;
+  if (this->RenderWindow->GetMultiSamples() > 0 && glIsEnabled(GL_MULTISAMPLE))
+  {
+    glDisable(GL_MULTISAMPLE);
+    msaaWasEnabled = true;
+  }
+#endif
+
   this->UpdateCamera();
   this->UpdateLightGeometry();
   this->UpdateLights();
@@ -642,6 +661,13 @@ void vtkOpenGLRenderer::DevicePickRender()
   this->PickGeometry();
 
   this->PickInfo->PerformedHardwarePick = true;
+
+#if GL_ES_VERSION_3_0 != 1
+  if (msaaWasEnabled)
+  {
+    glEnable(GL_MULTISAMPLE);
+  }
+#endif
 
   vtkOpenGLCheckErrorMacro("failed after DevicePickRender");
 }
@@ -694,13 +720,16 @@ void vtkOpenGLRenderer::DonePick()
       }
     }
 
+    delete [] pixBuffer;
+    delete [] depthBuffer;
+
     this->PickInfo->NumPicked = (unsigned int)this->PickInfo->PickValues.size();
 
     this->PickInfo->PickedId = 0;
     std::map<unsigned int,float>::const_iterator dvItr =
       this->PickInfo->PickValues.begin();
     this->PickedZ = 1.0;
-    for ( ; dvItr != this->PickInfo->PickValues.end(); dvItr++)
+    for ( ; dvItr != this->PickInfo->PickValues.end(); ++dvItr)
     {
       if(dvItr->second < this->PickedZ)
       {
@@ -731,28 +760,28 @@ vtkOpenGLRenderer::~vtkOpenGLRenderer()
 {
   delete this->PickInfo;
 
-  if(this->Pass != NULL)
+  if(this->Pass != nullptr)
   {
     this->Pass->UnRegister(this);
-    this->Pass = NULL;
+    this->Pass = nullptr;
   }
 
   if (this->FXAAFilter)
   {
     this->FXAAFilter->Delete();
-    this->FXAAFilter = 0;
+    this->FXAAFilter = nullptr;
   }
 
   if (this->ShadowMapPass)
   {
     this->ShadowMapPass->Delete();
-    this->ShadowMapPass = 0;
+    this->ShadowMapPass = nullptr;
   }
 
   if (this->DepthPeelingPass)
   {
     this->DepthPeelingPass->Delete();
-    this->DepthPeelingPass = 0;
+    this->DepthPeelingPass = nullptr;
   }
 }
 
@@ -805,7 +834,7 @@ bool vtkOpenGLRenderer::HaveApplePrimitiveIdBug()
     if (version.find("4.1 ATI-1.") == 0)
     {
       std::string minorVer = version.substr(strlen("4.1 ATI-1."),std::string::npos);
-      if (minorVer.find(".") == 2)
+      if (minorVer.find('.') == 2)
       {
         minorVersion = atoi(minorVer.substr(0,2).c_str());
         patchVersion = atoi(minorVer.substr(3,std::string::npos).c_str());
@@ -831,6 +860,116 @@ bool vtkOpenGLRenderer::HaveApplePrimitiveIdBug()
   return this->HaveApplePrimitiveIdBugValue;
 }
 
+//------------------------------------------------------------------------------
+bool vtkOpenGLRenderer::HaveAppleQueryAllocationBug()
+{
+#ifndef __APPLE__ // Bug only applies to apple
+  return false;
+#else
+  enum class QueryAllocStatus { NotChecked, Yes, No };
+  static QueryAllocStatus hasBug = QueryAllocStatus::NotChecked;
+
+  if (hasBug == QueryAllocStatus::NotChecked)
+  {
+    // We can restrict this to a specific version, etc, as we get more
+    // information about the bug, but for now just disable query allocations on
+    // all apple NVIDIA cards.
+    std::string v = reinterpret_cast<const char *>(glGetString(GL_VENDOR));
+    hasBug = (v.find("NVIDIA") != std::string::npos) ? QueryAllocStatus::Yes
+                                                     : QueryAllocStatus::No;
+  }
+
+  return hasBug == QueryAllocStatus::Yes;
+#endif
+}
+
+//------------------------------------------------------------------------------
+bool vtkOpenGLRenderer::IsDualDepthPeelingSupported()
+{
+  vtkOpenGLRenderWindow *context
+    = vtkOpenGLRenderWindow::SafeDownCast(this->RenderWindow);
+  if (!context)
+  {
+    vtkDebugMacro("Cannot determine if dual depth peeling is support -- no "
+                  "vtkRenderWindow set.");
+    return false;
+  }
+
+  // Dual depth peeling requires:
+  // - float textures (ARB_texture_float)
+  // - RG textures (ARB_texture_rg)
+  // - MAX blending (added in ES3).
+  // requires that RG textures be color renderable (they are not in ES3)
+#if GL_ES_VERSION_3_0 == 1
+  // ES3 is not supported, see TestFramebufferPass.cxx for how to do it
+  bool dualDepthPeelingSupported = false;
+#else
+  bool dualDepthPeelingSupported = context->GetContextSupportsOpenGL32() ||
+      (GLEW_ARB_texture_float && GLEW_ARB_texture_rg);
+#endif
+
+  // There's a bug on current mesa master that prevents dual depth peeling
+  // from functioning properly, something in the texture sampler is causing
+  // all lookups to return NaN. See discussion on
+  // https://bugs.freedesktop.org/show_bug.cgi?id=94955
+  // This has been fixed in Mesa 17.2.
+  const char *glVersionC =
+      reinterpret_cast<const char *>(glGetString(GL_VERSION));
+  std::string glVersion = std::string(glVersionC ? glVersionC : "");
+  if (dualDepthPeelingSupported &&
+      glVersion.find("Mesa") != std::string::npos)
+  {
+    bool mesaCompat = false;
+    // The bug has been fixed with mesa 17.2.0. The version string is approx:
+    // 3.3 (Core Profile) Mesa 17.2.0-devel (git-08cb8cf256)
+    vtksys::RegularExpression re("Mesa ([0-9]+)\\.([0-9]+)\\.");
+    if (re.find(glVersion))
+    {
+      int majorVersion;
+      std::string majorStr = re.match(1);
+      std::istringstream majorParse(majorStr);
+      majorParse >> majorVersion;
+      if (majorVersion > 17)
+      {
+        mesaCompat = true;
+      }
+      else if (majorVersion == 17)
+      {
+        int minorVersion;
+        std::string minorStr = re.match(2);
+        std::istringstream minorParse(minorStr);
+        minorParse >> minorVersion;
+        if (minorVersion >= 2)
+        {
+          mesaCompat = true;
+        }
+      }
+    }
+
+    if (!mesaCompat)
+    {
+      vtkDebugMacro("Disabling dual depth peeling -- mesa bug detected. "
+                    "GL_VERSION = '" << glVersion << "'.");
+      dualDepthPeelingSupported = false;
+    }
+  }
+
+  // The old implemention can be forced by defining the environment var
+  // "VTK_USE_LEGACY_DEPTH_PEELING":
+  if (dualDepthPeelingSupported)
+  {
+    const char *forceLegacy = getenv("VTK_USE_LEGACY_DEPTH_PEELING");
+    if (forceLegacy)
+    {
+      vtkDebugMacro("Disabling dual depth peeling -- "
+                    "VTK_USE_LEGACY_DEPTH_PEELING defined in environment.");
+      dualDepthPeelingSupported = false;
+    }
+  }
+
+  return dualDepthPeelingSupported;
+}
+
 unsigned int vtkOpenGLRenderer::GetNumPickedIds()
 {
   return static_cast<unsigned int>(this->PickInfo->NumPicked);
@@ -851,7 +990,7 @@ int vtkOpenGLRenderer::GetPickedIds(unsigned int atMost,
   std::map<unsigned int,float>::const_iterator dvItr =
     this->PickInfo->PickValues.begin();
   this->PickedZ = 1.0;
-  for ( ; dvItr != this->PickInfo->PickValues.end() && k < max; dvItr++)
+  for ( ; dvItr != this->PickInfo->PickValues.end() && k < max; ++dvItr)
   {
     *optr = static_cast<unsigned int>(dvItr->first);
     optr++;

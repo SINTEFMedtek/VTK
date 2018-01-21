@@ -41,7 +41,7 @@ public:
    */
   vtkTypeMacro(vtkPolyDataContourLineInterpolator,
                               vtkContourLineInterpolator);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   /**
@@ -49,9 +49,9 @@ public:
    * For instance vtkBezierContourLineInterpolator adds nodes between idx1
    * and idx2, that allow the contour to adhere to a bezier curve.
    */
-  virtual int InterpolateLine( vtkRenderer *ren,
+  int InterpolateLine( vtkRenderer *ren,
                                vtkContourRepresentation *rep,
-                               int idx1, int idx2 ) = 0;
+                               int idx1, int idx2 ) override = 0;
 
   /**
    * The interpolator is given a chance to update the node.
@@ -60,9 +60,9 @@ public:
    * constructs the contour.
    * Returns 0 if the node (world position) is unchanged.
    */
-  virtual int UpdateNode( vtkRenderer *,
+  int UpdateNode( vtkRenderer *,
                           vtkContourRepresentation *,
-                          double * vtkNotUsed(node), int vtkNotUsed(idx) ) = 0;
+                          double * vtkNotUsed(node), int vtkNotUsed(idx) ) override = 0;
 
   //@{
   /**
@@ -74,14 +74,14 @@ public:
 
 protected:
   vtkPolyDataContourLineInterpolator();
-  ~vtkPolyDataContourLineInterpolator();
+  ~vtkPolyDataContourLineInterpolator() override;
 
   vtkPolyDataCollection *Polys;
 
 private:
   vtkPolyDataContourLineInterpolator(
-      const vtkPolyDataContourLineInterpolator&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPolyDataContourLineInterpolator&) VTK_DELETE_FUNCTION;
+      const vtkPolyDataContourLineInterpolator&) = delete;
+  void operator=(const vtkPolyDataContourLineInterpolator&) = delete;
 };
 
 #endif

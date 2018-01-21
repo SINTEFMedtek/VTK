@@ -71,9 +71,9 @@ class VTKRENDERINGIMAGE_EXPORT vtkImageSliceCollection : public vtkPropCollectio
 
 protected:
   vtkImageSliceCollection() {}
-  ~vtkImageSliceCollection();
+  ~vtkImageSliceCollection() override;
 
-  virtual void DeleteElement(vtkCollectionElement *);
+  void DeleteElement(vtkCollectionElement *) override;
 
 private:
   // hide the standard AddItem from the user and the compiler.
@@ -81,8 +81,8 @@ private:
   void AddItem(vtkProp *o) { this->vtkPropCollection::AddItem(o); };
 
 private:
-  vtkImageSliceCollection(const vtkImageSliceCollection&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkImageSliceCollection&) VTK_DELETE_FUNCTION;
+  vtkImageSliceCollection(const vtkImageSliceCollection&) = delete;
+  void operator=(const vtkImageSliceCollection&) = delete;
 };
 
 inline vtkImageSlice *vtkImageSliceCollection::GetNextImage()

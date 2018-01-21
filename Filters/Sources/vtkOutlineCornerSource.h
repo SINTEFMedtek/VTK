@@ -30,7 +30,7 @@ class VTKFILTERSSOURCES_EXPORT vtkOutlineCornerSource : public vtkOutlineSource
 {
 public:
   vtkTypeMacro(vtkOutlineCornerSource,vtkOutlineSource);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Construct outline corner source with default corner factor = 0.2
@@ -46,27 +46,16 @@ public:
   vtkGetMacro(CornerFactor, double);
   //@}
 
-  //@{
-  /**
-   * Set/get the desired precision for the output points.
-   * vtkAlgorithm::SINGLE_PRECISION - Output single-precision floating point.
-   * vtkAlgorithm::DOUBLE_PRECISION - Output double-precision floating point.
-   */
-  vtkSetMacro(OutputPointsPrecision,int);
-  vtkGetMacro(OutputPointsPrecision,int);
-  //@}
-
 protected:
   vtkOutlineCornerSource();
-  ~vtkOutlineCornerSource() VTK_OVERRIDE {}
+  ~vtkOutlineCornerSource() override {}
 
-  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) VTK_OVERRIDE;
+  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
 
   double CornerFactor;
-  int OutputPointsPrecision;
 private:
-  vtkOutlineCornerSource(const vtkOutlineCornerSource&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkOutlineCornerSource&) VTK_DELETE_FUNCTION;
+  vtkOutlineCornerSource(const vtkOutlineCornerSource&) = delete;
+  void operator=(const vtkOutlineCornerSource&) = delete;
 };
 
 #endif

@@ -28,6 +28,7 @@
 #include "vtkSmartPointer.h"
 #include "vtksys/SystemTools.hxx"
 
+#include <sstream>
 #include <cctype>
 #include <cstdio>
 #include <list>
@@ -35,10 +36,6 @@
 #include <map>
 #include <memory>
 #include "vtkOBJImporterInternals.h"
-
-#if defined(_WIN32)
-  #pragma warning(disable : 4267)
-#endif
 
 vtkStandardNewMacro(vtkOBJImporter)
 vtkStandardNewMacro(vtkOBJPolyDataProcessor)
@@ -57,7 +54,7 @@ vtkOBJImporter::~vtkOBJImporter()
 int CanReadFile( vtkObject* that, const std::string& fname )
 {
   FILE* fileFD = fopen (fname.c_str(), "rb");
-  if (fileFD == NULL)
+  if (fileFD == nullptr)
   {
     vtkErrorWithObjectMacro(that,<< "Unable to open file: "<< fname.c_str());
     return 0;
@@ -91,7 +88,7 @@ void vtkOBJImporter::ReadData()
   this->Impl->Update();
   if (Impl->GetSuccessParsingFiles())
   {
-    bindTexturedPolydataToRenderWindow(this->RenderWindow,this->Renderer,Impl.Get());
+    bindTexturedPolydataToRenderWindow(this->RenderWindow,this->Renderer,Impl);
   }
 }
 
@@ -131,6 +128,33 @@ const char* vtkOBJImporter::GetTexturePath( ) const
   return this->Impl->GetTexturePath().data();
 }
 
+std::string vtkOBJImporter::GetOutputDescription(int idx)
+{
+  vtkOBJImportedMaterial *mtl = this->Impl->GetMaterial(idx);
+  std::stringstream ss;
+  ss << "data output " << idx;
+  if (mtl)
+  {
+    ss << " with material named " << mtl->name
+      << " texture file " << (mtl->texture_filename[0] == '\0' ? "none" : mtl->texture_filename)
+      << " diffuse color ("
+      << mtl->diff[0] << ", " << mtl->diff[1] << ", " << mtl->diff[2] << ")"
+      << " ambient color ("
+      << mtl->amb[0] << ", " << mtl->amb[1] << ", " << mtl->amb[2] << ")"
+      << " specular color ("
+      << mtl->spec[0] << ", " << mtl->spec[1] << ", " << mtl->spec[2] << ")"
+      << " specular power " << mtl->shiny
+      << " opacity " << mtl->trans;
+  }
+  else
+  {
+    ss << " with no material";
+  }
+
+  return ss.str();
+}
+
+
 ///////////////////////////////////////////
 
 
@@ -138,7 +162,6 @@ struct vtkOBJImportedPolyDataWithMaterial
 {
   ~vtkOBJImportedPolyDataWithMaterial()
   {
-    delete mtlProperties;
   }
   vtkOBJImportedPolyDataWithMaterial()
   { // initialize some structures to store the file contents in
@@ -154,8 +177,7 @@ struct vtkOBJImportedPolyDataWithMaterial
     normals->SetNumberOfComponents(3);
 
     materialName  = "";
-    mtlProperties = new vtkOBJImportedMaterial;
-    obj_set_material_defaults( mtlProperties );
+    mtlProperties = nullptr;
   }
 
   // these can be shared
@@ -187,9 +209,10 @@ struct vtkOBJImportedPolyDataWithMaterial
 //----------------------------------------------------------------------------
 vtkOBJPolyDataProcessor::vtkOBJPolyDataProcessor()
 {
-  // Instantiate object with NULL filename, and no materials yet loaded.
+  // Instantiate object with nullptr filename, and no materials yet loaded.
   this->FileName    = "";
   this->MTLFileName = "";
+  this->DefaultMTLFileName = true;
   this->TexturePath = ".";
   this->VertexScale = 1.0;
   this->SuccessParsingFiles = 1;
@@ -197,27 +220,32 @@ vtkOBJPolyDataProcessor::vtkOBJPolyDataProcessor()
   /** multi-poly-data paradigm: pivot based on named materials */
   vtkOBJImportedPolyDataWithMaterial* default_poly = (new vtkOBJImportedPolyDataWithMaterial);
   poly_list.push_back(default_poly);
-  this->SetNumberOfOutputPorts(poly_list.size());
+  this->SetNumberOfOutputPorts(static_cast<int>(poly_list.size()));
 }
 
 //----------------------------------------------------------------------------
 vtkOBJPolyDataProcessor::~vtkOBJPolyDataProcessor()
 {
+  // clear any old mtls
+  for( size_t k = 0; k < this->parsedMTLs.size(); ++k )
+  {
+    delete this->parsedMTLs[k];
+  }
+
   for( size_t k = 0; k < poly_list.size(); ++k)
   {
-    if (poly_list[k]->mtlProperties)
-    {
-      delete poly_list[k]->mtlProperties;
-      poly_list[k]->mtlProperties = NULL;
-    }
     delete poly_list[k];
-    poly_list[k] = NULL;
+    poly_list[k] = nullptr;
   }
 }
 
 //----------------------------------------------------------------------------
 vtkOBJImportedMaterial*  vtkOBJPolyDataProcessor::GetMaterial(int k)
 {
+  if (k >= static_cast<int>(poly_list.size()))
+  {
+    return nullptr;
+  }
   vtkOBJImportedPolyDataWithMaterial*  rpdmm = this->poly_list[k];
   return rpdmm->mtlProperties;
 }
@@ -225,19 +253,22 @@ vtkOBJImportedMaterial*  vtkOBJPolyDataProcessor::GetMaterial(int k)
 //----------------------------------------------------------------------------
 std::string vtkOBJPolyDataProcessor::GetTextureFilename( int idx )
 {
-  if (outVector_of_textureFilnames[idx].empty())
+  vtkOBJImportedMaterial* mtl = this->GetMaterial(idx);
+
+  if (mtl && strlen(mtl->texture_filename))
   {
-    return std::string();
+    std::vector<std::string> path_and_filename(2);
+    path_and_filename[0] = this->TexturePath;
+    path_and_filename[1] = mtl->texture_filename;
+    std::string joined   = vtksys::SystemTools::JoinPath( path_and_filename );
+    return joined;
   }
-  std::vector<std::string> path_and_filename(2);
-  path_and_filename[0] = this->TexturePath;
-  path_and_filename[1] = outVector_of_textureFilnames[idx];
-  std::string joined   = vtksys::SystemTools::JoinPath( path_and_filename );
-  return joined;
+
+  return std::string();
 }
 
 
-// intialise some structures to store the file contents in
+// initialize some structures to store the file contents in
 
 
 /*---------------------------------------------------------------------------*\
@@ -303,7 +334,6 @@ int vtkOBJPolyDataProcessor::RequestData(
   vtkInformationVector **vtkNotUsed(inputVector),
   vtkInformationVector *vtkNotUsed(outputVector))
 {
-
   if (this->FileName.empty())
   {
     vtkErrorMacro(<< "A FileName must be specified.");
@@ -311,24 +341,60 @@ int vtkOBJPolyDataProcessor::RequestData(
   }
 
   FILE *in = fopen(this->FileName.c_str(),"r");
-  if (in == NULL)
+  if (in == nullptr)
   {
     vtkErrorMacro(<< "File " << this->FileName << " not found");
     return 0;
   }
 
+  // clear old poly list
+  for( size_t k = 0; k < poly_list.size(); ++k)
+  {
+    delete poly_list[k];
+    poly_list[k] = nullptr;
+  }
+  poly_list.clear();
+
   vtkDebugMacro(<<"Reading file" << this->FileName);
 
-  vtkOBJImportedPolyDataWithMaterial::NamedMaterials known_materials; // std::stringto ptr map
-
-  int mtlParseResult;
-  std::vector<vtkOBJImportedMaterial*>  parsedMTLs = ParseOBJandMTL(MTLFileName,mtlParseResult);
-  if(parsedMTLs.empty())
-  { // construct a default material to define the single polydata's actor.
-    parsedMTLs.push_back( new vtkOBJImportedMaterial );
+  // clear any old mtls
+  for( size_t k = 0; k < this->parsedMTLs.size(); ++k )
+  {
+    delete this->parsedMTLs[k];
   }
 
-  vtkDebugMacro("vtkOBJPolyDataProcessor parsed "   << parsedMTLs.size()
+  // If the MTLFileName is not set explicitly, we assume *.obj.mtl as the MTL
+  // filename
+  std::string mtlname = this->MTLFileName;
+  if (this->DefaultMTLFileName)
+  {
+    mtlname = this->FileName + ".mtl";
+  }
+  FILE *defMTL = fopen(mtlname.c_str(), "r");
+  if (defMTL == nullptr)
+  {
+    if (!this->DefaultMTLFileName)
+    {
+      vtkErrorMacro(<< "The MTL file " << mtlname <<
+                    " could not be found");
+      fclose(in);
+      return 0;
+    }
+  }
+  else
+  {
+    this->MTLFileName = mtlname;
+    fclose(defMTL);
+  }
+
+  int mtlParseResult;
+  this->parsedMTLs = ParseOBJandMTL(MTLFileName,mtlParseResult);
+  if (this->parsedMTLs.empty())
+  { // construct a default material to define the single polydata's actor.
+    this->parsedMTLs.push_back( new vtkOBJImportedMaterial );
+  }
+
+  vtkDebugMacro("vtkOBJPolyDataProcessor parsed "   << this->parsedMTLs.size()
                 << " materials from "   << MTLFileName);
 
   vtkSmartPointer<vtkPoints>     shared_vertexs = vtkSmartPointer<vtkPoints>::New();
@@ -338,30 +404,19 @@ int vtkOBJPolyDataProcessor::RequestData(
   std::map<std::string,vtkOBJImportedPolyDataWithMaterial*>  mtlName_to_Actor;
 
   {
-  // Since we read the MTL file, we already know how many actors we need.
-  // So, pre-allocate instead of trying to do it on the fly.
-  if(!parsedMTLs.empty())
-  {
-    while(poly_list.size() != parsedMTLs.size() )
+    // always have at least one output
+    vtkOBJImportedPolyDataWithMaterial*  newMaterial = new vtkOBJImportedPolyDataWithMaterial;
+    newMaterial->SetSharedPoints(shared_vertexs);
+    newMaterial->SetSharedNormals(shared_normals);
+    poly_list.push_back(newMaterial);
+    poly_list[0]->mtlProperties = parsedMTLs[0];
+
+    mtlName_to_mtlData.clear();
+    for( size_t k = 0; k < this->parsedMTLs.size(); ++k )
     {
-      vtkOBJImportedPolyDataWithMaterial*  newMaterial = new vtkOBJImportedPolyDataWithMaterial;
-      newMaterial->SetSharedPoints(shared_vertexs);
-      newMaterial->SetSharedNormals(shared_normals);
-      poly_list.push_back(newMaterial);
+      std::string mtlname_k(this->parsedMTLs[k]->name);
+      mtlName_to_mtlData[mtlname_k] = this->parsedMTLs[k];
     }
-  }
-  for( size_t k = 0; k<parsedMTLs.size(); ++k )
-  {
-    std::string mtlname_k(parsedMTLs[k]->name);
-    poly_list[k]->materialName = mtlname_k;
-    if (poly_list[k]->mtlProperties)
-    {
-      delete poly_list[k]->mtlProperties;
-    }
-    poly_list[k]->mtlProperties= parsedMTLs[k];
-    mtlName_to_mtlData[mtlname_k] = parsedMTLs[k];
-    mtlName_to_Actor[mtlname_k]   = poly_list[k];
-  }
   }
 
   vtkPoints* points           = poly_list.back()->points;
@@ -372,16 +427,6 @@ int vtkOBJPolyDataProcessor::RequestData(
   vtkCellArray* pointElems    = poly_list.back()->pointElems;
   vtkCellArray* lineElems     = poly_list.back()->lineElems;
   vtkCellArray* normal_polys  = poly_list.back()->normal_polys;
-
-  outVector_of_textureFilnames.resize( parsedMTLs.size() );
-  for( int i = 0; i < (int)parsedMTLs.size(); ++i )
-  {
-    std::string mtlname     = parsedMTLs[i]->name;
-    std::string texfilename = parsedMTLs[i]->texture_filename;
-    outVector_of_textureFilnames[i] = texfilename;
-    mtlName_to_mtlData[mtlname] = parsedMTLs[i];
-    vtkDebugMacro("out texture name: " << outVector_of_textureFilnames[i]);
-  }
 
   bool gotFirstUseMaterialTag = false;
 
@@ -402,7 +447,7 @@ int vtkOBJPolyDataProcessor::RequestData(
   float xyz[3];
 
   int lineNr = 0;
-  while (everything_ok && fgets(rawLine, MAX_LINE, in) != NULL)
+  while (everything_ok && fgets(rawLine, MAX_LINE, in) != nullptr)
   { /** While OK and there is another line in the file */
     lineNr++;
     char *pLine = rawLine;
@@ -505,7 +550,7 @@ int vtkOBJPolyDataProcessor::RequestData(
           else if (strcmp(pLine, "\\\n") == 0)
           {
             // handle backslash-newline continuation
-            if (fgets(rawLine, MAX_LINE, in) != NULL)
+            if (fgets(rawLine, MAX_LINE, in) != nullptr)
             {
               lineNr++;
               pLine = rawLine;
@@ -577,7 +622,7 @@ int vtkOBJPolyDataProcessor::RequestData(
           else if (strcmp(pLine, "\\\n") == 0)
           {
             // handle backslash-newline continuation
-            if (fgets(rawLine, MAX_LINE, in) != NULL)
+            if (fgets(rawLine, MAX_LINE, in) != nullptr)
             {
               lineNr++;
               pLine = rawLine;
@@ -677,7 +722,7 @@ int vtkOBJPolyDataProcessor::RequestData(
           else if (strcmp(pLine, "\\\n") == 0)
           {
             // handle backslash-newline continuation
-            if (fgets(rawLine, MAX_LINE, in) != NULL)
+            if (fgets(rawLine, MAX_LINE, in) != nullptr)
             {
               lineNr++;
               pLine = rawLine;
@@ -741,24 +786,48 @@ int vtkOBJPolyDataProcessor::RequestData(
     }
     else if (strcmp(cmd, "usemtl") == 0)
     {
+      // find the first non-whitespace character
+      while (isspace(*pLine) && pLine < pEnd)
+      {
+        pLine++;
+      }
       std::string strLine(pLine);
       vtkDebugMacro("strLine = " << strLine);
-      int idx = strLine.find_first_of(' ');
-      int idxNewLine = strLine.find_last_of('\n');
-      std::string a = strLine.substr(0,idx);
-      std::string mtl_name = strLine.substr(idx+1,idxNewLine);
+      size_t idxNewLine = strLine.find_first_of("\r\n");
+      std::string mtl_name = strLine.substr(0, idxNewLine);
+      // trim trailing whitespace
+      size_t last = mtl_name.find_last_not_of(' ');
+      mtl_name = mtl_name.substr(0, last + 1);
       vtkDebugMacro("'Use Material' command, usemtl with name: " << mtl_name);
 
-      gotFirstUseMaterialTag = true; // yep we have a usemtl command. check to make sure idiots don't try to add vertices later.
-      int mtlCount = known_materials.count(mtl_name);
+      if (! mtlName_to_mtlData.count(mtl_name))
+      {
+        vtkErrorMacro(" material '" << mtl_name << "' appears in OBJ but not MTL file?");
+      }
+      // if this is the first usemtl then assign it to the
+      // poly_list[0]
+      if (!gotFirstUseMaterialTag)
+      {
+        poly_list[0]->materialName = mtl_name;
+        poly_list[0]->mtlProperties = mtlName_to_mtlData[mtl_name];
+        mtlName_to_Actor[mtl_name] = poly_list[0];
+        // yep we have a usemtl command. check to make sure idiots don't try to add vertices later.
+        gotFirstUseMaterialTag = true;
+      }
+      size_t mtlCount = mtlName_to_Actor.count(mtl_name);
       if ( 0 == mtlCount )
-      { // new material encountered; bag and tag it, make a new named-poly-data-container
-        if ( ! mtlName_to_Actor.count(mtl_name) )
-        {
-          vtkErrorMacro(" material " << mtl_name << " appears in OBJ but not MTL file??");
-        }
+      {
+        // new material encountered; bag and tag it, make a new named-poly-data-container
+        vtkOBJImportedPolyDataWithMaterial*  newMaterial = new vtkOBJImportedPolyDataWithMaterial;
+        newMaterial->SetSharedPoints(shared_vertexs);
+        newMaterial->SetSharedNormals(shared_normals);
+        poly_list.push_back(newMaterial);
+
+        poly_list.back()->materialName  = mtl_name;
+        poly_list.back()->mtlProperties = mtlName_to_mtlData[mtl_name];
+        mtlName_to_Actor[mtl_name] = poly_list.back();
+
         vtkOBJImportedPolyDataWithMaterial* active = mtlName_to_Actor[mtl_name];
-        known_materials[mtl_name] = active;
 
         vtkDebugMacro("name of material is: " << active->materialName);
 
@@ -772,7 +841,7 @@ int vtkOBJPolyDataProcessor::RequestData(
       }
     else /** This material name already exists; switch back to it! */
     {
-      vtkOBJImportedPolyDataWithMaterial* known_mtl = known_materials[mtl_name];
+      vtkOBJImportedPolyDataWithMaterial* known_mtl = mtlName_to_Actor[mtl_name];
       vtkDebugMacro("switching to append faces with pre-existing material named "
                     << known_mtl->materialName);
       polys           = known_mtl->polys; // Update pointers reading file further
@@ -792,35 +861,31 @@ int vtkOBJPolyDataProcessor::RequestData(
   // we have finished with the file
   fclose(in);
 
-  if(!gotFirstUseMaterialTag)
-  {
-    known_materials[parsedMTLs[0]->name] = poly_list[0];
-  }
-
-  { /** based on how many named materials are present,
+  /** based on how many used materials are present,
                  set the number of output ports of vtkPolyData */
-  this->SetNumberOfOutputPorts( known_materials.size() );
+  this->SetNumberOfOutputPorts( static_cast<int>(poly_list.size()) );
   vtkDebugMacro("vtkOBJPolyDataProcessor.cxx, set # of output ports to "
-                << known_materials.size());
+                << poly_list.size());
   this->outVector_of_vtkPolyData.clear();
-  for( int i = 0; i < (int)known_materials.size(); ++i)
+  for( size_t i = 0; i < poly_list.size(); ++i)
   {
     vtkSmartPointer<vtkPolyData> poly_data = vtkSmartPointer<vtkPolyData>::New();
     this->outVector_of_vtkPolyData.push_back(poly_data);
   }
-  }
 
   if (everything_ok)   // (otherwise just release allocated memory and return)
-  {   // -- now turn this lot into a useable vtkPolyData --
-
-    for( int outputIndex = 0; outputIndex < (int)known_materials.size(); ++outputIndex )
+  {
+    // -- now turn this lot into a useable vtkPolyData --
+    // loop over the materials found in the obj file
+    for(size_t outputIndex = 0; outputIndex < poly_list.size(); ++outputIndex)
     {
+      vtkOBJImportedPolyDataWithMaterial* active = poly_list[outputIndex];
       vtkSmartPointer<vtkPolyData> output = outVector_of_vtkPolyData[outputIndex];
-      polys           = poly_list[outputIndex]->polys; // Update pointers reading file further
-      tcoord_polys    = poly_list[outputIndex]->tcoord_polys;
-      pointElems      = poly_list[outputIndex]->pointElems;
-      lineElems       = poly_list[outputIndex]->lineElems;
-      normal_polys    = poly_list[outputIndex]->normal_polys;
+      polys           = active->polys; // Update pointers reading file further
+      tcoord_polys    = active->tcoord_polys;
+      pointElems      = active->pointElems;
+      lineElems       = active->lineElems;
+      normal_polys    = active->normal_polys;
       vtkDebugMacro("generating output polydata ....  \n"
                     << "tcoords same as verts!? " << tcoords_same_as_verts
                     << " ... hasTCoords?" << hasTCoords
@@ -985,6 +1050,6 @@ vtkPolyData* vtkOBJPolyDataProcessor::GetOutput(int idx)
   }
   else
   {
-    return NULL;
+    return nullptr;
   }
 }

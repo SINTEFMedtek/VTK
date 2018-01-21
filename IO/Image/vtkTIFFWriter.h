@@ -35,12 +35,12 @@ class VTKIOIMAGE_EXPORT vtkTIFFWriter : public vtkImageWriter
 public:
   static vtkTIFFWriter *New();
   vtkTypeMacro(vtkTIFFWriter,vtkImageWriter);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * The main interface which triggers the writer to start.
    */
-  virtual void Write();
+  void Write() override;
 
   enum { // Compression types
     NoCompression,
@@ -66,11 +66,11 @@ public:
 
 protected:
   vtkTIFFWriter();
-  ~vtkTIFFWriter() {}
+  ~vtkTIFFWriter() override {}
 
-  virtual void WriteFile(ofstream *file, vtkImageData *data, int ext[6], int wExt[6]);
-  virtual void WriteFileHeader(ofstream *, vtkImageData *, int wExt[6]);
-  virtual void WriteFileTrailer(ofstream *, vtkImageData *);
+  void WriteFile(ostream *file, vtkImageData *data, int ext[6], int wExt[6]) override;
+  void WriteFileHeader(ostream *, vtkImageData *, int wExt[6]) override;
+  void WriteFileTrailer(ostream *, vtkImageData *) override;
 
   void* TIFFPtr;
   int Compression;
@@ -81,8 +81,8 @@ protected:
   double YResolution;
 
 private:
-  vtkTIFFWriter(const vtkTIFFWriter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkTIFFWriter&) VTK_DELETE_FUNCTION;
+  vtkTIFFWriter(const vtkTIFFWriter&) = delete;
+  void operator=(const vtkTIFFWriter&) = delete;
 
   template<typename T> void WriteVolume(T *buffer);
 };

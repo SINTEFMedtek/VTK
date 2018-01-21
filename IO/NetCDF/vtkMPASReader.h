@@ -80,6 +80,8 @@ version available from Los Alamos National Laboratory.
 #include "vtkIONetCDFModule.h" // For export macro
 #include "vtkUnstructuredGridAlgorithm.h"
 
+#include "vtk_netcdfcpp_fwd.h" // Forward declarations for vtknetcdfcpp
+
 #include <string> // for std::string
 
 class vtkCallbackCommand;
@@ -88,15 +90,12 @@ class vtkDoubleArray;
 class vtkStdString;
 class vtkStringArray;
 
-class NcVar;
-class NcDim;
-
 class VTKIONETCDF_EXPORT vtkMPASReader : public vtkUnstructuredGridAlgorithm
 {
  public:
   static vtkMPASReader *New();
   vtkTypeMacro(vtkMPASReader,vtkUnstructuredGridAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -230,11 +229,11 @@ class VTKIONETCDF_EXPORT vtkMPASReader : public vtkUnstructuredGridAlgorithm
    */
   static int CanReadFile(const char *filename);
 
-  vtkMTimeType GetMTime();
+  vtkMTimeType GetMTime() override;
 
  protected:
   vtkMPASReader();
-  ~vtkMPASReader();
+  ~vtkMPASReader() override;
   void ReleaseNcData();
   void DestroyData();
 
@@ -247,9 +246,9 @@ class VTKIONETCDF_EXPORT vtkMPASReader : public vtkUnstructuredGridAlgorithm
   vtkCallbackCommand* SelectionObserver;
 
   int RequestData(vtkInformation *, vtkInformationVector **,
-                  vtkInformationVector *);
+                  vtkInformationVector *) override;
   int RequestInformation(vtkInformation *, vtkInformationVector **,
-                         vtkInformationVector *);
+                         vtkInformationVector *) override;
 
 
   static void SelectionCallback(vtkObject* caller, unsigned long eid,
@@ -377,8 +376,8 @@ class VTKIONETCDF_EXPORT vtkMPASReader : public vtkUnstructuredGridAlgorithm
   void LoadTimeFieldData(vtkUnstructuredGrid *dataset);
 
  private:
-  vtkMPASReader(const vtkMPASReader&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkMPASReader&) VTK_DELETE_FUNCTION;
+  vtkMPASReader(const vtkMPASReader&) = delete;
+  void operator=(const vtkMPASReader&) = delete;
 
   class Internal;
   Internal *Internals;

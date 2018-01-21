@@ -13,6 +13,7 @@ vtk_module(vtkWebCore
     vtkCommonDataModel
     vtkCommonSystem
     vtkFiltersGeneral
+    vtkFiltersGeometry
     vtkIOCore
     vtkIOImage
     vtkParallelCore
@@ -20,4 +21,7 @@ vtk_module(vtkWebCore
     vtkRenderingCore
     vtkWebGLExporter
     vtksys
+  COMPILE_DEPENDS
+    vtkPython
+  OPTIONAL_PYTHON_LINK
 )

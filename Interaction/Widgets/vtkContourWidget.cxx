@@ -58,6 +58,10 @@ vtkContourWidget::vtkContourWidget()
                                           vtkWidgetEvent::Delete,
                                           this, vtkContourWidget::DeleteAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::KeyPressEvent,
+                                          vtkEvent::NoModifier, 8, 1, "BackSpace",
+                                          vtkWidgetEvent::Delete,
+                                          this, vtkContourWidget::DeleteAction);
+  this->CallbackMapper->SetCallbackMethod(vtkCommand::KeyPressEvent,
                                           vtkEvent::ShiftModifier, 127, 1, "Delete",
                                           vtkWidgetEvent::Reset,
                                           this, vtkContourWidget::ResetAction);
@@ -189,7 +193,7 @@ void vtkContourWidget::SelectAction( vtkAbstractWidget *w )
       if ( rep->ActivateNode( X, Y ) )
       {
         self->Superclass::StartInteraction();
-        self->InvokeEvent( vtkCommand::StartInteractionEvent, NULL );
+        self->InvokeEvent( vtkCommand::StartInteractionEvent, nullptr );
         self->StartInteraction();
         rep->SetCurrentOperationToTranslate();
         rep->StartWidgetInteraction( pos );
@@ -243,7 +247,7 @@ void vtkContourWidget::AddFinalPointAction(vtkAbstractWidget *w)
 
     self->WidgetState = vtkContourWidget::Manipulate;
     self->EventCallbackCommand->SetAbortFlag( 1 );
-    self->InvokeEvent( vtkCommand::EndInteractionEvent, NULL );
+    self->InvokeEvent( vtkCommand::EndInteractionEvent, nullptr );
   }
 
   if ( rep->GetNeedToRender() )
@@ -277,7 +281,7 @@ void vtkContourWidget::AddNode()
       return;
     }
 
-    // if in continuous draw mode, we dont want to cose the loop until we are at least
+    // if in continuous draw mode, we don't want to close the loop until we are at least
     // numNodes > pixelTolerance away
 
     int distance2 = static_cast<int>((X - displayPos[0]) * (X - displayPos[0]) +
@@ -292,7 +296,7 @@ void vtkContourWidget::AddNode()
       rep->ClosedLoopOn();
       this->Render();
       this->EventCallbackCommand->SetAbortFlag( 1 );
-      this->InvokeEvent( vtkCommand::EndInteractionEvent, NULL );
+      this->InvokeEvent( vtkCommand::EndInteractionEvent, nullptr );
       return;
     }
   }
@@ -301,13 +305,13 @@ void vtkContourWidget::AddNode()
   {
     if ( this->WidgetState == vtkContourWidget::Start )
     {
-      this->InvokeEvent(vtkCommand::StartInteractionEvent,NULL);
+      this->InvokeEvent(vtkCommand::StartInteractionEvent,nullptr);
     }
 
     this->WidgetState = vtkContourWidget::Define;
     rep->VisibilityOn();
     this->EventCallbackCommand->SetAbortFlag(1);
-    this->InvokeEvent( vtkCommand::InteractionEvent, NULL );
+    this->InvokeEvent( vtkCommand::InteractionEvent, nullptr );
   }
 }
 
@@ -339,7 +343,7 @@ void vtkContourWidget::TranslateContourAction( vtkAbstractWidget *w )
   if ( rep->ActivateNode( X, Y ) )
   {
     self->Superclass::StartInteraction();
-    self->InvokeEvent( vtkCommand::StartInteractionEvent, NULL );
+    self->InvokeEvent( vtkCommand::StartInteractionEvent, nullptr );
     self->StartInteraction();
     rep->SetCurrentOperationToShift(); // Here
     rep->StartWidgetInteraction( pos );
@@ -354,7 +358,7 @@ void vtkContourWidget::TranslateContourAction( vtkAbstractWidget *w )
       rep->GetNthNodeDisplayPosition( idx, pos );
       rep->ActivateNode( pos );
       self->Superclass::StartInteraction();
-      self->InvokeEvent( vtkCommand::StartInteractionEvent, NULL );
+      self->InvokeEvent( vtkCommand::StartInteractionEvent, nullptr );
       self->StartInteraction();
       rep->SetCurrentOperationToShift(); // Here
       rep->StartWidgetInteraction( pos );
@@ -394,7 +398,7 @@ void vtkContourWidget::ScaleContourAction( vtkAbstractWidget *w )
   if ( rep->ActivateNode( X, Y ) )
   {
     self->Superclass::StartInteraction();
-    self->InvokeEvent( vtkCommand::StartInteractionEvent, NULL );
+    self->InvokeEvent( vtkCommand::StartInteractionEvent, nullptr );
     self->StartInteraction();
     rep->SetCurrentOperationToScale(); // Here
     rep->StartWidgetInteraction( pos );
@@ -409,7 +413,7 @@ void vtkContourWidget::ScaleContourAction( vtkAbstractWidget *w )
       rep->GetNthNodeDisplayPosition( idx, pos );
       rep->ActivateNode( pos );
       self->Superclass::StartInteraction();
-      self->InvokeEvent(vtkCommand::StartInteractionEvent,NULL);
+      self->InvokeEvent(vtkCommand::StartInteractionEvent,nullptr);
       self->StartInteraction();
       rep->SetCurrentOperationToScale(); // Here
       rep->StartWidgetInteraction(pos);
@@ -441,7 +445,7 @@ void vtkContourWidget::DeleteAction( vtkAbstractWidget *w )
   {
     if ( rep->DeleteLastNode() )
     {
-      self->InvokeEvent( vtkCommand::InteractionEvent, NULL );
+      self->InvokeEvent( vtkCommand::InteractionEvent, nullptr );
     }
   }
   else
@@ -451,7 +455,7 @@ void vtkContourWidget::DeleteAction( vtkAbstractWidget *w )
     rep->ActivateNode( X, Y );
     if ( rep->DeleteActiveNode() )
     {
-      self->InvokeEvent( vtkCommand::InteractionEvent, NULL );
+      self->InvokeEvent( vtkCommand::InteractionEvent, nullptr );
     }
     rep->ActivateNode( X, Y );
     int numNodes = rep->GetNumberOfNodes();
@@ -569,7 +573,7 @@ void vtkContourWidget::MoveAction( vtkAbstractWidget *w )
     pos[0] = X;
     pos[1] = Y;
     self->WidgetRep->WidgetInteraction( pos );
-    self->InvokeEvent( vtkCommand::InteractionEvent, NULL );
+    self->InvokeEvent( vtkCommand::InteractionEvent, nullptr );
   }
 
   if ( self->WidgetRep->GetNeedToRender() )
@@ -601,7 +605,7 @@ void vtkContourWidget::EndSelectAction( vtkAbstractWidget *w )
   rep->SetCurrentOperationToInactive();
   self->EventCallbackCommand->SetAbortFlag(1);
   self->Superclass::EndInteraction();
-  self->InvokeEvent(vtkCommand::EndInteractionEvent,NULL);
+  self->InvokeEvent(vtkCommand::EndInteractionEvent,nullptr);
 
   // Node picking
   if ( self->AllowNodePicking && self->Interactor->GetControlKey() &&
@@ -621,7 +625,7 @@ void vtkContourWidget::EndSelectAction( vtkAbstractWidget *w )
 void vtkContourWidget::ResetAction( vtkAbstractWidget *w )
 {
   vtkContourWidget *self = reinterpret_cast<vtkContourWidget*>(w);
-  self->Initialize( NULL );
+  self->Initialize( nullptr );
 }
 
 //----------------------------------------------------------------------
@@ -638,7 +642,7 @@ void vtkContourWidget::Initialize( vtkPolyData * pd,
     vtkContourRepresentation *rep =
       reinterpret_cast<vtkContourRepresentation*>(this->WidgetRep);
 
-    if ( pd == NULL )
+    if ( pd == nullptr )
     {
       while( rep->DeleteLastNode() )
       {

@@ -43,7 +43,7 @@ vtkDataSetTriangleFilter::vtkDataSetTriangleFilter()
 vtkDataSetTriangleFilter::~vtkDataSetTriangleFilter()
 {
   this->Triangulator->Delete();
-  this->Triangulator = NULL;
+  this->Triangulator = nullptr;
 }
 
 int vtkDataSetTriangleFilter::RequestData(
@@ -146,7 +146,7 @@ void vtkDataSetTriangleFilter::StructuredExecute(vtkDataSet *input,
       for (i = 0; i < dimensions[0]; i++)
       {
         inId = i+(j+(k*dimensions[1]))*dimensions[0];
-        vtkCell *cell = input->GetCell(inId);
+        vtkCell *cell = input->GetCell(i, j, k);
         if ((i+j+k)%2 == 0)
         {
           cell->Triangulate(0, cellPtIds, cellPts);
@@ -269,7 +269,7 @@ void vtkDataSetTriangleFilter::UnstructuredExecute(vtkDataSet *dataSetInput,
   // Create an array of points
   vtkCellData *tempCD = vtkCellData::New();
   tempCD->ShallowCopy(inCD);
-  tempCD->SetActiveGlobalIds(NULL);
+  tempCD->SetActiveGlobalIds(nullptr);
 
   outCD->CopyAllocate(tempCD, input->GetNumberOfCells()*5);
   output->Allocate(input->GetNumberOfCells()*5);

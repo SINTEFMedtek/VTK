@@ -55,7 +55,7 @@ public:
 //-----------------------------------------------------------------------------
 void vtkEdgeTablePoints::Resize(vtkIdType newSize)
 {
-  vtkIdType size = PointVector.size();
+  vtkIdType size = static_cast<vtkIdType>(PointVector.size());
 
   if( size <= newSize )
   {
@@ -77,12 +77,12 @@ void vtkEdgeTablePoints::LoadFactor()
   vtkIdType numEntries = 0;
   vtkIdType numBins = 0;
 
-  vtkIdType size = PointVector.size();
+  vtkIdType size = static_cast<vtkIdType>(PointVector.size());
   cerr << "EdgeTablePoints:\n";
   for(int i=0; i<size; i++)
   {
-    numEntries += PointVector[i].size();
-    if( PointVector[i].size() ) numBins++;
+    numEntries += static_cast<vtkIdType>(PointVector[i].size());
+    if( !PointVector[i].empty() ) numBins++;
     cerr << PointVector[i].size() << ",";
   }
   cerr << "\n";
@@ -93,7 +93,7 @@ void vtkEdgeTablePoints::LoadFactor()
 //-----------------------------------------------------------------------------
 void vtkEdgeTablePoints::DumpPoints()
 {
-  vtkIdType size = PointVector.size();
+  vtkIdType size = static_cast<vtkIdType>(PointVector.size());
   for(int i=0; i<size; i++)
   {
     VectorPointTableType v = PointVector[i];
@@ -125,7 +125,7 @@ public:
 //-----------------------------------------------------------------------------
 void vtkEdgeTableEdge::Resize(vtkIdType newSize)
 {
-  vtkIdType size = Vector.size();
+  vtkIdType size = static_cast<vtkIdType>(Vector.size());
 
   if( size <= newSize )
   {
@@ -145,13 +145,13 @@ void vtkEdgeTableEdge::LoadFactor()
   vtkIdType numEntry = 0;
   vtkIdType numBins = 0;
 
-  vtkIdType size = Vector.size();
+  vtkIdType size = static_cast<vtkIdType>(Vector.size());
   cerr << "EdgeTableEdge:\n";
   for(int i=0; i<size; i++)
   {
     VectorEdgeTableType v = Vector[i];
-    numEntry += v.size();
-    if(v.size()) numBins++;
+    numEntry += static_cast<vtkIdType>(v.size());
+    if(!v.empty()) numBins++;
   }
   cerr << "\n";
   cerr << size << "," << numEntry << "," << numBins << "," << Modulo
@@ -161,7 +161,7 @@ void vtkEdgeTableEdge::LoadFactor()
 //-----------------------------------------------------------------------------
 void vtkEdgeTableEdge::DumpEdges()
 {
-  vtkIdType size = Vector.size();
+  vtkIdType size = static_cast<vtkIdType>(Vector.size());
   for(int i=0; i<size; i++)
   {
     VectorEdgeTableType v = Vector[i];
@@ -347,8 +347,6 @@ int vtkGenericEdgeTable::RemoveEdge(vtkIdType e1, vtkIdType e2)
 //-----------------------------------------------------------------------------
 int vtkGenericEdgeTable::CheckEdge(vtkIdType e1, vtkIdType e2, vtkIdType &ptId)
 {
-  //int index;
-  EdgeEntry ent;
   //reorder so that e1 < e2;
   OrderEdge(e1, e2);
 
@@ -365,50 +363,19 @@ int vtkGenericEdgeTable::CheckEdge(vtkIdType e1, vtkIdType e2, vtkIdType &ptId)
   assert("check: valid range pos" &&
          static_cast<unsigned>(pos)<this->EdgeTable->Vector.size() );
   //Need to check size first
-  vtkEdgeTableEdge::VectorEdgeTableType &vect = this->EdgeTable->Vector[pos];
-
-#if defined(USE_CONST_ITERATOR)
-  vtkEdgeTableEdge::VectorEdgeTableType::const_iterator it;
-  for(it = vect.begin(); it != vect.end(); ++it)
+  const vtkEdgeTableEdge::VectorEdgeTableType &vect = this->EdgeTable->Vector[pos];
+  for (auto it = vect.begin(); it != vect.end(); ++it)
   {
     if( (it->E1 == e1) && (it->E2 == e2))
     {
       ptId = it->PtId;
-      break;
+      return it->ToSplit;
     }
   }
 
-  if( it == vect.end())
-  {
-    //We did not find any corresponding entry, warn user
-    vtkDebugMacro( << "No entry were found in the hash table" );
-    return -1;
-  }
-
-  return it->ToSplit;
-#else
-  int vectsize = static_cast<int>(vect.size());
-  int index;
-  for (index=0; index<vectsize; index++)
-  {
-    ent = vect[index];
-    if( ent.E1 == e1 && ent.E2 == e2 )
-    {
-      ptId = ent.PtId;
-      break;
-    }
-  }
-
-  if( index == vectsize )
-  {
-    //We did not find any corresponding entry, warn user
-    vtkDebugMacro( << "No entry were found in the hash table" );
-    return -1;
-  }
-
-  return ent.ToSplit;
-#endif
-
+  //We did not find any corresponding entry, warn user
+  vtkDebugMacro( << "No entry were found in the hash table" );
+  return -1;
 }
 
 //-----------------------------------------------------------------------------

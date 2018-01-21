@@ -33,7 +33,7 @@ class VTKIOLSDYNA_EXPORT vtkLSDynaSummaryParser : public vtkXMLParser
 public:
   vtkTypeMacro(vtkLSDynaSummaryParser,vtkXMLParser);
   static vtkLSDynaSummaryParser* New();
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
 
 
@@ -42,11 +42,11 @@ public:
 
 protected:
   vtkLSDynaSummaryParser();
-  virtual ~vtkLSDynaSummaryParser() { };
+  ~vtkLSDynaSummaryParser() override { };
 
-  virtual void StartElement(const char* name, const char** atts);
-  virtual void EndElement(const char* name);
-  virtual void CharacterDataHandler(const char* data, int length);
+  void StartElement(const char* name, const char** atts) override;
+  void EndElement(const char* name) override;
+  void CharacterDataHandler(const char* data, int length) override;
 
   vtkStdString PartName;
   int PartId;
@@ -57,8 +57,8 @@ protected:
   int InName;
 
 private:
-  vtkLSDynaSummaryParser( const vtkLSDynaSummaryParser& ) VTK_DELETE_FUNCTION;
-  void operator = ( const vtkLSDynaSummaryParser& ) VTK_DELETE_FUNCTION;
+  vtkLSDynaSummaryParser( const vtkLSDynaSummaryParser& ) = delete;
+  void operator = ( const vtkLSDynaSummaryParser& ) = delete;
 };
 
 #endif //vtkLSDynaReader_h

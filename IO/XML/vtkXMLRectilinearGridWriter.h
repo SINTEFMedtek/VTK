@@ -39,7 +39,7 @@ class VTKIOXML_EXPORT vtkXMLRectilinearGridWriter : public vtkXMLStructuredDataW
 public:
   static vtkXMLRectilinearGridWriter* New();
   vtkTypeMacro(vtkXMLRectilinearGridWriter,vtkXMLStructuredDataWriter);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Get/Set the writer's input.
@@ -49,32 +49,32 @@ public:
   /**
    * Get the default file extension for files written by this writer.
    */
-  const char* GetDefaultFileExtension();
+  const char* GetDefaultFileExtension() override;
 
 protected:
   vtkXMLRectilinearGridWriter();
-  ~vtkXMLRectilinearGridWriter();
+  ~vtkXMLRectilinearGridWriter() override;
 
   // see algorithm for more info
-  virtual int FillInputPortInformation(int port, vtkInformation* info);
+  int FillInputPortInformation(int port, vtkInformation* info) override;
 
   int WriteAppendedMode(vtkIndent indent);
-  void WriteAppendedPiece(int index, vtkIndent indent);
-  void WriteAppendedPieceData(int index);
-  void WriteInlinePiece(vtkIndent indent);
-  void GetInputExtent(int* extent);
-  const char* GetDataSetName();
+  void WriteAppendedPiece(int index, vtkIndent indent) override;
+  void WriteAppendedPieceData(int index) override;
+  void WriteInlinePiece(vtkIndent indent) override;
+  void GetInputExtent(int* extent) override;
+  const char* GetDataSetName() override;
   void CalculateSuperclassFraction(float* fractions);
 
   // Coordinate array appended data positions.
   OffsetsManagerArray *CoordinateOM;
 
-  virtual void AllocatePositionArrays();
-  virtual void DeletePositionArrays();
+  void AllocatePositionArrays() override;
+  void DeletePositionArrays() override;
 
 private:
-  vtkXMLRectilinearGridWriter(const vtkXMLRectilinearGridWriter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkXMLRectilinearGridWriter&) VTK_DELETE_FUNCTION;
+  vtkXMLRectilinearGridWriter(const vtkXMLRectilinearGridWriter&) = delete;
+  void operator=(const vtkXMLRectilinearGridWriter&) = delete;
 };
 
 #endif

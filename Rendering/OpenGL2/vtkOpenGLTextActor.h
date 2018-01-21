@@ -31,19 +31,19 @@ class VTKRENDERINGOPENGL2_EXPORT vtkOpenGLTextActor: public vtkTextActor
 public:
   static vtkOpenGLTextActor* New();
   vtkTypeMacro(vtkOpenGLTextActor, vtkTextActor)
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
-  virtual int RenderOverlay(vtkViewport* viewport);
+  int RenderOverlay(vtkViewport* viewport) override;
 
 protected:
   vtkOpenGLTextActor();
-  ~vtkOpenGLTextActor();
+  ~vtkOpenGLTextActor() override;
 
   int RenderGL2PS(vtkViewport *viewport, vtkOpenGLGL2PSHelper *gl2ps);
 
 private:
-  vtkOpenGLTextActor(const vtkOpenGLTextActor&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkOpenGLTextActor&) VTK_DELETE_FUNCTION;
+  vtkOpenGLTextActor(const vtkOpenGLTextActor&) = delete;
+  void operator=(const vtkOpenGLTextActor&) = delete;
 };
 
 #endif // vtkOpenGLTextActor_h

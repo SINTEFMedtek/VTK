@@ -51,7 +51,7 @@ class vtkQtConnection : public QObject
     vtkQtConnection(vtkEventQtSlotConnect* owner);
 
     // destructor, disconnect if necessary
-    ~vtkQtConnection();
+    ~vtkQtConnection() override;
 
     // print function
     void PrintSelf(ostream& os, vtkIndent indent);

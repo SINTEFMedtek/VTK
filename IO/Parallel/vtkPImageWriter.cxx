@@ -25,9 +25,12 @@
     if (file && fileOpenedHere) \
     { \
       this->WriteFileTrailer(file,cache); \
-      file->close(); \
+      ofstream *ofile = dynamic_cast<ofstream*>(file); \
+      if (ofile) \
+      { \
+        ofile->close(); \
+      } \
       delete file; \
-      file = NULL; \
     } \
 
 vtkStandardNewMacro(vtkPImageWriter);
@@ -75,7 +78,7 @@ void vtkPImageWriter::PrintSelf(ostream& os, vtkIndent indent)
 // Breaks region into pieces with correct dimensionality.
 void vtkPImageWriter::RecursiveWrite(int axis, vtkImageData *cache,
                                      vtkInformation* inInfo,
-                                     ofstream *file)
+                                     ostream *file)
 {
   int             min, max, mid;
   vtkImageData    *data;
@@ -88,18 +91,27 @@ void vtkPImageWriter::RecursiveWrite(int axis, vtkImageData *cache,
     // determine the name
     if (this->FileName)
     {
-      sprintf(this->InternalFileName,"%s",this->FileName);
+      snprintf(this->InternalFileName,
+               this->InternalFileNameSize,
+               "%s",
+               this->FileName);
     }
     else
     {
       if (this->FilePrefix)
       {
-        sprintf(this->InternalFileName, this->FilePattern,
-                this->FilePrefix, this->FileNumber);
+        snprintf(this->InternalFileName,
+                 this->InternalFileNameSize,
+                 this->FilePattern,
+                 this->FilePrefix,
+                 this->FileNumber);
       }
       else
       {
-        sprintf(this->InternalFileName, this->FilePattern,this->FileNumber);
+        snprintf(this->InternalFileName,
+                 this->InternalFileNameSize,
+                 this->FilePattern,
+                 this->FileNumber);
       }
     }
     // Open the file

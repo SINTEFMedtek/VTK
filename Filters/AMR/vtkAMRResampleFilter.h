@@ -54,7 +54,7 @@ class VTKFILTERSAMR_EXPORT vtkAMRResampleFilter : public vtkMultiBlockDataSetAlg
 public:
   static vtkAMRResampleFilter *New();
   vtkTypeMacro(vtkAMRResampleFilter,vtkMultiBlockDataSetAlgorithm);
-  void PrintSelf(ostream &oss, vtkIndent indent);
+  void PrintSelf(ostream &oss, vtkIndent indent) override;
 
   //@{
   /**
@@ -138,26 +138,26 @@ public:
    * Gets the metadata from upstream module and determines which blocks
    * should be loaded by this instance.
    */
-  virtual int RequestInformation(
+  int RequestInformation(
       vtkInformation *rqst,
       vtkInformationVector **inputVector,
-      vtkInformationVector *outputVector );
+      vtkInformationVector *outputVector ) override;
 
-  virtual int RequestData(
-       vtkInformation*,vtkInformationVector**,vtkInformationVector*);
-  virtual int FillInputPortInformation(int port, vtkInformation *info);
-  virtual int FillOutputPortInformation(int port, vtkInformation *info);
+  int RequestData(
+       vtkInformation*,vtkInformationVector**,vtkInformationVector*) override;
+  int FillInputPortInformation(int port, vtkInformation *info) override;
+  int FillOutputPortInformation(int port, vtkInformation *info) override;
 
   /**
    * Performs upstream requests to the reader
    */
-  virtual int RequestUpdateExtent(
-      vtkInformation*, vtkInformationVector**, vtkInformationVector* );
+  int RequestUpdateExtent(
+      vtkInformation*, vtkInformationVector**, vtkInformationVector* ) override;
 
 
 protected:
   vtkAMRResampleFilter();
-  virtual ~vtkAMRResampleFilter();
+  ~vtkAMRResampleFilter() override;
 
   vtkOverlappingAMR *AMRMetaData;
   vtkMultiBlockDataSet *ROI; // Pointer to the region of interest.
@@ -234,7 +234,7 @@ protected:
   /**
    * Given a query point q and a target level, this method finds a suitable
    * grid at the given level that contains the point if one exists. If a grid
-   * is not found, donorGrid is set to NULL.
+   * is not found, donorGrid is set to nullptr.
    */
   bool SearchForDonorGridAtLevel(
       double q[3], vtkOverlappingAMR *amrds,
@@ -380,7 +380,7 @@ protected:
    */
 
   /**
-   * Find a decendant of the specified grid that contains the point.
+   * Find a descendant of the specified grid that contains the point.
    * If none is found then the original grid information is returned.
    * The search is limited to levels < maxLevel
    */
@@ -403,8 +403,8 @@ protected:
 
 
 private:
-  vtkAMRResampleFilter(const vtkAMRResampleFilter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkAMRResampleFilter&) VTK_DELETE_FUNCTION;
+  vtkAMRResampleFilter(const vtkAMRResampleFilter&) = delete;
+  void operator=(const vtkAMRResampleFilter&) = delete;
 
 };
 

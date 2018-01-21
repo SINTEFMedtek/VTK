@@ -66,8 +66,6 @@ POSSIBILITY OF SUCH DAMAGES.
 #include "vtkMath.h"
 
 #include <cctype>
-#include <sys/types.h>
-#include <sys/stat.h>
 
 #include <string>
 #include <vector>
@@ -88,7 +86,7 @@ vtkMNIObjectReader::vtkMNIObjectReader()
 {
   this->SetNumberOfInputPorts(0);
 
-  this->FileName = 0;
+  this->FileName = nullptr;
   this->Property = vtkProperty::New();
 
   // Whether file is binary or ASCII
@@ -98,7 +96,7 @@ vtkMNIObjectReader::vtkMNIObjectReader()
   this->LineNumber = 0;
 
   // State information for reading files
-  this->InputStream = 0;
+  this->InputStream = nullptr;
   this->LineText = new char[VTK_MNIOBJ_LINE_LENGTH];
   this->CharPointer = this->LineText;
 }
@@ -133,8 +131,8 @@ int vtkMNIObjectReader::CanReadFile(const char* fname)
 {
   // First make sure the file exists.  This prevents an empty file
   // from being created on older compilers.
-  struct stat fs;
-  if(stat(fname, &fs) != 0)
+  vtksys::SystemTools::Stat_t fs;
+  if (vtksys::SystemTools::Stat(fname, &fs) != 0)
   {
     return 0;
   }
@@ -532,21 +530,21 @@ int vtkMNIObjectReader::ReadColors(vtkProperty *property,
   {
     if (colorType == 0)
     {
-      data->GetCellData()->SetScalars(0);
-      data->GetPointData()->SetScalars(0);
+      data->GetCellData()->SetScalars(nullptr);
+      data->GetPointData()->SetScalars(nullptr);
       property->SetColor(colors->GetValue(0)/255.0,
                                colors->GetValue(1)/255.0,
                                colors->GetValue(2)/255.0);
     }
     else if (colorType == 1)
     {
-      data->GetPointData()->SetScalars(0);
+      data->GetPointData()->SetScalars(nullptr);
       data->GetCellData()->SetScalars(colors);
       property->SetColor(1.0, 1.0, 1.0);
     }
     else if (colorType == 2)
     {
-      data->GetCellData()->SetScalars(0);
+      data->GetCellData()->SetScalars(nullptr);
       data->GetPointData()->SetScalars(colors);
       property->SetColor(1.0, 1.0, 1.0);
     }
@@ -739,8 +737,8 @@ int vtkMNIObjectReader::ReadFile(vtkPolyData *output)
   }
 
   // Make sure that the file exists.
-  struct stat fs;
-  if(stat(this->FileName, &fs) != 0)
+  vtksys::SystemTools::Stat_t fs;
+  if (vtksys::SystemTools::Stat(this->FileName, &fs) != 0)
   {
     vtkErrorMacro("ReadFile: Can't open file " << this->FileName);
     return 0;
@@ -847,7 +845,7 @@ int vtkMNIObjectReader::ReadFile(vtkPolyData *output)
     }
   }
 
-  this->InputStream = 0;
+  this->InputStream = nullptr;
   infile.close();
 
   return status;

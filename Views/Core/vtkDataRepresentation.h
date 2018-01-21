@@ -68,7 +68,7 @@ class VTKVIEWSCORE_EXPORT vtkDataRepresentation : public vtkPassInputTypeAlgorit
 public:
   static vtkDataRepresentation *New();
   vtkTypeMacro(vtkDataRepresentation, vtkPassInputTypeAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Convenience override method for obtaining the input connection
@@ -221,13 +221,13 @@ public:
    * For the superclass, we just return the same selection.
    * Subclasses may do something more fancy, like convert the selection
    * from a frustrum to a list of pedigree ids.  If the selection cannot
-   * be applied to this representation, return NULL.
+   * be applied to this representation, return nullptr.
    */
   virtual vtkSelection* ConvertSelection(vtkView* view, vtkSelection* selection);
 
 protected:
   vtkDataRepresentation();
-  ~vtkDataRepresentation();
+  ~vtkDataRepresentation() override;
 
   /**
    * Subclasses should override this to connect inputs to the internal pipeline
@@ -239,10 +239,10 @@ protected:
    * GetInternalSelectionOutputPort should be used to obtain a selection or
    * annotation port whose selections are localized for a particular input data object.
    */
-  virtual int RequestData(
+  int RequestData(
     vtkInformation*,
     vtkInformationVector**,
-    vtkInformationVector*)
+    vtkInformationVector*) override
     { return 1; }
 
   /**
@@ -298,7 +298,7 @@ protected:
   /**
    * Analogous to ConvertSelection(), allows subclasses to manipulate annotations
    * before passing them off to vtkAnnotationLink.  If the annotations cannot
-   * be applied to this representation, return NULL.
+   * be applied to this representation, return nullptr.
    */
   virtual vtkAnnotationLayers* ConvertAnnotations(vtkView* view, vtkAnnotationLayers* annotations);
 
@@ -306,8 +306,8 @@ protected:
   void SetInternalInput(int port, int conn, vtkTrivialProducer* producer);
 
 private:
-  vtkDataRepresentation(const vtkDataRepresentation&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkDataRepresentation&) VTK_DELETE_FUNCTION;
+  vtkDataRepresentation(const vtkDataRepresentation&) = delete;
+  void operator=(const vtkDataRepresentation&) = delete;
 
   class Internals;
   Internals* Implementation;

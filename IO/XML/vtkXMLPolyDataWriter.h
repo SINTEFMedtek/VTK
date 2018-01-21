@@ -39,7 +39,7 @@ class VTKIOXML_EXPORT vtkXMLPolyDataWriter : public vtkXMLUnstructuredDataWriter
 {
 public:
   vtkTypeMacro(vtkXMLPolyDataWriter,vtkXMLUnstructuredDataWriter);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   static vtkXMLPolyDataWriter* New();
 
   /**
@@ -50,28 +50,28 @@ public:
   /**
    * Get the default file extension for files written by this writer.
    */
-  const char* GetDefaultFileExtension();
+  const char* GetDefaultFileExtension() override;
 
 protected:
   vtkXMLPolyDataWriter();
-  ~vtkXMLPolyDataWriter();
+  ~vtkXMLPolyDataWriter() override;
 
   // see algorithm for more info
-  virtual int FillInputPortInformation(int port, vtkInformation* info);
+  int FillInputPortInformation(int port, vtkInformation* info) override;
 
-  const char* GetDataSetName();
+  const char* GetDataSetName() override;
 
-  virtual void AllocatePositionArrays();
-  virtual void DeletePositionArrays();
+  void AllocatePositionArrays() override;
+  void DeletePositionArrays() override;
 
-  void WriteInlinePieceAttributes();
-  void WriteInlinePiece(vtkIndent indent);
+  void WriteInlinePieceAttributes() override;
+  void WriteInlinePiece(vtkIndent indent) override;
 
-  void WriteAppendedPieceAttributes(int index);
-  void WriteAppendedPiece(int index, vtkIndent indent);
-  void WriteAppendedPieceData(int index);
+  void WriteAppendedPieceAttributes(int index) override;
+  void WriteAppendedPiece(int index, vtkIndent indent) override;
+  void WriteAppendedPieceData(int index) override;
 
-  virtual vtkIdType GetNumberOfInputCells();
+  vtkIdType GetNumberOfInputCells() override;
   void CalculateSuperclassFraction(float* fractions);
 
   // Positions of attributes for each piece.
@@ -86,8 +86,8 @@ protected:
   OffsetsManagerArray *PolysOM;
 
 private:
-  vtkXMLPolyDataWriter(const vtkXMLPolyDataWriter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkXMLPolyDataWriter&) VTK_DELETE_FUNCTION;
+  vtkXMLPolyDataWriter(const vtkXMLPolyDataWriter&) = delete;
+  void operator=(const vtkXMLPolyDataWriter&) = delete;
 };
 
 #endif

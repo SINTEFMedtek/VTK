@@ -30,14 +30,14 @@ class VTKCHARTSCORE_EXPORT vtkColorTransferFunctionItem: public vtkScalarsToColo
 public:
   static vtkColorTransferFunctionItem* New();
   vtkTypeMacro(vtkColorTransferFunctionItem, vtkScalarsToColorsItem);
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
   void SetColorTransferFunction(vtkColorTransferFunction* t);
   vtkGetObjectMacro(ColorTransferFunction, vtkColorTransferFunction);
 
 protected:
   vtkColorTransferFunctionItem();
-  virtual ~vtkColorTransferFunctionItem();
+  ~vtkColorTransferFunctionItem() override;
 
   // Description:
   // Returns true if we are rendering in log space.
@@ -46,13 +46,13 @@ protected:
 
   // Description:
   // Reimplemented to return the range of the lookup table
-  virtual void ComputeBounds(double bounds[4]);
+  void ComputeBounds(double bounds[4]) override;
 
-  virtual void ComputeTexture();
+  void ComputeTexture() override;
   vtkColorTransferFunction* ColorTransferFunction;
 private:
-  vtkColorTransferFunctionItem(const vtkColorTransferFunctionItem&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkColorTransferFunctionItem&) VTK_DELETE_FUNCTION;
+  vtkColorTransferFunctionItem(const vtkColorTransferFunctionItem&) = delete;
+  void operator=(const vtkColorTransferFunctionItem&) = delete;
 };
 
 #endif

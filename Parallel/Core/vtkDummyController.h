@@ -34,15 +34,15 @@ class VTKPARALLELCORE_EXPORT vtkDummyController : public vtkMultiProcessControll
 public:
   static vtkDummyController *New();
   vtkTypeMacro(vtkDummyController,vtkMultiProcessController);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * This method is for setting up the processes.
    */
-  virtual void Initialize(int*, char***, int) {}
-  virtual void Initialize(int*, char***) {}
-  virtual void Finalize() {}
-  virtual void Finalize(int) {}
+  void Initialize(int*, char***, int) override {}
+  void Initialize(int*, char***) override {}
+  void Finalize() override {}
+  void Finalize(int) override {}
 
   /**
    * This method always returns 0.
@@ -52,24 +52,23 @@ public:
   /**
    * Directly calls the single method.
    */
-  virtual void SingleMethodExecute();
+  void SingleMethodExecute() override;
 
   /**
    * Directly calls multiple method 0.
    */
-  virtual void MultipleMethodExecute();
+  void MultipleMethodExecute() override;
 
   /**
    * Does nothing.
    */
-  virtual void CreateOutputWindow() {}
+  void CreateOutputWindow() override {}
 
   //@{
   /**
    * If you don't need any special functionality from the controller, you
    * can swap out the dummy communicator for another one.
    */
-  vtkGetObjectMacro(Communicator, vtkCommunicator);
   vtkGetObjectMacro(RMICommunicator, vtkCommunicator);
   virtual void SetCommunicator(vtkCommunicator *);
   virtual void SetRMICommunicator(vtkCommunicator *);
@@ -77,11 +76,11 @@ public:
 
 protected:
   vtkDummyController();
-  ~vtkDummyController();
+  ~vtkDummyController() override;
 
 private:
-  vtkDummyController(const vtkDummyController&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkDummyController&) VTK_DELETE_FUNCTION;
+  vtkDummyController(const vtkDummyController&) = delete;
+  void operator=(const vtkDummyController&) = delete;
 };
 
 #endif

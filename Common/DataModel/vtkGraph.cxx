@@ -63,11 +63,11 @@ public:
 
 protected:
   vtkGraphEdgePoints() { }
-  ~vtkGraphEdgePoints() VTK_OVERRIDE { }
+  ~vtkGraphEdgePoints() override { }
 
 private:
-  vtkGraphEdgePoints(const vtkGraphEdgePoints&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkGraphEdgePoints&) VTK_DELETE_FUNCTION;
+  vtkGraphEdgePoints(const vtkGraphEdgePoints&) = delete;
+  void operator=(const vtkGraphEdgePoints&) = delete;
 };
 vtkStandardNewMacro(vtkGraphEdgePoints);
 
@@ -83,7 +83,7 @@ vtkGraph::vtkGraph()
 {
   this->VertexData = vtkDataSetAttributes::New();
   this->EdgeData = vtkDataSetAttributes::New();
-  this->Points = 0;
+  this->Points = nullptr;
   vtkMath::UninitializeBounds(this->Bounds);
 
   this->Information->Set(vtkDataObject::DATA_EXTENT_TYPE(), VTK_PIECES_EXTENT);
@@ -92,9 +92,9 @@ vtkGraph::vtkGraph()
   this->Information->Set(vtkDataObject::DATA_NUMBER_OF_GHOST_LEVELS(), 0);
 
   this->Internals = vtkGraphInternals::New();
-  this->DistributedHelper = 0;
-  this->EdgePoints = 0;
-  this->EdgeList = 0;
+  this->DistributedHelper = nullptr;
+  this->EdgePoints = nullptr;
+  this->EdgeList = nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -181,13 +181,11 @@ vtkPoints *vtkGraph::GetPoints()
 //----------------------------------------------------------------------------
 void vtkGraph::ComputeBounds()
 {
-  double *bounds;
-
   if ( this->Points )
   {
     if ( this->GetMTime() >= this->ComputeTime )
     {
-      bounds = this->Points->GetBounds();
+      const double *bounds = this->Points->GetBounds();
       for (int i=0; i<6; i++)
       {
         this->Bounds[i] = bounds[i];
@@ -321,14 +319,15 @@ void vtkGraph::GetOutEdges(vtkIdType v, const vtkOutEdgeType *& edges, vtkIdType
     index = helper->GetVertexIndex(v);
   }
 
-  nedges = this->Internals->Adjacency[index].OutEdges.size();
+  nedges =
+    static_cast<vtkIdType>(this->Internals->Adjacency[index].OutEdges.size());
   if (nedges > 0)
   {
     edges = &(this->Internals->Adjacency[index].OutEdges[0]);
   }
   else
   {
-    edges = 0;
+    edges = nullptr;
   }
 }
 
@@ -347,7 +346,8 @@ vtkIdType vtkGraph::GetOutDegree(vtkIdType v)
 
     index = helper->GetVertexIndex(v);
   }
-  return this->Internals->Adjacency[index].OutEdges.size();
+  return
+    static_cast<vtkIdType>(this->Internals->Adjacency[index].OutEdges.size());
 }
 
 //----------------------------------------------------------------------------
@@ -367,8 +367,9 @@ vtkIdType vtkGraph::GetDegree(vtkIdType v)
     index = helper->GetVertexIndex(v);
   }
 
-  return this->Internals->Adjacency[index].InEdges.size() +
-         this->Internals->Adjacency[index].OutEdges.size();
+  return static_cast<vtkIdType>(
+    this->Internals->Adjacency[index].InEdges.size() +
+      this->Internals->Adjacency[index].OutEdges.size());
 }
 
 //----------------------------------------------------------------------------
@@ -439,14 +440,15 @@ void vtkGraph::GetInEdges(vtkIdType v, const vtkInEdgeType *& edges, vtkIdType &
     index = helper->GetVertexIndex(v);
   }
 
-  nedges = this->Internals->Adjacency[index].InEdges.size();
+  nedges = static_cast<vtkIdType>(
+    this->Internals->Adjacency[index].InEdges.size());
   if (nedges > 0)
   {
     edges = &(this->Internals->Adjacency[index].InEdges[0]);
   }
   else
   {
-    edges = 0;
+    edges = nullptr;
   }
 }
 
@@ -467,7 +469,8 @@ vtkIdType vtkGraph::GetInDegree(vtkIdType v)
     index = helper->GetVertexIndex(v);
   }
 
-  return this->Internals->Adjacency[index].InEdges.size();
+  return static_cast<vtkIdType>(
+    this->Internals->Adjacency[index].InEdges.size());
 }
 
 //----------------------------------------------------------------------------
@@ -516,14 +519,15 @@ void vtkGraph::GetVertices(vtkVertexListIterator *it)
 //----------------------------------------------------------------------------
 vtkIdType vtkGraph::GetNumberOfVertices()
 {
-  return this->Internals->Adjacency.size();
+  return static_cast<vtkIdType>(
+    this->Internals->Adjacency.size());
 }
 
 //----------------------------------------------------------------------------
 void vtkGraph::SetDistributedGraphHelper(vtkDistributedGraphHelper *helper)
 {
   if (this->DistributedHelper)
-    this->DistributedHelper->AttachToGraph(0);
+    this->DistributedHelper->AttachToGraph(nullptr);
 
   this->DistributedHelper = helper;
   if (this->DistributedHelper)
@@ -543,7 +547,7 @@ vtkDistributedGraphHelper *vtkGraph::GetDistributedGraphHelper()
 vtkIdType vtkGraph::FindVertex(const vtkVariant& pedigreeId)
 {
   vtkAbstractArray *pedigrees = this->GetVertexData()->GetPedigreeIds();
-  if (pedigrees == NULL)
+  if (pedigrees == nullptr)
   {
     return -1;
   }
@@ -656,7 +660,7 @@ void vtkGraph::CopyStructure(vtkGraph *g)
   else if (this->Points)
   {
     this->Points->Delete();
-    this->Points = 0;
+    this->Points = nullptr;
   }
 
   // Propagate information used by distributed graphs
@@ -688,7 +692,7 @@ void vtkGraph::CopyInternal(vtkGraph *g, bool deep)
   }
   else if (this->DistributedHelper)
   {
-    this->SetDistributedGraphHelper(0);
+    this->SetDistributedGraphHelper(nullptr);
   }
 
   // Copy on write.
@@ -758,7 +762,7 @@ void vtkGraph::Squeeze()
 //----------------------------------------------------------------------------
 vtkGraph *vtkGraph::GetData(vtkInformation *info)
 {
-  return info? vtkGraph::SafeDownCast(info->Get(DATA_OBJECT())) : 0;
+  return info? vtkGraph::SafeDownCast(info->Get(DATA_OBJECT())) : nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -919,7 +923,7 @@ void vtkGraph::GetEdgePoints(vtkIdType e, vtkIdType& npts, double*& pts)
   if (!this->EdgePoints)
   {
     npts = 0;
-    pts = 0;
+    pts = nullptr;
     return;
   }
   std::vector< std::vector<double> >::size_type numEdges = this->Internals->NumberOfEdges;
@@ -927,14 +931,15 @@ void vtkGraph::GetEdgePoints(vtkIdType e, vtkIdType& npts, double*& pts)
   {
     this->EdgePoints->Storage.resize(numEdges);
   }
-  npts = this->EdgePoints->Storage[e].size() / 3;
+  npts = static_cast<vtkIdType>(
+    this->EdgePoints->Storage[e].size() / 3);
   if (npts > 0)
   {
     pts = &this->EdgePoints->Storage[e][0];
   }
   else
   {
-    pts = 0;
+    pts = nullptr;
   }
 }
 
@@ -967,7 +972,7 @@ vtkIdType vtkGraph::GetNumberOfEdgePoints(vtkIdType e)
   {
     this->EdgePoints->Storage.resize(numEdges);
   }
-  return this->EdgePoints->Storage[e].size() / 3;
+  return static_cast<vtkIdType>(this->EdgePoints->Storage[e].size() / 3);
 }
 
 //----------------------------------------------------------------------------
@@ -979,7 +984,7 @@ double* vtkGraph::GetEdgePoint(vtkIdType e, vtkIdType i)
     if (myRank != helper->GetEdgeOwner(e))
     {
       vtkErrorMacro("vtkGraph cannot receive edge points for a non-local vertex");
-      return 0;
+      return nullptr;
     }
 
     e = helper->GetEdgeIndex(e);
@@ -988,7 +993,7 @@ double* vtkGraph::GetEdgePoint(vtkIdType e, vtkIdType i)
   if (e < 0 || e > this->Internals->NumberOfEdges)
   {
     vtkErrorMacro("Invalid edge id.");
-    return 0;
+    return nullptr;
   }
   if (!this->EdgePoints)
   {
@@ -999,11 +1004,12 @@ double* vtkGraph::GetEdgePoint(vtkIdType e, vtkIdType i)
   {
     this->EdgePoints->Storage.resize(numEdges);
   }
-  vtkIdType npts = this->EdgePoints->Storage[e].size() / 3;
+  vtkIdType npts =
+    static_cast<vtkIdType>(this->EdgePoints->Storage[e].size() / 3);
   if (i >= npts)
   {
     vtkErrorMacro("Edge point index out of range.");
-    return 0;
+    return nullptr;
   }
   return &this->EdgePoints->Storage[e][3*i];
 }
@@ -1037,7 +1043,8 @@ void vtkGraph::SetEdgePoint(vtkIdType e, vtkIdType i, double x[3])
   {
     this->EdgePoints->Storage.resize(numEdges);
   }
-  vtkIdType npts = this->EdgePoints->Storage[e].size() / 3;
+  vtkIdType npts =
+    static_cast<vtkIdType>(this->EdgePoints->Storage[e].size() / 3);
   if (i >= npts)
   {
     vtkErrorMacro("Edge point index out of range.");
@@ -1134,7 +1141,7 @@ void vtkGraph::DeepCopyEdgePoints(vtkGraph* g)
   }
   else
   {
-    this->SetEdgePoints(0);
+    this->SetEdgePoints(nullptr);
   }
 }
 
@@ -1213,7 +1220,8 @@ void vtkGraph::AddVertexInternal(vtkVariantArray *propertyArr,
       }
 
       this->Internals->Adjacency.push_back(vtkVertexAdjacencyList());  // Add a new (local) vertex
-      vtkIdType index = this->Internals->Adjacency.size() - 1;
+      vtkIdType index =
+        static_cast<vtkIdType>(this->Internals->Adjacency.size() - 1);
 
       vtkDataSetAttributes *vertexData = this->GetVertexData();
       int numProps = propertyArr->GetNumberOfValues();
@@ -1228,7 +1236,8 @@ void vtkGraph::AddVertexInternal(vtkVariantArray *propertyArr,
     else   // We have propArr, but not pedIds - just add the propArr
     {
       this->Internals->Adjacency.push_back(vtkVertexAdjacencyList());
-      vtkIdType index = this->Internals->Adjacency.size() - 1;
+      vtkIdType index =
+        static_cast<vtkIdType>(this->Internals->Adjacency.size() - 1);
 
       vtkDataSetAttributes *vertexData = this->GetVertexData();
       int numProps = propertyArr->GetNumberOfValues();
@@ -1249,13 +1258,14 @@ void vtkGraph::AddVertexInternal(vtkVariantArray *propertyArr,
   {
     if (helper)
     {
-      *vertex = helper->MakeDistributedId
-                  (this->Information->Get(vtkDataObject::DATA_PIECE_NUMBER()),
-                   this->Internals->Adjacency.size() - 1);
+      *vertex = helper->MakeDistributedId(
+        this->Information->Get(vtkDataObject::DATA_PIECE_NUMBER()),
+        static_cast<vtkIdType>(this->Internals->Adjacency.size() - 1));
     }
     else
     {
-      *vertex = this->Internals->Adjacency.size() - 1;
+      *vertex =
+        static_cast<vtkIdType>(this->Internals->Adjacency.size() - 1);
     }
   }
 }
@@ -1300,7 +1310,7 @@ void vtkGraph::AddVertexInternal(const vtkVariant& pedigreeId,
   // Add the vertex locally
   this->ForceOwnership();
   vtkIdType v;
-  this->AddVertexInternal(0, &v);
+  this->AddVertexInternal(nullptr, &v);
   if (vertex)
   {
     *vertex = v;
@@ -1308,7 +1318,7 @@ void vtkGraph::AddVertexInternal(const vtkVariant& pedigreeId,
 
   // Add the pedigree ID of the vertex
   vtkAbstractArray *pedigrees = this->GetVertexData()->GetPedigreeIds();
-  if (pedigrees == NULL)
+  if (pedigrees == nullptr)
   {
     vtkErrorMacro("Added a vertex with a pedigree ID to a vtkGraph with no pedigree ID array");
     return;

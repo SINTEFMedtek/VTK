@@ -33,7 +33,7 @@ class vtkPlane;
 class VTKFILTERSPARALLEL_EXPORT vtkCutMaterial : public vtkPolyDataAlgorithm
 {
 public:
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   vtkTypeMacro(vtkCutMaterial,vtkPolyDataAlgorithm);
   static vtkCutMaterial *New();
 
@@ -82,10 +82,10 @@ public:
 
 protected:
   vtkCutMaterial();
-  ~vtkCutMaterial();
+  ~vtkCutMaterial() override;
 
-  virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *); //generate output data
-  virtual int FillInputPortInformation(int port, vtkInformation *info);
+  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override; //generate output data
+  int FillInputPortInformation(int port, vtkInformation *info) override;
   void ComputeMaximumPoint(vtkDataSet *input);
   void ComputeNormal();
 
@@ -100,8 +100,8 @@ protected:
   vtkPlane *PlaneFunction;
 
 private:
-  vtkCutMaterial(const vtkCutMaterial&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkCutMaterial&) VTK_DELETE_FUNCTION;
+  vtkCutMaterial(const vtkCutMaterial&) = delete;
+  void operator=(const vtkCutMaterial&) = delete;
 };
 
 #endif

@@ -31,6 +31,7 @@
 #include "vtkFiltersHyperTreeModule.h" // For export macro
 #include "vtkDataSetAlgorithm.h"
 
+#if !defined(VTK_LEGACY_REMOVE)
 class vtkHyperOctree;
 class vtkHyperOctreeCursor;
 
@@ -52,11 +53,11 @@ public:
 
 protected:
   vtkHyperOctreeLimiter();
-  ~vtkHyperOctreeLimiter();
+  ~vtkHyperOctreeLimiter() override;
 
-  virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-  virtual int FillInputPortInformation(int port, vtkInformation *info);
-  virtual int FillOutputPortInformation(int port, vtkInformation *info);
+  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
+  int FillInputPortInformation(int port, vtkInformation *info) override;
+  int FillOutputPortInformation(int port, vtkInformation *info) override;
 
   vtkHyperOctree *Input;
   vtkHyperOctree *Output;
@@ -76,8 +77,9 @@ protected:
   int AccumSize;
 
 private:
-  vtkHyperOctreeLimiter(const vtkHyperOctreeLimiter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkHyperOctreeLimiter&) VTK_DELETE_FUNCTION;
+  vtkHyperOctreeLimiter(const vtkHyperOctreeLimiter&) = delete;
+  void operator=(const vtkHyperOctreeLimiter&) = delete;
 };
+#endif // LEGACY remove
 
 #endif

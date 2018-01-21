@@ -14,24 +14,24 @@
 =========================================================================*/
 #include "vtkFacetReader.h"
 
-#include "vtkPolyData.h"
+#include "vtkAppendPolyData.h"
+#include "vtkCellArray.h"
+#include "vtkCellData.h"
+#include "vtkCellType.h"
+#include "vtkDoubleArray.h"
+#include "vtkErrorCode.h"
+#include "vtkGarbageCollector.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkObjectFactory.h"
-#include "vtkErrorCode.h"
-#include "vtkCellType.h"
-#include "vtkCellArray.h"
-#include "vtkGarbageCollector.h"
-#include "vtkAppendPolyData.h"
 #include "vtkPointData.h"
-#include "vtkCellData.h"
-
-#include "vtkUnsignedIntArray.h"
-#include "vtkDoubleArray.h"
+#include "vtkPolyData.h"
 #include "vtkSmartPointer.h"
+#include "vtkUnsignedIntArray.h"
+
+#include <vtksys/SystemTools.hxx>
 
 #include <sstream>
-#include <sys/stat.h>
 #include <string>
 #include <vector>
 
@@ -43,7 +43,7 @@ vtkStandardNewMacro(vtkFacetReader);
 // if any data were read before the end-of-file was reached.
 //
 static bool GetLineFromStream(istream& is,
-  std::string& line, bool *has_newline = 0)
+  std::string& line, bool *has_newline = nullptr)
 {
   const int bufferSize = 1024;
   char buffer[bufferSize];
@@ -82,7 +82,7 @@ static bool GetLineFromStream(istream& is,
 //----------------------------------------------------------------------------
 vtkFacetReader::vtkFacetReader()
 {
-  this->FileName  = NULL;
+  this->FileName  = nullptr;
   this->SetNumberOfInputPorts(0);
 }
 
@@ -95,8 +95,8 @@ vtkFacetReader::~vtkFacetReader()
 //-----------------------------------------------------------------------------
 int vtkFacetReader::CanReadFile(const char *filename)
 {
-  struct stat fs;
-  if (stat(filename, &fs))
+  vtksys::SystemTools::Stat_t fs;
+  if (vtksys::SystemTools::Stat(filename, &fs))
   {
     // Specified filename not found
     return 0;
@@ -140,8 +140,8 @@ int vtkFacetReader::RequestData(
     return 1;
   }
 
-  struct stat fs;
-  if ( stat(this->FileName, &fs) )
+  vtksys::SystemTools::Stat_t fs;
+  if (vtksys::SystemTools::Stat(this->FileName, &fs))
   {
     this->SetErrorCode(vtkErrorCode::FileNotFoundError);
     vtkErrorMacro("Specified filename not found");

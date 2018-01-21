@@ -60,7 +60,7 @@ public:
    * Standard vtkObject methods
    */
   vtkTypeMacro(vtkFinitePlaneRepresentation, vtkWidgetRepresentation);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   /**
@@ -126,22 +126,22 @@ public:
   /**
    * These are methods that satisfy vtkWidgetRepresentation's API.
    */
-  virtual void PlaceWidget(double bounds[6]);
-  virtual void BuildRepresentation();
-  virtual int  ComputeInteractionState(int X, int Y, int modify=0);
-  virtual void StartWidgetInteraction(double e[2]);
-  virtual void WidgetInteraction(double e[2]);
-  virtual double *GetBounds();
+  void PlaceWidget(double bounds[6]) override;
+  void BuildRepresentation() override;
+  int  ComputeInteractionState(int X, int Y, int modify=0) override;
+  void StartWidgetInteraction(double e[2]) override;
+  void WidgetInteraction(double e[2]) override;
+  double *GetBounds() override;
   //@}
 
   //@{
   /**
    * Methods supporting, and required by, the rendering process.
    */
-  virtual void ReleaseGraphicsResources(vtkWindow*);
-  virtual int  RenderOpaqueGeometry(vtkViewport*);
-  virtual int  RenderTranslucentPolygonalGeometry(vtkViewport*);
-  virtual int  HasTranslucentPolygonalGeometry();
+  void ReleaseGraphicsResources(vtkWindow*) override;
+  int  RenderOpaqueGeometry(vtkViewport*) override;
+  int  RenderTranslucentPolygonalGeometry(vtkViewport*) override;
+  int  HasTranslucentPolygonalGeometry() override;
   //@}
 
   vtkSetClampMacro(InteractionState, int, Outside, Pushing);
@@ -219,7 +219,7 @@ public:
 
 protected:
   vtkFinitePlaneRepresentation();
-  ~vtkFinitePlaneRepresentation();
+  ~vtkFinitePlaneRepresentation() override;
 
   virtual void CreateDefaultProperties();
 
@@ -227,7 +227,7 @@ protected:
   virtual void SizeHandles();
 
   // Register internal Pickers within PickingManager
-  virtual void RegisterPickers();
+  void RegisterPickers() override;
 
   void SetHighlightNormal(int highlight);
   void SetHighlightPlane(int highlight);
@@ -320,8 +320,8 @@ protected:
   vtkProperty *SelectedNormalProperty;
 
 private:
-  vtkFinitePlaneRepresentation(const vtkFinitePlaneRepresentation&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkFinitePlaneRepresentation&) VTK_DELETE_FUNCTION;
+  vtkFinitePlaneRepresentation(const vtkFinitePlaneRepresentation&) = delete;
+  void operator=(const vtkFinitePlaneRepresentation&) = delete;
 };
 
 #endif

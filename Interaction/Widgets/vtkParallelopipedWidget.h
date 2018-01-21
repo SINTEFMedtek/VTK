@@ -60,14 +60,14 @@ public:
   static vtkParallelopipedWidget *New();
 
   vtkTypeMacro(vtkParallelopipedWidget,vtkAbstractWidget);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Override the superclass method. This is a composite widget, (it internally
    * consists of handle widgets). We will override the superclass method, so
    * that we can pass the enabled state to the internal widgets as well.
    */
-  virtual void SetEnabled(int);
+  void SetEnabled(int) override;
 
   /**
    * Specify an instance of vtkWidgetRepresentation used to represent this
@@ -99,17 +99,17 @@ public:
   /**
    * Create the default widget representation if one is not set.
    */
-  void CreateDefaultRepresentation();
+  void CreateDefaultRepresentation() override;
 
   /**
    * Methods to change the whether the widget responds to interaction.
    * Overridden to pass the state to component widgets.
    */
-  virtual void SetProcessEvents(int);
+  void SetProcessEvents(int) override;
 
 protected:
   vtkParallelopipedWidget();
-  ~vtkParallelopipedWidget();
+  ~vtkParallelopipedWidget() override;
 
   static void RequestResizeCallback             (vtkAbstractWidget* );
   static void RequestResizeAlongAnAxisCallback  (vtkAbstractWidget* );
@@ -127,10 +127,10 @@ protected:
   //@}
 
   // helper methods for cursor management
-  void SetCursor(int state);
+  void SetCursor(int state) override;
 
   // To break reference count loops
-  void ReportReferences(vtkGarbageCollector* collector) VTK_OVERRIDE;
+  void ReportReferences(vtkGarbageCollector* collector) override;
 
   // The positioning handle widgets
   vtkHandleWidget **HandleWidgets;
@@ -148,8 +148,8 @@ protected:
   vtkWidgetSet* WidgetSet;
 
 private:
-  vtkParallelopipedWidget(const vtkParallelopipedWidget&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkParallelopipedWidget&) VTK_DELETE_FUNCTION;
+  vtkParallelopipedWidget(const vtkParallelopipedWidget&) = delete;
+  void operator=(const vtkParallelopipedWidget&) = delete;
 };
 
 #endif

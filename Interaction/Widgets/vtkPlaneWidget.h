@@ -106,18 +106,18 @@ public:
   static vtkPlaneWidget *New();
 
   vtkTypeMacro(vtkPlaneWidget,vtkPolyDataSourceWidget);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
    * Methods that satisfy the superclass' API.
    */
-  virtual void SetEnabled(int);
-  virtual void PlaceWidget(double bounds[6]);
-  void PlaceWidget()
+  void SetEnabled(int) override;
+  void PlaceWidget(double bounds[6]) override;
+  void PlaceWidget() override
     {this->Superclass::PlaceWidget();}
   void PlaceWidget(double xmin, double xmax, double ymin, double ymax,
-                   double zmin, double zmax)
+                   double zmin, double zmax) override
     {this->Superclass::PlaceWidget(xmin,xmax,ymin,ymax,zmin,zmax);}
   //@}
 
@@ -243,13 +243,13 @@ public:
    * to have the initial placement follow suit.  Or, make changes after the
    * widget has been initialised and call UpdatePlacement() to realise.
    */
-  vtkPolyDataAlgorithm* GetPolyDataAlgorithm();
+  vtkPolyDataAlgorithm* GetPolyDataAlgorithm() override;
 
   /**
    * Satisfies superclass API.  This will change the state of the widget to
    * match changes that have been made to the underlying PolyDataSource
    */
-  void UpdatePlacement(void);
+  void UpdatePlacement(void) override;
 
   //@{
   /**
@@ -273,7 +273,7 @@ public:
 
 protected:
   vtkPlaneWidget();
-  ~vtkPlaneWidget();
+  ~vtkPlaneWidget() override;
 
   // Manage the state of the widget
   int State;
@@ -329,7 +329,7 @@ protected:
   void HandlesOn(double length);
   void HandlesOff();
   int HighlightHandle(vtkProp *prop); //returns cell id
-  virtual void SizeHandles();
+  void SizeHandles() override;
 
   // the normal cone
   vtkActor          *ConeActor;
@@ -358,7 +358,7 @@ protected:
   vtkActor *CurrentHandle;
 
   // Register internal Pickers within PickingManager
-  virtual void RegisterPickers();
+  void RegisterPickers() override;
 
   // Methods to manipulate the hexahedron.
   void MoveOrigin(double *p1, double *p2);
@@ -391,8 +391,8 @@ protected:
   double HandleSizeFactor;
 
 private:
-  vtkPlaneWidget(const vtkPlaneWidget&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPlaneWidget&) VTK_DELETE_FUNCTION;
+  vtkPlaneWidget(const vtkPlaneWidget&) = delete;
+  void operator=(const vtkPlaneWidget&) = delete;
 };
 
 #endif

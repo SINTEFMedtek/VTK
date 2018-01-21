@@ -34,7 +34,7 @@ class VTKIOIMAGE_EXPORT vtkImageWriter : public vtkImageAlgorithm
 public:
   static vtkImageWriter *New();
   vtkTypeMacro(vtkImageWriter,vtkImageAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -58,7 +58,7 @@ public:
 
   //@{
   /**
-   * The sprintf format used to build filename from FilePrefix and number.
+   * The snprintf format used to build filename from FilePrefix and number.
    */
   vtkSetStringMacro(FilePattern);
   vtkGetStringMacro(FilePattern);
@@ -88,7 +88,7 @@ public:
 
 protected:
   vtkImageWriter();
-  ~vtkImageWriter();
+  ~vtkImageWriter() override;
 
   int FileDimensionality;
   char *FilePrefix;
@@ -97,34 +97,48 @@ protected:
   int FileNumber;
   int FileLowerLeft;
   char *InternalFileName;
+  size_t InternalFileNameSize;
 
   virtual void RecursiveWrite(int dim,
                               vtkImageData *region,
                               vtkInformation*inInfo,
-                              ofstream *file);
+                              ostream *file);
   virtual void RecursiveWrite(int dim,
                               vtkImageData *cache,
                               vtkImageData *data,
                               vtkInformation* inInfo,
-                              ofstream *file);
-  virtual void WriteFile(ofstream *file, vtkImageData *data,
+                              ostream *file);
+  virtual void WriteFile(ostream *file, vtkImageData *data,
                          int extent[6], int wExtent[6]);
-  virtual void WriteFileHeader(ofstream *, vtkImageData *, int [6]) {}
-  virtual void WriteFileTrailer(ofstream *, vtkImageData *) {}
+  virtual void WriteFileHeader(ostream *, vtkImageData *, int [6]) {}
+  virtual void WriteFileTrailer(ostream *, vtkImageData *) {}
+
+
+  // Required for subclasses that need to prevent the writer
+  // from touching the file system. The getter/setter are only
+  // available in these subclasses.
+  unsigned int WriteToMemory;
+
+  // subclasses that do write to memory can override this
+  // to implement the simple case
+  virtual void MemoryWrite(int,
+                           vtkImageData *,
+                           int [6],
+                           vtkInformation*) {};
 
   // This is called by the superclass.
   // This is the method you should override.
-  virtual int RequestData(vtkInformation *request,
+  int RequestData(vtkInformation *request,
                           vtkInformationVector** inputVector,
-                          vtkInformationVector* outputVector);
+                          vtkInformationVector* outputVector) override;
 
   int MinimumFileNumber;
   int MaximumFileNumber;
   int FilesDeleted;
 
 private:
-  vtkImageWriter(const vtkImageWriter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkImageWriter&) VTK_DELETE_FUNCTION;
+  vtkImageWriter(const vtkImageWriter&) = delete;
+  void operator=(const vtkImageWriter&) = delete;
 };
 
 #endif

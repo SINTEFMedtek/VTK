@@ -59,14 +59,14 @@ class VTKRENDERINGLABEL_EXPORT vtkLabeledTreeMapDataMapper : public vtkLabeledDa
 public:
   static vtkLabeledTreeMapDataMapper *New();
   vtkTypeMacro(vtkLabeledTreeMapDataMapper,vtkLabeledDataMapper);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
    * Draw the text to the screen at each input point.
    */
-  virtual void RenderOpaqueGeometry(vtkViewport* viewport, vtkActor2D* actor);
-  virtual void RenderOverlay(vtkViewport *viewport, vtkActor2D *actor);
+  void RenderOpaqueGeometry(vtkViewport* viewport, vtkActor2D* actor) override;
+  void RenderOverlay(vtkViewport *viewport, vtkActor2D *actor) override;
   //@}
 
   /**
@@ -108,7 +108,7 @@ public:
   /**
    * Release any graphics resources that are being consumed by this actor.
    */
-  virtual void ReleaseGraphicsResources(vtkWindow *);
+  void ReleaseGraphicsResources(vtkWindow *) override;
 
   //@{
   /**
@@ -130,13 +130,13 @@ public:
 
 protected:
   vtkLabeledTreeMapDataMapper();
-  ~vtkLabeledTreeMapDataMapper();
+  ~vtkLabeledTreeMapDataMapper() override;
   void LabelTree(vtkTree *tree, vtkFloatArray *boxInfo,
                  vtkDataArray *numericData, vtkStringArray *stringData,
                  int activeComp, int numComps);
   void GetVertexLabel(vtkIdType vertex, vtkDataArray *numericData,
-                    vtkStringArray *stringData, int activeComp, int numComps,
-                    char *string);
+                      vtkStringArray *stringData, int activeComp, int numComps,
+                      char *string, size_t stringSize);
   void UpdateFontSizes();
   int UpdateWindowInfo(vtkViewport *viewport);
   int GetStringSize(char *string, int level);
@@ -171,8 +171,8 @@ protected:
   vtkTextProperty **HLabelProperties;
 
 private:
-  vtkLabeledTreeMapDataMapper(const vtkLabeledTreeMapDataMapper&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkLabeledTreeMapDataMapper&) VTK_DELETE_FUNCTION;
+  vtkLabeledTreeMapDataMapper(const vtkLabeledTreeMapDataMapper&) = delete;
+  void operator=(const vtkLabeledTreeMapDataMapper&) = delete;
 };
 
 

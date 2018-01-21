@@ -38,7 +38,7 @@ class VTKIMAGINGMORPHOLOGICAL_EXPORT vtkImageSkeleton2D : public vtkImageIterate
 public:
   static vtkImageSkeleton2D *New();
   vtkTypeMacro(vtkImageSkeleton2D,vtkImageIterateFilter);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -52,16 +52,16 @@ public:
   /**
    * Sets the number of cycles in the erosion.
    */
-  void SetNumberOfIterations(int num);
+  void SetNumberOfIterations(int num) override;
 
 protected:
   vtkImageSkeleton2D();
-  ~vtkImageSkeleton2D() {}
+  ~vtkImageSkeleton2D() override {}
 
   int Prune;
 
-  virtual int IterativeRequestUpdateExtent(vtkInformation* in,
-                                           vtkInformation* out);
+  int IterativeRequestUpdateExtent(vtkInformation* in,
+                                           vtkInformation* out) override;
   void ThreadedRequestData(
     vtkInformation* request,
     vtkInformationVector** inputVector,
@@ -69,10 +69,10 @@ protected:
     vtkImageData ***inDataV,
     vtkImageData **outDataV,
     int outExt[6],
-    int id);
+    int id) override;
 private:
-  vtkImageSkeleton2D(const vtkImageSkeleton2D&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkImageSkeleton2D&) VTK_DELETE_FUNCTION;
+  vtkImageSkeleton2D(const vtkImageSkeleton2D&) = delete;
+  void operator=(const vtkImageSkeleton2D&) = delete;
 };
 
 #endif

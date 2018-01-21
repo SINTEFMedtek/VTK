@@ -41,8 +41,8 @@ vtkStandardNewMacro(vtkVRMLExporter);
 vtkVRMLExporter::vtkVRMLExporter()
 {
   this->Speed = 4.0;
-  this->FileName = NULL;
-  this->FilePointer = NULL;
+  this->FileName = nullptr;
+  this->FilePointer = nullptr;
 }
 
 vtkVRMLExporter::~vtkVRMLExporter()
@@ -72,7 +72,7 @@ void vtkVRMLExporter::WriteData()
   FILE *fp;
 
   // make sure the user specified a FileName or FilePointer
-  if (!this->FilePointer && (this->FileName == NULL))
+  if (!this->FilePointer && (this->FileName == nullptr))
   {
     vtkErrorMacro(<< "Please specify FileName to use");
     return;
@@ -156,7 +156,7 @@ void vtkVRMLExporter::WriteData()
           ren->GetAmbient()[1], ren->GetAmbient()[2]);
 
   // make sure we have a default light
-  // if we dont then use a headlight
+  // if we don't then use a headlight
   lc = ren->GetLights();
   vtkCollectionSimpleIterator lsit;
   for (lc->InitTraversal(lsit); (aLight = lc->GetNextLight(lsit)); )
@@ -237,13 +237,13 @@ void vtkVRMLExporter::WriteAnActor(vtkActor *anActor, FILE *fp)
   vtkSmartPointer<vtkPolyData> pd;
   vtkPointData *pntData;
   vtkPoints *points;
-  vtkDataArray *normals = NULL;
-  vtkDataArray *tcoords = NULL;
+  vtkDataArray *normals = nullptr;
+  vtkDataArray *tcoords = nullptr;
   int i, i1, i2;
   double *tempd;
   vtkCellArray *cells;
   vtkIdType npts = 0;
-  vtkIdType *indx = 0;
+  vtkIdType *indx = nullptr;
   int pointDataWritten = 0;
   vtkPolyDataMapper *pm;
   vtkUnsignedCharArray *colors;
@@ -252,7 +252,7 @@ void vtkVRMLExporter::WriteAnActor(vtkActor *anActor, FILE *fp)
   vtkTransform *trans;
 
   // see if the actor has a mapper. it could be an assembly
-  if (anActor->GetMapper() == NULL)
+  if (anActor->GetMapper() == nullptr)
   {
     return;
   }
@@ -260,32 +260,21 @@ void vtkVRMLExporter::WriteAnActor(vtkActor *anActor, FILE *fp)
   {
     return;
   }
-  // first stuff out the transform
-  trans = vtkTransform::New();
-  trans->SetMatrix(anActor->vtkProp3D::GetMatrix());
 
-  fprintf(fp,"    Transform {\n");
-  tempd = trans->GetPosition();
-  fprintf(fp,"      translation %g %g %g\n", tempd[0], tempd[1], tempd[2]);
-  tempd = trans->GetOrientationWXYZ();
-  fprintf(fp,"      rotation %g %g %g %g\n", tempd[1], tempd[2],
-          tempd[3], tempd[0]*vtkMath::Pi()/180.0);
-  tempd = trans->GetScale();
-  fprintf(fp,"      scale %g %g %g\n", tempd[0], tempd[1], tempd[2]);
-  fprintf(fp,"      children [\n");
-  trans->Delete();
-
+  // Before putting out anything in the file, ensure that we have an exportable
+  // dataset being rendered by the actor.
   vtkDataObject* inputDO = anActor->GetMapper()->GetInputDataObject(0, 0);
-  if (inputDO == NULL)
+  if (inputDO == nullptr)
   {
     return;
   }
-  // we really want polydata
+
+  // we really want polydata, so apply geometry filter, if needed.
   if (inputDO->IsA("vtkCompositeDataSet"))
   {
     vtkCompositeDataGeometryFilter* gf = vtkCompositeDataGeometryFilter::New();
     gf->SetInputConnection(
-      anActor->GetMapper()->GetInputConnection(0, 0));
+        anActor->GetMapper()->GetInputConnection(0, 0));
     gf->Update();
     pd = gf->GetOutput();
     gf->Delete();
@@ -304,6 +293,26 @@ void vtkVRMLExporter::WriteAnActor(vtkActor *anActor, FILE *fp)
     anActor->GetMapper()->Update();
     pd = static_cast<vtkPolyData *>(inputDO);
   }
+
+  if (pd == nullptr || pd->GetNumberOfPoints() == 0)
+  {
+    return;
+  }
+
+  // first stuff out the transform
+  trans = vtkTransform::New();
+  trans->SetMatrix(anActor->vtkProp3D::GetMatrix());
+
+  fprintf(fp,"    Transform {\n");
+  tempd = trans->GetPosition();
+  fprintf(fp,"      translation %g %g %g\n", tempd[0], tempd[1], tempd[2]);
+  tempd = trans->GetOrientationWXYZ();
+  fprintf(fp,"      rotation %g %g %g %g\n", tempd[1], tempd[2],
+          tempd[3], tempd[0]*vtkMath::Pi()/180.0);
+  tempd = trans->GetScale();
+  fprintf(fp,"      scale %g %g %g\n", tempd[0], tempd[1], tempd[2]);
+  fprintf(fp,"      children [\n");
+  trans->Delete();
 
   pm = vtkPolyDataMapper::New();
   pm->SetInputData(pd);
@@ -440,7 +449,7 @@ void vtkVRMLExporter::WriteAnActor(vtkActor *anActor, FILE *fp)
     fprintf(fp,"          geometry IndexedLineSet {\n");
     if (!pointDataWritten)
     {
-      this->WritePointData(points, NULL, NULL, colors, fp);
+      this->WritePointData(points, nullptr, nullptr, colors, fp);
       pointDataWritten = 1;
     }
     else
@@ -525,11 +534,10 @@ void vtkVRMLExporter::WriteShapeBegin( vtkActor* actor, FILE *fileP,
   double tempf2;
 
   fprintf(fileP,"        Shape {\n");
-  vtkProperty* props = 0;
+  vtkProperty* props = actor->GetProperty();
   // write out the material properties to the mat file
   fprintf(fileP,"          appearance Appearance {\n");
   fprintf(fileP,"            material Material {\n");
-  props = actor->GetProperty();
   fprintf(fileP,"              ambientIntensity %g\n", props->GetAmbient());
   // if we don't have colors and we have only lines & points
   // use emissive to color them
@@ -563,7 +571,7 @@ void vtkVRMLExporter::WriteShapeBegin( vtkActor* actor, FILE *fileP,
     unsigned char *txtrData;
 
     // make sure it is updated and then get some info
-    if (aTexture->GetInput() == NULL)
+    if (aTexture->GetInput() == nullptr)
     {
       vtkErrorMacro(<< "texture has no input!\n");
       return;
@@ -580,7 +588,7 @@ void vtkVRMLExporter::WriteShapeBegin( vtkActor* actor, FILE *fileP,
     }
 
     // make sure using unsigned char data of color scalars type
-    if (aTexture->GetMapColorScalarsThroughLookupTable () ||
+    if (aTexture->GetColorMode() == VTK_COLOR_MODE_MAP_SCALARS ||
         (scalars->GetDataType() != VTK_UNSIGNED_CHAR) )
     {
       mappedScalars = aTexture->GetMappedScalars ();

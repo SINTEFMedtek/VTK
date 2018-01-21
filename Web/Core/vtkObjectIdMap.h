@@ -15,7 +15,7 @@
 /**
  * @class   vtkObjectIdMap
  * @brief   class used to assign Id to any VTK object and be able
- * to retreive it base on its id.
+ * to retrieve it base on its id.
 */
 
 #ifndef vtkObjectIdMap_h
@@ -29,29 +29,29 @@ class VTKWEBCORE_EXPORT vtkObjectIdMap : public vtkObject
 public:
   static vtkObjectIdMap* New();
   vtkTypeMacro(vtkObjectIdMap, vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
-   * Retreive a unique identifier for the given object or generate a new one
+   * Retrieve a unique identifier for the given object or generate a new one
    * if its global id was never requested.
    */
   vtkTypeUInt32 GetGlobalId(vtkObject* obj);
 
   /**
-   * Retreive a vtkObject based on its global id. If not found return NULL
+   * Retrieve a vtkObject based on its global id. If not found return nullptr
    */
   vtkObject* GetVTKObject(vtkTypeUInt32 globalId);
 
   /**
    * Assign an active key (string) to an existing object.
    * This is usually used to provide another type of access to specific
-   * vtkObject that we want to retreive easily using a string.
+   * vtkObject that we want to retrieve easily using a string.
    * Return the global Id of the given registered object
    */
   vtkTypeUInt32 SetActiveObject(const char* objectType, vtkObject* obj);
 
   /**
-   * Retreive a previously stored object based on a name
+   * Retrieve a previously stored object based on a name
    */
   vtkObject* GetActiveObject(const char* objectType);
 
@@ -62,11 +62,11 @@ public:
 
 protected:
   vtkObjectIdMap();
-  ~vtkObjectIdMap();
+  ~vtkObjectIdMap() override;
 
 private:
-  vtkObjectIdMap(const vtkObjectIdMap&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkObjectIdMap&) VTK_DELETE_FUNCTION;
+  vtkObjectIdMap(const vtkObjectIdMap&) = delete;
+  void operator=(const vtkObjectIdMap&) = delete;
 
   struct vtkInternals;
   vtkInternals* Internals;

@@ -36,7 +36,7 @@ class VTKIOLEGACY_EXPORT vtkGraphWriter : public vtkDataWriter
 public:
   static vtkGraphWriter *New();
   vtkTypeMacro(vtkGraphWriter,vtkDataWriter);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -48,17 +48,17 @@ public:
 
 protected:
   vtkGraphWriter() {}
-  ~vtkGraphWriter() {}
+  ~vtkGraphWriter() override {}
 
-  void WriteData();
+  void WriteData() override;
 
   void WriteMoleculeData(ostream *fp, vtkMolecule *m);
 
-  virtual int FillInputPortInformation(int port, vtkInformation *info);
+  int FillInputPortInformation(int port, vtkInformation *info) override;
 
 private:
-  vtkGraphWriter(const vtkGraphWriter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkGraphWriter&) VTK_DELETE_FUNCTION;
+  vtkGraphWriter(const vtkGraphWriter&) = delete;
+  void operator=(const vtkGraphWriter&) = delete;
 };
 
 #endif

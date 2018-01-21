@@ -39,7 +39,7 @@ class VTKRENDERINGPARALLELLIC_EXPORT vtkPLineIntegralConvolution2D : public vtkL
 public:
   static vtkPLineIntegralConvolution2D *New();
   vtkTypeMacro(vtkPLineIntegralConvolution2D, vtkLineIntegralConvolution2D);
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  virtual void PrintSelf(ostream &os, vtkIndent indent) override;
 
   //@{
   /**
@@ -49,8 +49,8 @@ public:
    * hold/manage reference to the communicator during use
    * of the LIC object.
    */
-  virtual void SetCommunicator(vtkPainterCommunicator *);
-  virtual vtkPainterCommunicator *GetCommunicator();
+  virtual void SetCommunicator(vtkPainterCommunicator *) override;
+  virtual vtkPainterCommunicator *GetCommunicator() override;
   //@}
 
   /**
@@ -60,7 +60,7 @@ public:
   virtual void GetGlobalMinMax(
         vtkPainterCommunicator *comm,
         float &min,
-        float &max);
+        float &max) override;
 
   /**
    * Methods used for parallel benchmarks. Use cmake to define
@@ -68,7 +68,7 @@ public:
    * During each update timing information is stored, it can
    * be written to disk by calling WriteLog.
    */
-  virtual void WriteTimerLog(const char *fileName);
+  virtual void WriteTimerLog(const char *fileName) override;
 
 protected:
   vtkPLineIntegralConvolution2D();
@@ -82,16 +82,16 @@ protected:
    * disk by calling WriteLog. Note: Some of the timings are
    * enabled by the surface lic painter.
    */
-  virtual void StartTimerEvent(const char *name);
-  virtual void EndTimerEvent(const char *name);
+  virtual void StartTimerEvent(const char *name) override;
+  virtual void EndTimerEvent(const char *name) override;
   //@}
 
 private:
   std::string LogFileName;
 
 private:
-  vtkPLineIntegralConvolution2D(const vtkPLineIntegralConvolution2D &) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPLineIntegralConvolution2D &) VTK_DELETE_FUNCTION;
+  vtkPLineIntegralConvolution2D(const vtkPLineIntegralConvolution2D &) = delete;
+  void operator=(const vtkPLineIntegralConvolution2D &) = delete;
 };
 
 #endif

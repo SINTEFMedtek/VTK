@@ -31,12 +31,12 @@ class VTKFILTERSGENERAL_EXPORT vtkPassThrough : public vtkPassInputTypeAlgorithm
 public:
   static vtkPassThrough* New();
   vtkTypeMacro(vtkPassThrough, vtkPassInputTypeAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Specify the first input port as optional
    */
-  int FillInputPortInformation(int port, vtkInformation* info) VTK_OVERRIDE;
+  int FillInputPortInformation(int port, vtkInformation* info) override;
 
   //@{
   /**
@@ -50,20 +50,36 @@ public:
   vtkBooleanMacro(DeepCopyInput, int);
   //@}
 
+  /**
+   * Allow the filter to execute without error when no input connection is
+   * specified. In this case, and empty vtkPolyData dataset will be created.
+   * By default, this setting is false.
+   * @{
+   */
+  vtkSetMacro(AllowNullInput, bool)
+  vtkGetMacro(AllowNullInput, bool)
+  vtkBooleanMacro(AllowNullInput, bool)
+  /**@}*/
+
 protected:
   vtkPassThrough();
-  ~vtkPassThrough() VTK_OVERRIDE;
+  ~vtkPassThrough() override;
 
+  int RequestDataObject(
+      vtkInformation *request,
+      vtkInformationVector **inVec,
+      vtkInformationVector *outVec) override;
   int RequestData(
     vtkInformation*,
     vtkInformationVector**,
-    vtkInformationVector*) VTK_OVERRIDE;
+    vtkInformationVector*) override;
 
   int DeepCopyInput;
+  bool AllowNullInput;
 
 private:
-  vtkPassThrough(const vtkPassThrough&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPassThrough&) VTK_DELETE_FUNCTION;
+  vtkPassThrough(const vtkPassThrough&) = delete;
+  void operator=(const vtkPassThrough&) = delete;
 };
 
 #endif

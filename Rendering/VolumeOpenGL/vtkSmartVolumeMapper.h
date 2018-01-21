@@ -114,16 +114,13 @@ class vtkOSPRayVolumeInterface;
 class vtkRenderWindow;
 class vtkVolume;
 class vtkVolumeProperty;
-#if !defined(VTK_LEGACY_REMOVE)
-class vtkVolumeTextureMapper3D;
-#endif // VTK_LEGACY_REMOVE
 
 class VTKRENDERINGVOLUMEOPENGL_EXPORT vtkSmartVolumeMapper : public vtkVolumeMapper
 {
 public:
   static vtkSmartVolumeMapper *New();
   vtkTypeMacro(vtkSmartVolumeMapper,vtkVolumeMapper);
-  void PrintSelf( ostream& os, vtkIndent indent );
+  void PrintSelf( ostream& os, vtkIndent indent ) override;
 
   //@{
   /**
@@ -196,25 +193,6 @@ public:
    * good option if you know there is hardware acceleration.
    */
   void SetRequestedRenderModeToGPU();
-
-  /**
-   * Set the requested render mode to
-   * vtkSmartVolumeMapper::TextureRenderMode.
-   */
-#if !defined(VTK_LEGACY_REMOVE)
-  void SetRequestedRenderModeToTexture();
-#endif // VTK_LEGACY_REMOVE
-
-  /**
-   * Set the requested render mode to
-   * vtkSmartVolumeMapper::RayCastAndTextureRenderMode.
-   * This is a good option if you want to avoid using advanced OpenGL
-   * functionality, but would still like to used 3D texture mapping, if
-   * available, for interactive rendering.
-   */
-#if !defined(VTK_LEGACY_REMOVE)
-  void SetRequestedRenderModeToRayCastAndTexture();
-#endif // VTK_LEGACY_REMOVE
 
   /**
    * Set the requested render mode to vtkSmartVolumeMapper::RayCastRenderMode.
@@ -315,7 +293,7 @@ public:
    * WARNING: INTERNAL METHOD - NOT INTENDED FOR GENERAL USE
    * Initialize rendering for this volume.
    */
-  void Render( vtkRenderer *, vtkVolume * );
+  void Render( vtkRenderer *, vtkVolume * ) override;
 
   /**
    * WARNING: INTERNAL METHOD - NOT INTENDED FOR GENERAL USE
@@ -323,11 +301,11 @@ public:
    * The parameter window could be used to determine which graphic
    * resources to release.
    */
-  void ReleaseGraphicsResources(vtkWindow *);
+  void ReleaseGraphicsResources(vtkWindow *) override;
 
 protected:
   vtkSmartVolumeMapper();
-  ~vtkSmartVolumeMapper();
+  ~vtkSmartVolumeMapper() override;
 
   /**
    * Connect input of the vtkSmartVolumeMapper to the input of the
@@ -391,9 +369,6 @@ protected:
   vtkGPUVolumeRayCastMapper      *GPULowResMapper;
   vtkGPUVolumeRayCastMapper      *GPUMapper;
   vtkFixedPointVolumeRayCastMapper  *RayCastMapper;
-#if !defined(VTK_LEGACY_REMOVE)
-  vtkVolumeTextureMapper3D          *TextureMapper;
-#endif // VTK_LEGACY_REMOVE
 
   // We need to keep track of the blend mode we had when we initialized
   // because we need to reinitialize (and recheck hardware support) if
@@ -401,8 +376,8 @@ protected:
   int  InitializedBlendMode;
 
 private:
-  vtkSmartVolumeMapper(const vtkSmartVolumeMapper&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkSmartVolumeMapper&) VTK_DELETE_FUNCTION;
+  vtkSmartVolumeMapper(const vtkSmartVolumeMapper&) = delete;
+  void operator=(const vtkSmartVolumeMapper&) = delete;
 
   vtkOSPRayVolumeInterface *OSPRayMapper;
 };

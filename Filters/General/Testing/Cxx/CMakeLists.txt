@@ -1,6 +1,6 @@
-set(TestDensifyPolyData_ARGS
-  -E15
-  )
+set(TestDensifyPolyData_ARGS -E 15)
+set(TestDataSetGradient_ARGS -E 25)
+set(TestDataSetGradientPrecompute_ARGS -E 25)
 
 vtk_add_test_cxx(${vtk-module}CxxTests tests
   ArrayExtractFactoredArray.cxx,NO_VALID
@@ -18,6 +18,7 @@ vtk_add_test_cxx(${vtk-module}CxxTests tests
   TestAppendPoints.cxx,NO_VALID
   TestBooleanOperationPolyDataFilter2.cxx
   TestBooleanOperationPolyDataFilter.cxx
+  TestLoopBooleanPolyDataFilter.cxx
   TestContourTriangulatorCutter.cxx
   TestContourTriangulator.cxx
   TestContourTriangulatorMarching.cxx
@@ -33,6 +34,7 @@ vtk_add_test_cxx(${vtk-module}CxxTests tests
   TestIntersectionPolyDataFilter.cxx
   TestRectilinearGridToPointSet.cxx,NO_VALID
   TestReflectionFilter.cxx,NO_VALID
+  TestSplitByCellScalarFilter.cxx,NO_VALID
   TestTableSplitColumnComponents.cxx,NO_VALID
   TestTransformFilter.cxx,NO_VALID
   TestTransformPolyDataFilter.cxx,NO_VALID
@@ -41,6 +43,10 @@ vtk_add_test_cxx(${vtk-module}CxxTests tests
   )
 # Tests with data
 vtk_add_test_cxx(${vtk-module}CxxTests data_tests
+  BoxClipPointData.cxx
+  BoxClipOrientedPointData.cxx
+  TestDataSetGradient.cxx
+  TestDataSetGradientPrecompute.cxx
   TestGradientAndVorticity.cxx,NO_VALID
   TestIconGlyphFilterGravity.cxx
   TestQuadraturePoints.cxx

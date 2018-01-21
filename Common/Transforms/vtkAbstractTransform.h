@@ -52,7 +52,7 @@ class VTKCOMMONTRANSFORMS_EXPORT vtkAbstractTransform : public vtkObject
 public:
 
   vtkTypeMacro(vtkAbstractTransform,vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Apply the transformation to a coordinate.  You can use the same
@@ -280,17 +280,17 @@ public:
   /**
    * Override GetMTime necessary because of inverse transforms.
    */
-  vtkMTimeType GetMTime() VTK_OVERRIDE;
+  vtkMTimeType GetMTime() override;
 
   /**
    * Needs a special UnRegister() implementation to avoid
    * circular references.
    */
-  void UnRegister(vtkObjectBase *O) VTK_OVERRIDE;
+  void UnRegister(vtkObjectBase *O) override;
 
 protected:
   vtkAbstractTransform();
-  ~vtkAbstractTransform() VTK_OVERRIDE;
+  ~vtkAbstractTransform() override;
 
   /**
    * Perform any subclass-specific Update.
@@ -326,13 +326,13 @@ private:
   int InUnRegister;
 
 private:
-  vtkAbstractTransform(const vtkAbstractTransform&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkAbstractTransform&) VTK_DELETE_FUNCTION;
+  vtkAbstractTransform(const vtkAbstractTransform&) = delete;
+  void operator=(const vtkAbstractTransform&) = delete;
 };
 
 //-------------------------------------------------------------------------
 // A simple data structure to hold both a transform and its inverse.
-// One of ForwardTransform or InverseTransform might be NULL,
+// One of ForwardTransform or InverseTransform might be nullptr,
 // and must be acquired by calling GetInverse() on the other.
 class vtkTransformPair
 {
@@ -450,6 +450,11 @@ protected:
   int NumberOfPreTransforms;
   int MaxNumberOfTransforms;
   vtkTransformPair *TransformList;
+
+private:
+  vtkTransformConcatenation(const vtkTransformConcatenation&)
+    = delete;
+  void operator=(const vtkTransformConcatenation&) = delete;
 };
 
 // .NAME vtkTransformConcatenationStack - Store a stack of concatenations.
@@ -489,6 +494,11 @@ protected:
   int StackSize;
   vtkTransformConcatenation **Stack;
   vtkTransformConcatenation **StackBottom;
+
+private:
+  vtkTransformConcatenationStack(const vtkTransformConcatenationStack&)
+    = delete;
+  void operator=(const vtkTransformConcatenationStack&) = delete;
 };
 
 #endif

@@ -20,6 +20,7 @@
 
 class vtkShaderProgram;
 class vtkOpenGLBufferObject;
+class vtkOpenGLVertexBufferObject;
 
 /**
  * @brief The VertexArrayObject class uses, or emulates, vertex array objects.
@@ -37,7 +38,7 @@ class VTKRENDERINGOPENGL2_EXPORT vtkOpenGLVertexArrayObject : public vtkObject
 public:
   static vtkOpenGLVertexArrayObject* New();
   vtkTypeMacro(vtkOpenGLVertexArrayObject, vtkObject)
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   void Bind();
 
@@ -55,6 +56,10 @@ public:
     return this->AddAttributeArrayWithDivisor(program, buffer, name,
       offset,stride,elementType, elementTupleSize, normalize, 0, false);
   }
+
+  bool AddAttributeArray(vtkShaderProgram *program,
+                         vtkOpenGLVertexBufferObject *buffer,
+                         const std::string &name, int offset, bool normalize);
 
   bool AddAttributeArrayWithDivisor(vtkShaderProgram *program,
                          vtkOpenGLBufferObject *buffer,
@@ -77,12 +82,12 @@ public:
 
 protected:
   vtkOpenGLVertexArrayObject();
-  ~vtkOpenGLVertexArrayObject();
+  ~vtkOpenGLVertexArrayObject() override;
 
 private:
   vtkOpenGLVertexArrayObject(
-    const vtkOpenGLVertexArrayObject&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkOpenGLVertexArrayObject&) VTK_DELETE_FUNCTION;
+    const vtkOpenGLVertexArrayObject&) = delete;
+  void operator=(const vtkOpenGLVertexArrayObject&) = delete;
   class Private;
   Private *Internal;
 };

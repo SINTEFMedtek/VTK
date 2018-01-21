@@ -41,6 +41,9 @@
 #include <vtkPolygon.h>
 #include <vtkTriangleStrip.h>
 
+#include <vtkCellIterator.h>
+#include <vtkUnstructuredGrid.h>
+
 #include <vtkCharArray.h>
 #include <vtkIntArray.h>
 #include <vtkDataArray.h>
@@ -243,6 +246,32 @@ int TestVolumeOfRevolutionFilter( int argc, char * argv [] )
   revolve->SetAxisPosition(position);
   revolve->SetAxisDirection(direction);
   revolve->SetInputData(pd);
+  revolve->Update();
+
+  // test that the auxiliary arrays in vtkUnstructuredGrid output are correct
+  {
+    vtkUnstructuredGrid* ug = revolve->GetOutput();
+    vtkCellIterator *it = ug->NewCellIterator();
+    for (it->InitTraversal(); !it->IsDoneWithTraversal(); it->GoToNextCell())
+    {
+      vtkIdType npts, *ptIds;
+      ug->GetCellPoints(it->GetCellId(), npts, ptIds);
+      vtkIdType numberOfPoints = it->GetNumberOfPoints();
+      if (npts != numberOfPoints)
+      {
+        return 1;
+      }
+      vtkIdList *pointIds = it->GetPointIds();
+      for (vtkIdType i=0;i<numberOfPoints;i++)
+      {
+        if (ptIds[i] != pointIds->GetId(i))
+        {
+          return 1;
+        }
+      }
+    }
+    it->Delete();
+  }
 
   vtkNew<vtkDataSetSurfaceFilter> surfaceFilter;
   surfaceFilter->SetInputConnection(revolve->GetOutputPort());
@@ -251,22 +280,22 @@ int TestVolumeOfRevolutionFilter( int argc, char * argv [] )
   mapper->SetInputConnection(surfaceFilter->GetOutputPort());
 
   vtkNew<vtkActor> actor;
-  actor->SetMapper(mapper.GetPointer());
+  actor->SetMapper(mapper);
   actor->GetProperty()->SetColor(1.0, 0.0, 0.0);
 
   vtkNew<vtkRenderer> renderer;
-  renderer->AddActor(actor.GetPointer());
+  renderer->AddActor(actor);
 
   vtkNew<vtkRenderWindow> renderWindow;
-  renderWindow->AddRenderer(renderer.GetPointer());
+  renderWindow->AddRenderer(renderer);
   renderWindow->SetSize(300,300);
 
   vtkNew<vtkRenderWindowInteractor> renderWindowInteractor;
-  renderWindowInteractor->SetRenderWindow(renderWindow.GetPointer());
+  renderWindowInteractor->SetRenderWindow(renderWindow);
 
   renderWindow->Render();
 
-  int retVal = vtkRegressionTestImage(renderWindow.GetPointer());
+  int retVal = vtkRegressionTestImage(renderWindow);
   if (retVal == vtkRegressionTester::DO_INTERACTOR)
   {
     renderWindowInteractor->Start();

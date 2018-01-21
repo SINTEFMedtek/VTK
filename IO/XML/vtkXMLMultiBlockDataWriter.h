@@ -31,28 +31,28 @@ class VTKIOXML_EXPORT vtkXMLMultiBlockDataWriter : public vtkXMLCompositeDataWri
 public:
   static vtkXMLMultiBlockDataWriter* New();
   vtkTypeMacro(vtkXMLMultiBlockDataWriter, vtkXMLCompositeDataWriter);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Get the default file extension for files written by this writer.
    */
-  virtual const char* GetDefaultFileExtension()
+  const char* GetDefaultFileExtension() override
     { return "vtm"; }
 
 protected:
   vtkXMLMultiBlockDataWriter();
-  ~vtkXMLMultiBlockDataWriter();
+  ~vtkXMLMultiBlockDataWriter() override;
 
-  virtual int FillInputPortInformation(int port, vtkInformation* info);
+  int FillInputPortInformation(int port, vtkInformation* info) override;
 
   // Internal method called recursively to create the xml tree for the children
   // of compositeData.
-  virtual int WriteComposite(vtkCompositeDataSet* compositeData,
-    vtkXMLDataElement* parent, int &writerIdx);
+  int WriteComposite(vtkCompositeDataSet* compositeData,
+    vtkXMLDataElement* parent, int &writerIdx) override;
 
 private:
-  vtkXMLMultiBlockDataWriter(const vtkXMLMultiBlockDataWriter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkXMLMultiBlockDataWriter&) VTK_DELETE_FUNCTION;
+  vtkXMLMultiBlockDataWriter(const vtkXMLMultiBlockDataWriter&) = delete;
+  void operator=(const vtkXMLMultiBlockDataWriter&) = delete;
 
 };
 

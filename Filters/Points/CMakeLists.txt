@@ -1,5 +1,6 @@
 set(Module_SRCS
   vtkBoundedPointSource.cxx
+  vtkDensifyPointCloudFilter.cxx
   vtkEllipsoidalGaussianKernel.cxx
   vtkEuclideanClusterExtraction.cxx
   vtkExtractHierarchicalBins.cxx
@@ -12,12 +13,14 @@ set(Module_SRCS
   vtkHierarchicalBinningFilter.cxx
   vtkInterpolationKernel.cxx
   vtkLinearKernel.cxx
+  vtkMaskPointsFilter.cxx
   vtkPCACurvatureEstimation.cxx
   vtkPCANormalEstimation.cxx
   vtkPointDensityFilter.cxx
   vtkPointCloudFilter.cxx
   vtkPointInterpolator.cxx
   vtkPointInterpolator2D.cxx
+  vtkPointOccupancyFilter.cxx
   vtkProbabilisticVoronoiKernel.cxx
   vtkRadiusOutlierRemoval.cxx
   vtkSPHInterpolator.cxx
@@ -28,6 +31,7 @@ set(Module_SRCS
   vtkShepardKernel.cxx
   vtkSignedDistance.cxx
   vtkStatisticalOutlierRemoval.cxx
+  vtkUnsignedDistance.cxx
   vtkVoxelGrid.cxx
   vtkVoronoiKernel.cxx
   vtkWendlandQuinticKernel.cxx

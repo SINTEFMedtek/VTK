@@ -45,7 +45,7 @@ public:
   static vtkImageHistogram *New();
   vtkTypeMacro(vtkImageHistogram,vtkThreadedImageAlgorithm);
 
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Scale types for the histogram image.
@@ -189,28 +189,28 @@ public:
    * This is part of the executive, but is public so that it can be accessed
    * by non-member functions.
    */
-  virtual void ThreadedRequestData(vtkInformation *request,
+  void ThreadedRequestData(vtkInformation *request,
                                    vtkInformationVector **inputVector,
                                    vtkInformationVector *outputVector,
                                    vtkImageData ***inData,
-                                   vtkImageData **outData, int ext[6], int id);
+                                   vtkImageData **outData, int ext[6], int id) override;
 
 protected:
   vtkImageHistogram();
-  ~vtkImageHistogram();
+  ~vtkImageHistogram() override;
 
-  virtual int RequestUpdateExtent(vtkInformation *vtkNotUsed(request),
+  int RequestUpdateExtent(vtkInformation *vtkNotUsed(request),
                                  vtkInformationVector **inInfo,
-                                 vtkInformationVector *vtkNotUsed(outInfo));
-  virtual int RequestInformation(vtkInformation *vtkNotUsed(request),
+                                 vtkInformationVector *vtkNotUsed(outInfo)) override;
+  int RequestInformation(vtkInformation *vtkNotUsed(request),
                                  vtkInformationVector **inInfo,
-                                 vtkInformationVector *vtkNotUsed(outInfo));
-  virtual int RequestData(vtkInformation *,
+                                 vtkInformationVector *vtkNotUsed(outInfo)) override;
+  int RequestData(vtkInformation *,
                           vtkInformationVector **,
-                          vtkInformationVector *);
+                          vtkInformationVector *) override;
 
-  virtual int FillInputPortInformation(int port, vtkInformation *info);
-  virtual int FillOutputPortInformation(int port, vtkInformation *info);
+  int FillInputPortInformation(int port, vtkInformation *info) override;
+  int FillOutputPortInformation(int port, vtkInformation *info) override;
 
   /**
    * Compute the range of the data.  The GetScalarRange() function of
@@ -241,8 +241,8 @@ protected:
   vtkImageHistogramSMPThreadLocal *SMPThreadData;
 
 private:
-  vtkImageHistogram(const vtkImageHistogram&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkImageHistogram&) VTK_DELETE_FUNCTION;
+  vtkImageHistogram(const vtkImageHistogram&) = delete;
+  void operator=(const vtkImageHistogram&) = delete;
 
   friend class vtkImageHistogramFunctor;
 };

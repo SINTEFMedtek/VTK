@@ -28,7 +28,7 @@ void LoadScalarsFromStats(void* &ptr, ADIOS_VARINFO *v)
 {
   T* &ptrT = reinterpret_cast<T*&>(ptr);
   ptrT = new T[v->sum_nblocks];
-  for(size_t i = 0; i < v->sum_nblocks; ++i)
+  for(int i = 0; i < v->sum_nblocks; ++i)
   {
     ptrT[i] = *reinterpret_cast<const T*>(v->statistics->blocks->mins[i]);
   }
@@ -36,7 +36,7 @@ void LoadScalarsFromStats(void* &ptr, ADIOS_VARINFO *v)
 
 //----------------------------------------------------------------------------
 Scalar::Scalar(ADIOS_FILE *f, ADIOS_VARINFO *v)
-: VarInfo(f, v), Values(NULL)
+: VarInfo(f, v), Values(nullptr)
 {
   switch(this->Type)
   {

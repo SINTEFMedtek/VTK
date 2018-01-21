@@ -338,7 +338,7 @@ public:
   { return new vtkWidgetWindowLevelCallback; }
 
   void Execute( vtkObject *caller, unsigned long vtkNotUsed( event ),
-                void *callData ) VTK_OVERRIDE
+                void *callData ) override
   {
     vtkImagePlaneWidget* self =
       reinterpret_cast< vtkImagePlaneWidget* >( caller );
@@ -363,7 +363,7 @@ public:
     }
   }
 
-  vtkWidgetWindowLevelCallback():WidgetX( 0 ), WidgetY( 0 ), WidgetZ ( 0 ) {}
+  vtkWidgetWindowLevelCallback():WidgetX( nullptr ), WidgetY( nullptr ), WidgetZ ( nullptr ) {}
 
   vtkImagePlaneWidget* WidgetX;
   vtkImagePlaneWidget* WidgetY;
@@ -512,15 +512,15 @@ int ImagePlaneWidget( int argc, char *argv[] )
   ren1->SetViewport(0,0,0.58333,1);
   ren2->SetViewport(0.58333,0,1,1);
 
-  // Set the actors' postions
+  // Set the actors' positions
   //
   renWin->Render();
   iren->SetEventPosition( 175,175);
   iren->SetKeyCode('r');
-  iren->InvokeEvent(vtkCommand::CharEvent,NULL);
+  iren->InvokeEvent(vtkCommand::CharEvent,nullptr);
   iren->SetEventPosition( 475,175);
   iren->SetKeyCode('r');
-  iren->InvokeEvent(vtkCommand::CharEvent,NULL);
+  iren->InvokeEvent(vtkCommand::CharEvent,nullptr);
   renWin->Render();
 
   ren1->GetActiveCamera()->Elevation(110);
@@ -540,9 +540,9 @@ int ImagePlaneWidget( int argc, char *argv[] )
   // Test SetKeyPressActivationValue for one of the widgets
   //
   iren->SetKeyCode('z');
-  iren->InvokeEvent(vtkCommand::CharEvent,NULL);
+  iren->InvokeEvent(vtkCommand::CharEvent,nullptr);
   iren->SetKeyCode('z');
-  iren->InvokeEvent(vtkCommand::CharEvent,NULL);
+  iren->InvokeEvent(vtkCommand::CharEvent,nullptr);
 
   recorder->Play();
 

@@ -28,6 +28,8 @@ except ImportError:
 
 if sys.hexversion < 0x03000000:
     izip = itertools.izip
+    def next(itr):
+        return itr.next()
 else:
     izip = zip
 
@@ -144,7 +146,11 @@ def _lookup_mpi_type(ntype):
         typecode = 'b'
     else:
         typecode = numpy.dtype(ntype).char
-    return MPI.__TypeDict__[typecode]
+    try:
+        return MPI.__TypeDict__[typecode]
+    except AttributeError:
+        # handle mpi4py 2.0.0
+        return MPI._typedict[typecode]
 
 def _reduce_dims(array, comm):
     from mpi4py import MPI
@@ -390,7 +396,7 @@ def min(array, axis=None, controller=None):
     return _global_func(MinImpl(), array, axis, controller)
 
 def _global_per_block(impl, array, axis=None, controller=None):
-    if axis > 0:
+    if axis is not None and axis > 0:
         return impl.op()(array, axis=axis, controller=controller)
 
     try:
@@ -459,7 +465,7 @@ def _global_per_block(impl, array, axis=None, controller=None):
         # Now that we know which blocks are shared by more than
         # 1 rank. The ones that have a count of 2 or more.
         reduce_ids = []
-        for _id in xrange(len(id_count)):
+        for _id in range(len(id_count)):
             if id_count[_id] > 1:
                 reduce_ids.append(_id)
 
@@ -506,7 +512,7 @@ def _global_per_block(impl, array, axis=None, controller=None):
             return dsa.NoneArray
 
         # Fill in the reduced values.
-        for i in xrange(to_reduce):
+        for i in range(to_reduce):
             _id = reduce_ids[i]
             success = True
             try:
@@ -564,7 +570,7 @@ def count_per_block(array, axis=None, controller=None):
     - if axis is 0, the number of tuples is returned.
     """
 
-    if axis > 0:
+    if axis is not None and axis > 0:
         raise ValueError("Only axis=None and axis=0 are supported for count")
 
     class CountPerBlockImpl:
@@ -937,7 +943,7 @@ def unstructured_from_composite_arrays(points, arrays, controller=None):
             itr = cpts.__iter__()
             while not it.IsDoneWithTraversal():
                 _id = it.GetCurrentFlatIndex()
-                if itr.next() is not dsa.NoneArray:
+                if next(itr) is not dsa.NoneArray:
                     lownership[_id] = rank
                 it.GoToNextItem()
         mpitype = _lookup_mpi_type(numpy.int32)

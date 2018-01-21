@@ -41,7 +41,7 @@ class VTKRENDERINGLIC_EXPORT vtkSurfaceLICComposite : public vtkObject
 public:
   static vtkSurfaceLICComposite *New();
   vtkTypeMacro(vtkSurfaceLICComposite, vtkObject);
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
   /**
    * Initialize the object based on the following description of the
@@ -69,7 +69,7 @@ public:
    * IPC during compositing if any of the block extents cover
    * or intersect a number of block extents. The input data
    * needs to be shuffled but not unshuffled since for overlapping
-   * regions LIC is computed by all proccesses that overlap.
+   * regions LIC is computed by all processes that overlap.
    * If there is very little overlap between block extents
    * then this method is superior since no unshuffle is needed.
 
@@ -155,7 +155,7 @@ public:
 
   /**
    * Set the rendering context. Must set prior to use. Reference is not
-   * held, so caller must ensure the renderer is not destroyed durring
+   * held, so caller must ensure the renderer is not destroyed during
    * use.
    */
   virtual void SetContext(vtkOpenGLRenderWindow *){}
@@ -206,7 +206,7 @@ public:
 
 protected:
   vtkSurfaceLICComposite();
-  ~vtkSurfaceLICComposite();
+  ~vtkSurfaceLICComposite() override;
 
   /**
    * For serial run. Make a decomposition disjoint. Sorts extents and
@@ -282,8 +282,8 @@ protected:
   int NumberOfAAGuardPixels;                   // n antialias passes
 
 private:
-  vtkSurfaceLICComposite(const vtkSurfaceLICComposite&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkSurfaceLICComposite&) VTK_DELETE_FUNCTION;
+  vtkSurfaceLICComposite(const vtkSurfaceLICComposite&) = delete;
+  void operator=(const vtkSurfaceLICComposite&) = delete;
 
   friend
   ostream &operator<<(ostream &os, vtkSurfaceLICComposite &ss);

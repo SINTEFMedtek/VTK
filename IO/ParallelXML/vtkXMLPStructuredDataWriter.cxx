@@ -102,11 +102,11 @@ void vtkXMLPStructuredDataWriter::PrepareSummaryFile()
     int nRanks = this->Controller->GetNumberOfProcesses();
 
     int nPiecesTotal = 0;
-    vtkIdType nPieces = this->Extents.size();
+    vtkIdType nPieces = static_cast<vtkIdType>(this->Extents.size());
 
-    vtkIdType* offsets = 0;
-    vtkIdType* nPiecesAll = 0;
-    vtkIdType* recvLengths = 0;
+    vtkIdType* offsets = nullptr;
+    vtkIdType* nPiecesAll = nullptr;
+    vtkIdType* recvLengths = nullptr;
     if (rank == 0)
     {
       nPiecesAll = new vtkIdType[nRanks];
@@ -123,19 +123,19 @@ void vtkXMLPStructuredDataWriter::PrepareSummaryFile()
         recvLengths[i] = nPiecesAll[i]*7;
       }
     }
-    int* sendBuffer = 0;
+    int* sendBuffer = nullptr;
     int sendSize = nPieces*7;
     if (nPieces > 0)
     {
       sendBuffer = new int[sendSize];
       ExtentsType::iterator iter = this->Extents.begin();
-      for (int count = 0; iter != this->Extents.end(); iter++, count++)
+      for (int count = 0; iter != this->Extents.end(); ++iter, ++count)
       {
         sendBuffer[count*7] = iter->first;
         memcpy(&sendBuffer[count*7+1], &iter->second[0], 6*sizeof(int));
       }
     }
-    int* recvBuffer = 0;
+    int* recvBuffer = nullptr;
     if (rank == 0)
     {
       recvBuffer = new int[nPiecesTotal*7];

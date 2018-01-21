@@ -36,7 +36,7 @@ class VTKFILTERSHYBRID_EXPORT vtkRenderLargeImage : public vtkAlgorithm
 public:
   static vtkRenderLargeImage *New();
   vtkTypeMacro(vtkRenderLargeImage,vtkAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -66,13 +66,13 @@ public:
   /**
    * see vtkAlgorithm for details
    */
-  virtual int ProcessRequest(vtkInformation*,
+  int ProcessRequest(vtkInformation*,
                              vtkInformationVector**,
-                             vtkInformationVector*);
+                             vtkInformationVector*) override;
 
 protected:
   vtkRenderLargeImage();
-  ~vtkRenderLargeImage();
+  ~vtkRenderLargeImage() override;
 
   int Magnification;
   vtkRenderer *Input;
@@ -82,7 +82,7 @@ protected:
                            vtkInformationVector **, vtkInformationVector *);
 
   // see algorithm for more info
-  virtual int FillOutputPortInformation(int port, vtkInformation* info);
+  int FillOutputPortInformation(int port, vtkInformation* info) override;
 
   // Adjust the coordinates of all 2D actors to fit new window size
   void Rescale2DActors();
@@ -95,8 +95,8 @@ protected:
   vtkRenderLargeImage2DHelperClass *StoredData;
 
 private:
-  vtkRenderLargeImage(const vtkRenderLargeImage&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkRenderLargeImage&) VTK_DELETE_FUNCTION;
+  vtkRenderLargeImage(const vtkRenderLargeImage&) = delete;
+  void operator=(const vtkRenderLargeImage&) = delete;
 };
 
 #endif

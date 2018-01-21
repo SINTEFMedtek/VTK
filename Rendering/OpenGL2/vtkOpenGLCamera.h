@@ -34,21 +34,21 @@ class VTKRENDERINGOPENGL2_EXPORT vtkOpenGLCamera : public vtkCamera
 public:
   static vtkOpenGLCamera *New();
   vtkTypeMacro(vtkOpenGLCamera, vtkCamera);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Implement base class method.
    */
-  virtual void Render(vtkRenderer *ren);
+  void Render(vtkRenderer *ren) override;
 
-  virtual void UpdateViewport(vtkRenderer *ren);
+  void UpdateViewport(vtkRenderer *ren) override;
 
   virtual void GetKeyMatrices(vtkRenderer *ren, vtkMatrix4x4 *&WCVCMatrix,
     vtkMatrix3x3 *&normalMatrix, vtkMatrix4x4 *&VCDCMatrix, vtkMatrix4x4 *&WCDCMatrix);
 
 protected:
   vtkOpenGLCamera();
-  ~vtkOpenGLCamera();
+  ~vtkOpenGLCamera() override;
 
   vtkMatrix4x4 *WCDCMatrix;
   vtkMatrix4x4 *WCVCMatrix;
@@ -58,8 +58,8 @@ protected:
   vtkRenderer *LastRenderer;
 
 private:
-  vtkOpenGLCamera(const vtkOpenGLCamera&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkOpenGLCamera&) VTK_DELETE_FUNCTION;
+  vtkOpenGLCamera(const vtkOpenGLCamera&) = delete;
+  void operator=(const vtkOpenGLCamera&) = delete;
 };
 
 #endif

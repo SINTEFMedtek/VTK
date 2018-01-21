@@ -101,7 +101,8 @@ void vtkContourImage(vtkSynchronizedTemplates2D *self,
   // The only problem with using the update extent is that one or two
   // sources enlarge the update extent.  This behavior is slated to be
   // eliminated.
-  vtkIdType *incs = input->GetIncrements();
+  vtkIdType incs[3];
+  input->GetIncrements(incs);
   int *ext = input->GetExtent();
   int axis0, axis1;
   int min0, max0, dim0;
@@ -411,7 +412,7 @@ int vtkSynchronizedTemplates2D::RequestData(
   vtkPoints     *newPts;
   vtkCellArray  *newLines;
   vtkDataArray  *inScalars;
-  vtkDataArray  *newScalars = NULL;
+  vtkDataArray  *newScalars = nullptr;
   int           *ext;
   int           dims[3];
   int           dataSize, estimatedSize;
@@ -422,7 +423,7 @@ int vtkSynchronizedTemplates2D::RequestData(
   ext =
     inInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT());
   inScalars = this->GetInputArrayToProcess(0,inputVector);
-  if ( inScalars == NULL )
+  if ( inScalars == nullptr )
   {
     vtkErrorMacro(<<"Scalars must be defined for contouring");
     return 1;

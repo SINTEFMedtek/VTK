@@ -108,7 +108,7 @@ class VTKIMAGINGMORPHOLOGICAL_EXPORT vtkImageConnectivityFilter :
 public:
   static vtkImageConnectivityFilter *New();
   vtkTypeMacro(vtkImageConnectivityFilter, vtkImageAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Enum constants for SetLabelMode().
@@ -234,7 +234,7 @@ public:
   vtkIdTypeArray *GetExtractedRegionLabels() {
     return this->ExtractedRegionLabels; }
 
-  // Desciption:
+  // Description:
   // Get the size of each extracted region, as a voxel count.
   vtkIdTypeArray *GetExtractedRegionSizes() {
     return this->ExtractedRegionSizes; }
@@ -295,7 +295,7 @@ public:
 
 protected:
   vtkImageConnectivityFilter();
-  ~vtkImageConnectivityFilter();
+  ~vtkImageConnectivityFilter() override;
 
   int LabelMode;
   int ExtractionMode;
@@ -314,17 +314,17 @@ protected:
 
   void ComputeInputUpdateExtent(int inExt[6], int outExt[6]);
 
-  virtual int FillInputPortInformation(int port, vtkInformation *info);
-  virtual int RequestInformation(
-    vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-  virtual int RequestUpdateExtent(
-    vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-  virtual int RequestData(
-    vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+  int FillInputPortInformation(int port, vtkInformation *info) override;
+  int RequestInformation(
+    vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
+  int RequestUpdateExtent(
+    vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
+  int RequestData(
+    vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
 
 private:
-  vtkImageConnectivityFilter(const vtkImageConnectivityFilter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkImageConnectivityFilter&) VTK_DELETE_FUNCTION;
+  vtkImageConnectivityFilter(const vtkImageConnectivityFilter&) = delete;
+  void operator=(const vtkImageConnectivityFilter&) = delete;
 };
 
 #endif

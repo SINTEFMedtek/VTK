@@ -31,13 +31,13 @@ vtkLinearSelector::vtkLinearSelector()
   this->Tolerance = 0.;
   this->IncludeVertices = true;
   this->VertexEliminationTolerance = 1.e-6;
-  this->Points = 0;
+  this->Points = nullptr;
 }
 
 // ----------------------------------------------------------------------
 vtkLinearSelector::~vtkLinearSelector()
 {
-  this->SetPoints( 0 );
+  this->SetPoints( nullptr );
 }
 
 // ----------------------------------------------------------------------
@@ -121,13 +121,13 @@ int vtkLinearSelector::RequestData( vtkInformation* vtkNotUsed( request ),
   {
     vtkErrorMacro( <<"vtkLinearSelector: filter does not have any output." );
     return 0;
-  }	// if ( ! output )
+  } // if ( ! output )
 
   if ( ! compositeInput )
   {
     vtkErrorMacro( <<"vtkLinearSelector: filter does not have any input." );
     return 0;
-  }	// if ( ! compositeInput )
+  } // if ( ! compositeInput )
 
   // Now traverse the input
   vtkCompositeDataIterator* inputIterator = compositeInput->NewIterator();
@@ -250,7 +250,7 @@ void vtkLinearSelector::SeekIntersectingCells( vtkDataSet* input, vtkIdTypeArray
       double coords [3];
       double pcoords [3];
       double t = 0;
-      int subId	= 0;
+      int subId = 0;
 
       // Seek intersection of cell with each segment
       for ( vtkIdType i = 0; i < nSegments; ++ i )
@@ -268,7 +268,7 @@ void vtkLinearSelector::SeekIntersectingCells( vtkDataSet* input, vtkIdTypeArray
           outIndices->InsertNextValue( id );
         }
       } // for ( i )
-    }	// if ( cell )
+    } // if ( cell )
   } // for ( vtkIdType id = 0; id < nCells; ++ id )
 
   // Clean up

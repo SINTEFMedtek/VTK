@@ -52,6 +52,14 @@ git_archive () {
         tar -C "$extractdir" -x
 }
 
+disable_custom_gitattributes() {
+    pushd "${extractdir}/${name}-reduced"
+    # Git does not allow custom attributes in a subdirectory where we
+    # are about to merge the `.gitattributes` file, so disable them.
+    sed -i '/^\[attr\]/ {s/^/#/}' .gitattributes
+    popd
+}
+
 die () {
     echo >&2 "$@"
     exit 1
@@ -155,8 +163,12 @@ popd
 if [ -n "$basehash" ]; then
     git merge --log -s recursive "-Xsubtree=$subtree/" --no-commit "upstream-$name"
 else
+    # Note: on Windows 'git merge' will open a browser, and the check will fail,
+    # so use the flag by default.
     unrelated_histories_flag=""
-    if git merge --help | grep -q -e allow-unrelated-histories; then
+    if git --version | grep -q windows; then
+        unrelated_histories_flag="--allow-unrelated-histories "
+    elif git merge --help | grep -q -e allow-unrelated-histories; then
         unrelated_histories_flag="--allow-unrelated-histories "
     fi
     readonly unrelated_histories_flag

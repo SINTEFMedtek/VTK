@@ -8,15 +8,19 @@ vtk_add_test_python(
   TestEmptyInput.py
   TestEnums.py
   TestExecuteMethodFinalizeCrash.py
+  TestExpects.py
   TestGhost.py
   TestIterateCollection.py
-  TestMutable.py
+  TestPassByReference.py
   TestNumpySupport.py
   TestNumpyInterface.py
+  TestNumpyWeakReference.py
   TestOperators.py
   TestOverloads.py
   TestPointers.py
   TestSetGet.py
+  TestSingleton.py
+  TestSOADataArrays.py
   TestStrings.py
   TestSubClass.py
   TestSwigPointer.py

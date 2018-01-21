@@ -52,7 +52,7 @@ class VTKPARALLELCORE_EXPORT vtkSubGroup : public vtkObject
 {
 public:
   vtkTypeMacro(vtkSubGroup, vtkObject);
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
   static vtkSubGroup *New();
 
   // The wrapper gets confused here and falls down.
@@ -106,7 +106,7 @@ public:
 
 protected:
   vtkSubGroup();
-  ~vtkSubGroup();
+  ~vtkSubGroup() override;
 
 private:
   int computeFanInTargets();
@@ -138,7 +138,7 @@ private:
 
   vtkCommunicator *comm;
 
-  vtkSubGroup(const vtkSubGroup&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkSubGroup&) VTK_DELETE_FUNCTION;
+  vtkSubGroup(const vtkSubGroup&) = delete;
+  void operator=(const vtkSubGroup&) = delete;
 };
 #endif

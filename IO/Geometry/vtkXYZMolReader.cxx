@@ -21,7 +21,7 @@
 #include "vtkPolyData.h"
 #include "vtkStringArray.h"
 
-#include <sys/stat.h>
+#include <vtksys/SystemTools.hxx>
 
 //----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkXYZMolReader);
@@ -51,7 +51,7 @@ char* vtkXYZMolReader::GetNextLine(FILE* fp, char* line, int maxlen)
     if ( !fgets(line, maxlen, fp) )
     {
       //cout << "Problem when reading. EOF?" << endl;
-      return 0;
+      return nullptr;
     }
     len = static_cast<int>(strlen(line));
     for ( cc = 0; cc < len; cc ++ )
@@ -96,7 +96,7 @@ char* vtkXYZMolReader::GetNextLine(FILE* fp, char* line, int maxlen)
   }
   if ( strlen(ptr) == 0 )
   {
-    return 0;
+    return nullptr;
   }
   return ptr;
 }
@@ -178,8 +178,8 @@ int vtkXYZMolReader::CanReadFile(const char* name)
 
   // First make sure the file exists.  This prevents an empty file
   // from being created on older compilers.
-  struct stat fs;
-  if(stat(name, &fs) != 0)
+  vtksys::SystemTools::Stat_t fs;
+  if (vtksys::SystemTools::Stat(name, &fs) != 0)
   {
     return 0;
   }

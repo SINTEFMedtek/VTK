@@ -39,13 +39,13 @@ class VTKRENDERINGOPENGL2_EXPORT vtkVolumetricPass : public vtkDefaultPass
 public:
   static vtkVolumetricPass *New();
   vtkTypeMacro(vtkVolumetricPass,vtkDefaultPass);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Perform rendering according to a render state \p s.
    * \pre s_exists: s!=0
    */
-  virtual void Render(const vtkRenderState *s);
+  void Render(const vtkRenderState *s) override;
 
  protected:
   /**
@@ -56,11 +56,11 @@ public:
   /**
    * Destructor.
    */
-  virtual ~vtkVolumetricPass();
+  ~vtkVolumetricPass() override;
 
  private:
-  vtkVolumetricPass(const vtkVolumetricPass&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkVolumetricPass&) VTK_DELETE_FUNCTION;
+  vtkVolumetricPass(const vtkVolumetricPass&) = delete;
+  void operator=(const vtkVolumetricPass&) = delete;
 };
 
 #endif

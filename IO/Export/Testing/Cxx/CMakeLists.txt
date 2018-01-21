@@ -1,25 +1,60 @@
 include(vtkGhostscript)
+include(vtkWkHtmlToImage)
+
+if (VTK_WKHTMLTOIMAGE_EXECUTABLE AND VTK_RENDERING_BACKEND STREQUAL "OpenGL2")
+  set(SVGTests
+    TestSVGContextExport.cxx,NO_DATA,NO_VALID
+    TestSVGContextShading.cxx,NO_DATA,NO_VALID
+    TestSVGExporterContextPolyData.cxx,NO_VALID
+    )
+else()
+  set(SVGTests)
+endif()
 
 # Only run GL2PS tests if GhostScript is available
 if(VTK_GHOSTSCRIPT_EXECUTABLE)
   set(GL2PSTests
     TestGL2PSBillboardTextActor3D.cxx
-    TestGL2PSExporterMultipleRenderers.cxx
-    TestGL2PSExporterRaster.cxx
-    TestGL2PSExporterVolumeRaster.cxx
     TestGL2PSScalarBar.cxx
     TestGL2PSTextActor.cxx
     TestGL2PSTextActor3D.cxx
     TestGL2PSTextMapper.cxx
     TestGL2PSLabeledDataMapper.cxx
-    TestLinePlotGL2PS.cxx
     TestStackedPlotGL2PS.cxx
+    )
+
+  set(GL2PSTestsPDFBothOpenGL
+    TestGL2PSExporterRaster.cxx
+    TestGL2PSExporterMultipleRenderers.cxx
+    TestGL2PSExporterVolumeRaster.cxx
+    )
+  # TODO: Check why this test fails on OpenGL2
+  set(GL2PSTestsPDFOpenGL1
+    TestLinePlotGL2PS.cxx
   )
+  set(GL2PSTestsPDF
+    ${GL2PSTestsPDFBothOpenGL} ${GL2PSTestsPDFOpenGL1}
+  )
+
+  # These only produce PDFs. They're separated since the above tests produce
+  # and verify both PDF and PS.
+  if (VTK_RENDERING_BACKEND STREQUAL "OpenGL2")
+    set(PDFTests
+      TestPDFContextExport.cxx,NO_DATA
+      TestPDFContextShading.cxx,NO_DATA
+      TestPDFExporterContextPolyData.cxx
+    )
+  else()
+    # The Context2D on OpenGL1 does not support many of the options used by
+    # these tests. Skip them on the legacy backend.
+    set(PDFTests)
+  endif()
 endif()
 
 vtk_add_test_cxx(${vtk-module}CxxTests tests
   X3DTest.cxx,NO_DATA,NO_VALID
-  ${GL2PSTests}
+  TestOBJExporter.cxx,NO_DATA,NO_VALID
+  ${GL2PSTests} ${GL2PSTestsPDF} ${PDFTests} ${SVGTests}
   TestRIBExporter.cxx,NO_VALID
   UnitTestRIB.cxx,NO_DATA,NO_VALID
   )
@@ -78,4 +113,19 @@ endif()
 set(TestGL2PSExporterVolumeRasterError 50)
 
 include(vtkTestingGL2PS)
-vtk_add_gl2ps_test_cxx(${GL2PSTests})
+vtk_add_pdf_test_cxx(${PDFTests})
+if (VTK_RENDERING_BACKEND STREQUAL "OpenGL2")
+  # text allignment and rotation with TextAsPath off is not
+  # yet implemented for the OpenGL2 backend.
+  vtk_add_gl2ps_test_cxx(${GL2PSTests} ${GL2PSTestsPDFOpenGL1})
+  # test postscript and pdf
+  vtk_add_gl2ps_test_cxx(pdf ${GL2PSTestsPDFBothOpenGL})
+else()
+  # tests postscript
+  vtk_add_gl2ps_test_cxx(${GL2PSTests})
+  # test postscript and pdf
+  vtk_add_gl2ps_test_cxx(pdf ${GL2PSTestsPDF})
+endif()
+
+include(vtkTestingSVG)
+vtk_add_svg_test(${SVGTests})

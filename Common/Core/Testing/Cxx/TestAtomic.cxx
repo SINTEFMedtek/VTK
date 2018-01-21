@@ -19,8 +19,6 @@
 
 #include <algorithm>
 
-static int Total = 0;
-static vtkTypeInt64 Total64 = 0;
 static vtkAtomicInt32 TotalAtomic(0);
 static vtkAtomicInt64 TotalAtomic64(0);
 static const int Target = 1000000;
@@ -29,17 +27,27 @@ static int Values64[Target+1];
 static vtkMTimeType MTimeValues[Target];
 static int NumThreads = 5;
 
+// uncomment the following line if you want to see
+// the difference between using atomics and not
+//#define SHOW_DIFFERENCE
+#ifdef SHOW_DIFFERENCE
+static int Total = 0;
+static vtkTypeInt64 Total64 = 0;
+#endif
 
 VTK_THREAD_RETURN_TYPE MyFunction(void *)
 {
   vtkNew<vtkObject> AnObject;
   for (int i=0; i<Target/NumThreads; i++)
   {
+#ifdef SHOW_DIFFERENCE
     Total++;
+    Total64++;
+#endif
+
     int idx = ++TotalAtomic;
     Values32[idx] = 1;
 
-    Total64++;
     idx = ++TotalAtomic64;
     Values64[idx] = 1;
 
@@ -96,9 +104,12 @@ VTK_THREAD_RETURN_TYPE MyFunction4(void *)
 
 int TestAtomic(int, char*[])
 {
+#ifdef SHOW_DIFFERENCE
   Total = 0;
-  TotalAtomic = 0;
   Total64 = 0;
+#endif
+
+  TotalAtomic = 0;
   TotalAtomic64 = 0;
 
   for (int i=0; i<=Target; i++)
@@ -108,14 +119,14 @@ int TestAtomic(int, char*[])
   }
 
   vtkNew<vtkMultiThreader> mt;
-  mt->SetSingleMethod(MyFunction, NULL);
+  mt->SetSingleMethod(MyFunction, nullptr);
   mt->SetNumberOfThreads(NumThreads);
   mt->SingleMethodExecute();
 
-  mt->SetSingleMethod(MyFunction2, NULL);
+  mt->SetSingleMethod(MyFunction2, nullptr);
   mt->SingleMethodExecute();
 
-  mt->SetSingleMethod(MyFunction3, NULL);
+  mt->SetSingleMethod(MyFunction3, nullptr);
   mt->SingleMethodExecute();
 
   // Making sure that atomic incr returned unique
@@ -157,11 +168,13 @@ int TestAtomic(int, char*[])
     return 1;
   }
 
-  mt->SetSingleMethod(MyFunction4, NULL);
+  mt->SetSingleMethod(MyFunction4, nullptr);
   mt->SingleMethodExecute();
 
+#ifdef SHOW_DIFFERENCE
   cout << Total << " " << TotalAtomic.load() << endl;
   cout << Total64 << " " << TotalAtomic64.load() << endl;
+#endif
 
   if (TotalAtomic.load() != Target)
   {

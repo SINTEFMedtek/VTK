@@ -13,8 +13,8 @@ class vtkLabelHierarchy::Implementation
 public:
   Implementation()
   {
-    this->Hierarchy2 = 0;
-    this->Hierarchy3 = 0;
+    this->Hierarchy2 = nullptr;
+    this->Hierarchy3 = nullptr;
     this->ActualDepth = 5;
     this->Z2 = 0.;
   }
@@ -66,15 +66,15 @@ public:
     {
     }
 
-    bool operator () ( const vtkIdType& a, const vtkIdType& b )
+    bool operator () ( const vtkIdType& a, const vtkIdType& b ) const
     {
-      if (0 == this->Hierarchy)
+      if (nullptr == this->Hierarchy)
       {
         vtkGenericWarningMacro( "error: NULL this->Hierarchy in PriorityComparator" );
         return a < b;
       }
 
-      if (0 == this->Hierarchy->GetImplementation())
+      if (nullptr == this->Hierarchy->GetImplementation())
       {
         vtkGenericWarningMacro( "error: NULL this->Hierarchy->GetImplementation() in PriorityComparator" );
         return a < b;
@@ -147,7 +147,7 @@ public:
       ++ this->TotalAnchors;
     }
     void Increment() { ++ this->TotalAnchors; }
-    vtkIdType GetLocalAnchorCount() const { return this->size(); }
+    vtkIdType GetLocalAnchorCount() const { return static_cast<vtkIdType>(this->size()); }
     vtkIdType GetTotalAnchorCount() const { return this->TotalAnchors; }
 
     vtkIdType TotalAnchors; // Count of all anchors stored in this node and its children.

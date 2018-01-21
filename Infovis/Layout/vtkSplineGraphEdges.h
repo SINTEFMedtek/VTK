@@ -41,7 +41,7 @@ class VTKINFOVISLAYOUT_EXPORT vtkSplineGraphEdges : public vtkGraphAlgorithm
 public:
   static vtkSplineGraphEdges *New();
   vtkTypeMacro(vtkSplineGraphEdges,vtkGraphAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -77,14 +77,14 @@ public:
 
 protected:
   vtkSplineGraphEdges();
-  ~vtkSplineGraphEdges();
+  ~vtkSplineGraphEdges() override;
 
-  virtual int RequestData(
+  int RequestData(
     vtkInformation *,
     vtkInformationVector **,
-    vtkInformationVector *);
+    vtkInformationVector *) override;
 
-  virtual vtkMTimeType GetMTime();
+  vtkMTimeType GetMTime() override;
 
   void GeneratePoints(vtkGraph* g, vtkIdType e);
   void GenerateBSpline(vtkGraph* g, vtkIdType e);
@@ -100,8 +100,8 @@ protected:
   vtkIdType NumberOfSubdivisions;
 
 private:
-  vtkSplineGraphEdges(const vtkSplineGraphEdges&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkSplineGraphEdges&) VTK_DELETE_FUNCTION;
+  vtkSplineGraphEdges(const vtkSplineGraphEdges&) = delete;
+  void operator=(const vtkSplineGraphEdges&) = delete;
 };
 
 #endif

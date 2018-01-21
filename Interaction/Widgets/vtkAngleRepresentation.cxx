@@ -31,10 +31,10 @@ vtkCxxSetObjectMacro(vtkAngleRepresentation,HandleRepresentation,vtkHandleRepres
 //----------------------------------------------------------------------
 vtkAngleRepresentation::vtkAngleRepresentation()
 {
-  this->HandleRepresentation  = NULL;
-  this->Point1Representation = NULL;
-  this->CenterRepresentation = NULL;
-  this->Point2Representation = NULL;
+  this->HandleRepresentation  = nullptr;
+  this->Point1Representation = nullptr;
+  this->CenterRepresentation = nullptr;
+  this->Point2Representation = nullptr;
 
   this->Tolerance = 5;
   this->Placed = 0;
@@ -44,7 +44,7 @@ vtkAngleRepresentation::vtkAngleRepresentation()
   this->ArcVisibility = 1;
 
   this->LabelFormat = new char[8];
-  sprintf(this->LabelFormat,"%s","%-#6.3g");
+  snprintf(this->LabelFormat,8,"%s","%-#6.3g");
 }
 
 //----------------------------------------------------------------------
@@ -68,7 +68,7 @@ vtkAngleRepresentation::~vtkAngleRepresentation()
   }
 
   delete [] this->LabelFormat;
-  this->LabelFormat = NULL;
+  this->LabelFormat = nullptr;
 }
 
 
@@ -98,9 +98,9 @@ void vtkAngleRepresentation::InstantiateHandleRepresentation()
 int vtkAngleRepresentation::
 ComputeInteractionState(int vtkNotUsed(X), int vtkNotUsed(Y), int vtkNotUsed(modify))
 {
-  if (this->Point1Representation == NULL ||
-      this->CenterRepresentation == NULL ||
-      this->Point2Representation == NULL )
+  if (this->Point1Representation == nullptr ||
+      this->CenterRepresentation == nullptr ||
+      this->Point2Representation == nullptr )
   {
     this->InteractionState = vtkAngleRepresentation::Outside;
     return this->InteractionState;

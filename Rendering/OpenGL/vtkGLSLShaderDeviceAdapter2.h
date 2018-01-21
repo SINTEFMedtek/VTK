@@ -34,13 +34,13 @@ class VTKRENDERINGOPENGL_EXPORT vtkGLSLShaderDeviceAdapter2
 public:
   vtkTypeMacro(vtkGLSLShaderDeviceAdapter2, vtkShaderDeviceAdapter2);
   static vtkGLSLShaderDeviceAdapter2 *New();
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
   // Descrition:
   // This method is called before rendering. This gives the shader device
   // adapter an opportunity to collect information, such as attribute indices
   // that it will need while rendering.
-  virtual void PrepareForRender();
+  void PrepareForRender() override;
 
   /**
    * Sends a single attribute to the graphics card.
@@ -57,21 +57,21 @@ public:
    * If attribute is NULL, the OpenGL ID for the attribute will simply be
    * cached.
    */
-  virtual void SendAttribute(const char* attrname,
+  void SendAttribute(const char* attrname,
                              int components,
                              int type,
                              const void *attribute,
-                             unsigned long offset=0);
+                             unsigned long offset=0) override;
 
 protected:
   vtkGLSLShaderDeviceAdapter2();
-  ~vtkGLSLShaderDeviceAdapter2();
+  ~vtkGLSLShaderDeviceAdapter2() override;
 
   int GetAttributeLocation(const char* attrName);
 
 private:
-  vtkGLSLShaderDeviceAdapter2(const vtkGLSLShaderDeviceAdapter2&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkGLSLShaderDeviceAdapter2&) VTK_DELETE_FUNCTION;
+  vtkGLSLShaderDeviceAdapter2(const vtkGLSLShaderDeviceAdapter2&) = delete;
+  void operator=(const vtkGLSLShaderDeviceAdapter2&) = delete;
 
   class vtkInternal;
   vtkInternal* Internal;

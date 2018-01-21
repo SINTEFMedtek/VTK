@@ -78,10 +78,10 @@ int vtkExtractTensorComponents::RequestData(
   vtkPointData *outPD = output->GetPointData();
   double s = 0.0;
   double v[3];
-  vtkFloatArray *newScalars=NULL;
-  vtkFloatArray *newVectors=NULL;
-  vtkFloatArray *newNormals=NULL;
-  vtkFloatArray *newTCoords=NULL;
+  vtkFloatArray *newScalars=nullptr;
+  vtkFloatArray *newVectors=nullptr;
+  vtkFloatArray *newNormals=nullptr;
+  vtkFloatArray *newTCoords=nullptr;
   vtkIdType ptId, numPts;
   double sx, sy, sz, txy, tyz, txz;
 
@@ -146,6 +146,10 @@ int vtkExtractTensorComponents::RequestData(
   for (ptId=0; ptId < numPts; ptId++)
   {
     inTensors->GetTuple(ptId, tensor);
+    if (inTensors->GetNumberOfComponents() == 6)
+    {
+      vtkMath::TensorFromSymmetricTensor(tensor);
+    }
 
     if ( this->ExtractScalars )
     {

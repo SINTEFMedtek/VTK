@@ -58,13 +58,13 @@ public:
   static vtkDataSetAttributes *New();
 
   vtkTypeMacro(vtkDataSetAttributes,vtkFieldData);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
-   * Initialize all of the object's data to NULL
+   * Initialize all of the object's data to nullptr
    * Also, clear the copy flags.
    */
-  void Initialize() VTK_OVERRIDE;
+  void Initialize() override;
 
   /**
    * Attributes have a chance to bring themselves up to date; right
@@ -79,13 +79,13 @@ public:
    * copy from input data).
    * Ignores the copy flags but preserves them in the output.
    */
-  void DeepCopy(vtkFieldData *pd) VTK_OVERRIDE;
+  void DeepCopy(vtkFieldData *pd) override;
 
   /**
    * Shallow copy of data (i.e., use reference counting).
    * Ignores the copy flags but preserves them in the output.
    */
-  void ShallowCopy(vtkFieldData *pd) VTK_OVERRIDE;
+  void ShallowCopy(vtkFieldData *pd) override;
 
   // -- attribute types -----------------------------------------------------
 
@@ -266,7 +266,7 @@ public:
 
    * Returns -1 in the following cases:
 
-   * - aa is NULL (used to unset an attribute; not an error indicator)
+   * - aa is nullptr (used to unset an attribute; not an error indicator)
    * - aa is not a subclass of vtkDataArray, unless the attributeType
    * is vtkDataSetAttributes::PEDIGREEIDS (error indicator)
    * - aa has a number of components incompatible with the attribute type
@@ -296,7 +296,7 @@ public:
    * Remove an array (with the given name) from the list of arrays.
    */
   using vtkFieldData::RemoveArray;
-  void RemoveArray(int index) VTK_OVERRIDE;
+  void RemoveArray(int index) override;
   //@}
 
 
@@ -338,7 +338,7 @@ public:
    * For interpolation, the flag values can be as follows:
    * 0: Do not interpolate.
    * 1: Weighted interpolation.
-   * 2. Nearest neighbor interpolation.
+   * 2: Nearest neighbor interpolation.
    */
   void SetCopyAttribute (int index, int value, int ctype=ALLCOPY);
 
@@ -384,10 +384,10 @@ public:
   vtkBooleanMacro(CopyPedigreeIds, int);
 
   /// @copydoc vtkDataSetAttributes::SetCopyAttribute()
-  void CopyAllOn(int ctype=ALLCOPY) VTK_OVERRIDE;
+  void CopyAllOn(int ctype=ALLCOPY) override;
 
   /// @copydoc vtkDataSetAttributes::SetCopyAttribute()
-  void CopyAllOff(int ctype=ALLCOPY) VTK_OVERRIDE;
+  void CopyAllOff(int ctype=ALLCOPY) override;
 
   // -- passthrough operations ----------------------------------------------
 
@@ -400,7 +400,7 @@ public:
    * that field (on or off), obey the flag, ignore (3) 3) obey
    * CopyAllOn/Off
    */
-  void PassData(vtkFieldData* fd) VTK_OVERRIDE;
+  void PassData(vtkFieldData* fd) override;
 
   // -- copytuple operations ------------------------------------------------
 
@@ -426,11 +426,27 @@ public:
   //@}
 
   /**
+  * Create a mapping between the input attributes and this object
+  * so that methods like CopyData() and CopyStructuredData()
+  * can be called. This method assumes that this object has the
+  * same arrays as the input and that they are ordered the same
+  * way (same array indices).
+  */
+  void SetupForCopy(vtkDataSetAttributes* pd);
+
+
+  /**
    * This method is used to copy data arrays in images.
-   * You should call "CopyAllocate" before calling this method.
+   * You should call CopyAllocate or SetupForCopy before
+   * calling this method. If setSize is true, this method
+   * will set the size of the output arrays according to
+   * the output extent. This is required when CopyAllocate()
+   * was used to setup output arrays.
    */
   void CopyStructuredData(vtkDataSetAttributes *inDsa,
-                          const int *inExt, const int *outExt);
+                          const int *inExt,
+                          const int *outExt,
+                          bool setSize = true);
 
   //@{
   /**
@@ -542,7 +558,7 @@ public:
                     vtkIdType ext=1000);
 
   /**
-   * A special form of CopyData() to be used with FieldLists. Use it when
+   * Special forms of CopyData() to be used with FieldLists. Use it when
    * you are copying data from a set of vtkDataSetAttributes. Make sure
    * that you have called the special form of CopyAllocate that accepts
    * FieldLists.
@@ -550,6 +566,9 @@ public:
   void CopyData(vtkDataSetAttributes::FieldList& list,
                 vtkDataSetAttributes* dsa, int idx, vtkIdType fromId,
                 vtkIdType toId);
+  void CopyData(vtkDataSetAttributes::FieldList& list,
+                vtkDataSetAttributes* dsa, int idx, vtkIdType dstStart,
+                vtkIdType n, vtkIdType srcStart);
 
   /**
    * A special form of InterpolateAllocate() to be used with FieldLists. Use it
@@ -576,13 +595,14 @@ public:
 
 protected:
   vtkDataSetAttributes();
-  ~vtkDataSetAttributes() VTK_OVERRIDE;
+  ~vtkDataSetAttributes() override;
 
   void InternalCopyAllocate(vtkDataSetAttributes* pd,
                             int ctype,
                             vtkIdType sze=0,
                             vtkIdType ext=1000,
-                            int shallowCopyArrays=0);
+                            int shallowCopyArrays=0,
+                            bool createNewArrays=true);
 
   void InternalCopyAllocate(
     vtkDataSetAttributes::FieldList& list,
@@ -590,9 +610,9 @@ protected:
     vtkIdType sze, vtkIdType ext);
 
   /**
-   * Initialize all of the object's data to NULL
+   * Initialize all of the object's data to nullptr
    */
-  void InitializeFields() VTK_OVERRIDE;
+  void InitializeFields() override;
 
   int AttributeIndices[NUM_ATTRIBUTES]; //index to attribute array in field data
   int CopyAttributeFlags[ALLCOPY][NUM_ATTRIBUTES]; //copy flag for attribute data
@@ -612,8 +632,8 @@ private:
   vtkFieldData::BasicIterator  ComputeRequiredArrays(vtkDataSetAttributes* pd, int ctype);
 
 private:
-  vtkDataSetAttributes(const vtkDataSetAttributes&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkDataSetAttributes&) VTK_DELETE_FUNCTION;
+  vtkDataSetAttributes(const vtkDataSetAttributes&) = delete;
+  void operator=(const vtkDataSetAttributes&) = delete;
 
 public:
   // This public class is used to perform set operations, other misc.
@@ -655,8 +675,8 @@ public:
     void SetFieldIndex(int i, int index)
       { this->FieldIndices[i] = index; }
   private:
-    FieldList(const FieldList&) VTK_DELETE_FUNCTION;
-    void operator=(const FieldList&) VTK_DELETE_FUNCTION;
+    FieldList(const FieldList&) = delete;
+    void operator=(const FieldList&) = delete;
 
     void SetField(int index, vtkAbstractArray *da);
     void RemoveField(const char *name);

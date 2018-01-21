@@ -233,7 +233,7 @@ static void parse_expand_args(
   for (i = 0; i < argc; i++)
   {
     /* check for "@file" unless this is the command name */
-    if (i > 0 || argv[i][0] == '@')
+    if (i > 0 && argv[i][0] == '@')
     {
       /* if read_option_file returns null, add "@file" to the args */
       /* (this mimics the way that gcc expands @file arguments) */
@@ -383,7 +383,7 @@ static int parse_check_options(int argc, char *argv[], int multi)
 }
 
 /* Return a pointer to the static OptionInfo struct */
-OptionInfo *vtkParse_GetCommandLineOptions()
+OptionInfo *vtkParse_GetCommandLineOptions(void)
 {
   return &options;
 }

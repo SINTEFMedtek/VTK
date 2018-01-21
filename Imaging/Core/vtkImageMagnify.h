@@ -34,7 +34,7 @@ class VTKIMAGINGCORE_EXPORT vtkImageMagnify : public vtkThreadedImageAlgorithm
 public:
   static vtkImageMagnify *New();
   vtkTypeMacro(vtkImageMagnify,vtkThreadedImageAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -57,16 +57,16 @@ public:
 
 protected:
   vtkImageMagnify();
-  ~vtkImageMagnify() {}
+  ~vtkImageMagnify() override {}
 
   int MagnificationFactors[3];
   int Interpolate;
-  virtual int RequestUpdateExtent(vtkInformation *,
+  int RequestUpdateExtent(vtkInformation *,
                                   vtkInformationVector **,
-                                  vtkInformationVector *);
-  virtual int RequestInformation(vtkInformation *,
+                                  vtkInformationVector *) override;
+  int RequestInformation(vtkInformation *,
                                  vtkInformationVector **,
-                                 vtkInformationVector *);
+                                 vtkInformationVector *) override;
 
   void ThreadedRequestData(vtkInformation *request,
                            vtkInformationVector **inputVector,
@@ -74,13 +74,13 @@ protected:
                            vtkImageData ***inData,
                            vtkImageData **outData,
                            int outExt[6],
-                           int id);
+                           int id) override;
 
   void InternalRequestUpdateExtent(int *inExt, int *outExt);
 
 private:
-  vtkImageMagnify(const vtkImageMagnify&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkImageMagnify&) VTK_DELETE_FUNCTION;
+  vtkImageMagnify(const vtkImageMagnify&) = delete;
+  void operator=(const vtkImageMagnify&) = delete;
 };
 
 #endif

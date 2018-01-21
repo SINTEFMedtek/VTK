@@ -33,18 +33,18 @@ class VTKFILTERSPARALLEL_EXPORT vtkRectilinearGridOutlineFilter : public vtkPoly
 public:
   static vtkRectilinearGridOutlineFilter *New();
   vtkTypeMacro(vtkRectilinearGridOutlineFilter,vtkPolyDataAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
 protected:
   vtkRectilinearGridOutlineFilter() {}
-  ~vtkRectilinearGridOutlineFilter() {}
-  virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-  virtual int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-  virtual int FillInputPortInformation(int port, vtkInformation *info);
+  ~vtkRectilinearGridOutlineFilter() override {}
+  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
+  int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
+  int FillInputPortInformation(int port, vtkInformation *info) override;
 
 private:
-  vtkRectilinearGridOutlineFilter(const vtkRectilinearGridOutlineFilter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkRectilinearGridOutlineFilter&) VTK_DELETE_FUNCTION;
+  vtkRectilinearGridOutlineFilter(const vtkRectilinearGridOutlineFilter&) = delete;
+  void operator=(const vtkRectilinearGridOutlineFilter&) = delete;
 };
 
 #endif

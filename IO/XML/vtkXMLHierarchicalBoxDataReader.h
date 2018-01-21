@@ -38,15 +38,15 @@ class VTKIOXML_EXPORT vtkXMLHierarchicalBoxDataReader :
 public:
   static vtkXMLHierarchicalBoxDataReader* New();
   vtkTypeMacro(vtkXMLHierarchicalBoxDataReader,vtkXMLUniformGridAMRReader);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
 protected:
   vtkXMLHierarchicalBoxDataReader();
-  ~vtkXMLHierarchicalBoxDataReader();
+  ~vtkXMLHierarchicalBoxDataReader() override;
 
 private:
-  vtkXMLHierarchicalBoxDataReader(const vtkXMLHierarchicalBoxDataReader&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkXMLHierarchicalBoxDataReader&) VTK_DELETE_FUNCTION;
+  vtkXMLHierarchicalBoxDataReader(const vtkXMLHierarchicalBoxDataReader&) = delete;
+  void operator=(const vtkXMLHierarchicalBoxDataReader&) = delete;
 
 };
 

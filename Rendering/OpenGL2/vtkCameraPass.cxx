@@ -21,7 +21,7 @@
 #include "vtkOpenGLRenderWindow.h"
 #include "vtkMatrix4x4.h"
 #include "vtkCamera.h"
-#include "vtkFrameBufferObject.h"
+#include "vtkOpenGLFramebufferObject.h"
 #include "vtkOpenGLError.h"
 
 vtkStandardNewMacro(vtkCameraPass);
@@ -30,14 +30,14 @@ vtkCxxSetObjectMacro(vtkCameraPass,DelegatePass,vtkRenderPass);
 // ----------------------------------------------------------------------------
 vtkCameraPass::vtkCameraPass()
 {
-  this->DelegatePass=0;
+  this->DelegatePass=nullptr;
   this->AspectRatioOverride = 1.0;
 }
 
 // ----------------------------------------------------------------------------
 vtkCameraPass::~vtkCameraPass()
 {
-  if(this->DelegatePass!=0)
+  if(this->DelegatePass!=nullptr)
   {
       this->DelegatePass->Delete();
   }
@@ -51,7 +51,7 @@ void vtkCameraPass::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "AspectRatioOverride: " << this->AspectRatioOverride
     << endl;
   os << indent << "DelegatePass:";
-  if(this->DelegatePass!=0)
+  if(this->DelegatePass!=nullptr)
   {
     this->DelegatePass->PrintSelf(os,indent);
   }
@@ -76,7 +76,7 @@ void vtkCameraPass::GetTiledSizeAndOrigin(
 // \pre s_exists: s!=0
 void vtkCameraPass::Render(const vtkRenderState *s)
 {
-  assert("pre: s_exists" && s!=0);
+  assert("pre: s_exists" && s!=nullptr);
 
   vtkOpenGLClearErrorMacro();
 
@@ -104,13 +104,21 @@ void vtkCameraPass::Render(const vtkRenderState *s)
   int lowerLeft[2];
   int usize;
   int vsize;
-  vtkFrameBufferObject *fbo=vtkFrameBufferObject::SafeDownCast(s->GetFrameBuffer());
+  vtkOpenGLFramebufferObject *fbo=vtkOpenGLFramebufferObject::SafeDownCast(s->GetFrameBuffer());
 
   vtkOpenGLRenderWindow *win=vtkOpenGLRenderWindow::SafeDownCast(ren->GetRenderWindow());
   win->MakeCurrent();
 
-  if(fbo==0)
+  if(fbo==nullptr)
   {
+    unsigned int dfbo = win->GetDefaultFrameBufferId();
+    if (dfbo)
+    {
+      // If the render window is using an FBO to render into, we ensure that
+      // it's selected.
+      glBindFramebuffer(GL_FRAMEBUFFER, dfbo);
+    }
+
     // find out if we should stereo render
     bool stereo = win->GetStereoRender()==1;
     this->GetTiledSizeAndOrigin(s, &usize,&vsize,lowerLeft,lowerLeft+1);
@@ -213,7 +221,7 @@ void vtkCameraPass::Render(const vtkRenderState *s)
   // Done with camera initialization. The delegate can be called.
   vtkOpenGLCheckErrorMacro("failed after camera initialization");
 
-  if(this->DelegatePass!=0)
+  if(this->DelegatePass!=nullptr)
   {
     this->DelegatePass->Render(s);
     this->NumberOfRenderedProps+=
@@ -249,8 +257,8 @@ void vtkCameraPass::Render(const vtkRenderState *s)
 // \pre w_exists: w!=0
 void vtkCameraPass::ReleaseGraphicsResources(vtkWindow *w)
 {
-  assert("pre: w_exists" && w!=0);
-  if(this->DelegatePass!=0)
+  assert("pre: w_exists" && w!=nullptr);
+  if(this->DelegatePass!=nullptr)
   {
     this->DelegatePass->ReleaseGraphicsResources(w);
   }

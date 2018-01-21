@@ -34,7 +34,7 @@ class VTKIOENSIGHT_EXPORT vtkEnSightReader : public vtkGenericEnSightReader
 {
 public:
   vtkTypeMacro(vtkEnSightReader, vtkGenericEnSightReader);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   enum ElementTypesList
   {
@@ -97,36 +97,18 @@ public:
   vtkGetStringMacro(MatchFileName);
   //@}
 
-  //@{
-  /**
-   * The MeasuredGeometryFile should list particle coordinates
-   * from 0->N-1.
-   * If a file is loaded where point Ids are listed from 1-N
-   * the Id to points reference will be wrong and the data
-   * will be generated incorrectly.
-   * Setting ParticleCoordinatesByIndex to true will force
-   * all Id's to increment from 0->N-1 (relative to their order
-   * in the file) and regardless of the actual Id of of the point.
-   * Warning, if the Points are listed in non sequential order
-   * then setting this flag will reorder them.
-   */
-  vtkSetMacro(ParticleCoordinatesByIndex, int);
-  vtkGetMacro(ParticleCoordinatesByIndex, int);
-  vtkBooleanMacro(ParticleCoordinatesByIndex, int);
-  //@}
-
 protected:
   vtkEnSightReader();
-  ~vtkEnSightReader();
+  ~vtkEnSightReader() override;
 
-  virtual int RequestInformation(vtkInformation*,
+  int RequestInformation(vtkInformation*,
                                  vtkInformationVector**,
-                                 vtkInformationVector*);
-  virtual int RequestData(vtkInformation*,
+                                 vtkInformationVector*) override;
+  int RequestData(vtkInformation*,
                           vtkInformationVector**,
-                          vtkInformationVector*);
+                          vtkInformationVector*) override;
 
-  virtual void ClearForNewCaseFileName();
+  void ClearForNewCaseFileName() override;
 
   //@{
   /**
@@ -242,7 +224,7 @@ protected:
   /**
    * Add another file name to the list for a particular variable type.
    */
-  void AddVariableFileName(const char* fileName1, const char* fileName2 = NULL);
+  void AddVariableFileName(const char* fileName1, const char* fileName2 = nullptr);
 
   /**
    * Add another description to the list for a particular variable type.
@@ -366,13 +348,11 @@ protected:
 
   int CheckOutputConsistency();
 
-  int ParticleCoordinatesByIndex;
-
   double ActualTimeValue;
 
 private:
-  vtkEnSightReader(const vtkEnSightReader&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkEnSightReader&) VTK_DELETE_FUNCTION;
+  vtkEnSightReader(const vtkEnSightReader&) = delete;
+  void operator=(const vtkEnSightReader&) = delete;
 };
 
 #endif

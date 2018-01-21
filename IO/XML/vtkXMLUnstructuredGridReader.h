@@ -39,7 +39,7 @@ class VTKIOXML_EXPORT vtkXMLUnstructuredGridReader : public vtkXMLUnstructuredDa
 {
 public:
   vtkTypeMacro(vtkXMLUnstructuredGridReader,vtkXMLUnstructuredDataReader);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   static vtkXMLUnstructuredGridReader *New();
 
   //@{
@@ -52,28 +52,28 @@ public:
 
 protected:
   vtkXMLUnstructuredGridReader();
-  ~vtkXMLUnstructuredGridReader();
+  ~vtkXMLUnstructuredGridReader() override;
 
-  const char* GetDataSetName();
-  void GetOutputUpdateExtent(int& piece, int& numberOfPieces, int& ghostLevel);
-  void SetupOutputTotals();
-  void SetupPieces(int numPieces);
-  void DestroyPieces();
+  const char* GetDataSetName() override;
+  void GetOutputUpdateExtent(int& piece, int& numberOfPieces, int& ghostLevel) override;
+  void SetupOutputTotals() override;
+  void SetupPieces(int numPieces) override;
+  void DestroyPieces() override;
 
-  void SetupOutputData();
-  int ReadPiece(vtkXMLDataElement* ePiece);
-  void SetupNextPiece();
-  int ReadPieceData();
+  void SetupOutputData() override;
+  int ReadPiece(vtkXMLDataElement* ePiece) override;
+  void SetupNextPiece() override;
+  int ReadPieceData() override;
 
   // Read a data array whose tuples correspond to cells.
-  virtual int ReadArrayForCells(vtkXMLDataElement* da,
-    vtkAbstractArray* outArray);
+  int ReadArrayForCells(vtkXMLDataElement* da,
+    vtkAbstractArray* outArray) override;
 
   // Get the number of cells in the given piece.  Valid after
   // UpdateInformation.
-  virtual vtkIdType GetNumberOfCellsInPiece(int piece);
+  vtkIdType GetNumberOfCellsInPiece(int piece) override;
 
-  virtual int FillOutputPortInformation(int, vtkInformation*);
+  int FillOutputPortInformation(int, vtkInformation*) override;
 
   // The index of the cell in the output where the current piece
   // begins.
@@ -87,8 +87,8 @@ protected:
   unsigned long CellsOffset;
 
 private:
-  vtkXMLUnstructuredGridReader(const vtkXMLUnstructuredGridReader&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkXMLUnstructuredGridReader&) VTK_DELETE_FUNCTION;
+  vtkXMLUnstructuredGridReader(const vtkXMLUnstructuredGridReader&) = delete;
+  void operator=(const vtkXMLUnstructuredGridReader&) = delete;
 };
 
 #endif

@@ -54,7 +54,7 @@ vtkDataObject *vtkWriter::GetInput(int port)
 {
   if (this->GetNumberOfInputConnections(port) < 1)
   {
-    return NULL;
+    return nullptr;
   }
   return this->GetExecutive()->GetInputData(port, 0);
 }
@@ -110,7 +110,7 @@ int vtkWriter::RequestData(
 
   for (idx = 0; idx < this->GetNumberOfInputPorts(); ++idx)
   {
-    if (this->GetInputExecutive(idx, 0) != NULL)
+    if (this->GetInputExecutive(idx, 0) != nullptr)
     {
       this->GetInputExecutive(idx, 0)->Update();
     }
@@ -135,9 +135,9 @@ int vtkWriter::RequestData(
     return 1;
   }
 
-  this->InvokeEvent(vtkCommand::StartEvent,NULL);
+  this->InvokeEvent(vtkCommand::StartEvent,nullptr);
   this->WriteData();
-  this->InvokeEvent(vtkCommand::EndEvent,NULL);
+  this->InvokeEvent(vtkCommand::EndEvent,nullptr);
 
   this->WriteTime.Modified();
 
@@ -168,7 +168,7 @@ void vtkWriter::EncodeString(char* resname, const char* name, bool doublePercent
     if ( name[cc] < 33  || name[cc] > 126 ||
          name[cc] == '\"' || name[cc] == '%' )
     {
-      sprintf(buffer, "%02X", static_cast<unsigned char>(name[cc]));
+      snprintf(buffer, sizeof(buffer), "%02X", static_cast<unsigned char>(name[cc]));
       if (doublePercent)
       {
         str << "%%";
@@ -205,7 +205,7 @@ void vtkWriter::EncodeWriteString(ostream* out, const char* name, bool doublePer
     if ( name[cc] < 33  || name[cc] > 126 ||
          name[cc] == '\"' || name[cc] == '%' )
     {
-      sprintf(buffer, "%02X", static_cast<unsigned char>(name[cc]));
+      snprintf(buffer, sizeof(buffer), "%02X", static_cast<unsigned char>(name[cc]));
       if (doublePercent)
       {
         *out << "%%";

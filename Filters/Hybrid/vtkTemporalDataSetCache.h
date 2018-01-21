@@ -41,7 +41,7 @@ class VTKFILTERSHYBRID_EXPORT vtkTemporalDataSetCache : public vtkAlgorithm
 public:
   static vtkTemporalDataSetCache *New();
   vtkTypeMacro(vtkTemporalDataSetCache, vtkAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -54,7 +54,7 @@ public:
 
 protected:
   vtkTemporalDataSetCache();
-  ~vtkTemporalDataSetCache();
+  ~vtkTemporalDataSetCache() override;
 
   int CacheSize;
 
@@ -65,12 +65,12 @@ protected:
   /**
    * see vtkAlgorithm for details
    */
-  virtual int ProcessRequest(vtkInformation* request,
+  int ProcessRequest(vtkInformation* request,
                              vtkInformationVector** inputVector,
-                             vtkInformationVector* outputVector);
+                             vtkInformationVector* outputVector) override;
 
-  virtual int FillInputPortInformation(int port, vtkInformation* info);
-  virtual int FillOutputPortInformation(int vtkNotUsed(port), vtkInformation* info);
+  int FillInputPortInformation(int port, vtkInformation* info) override;
+  int FillOutputPortInformation(int vtkNotUsed(port), vtkInformation* info) override;
   virtual int RequestDataObject( vtkInformation*,
                                  vtkInformationVector** inputVector ,
                                  vtkInformationVector* outputVector);
@@ -84,8 +84,8 @@ protected:
                           vtkInformationVector *);
 
 private:
-  vtkTemporalDataSetCache(const vtkTemporalDataSetCache&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkTemporalDataSetCache&) VTK_DELETE_FUNCTION;
+  vtkTemporalDataSetCache(const vtkTemporalDataSetCache&) = delete;
+  void operator=(const vtkTemporalDataSetCache&) = delete;
 };
 
 

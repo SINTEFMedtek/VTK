@@ -113,8 +113,8 @@ namespace {
 }
 //----------------------------------------------------------------------------
 vtkParticleReader::vtkParticleReader() :
-  FileName(NULL)
-  , File(NULL)
+  FileName(nullptr)
+  , File(nullptr)
   , HasScalar(1)
   , FileType(FILE_TYPE_IS_UNKNOWN)
   , DataType(VTK_FLOAT)
@@ -133,11 +133,11 @@ vtkParticleReader::~vtkParticleReader()
   {
     this->File->close();
     delete this->File;
-    this->File = NULL;
+    this->File = nullptr;
   }
 
   delete [] this->FileName;
-  this->FileName = NULL;
+  this->FileName = nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -154,7 +154,7 @@ void vtkParticleReader::OpenFile()
   {
     this->File->close();
     delete this->File;
-    this->File = NULL;
+    this->File = nullptr;
   }
 
   // Open the new file.
@@ -201,7 +201,7 @@ int vtkParticleReader::RequestInformation(
   }
   this->File->close();
   delete this->File;
-  this->File = NULL;
+  this->File = nullptr;
 
 
   if (ft == FILE_TYPE_IS_BINARY)
@@ -350,7 +350,7 @@ int vtkParticleReader::DetermineFileType()
     otherASCII++;
   }
 
-  // NULL shouldn't ever appear in a text file.
+  // nullptr shouldn't ever appear in a text file.
   if ( zero != 0 || otherASCII > 0 || conventionalASCII == 0 )
   {
     return FILE_TYPE_IS_BINARY;
@@ -396,7 +396,7 @@ int vtkParticleReader::ProduceOutputFromTextFileDouble(vtkInformationVector *out
   while ( this->File->getline(buffer,256,'\n') )
   {
     s = buffer;
-    if ( s.size() != 0 )
+    if ( !s.empty() )
     {
       bytesRead += s.size();
       this->DoProgressUpdate( bytesRead, fileLength );
@@ -473,7 +473,7 @@ int vtkParticleReader::ProduceOutputFromTextFileFloat(vtkInformationVector *outp
   while ( this->File->getline(buffer,256,'\n') )
   {
     s = buffer;
-    if ( s.size() != 0 )
+    if ( !s.empty() )
     {
       bytesRead += s.size();
       this->DoProgressUpdate( bytesRead, fileLength );
@@ -607,14 +607,7 @@ int vtkParticleReader::ProduceOutputFromBinaryFileDouble(vtkInformationVector *o
   // Read the data.
   if ( this->HasScalar )
   {
-    this->File->read((char *)data, length*4*sizeof(double));
-    if ( static_cast<unsigned long>(this->File->gcount()) !=
-         static_cast<unsigned long>(length*4*sizeof(double))
-       // On apple read to eof returns fail
-#ifndef __APPLE_CC__
-       || this->File->fail()
-#endif // __APPLE_CC__
-       )
+    if ( ! this->File->read((char *)data, length*4*sizeof(double)))
     {
       vtkErrorMacro("Could not read points: " << start
              << " to " << next-1);
@@ -624,14 +617,7 @@ int vtkParticleReader::ProduceOutputFromBinaryFileDouble(vtkInformationVector *o
   }
   else
   {
-    this->File->read((char *)data, length*3*sizeof(double));
-    if ( static_cast<unsigned long>(this->File->gcount()) !=
-         static_cast<unsigned long>(length*3*sizeof(double))
-       // On apple read to eof returns fail
-#ifndef __APPLE_CC__
-       || this->File->fail()
-#endif // __APPLE_CC__
-       )
+    if ( ! this->File->read((char *)data, length*3*sizeof(double)))
     {
       vtkErrorMacro("Could not read points: " << start
              << " to " << next-1);
@@ -805,14 +791,7 @@ int vtkParticleReader::ProduceOutputFromBinaryFileFloat(vtkInformationVector *ou
   // Read the data.
   if ( this->HasScalar )
   {
-    this->File->read((char *)data, length*4*sizeof(float));
-    if ( static_cast<unsigned long>(this->File->gcount()) !=
-         static_cast<unsigned long>(length*4*sizeof(float))
-       // On apple read to eof returns fail
-#ifndef __APPLE_CC__
-       || this->File->fail()
-#endif // __APPLE_CC__
-       )
+    if ( ! this->File->read((char *)data, length*4*sizeof(float)))
     {
       vtkErrorMacro("Could not read points: " << start
              << " to " << next-1);
@@ -822,14 +801,7 @@ int vtkParticleReader::ProduceOutputFromBinaryFileFloat(vtkInformationVector *ou
   }
   else
   {
-    this->File->read((char *)data, length*3*sizeof(float));
-    if ( static_cast<unsigned long>(this->File->gcount()) !=
-         static_cast<unsigned long>(length*3*sizeof(float))
-       // On apple read to eof returns fail
-#ifndef __APPLE_CC__
-       || this->File->fail()
-#endif // __APPLE_CC__
-       )
+    if ( ! this->File->read((char *)data, length*3*sizeof(float)))
     {
       vtkErrorMacro("Could not read points: " << start
              << " to " << next-1);

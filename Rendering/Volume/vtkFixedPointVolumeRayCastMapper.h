@@ -28,15 +28,10 @@
  * threads > 1. The differences may be subtle. Applications should decide
  * if the trade-off in performance is worth the lack of consistency.
  *
- * This mapper is a good replacement for vtkVolumeRayCastMapper EXCEPT:
+ * Other limitations of this ray caster include that:
  *   - it does not do isosurface ray casting
  *   - it does only interpolate before classify compositing
  *   - it does only maximum scalar value MIP
- *
- * The vtkVolumeRayCastMapper CANNOT be used in these instances when a
- * vtkFixedPointVolumeRayCastMapper can be used:
- *   - if the data is not unsigned char or unsigned short
- *   - if the data has more than one component
  *
  * This mapper handles all data type from unsigned char through double.
  * However, some of the internal calcultions are performed in float and
@@ -101,7 +96,7 @@ class VTKRENDERINGVOLUME_EXPORT vtkFixedPointVolumeRayCastMapper : public vtkVol
 public:
   static vtkFixedPointVolumeRayCastMapper *New();
   vtkTypeMacro(vtkFixedPointVolumeRayCastMapper,vtkVolumeMapper);
-  void PrintSelf( ostream& os, vtkIndent indent );
+  void PrintSelf( ostream& os, vtkIndent indent ) override;
 
   //@{
   /**
@@ -223,7 +218,7 @@ public:
    * WARNING: INTERNAL METHOD - NOT INTENDED FOR GENERAL USE
    * Initialize rendering for this volume.
    */
-  void Render( vtkRenderer *, vtkVolume * );
+  void Render( vtkRenderer *, vtkVolume * ) override;
 
   unsigned int ToFixedPointPosition( float val );
   void ToFixedPointPosition( float in[3], unsigned int out[3] );
@@ -357,11 +352,11 @@ public:
    * The parameter window could be used to determine which graphic
    * resources to release.
    */
-  virtual void ReleaseGraphicsResources(vtkWindow *);
+  void ReleaseGraphicsResources(vtkWindow *) override;
 
 protected:
   vtkFixedPointVolumeRayCastMapper();
-  ~vtkFixedPointVolumeRayCastMapper();
+  ~vtkFixedPointVolumeRayCastMapper() override;
 
   // The helper class that displays the image
   vtkRayCastImageDisplayHelper *ImageDisplayHelper;
@@ -548,8 +543,8 @@ protected:
   void ApplyFinalColorWindowLevel();
 
 private:
-  vtkFixedPointVolumeRayCastMapper(const vtkFixedPointVolumeRayCastMapper&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkFixedPointVolumeRayCastMapper&) VTK_DELETE_FUNCTION;
+  vtkFixedPointVolumeRayCastMapper(const vtkFixedPointVolumeRayCastMapper&) = delete;
+  void operator=(const vtkFixedPointVolumeRayCastMapper&) = delete;
 
   bool ThreadWarning;
 };

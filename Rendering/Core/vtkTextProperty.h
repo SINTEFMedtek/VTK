@@ -34,7 +34,7 @@ class VTKRENDERINGCORE_EXPORT vtkTextProperty : public vtkObject
 {
 public:
   vtkTypeMacro(vtkTextProperty,vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Creates a new text property with font size 12, bold off, italic off,
@@ -214,7 +214,7 @@ public:
 
   //@{
   /**
-   * If this property is on, text is alligned to drawn pixels not to font metrix.
+   * If this property is on, text is aligned to drawn pixels not to font metrix.
    * If the text does not include descents, the bounding box will not extend below
    * the baseline. This option can be used to get centered labels. It does not
    * work well if the string changes as the string position will move around.
@@ -256,7 +256,7 @@ public:
 
 protected:
   vtkTextProperty();
-  ~vtkTextProperty();
+  ~vtkTextProperty() override;
 
   double Color[3];
   double Opacity;
@@ -280,8 +280,8 @@ protected:
   double LineSpacing;
 
 private:
-  vtkTextProperty(const vtkTextProperty&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkTextProperty&) VTK_DELETE_FUNCTION;
+  vtkTextProperty(const vtkTextProperty&) = delete;
+  void operator=(const vtkTextProperty&) = delete;
 };
 
 inline const char *vtkTextProperty::GetFontFamilyAsString( int f )

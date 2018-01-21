@@ -53,25 +53,28 @@
 #include "vtkCommonDataModelModule.h" // For export macro
 #include "vtkObject.h"
 
+class vtkDataArray;
+
 class vtkAbstractTransform;
 
 class VTKCOMMONDATAMODEL_EXPORT vtkImplicitFunction : public vtkObject
 {
 public:
   vtkTypeMacro(vtkImplicitFunction,vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Overload standard modified time function. If Transform is modified,
    * then this object is modified as well.
    */
-  vtkMTimeType GetMTime() VTK_OVERRIDE;
+  vtkMTimeType GetMTime() override;
 
   //@{
   /**
    * Evaluate function at position x-y-z and return value. Point x[3] is
    * transformed through transform (if provided).
    */
+  virtual void FunctionValue(vtkDataArray* input, vtkDataArray* output);
   double FunctionValue(const double x[3]);
   double FunctionValue(double x, double y, double z) {
     double xyz[3] = {x, y, z}; return this->FunctionValue(xyz); };
@@ -108,7 +111,8 @@ public:
    * any derived class.
    */
   virtual double EvaluateFunction(double x[3]) = 0;
-  double EvaluateFunction(double x, double y, double z) {
+  virtual void EvaluateFunction(vtkDataArray* input, vtkDataArray* output);
+  virtual double EvaluateFunction(double x, double y, double z) {
     double xyz[3] = {x, y, z}; return this->EvaluateFunction(xyz); };
   //@}
 
@@ -122,13 +126,13 @@ public:
 
 protected:
   vtkImplicitFunction();
-  ~vtkImplicitFunction() VTK_OVERRIDE;
+  ~vtkImplicitFunction() override;
 
   vtkAbstractTransform *Transform;
   double ReturnValue[3];
 private:
-  vtkImplicitFunction(const vtkImplicitFunction&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkImplicitFunction&) VTK_DELETE_FUNCTION;
+  vtkImplicitFunction(const vtkImplicitFunction&) = delete;
+  void operator=(const vtkImplicitFunction&) = delete;
 };
 
 #endif

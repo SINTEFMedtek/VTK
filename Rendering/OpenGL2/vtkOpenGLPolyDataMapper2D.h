@@ -33,13 +33,14 @@
 #include "vtkOpenGLHelper.h" // used for ivars
 #include <string> // For API.
 #include <vector> //for ivars
+#include <map> //for used data arrays & vbos
 
 class vtkActor2D;
 class vtkGenericOpenGLResourceFreeCallback;
 class vtkMatrix4x4;
 class vtkOpenGLBufferObject;
 class vtkOpenGLHelper;
-class vtkOpenGLVertexBufferObject;
+class vtkOpenGLVertexBufferObjectGroup;
 class vtkPoints;
 class vtkRenderer;
 class vtkTextureObject;
@@ -50,26 +51,23 @@ class VTKRENDERINGOPENGL2_EXPORT vtkOpenGLPolyDataMapper2D : public vtkPolyDataM
 public:
   vtkTypeMacro(vtkOpenGLPolyDataMapper2D, vtkPolyDataMapper2D);
   static vtkOpenGLPolyDataMapper2D *New();
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Actually draw the poly data.
    */
-  void RenderOverlay(vtkViewport* viewport, vtkActor2D* actor);
+  void RenderOverlay(vtkViewport* viewport, vtkActor2D* actor) override;
 
   /**
    * Release any graphics resources that are being consumed by this mapper.
    * The parameter window could be used to determine which graphic
    * resources to release.
    */
-  void ReleaseGraphicsResources(vtkWindow *);
-
-  /// Return the mapper's vertex buffer object.
-  vtkGetObjectMacro(VBO,vtkOpenGLVertexBufferObject);
+  void ReleaseGraphicsResources(vtkWindow *) override;
 
 protected:
   vtkOpenGLPolyDataMapper2D();
-  ~vtkOpenGLPolyDataMapper2D();
+  ~vtkOpenGLPolyDataMapper2D() override;
 
   vtkGenericOpenGLResourceFreeCallback *ResourceCallback;
 
@@ -131,7 +129,7 @@ protected:
   void UpdateVBO(vtkActor2D *act, vtkViewport *viewport);
 
   // The VBO and its layout.
-  vtkOpenGLVertexBufferObject *VBO;
+  vtkOpenGLVertexBufferObjectGroup *VBOs;
 
   // Structures for the various cell types we render.
   vtkOpenGLHelper Points;
@@ -157,8 +155,8 @@ protected:
   virtual bool HaveWideLines(vtkViewport *, vtkActor2D *);
 
 private:
-  vtkOpenGLPolyDataMapper2D(const vtkOpenGLPolyDataMapper2D&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkOpenGLPolyDataMapper2D&) VTK_DELETE_FUNCTION;
+  vtkOpenGLPolyDataMapper2D(const vtkOpenGLPolyDataMapper2D&) = delete;
+  void operator=(const vtkOpenGLPolyDataMapper2D&) = delete;
 };
 
 #endif

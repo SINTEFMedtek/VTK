@@ -23,6 +23,7 @@
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkMergePoints.h"
+#include "vtkNew.h"
 #include "vtkObjectFactory.h"
 #include "vtkPolyData.h"
 #include "vtkSmartPointer.h"
@@ -45,10 +46,10 @@ vtkCxxSetObjectMacro(vtkSTLReader, Locator, vtkIncrementalPointLocator);
 // Construct object with merging set to true.
 vtkSTLReader::vtkSTLReader()
 {
-  this->FileName = NULL;
+  this->FileName = nullptr;
   this->Merging = 1;
   this->ScalarTags = 0;
-  this->Locator = NULL;
+  this->Locator = nullptr;
 
   this->SetNumberOfInputPorts(0);
 }
@@ -56,8 +57,8 @@ vtkSTLReader::vtkSTLReader()
 //------------------------------------------------------------------------------
 vtkSTLReader::~vtkSTLReader()
 {
-  this->SetFileName(0);
-  this->SetLocator(0);
+  this->SetFileName(nullptr);
+  this->SetLocator(nullptr);
 }
 
 //------------------------------------------------------------------------------
@@ -100,17 +101,17 @@ int vtkSTLReader::RequestData(
   }
 
   // Initialize
-  FILE *fp = fopen(this->FileName, "r");
-  if (fp == NULL)
+  FILE *fp = vtksys::SystemTools::Fopen(this->FileName, "r");
+  if (fp == nullptr)
   {
     vtkErrorMacro(<< "File " << this->FileName << " not found");
     this->SetErrorCode(vtkErrorCode::CannotOpenFileError);
     return 0;
   }
 
-  vtkPoints *newPts = vtkPoints::New();
-  vtkCellArray *newPolys = vtkCellArray::New();
-  vtkFloatArray *newScalars = 0;
+  vtkNew<vtkPoints> newPts;
+  vtkNew<vtkCellArray> newPolys;
+  vtkFloatArray *newScalars = nullptr;
 
   // Depending upon file type, read differently
   if (this->GetSTLFileType(this->FileName) == VTK_ASCII)
@@ -122,9 +123,13 @@ int vtkSTLReader::RequestData(
       newScalars = vtkFloatArray::New();
       newScalars->Allocate(5000);
     }
-    if (!this->ReadASCIISTL(fp, newPts, newPolys, newScalars))
+    if (!this->ReadASCIISTL(fp, newPts.Get(), newPolys.Get(), newScalars))
     {
       fclose(fp);
+      if(newScalars)
+      {
+        newScalars->Delete();
+      }
       return 0;
     }
   }
@@ -132,17 +137,25 @@ int vtkSTLReader::RequestData(
   {
     // Close file and reopen in binary mode.
     fclose(fp);
-    fp = fopen(this->FileName, "rb");
-    if (fp == NULL)
+    fp = vtksys::SystemTools::Fopen(this->FileName, "rb");
+    if (fp == nullptr)
     {
       vtkErrorMacro(<< "File " << this->FileName << " not found");
       this->SetErrorCode(vtkErrorCode::CannotOpenFileError);
+      if(newScalars)
+      {
+        newScalars->Delete();
+      }
       return 0;
     }
 
-    if (!this->ReadBinarySTL(fp, newPts, newPolys))
+    if (!this->ReadBinarySTL(fp, newPts.Get(), newPolys.Get()))
     {
       fclose(fp);
+      if(newScalars)
+      {
+        newScalars->Delete();
+      }
       return 0;
     }
   }
@@ -154,8 +167,8 @@ int vtkSTLReader::RequestData(
   fclose(fp);
 
   // If merging is on, create hash table and merge points/triangles.
-  vtkPoints *mergedPts = newPts;
-  vtkCellArray *mergedPolys = newPolys;
+  vtkPoints *mergedPts = newPts.Get();
+  vtkCellArray *mergedPolys = newPolys.Get();
   vtkFloatArray *mergedScalars = newScalars;
   if (this->Merging)
   {
@@ -170,14 +183,14 @@ int vtkSTLReader::RequestData(
     }
 
     vtkSmartPointer<vtkIncrementalPointLocator> locator = this->Locator;
-    if (this->Locator == NULL)
+    if (this->Locator == nullptr)
     {
       locator.TakeReference(this->NewDefaultLocator());
     }
     locator->InitPointInsertion(mergedPts, newPts->GetBounds());
 
     int nextCell = 0;
-    vtkIdType *pts = 0;
+    vtkIdType *pts = nullptr;
     vtkIdType npts;
     for (newPolys->InitTraversal(); newPolys->GetNextCell(npts, pts);)
     {
@@ -202,8 +215,6 @@ int vtkSTLReader::RequestData(
       nextCell++;
     }
 
-    newPts->Delete();
-    newPolys->Delete();
     if (newScalars)
     {
       newScalars->Delete();
@@ -338,8 +349,11 @@ bool vtkSTLReader::ReadASCIISTL(FILE *fp, vtkPoints *newPts,
 {
   vtkDebugMacro(<< "Reading ASCII STL file");
 
-  // Ingest header and junk to get to first vertex
   char line[256];
+  float x[3];
+  int currentSolid = 0;
+
+  // header: solid ...
   if (!fgets(line, 255, fp))
   {
     vtkErrorMacro("STLReader error reading file: " << this->FileName
@@ -347,60 +361,59 @@ bool vtkSTLReader::ReadASCIISTL(FILE *fp, vtkPoints *newPts,
     return false;
   }
 
-  int lineCount = 1;
-  int done = (fgets(line, 255, fp) == 0);
-  float x[3];
-  lineCount++;
-  if (!strcmp(line, "COLOR") || !strcmp(line, "color"))
+  int done = !fgets(line, 255, fp); // facet normal
+  int lineCount = 2;
+  if (strstr(line, "COLOR") || strstr(line, "color"))
   {
-      // if there is a color field, skip it
-      done = (fgets(line, 255, fp) == 0);
+      // was actually "color ..."
+      // get and discard next line, which should be "facet normal"
+      done = !fgets(line, 255, fp);
       lineCount++;
   }
 
   try
   {
-    int currentSolid = 0;
     // Go into loop, reading facet normal and vertices
     while (!done)
     {
+      vtkIdType pts[3];
+
       if (!fgets(line, 255, fp))
       {
-        throw std::runtime_error("unable to read outer loop.");
+        throw std::runtime_error("unable to read STL outer loop.");
       }
       lineCount++;
 
       if (fscanf(fp, "%*s %f %f %f\n", x, x+1, x+2) != 3)
       {
-        throw std::runtime_error("unable to read point.");
+        throw std::runtime_error("unable to read STL vertex.");
       }
       lineCount++;
-
-      vtkIdType pts[3];
       pts[0] = newPts->InsertNextPoint(x);
+
       if (fscanf(fp, "%*s %f %f %f\n", x, x+1, x+2) != 3)
       {
-        throw std::runtime_error("unable to read point.");
+        throw std::runtime_error("unable to read STL vertex.");
       }
       lineCount++;
-
       pts[1] = newPts->InsertNextPoint(x);
+
       if (fscanf(fp, "%*s %f %f %f\n", x, x+1, x+2) != 3)
       {
-        throw std::runtime_error("unable to read reading point.");
+        throw std::runtime_error("unable to read STL vertex.");
       }
       lineCount++;
-
       pts[2] = newPts->InsertNextPoint(x);
-      if (!fgets(line, 255, fp)) // end loop
+
+      if (!fgets(line, 255, fp)) // endloop
       {
-        throw std::runtime_error("unable to read end loop.");
+        throw std::runtime_error("unable to read STL endloop.");
       }
       lineCount++;
 
-      if (!fgets(line, 255, fp)) // end facet
+      if (!fgets(line, 255, fp)) // endfacet
       {
-        throw std::runtime_error("unable to read end facet.");
+        throw std::runtime_error("unable to read STL endfacet.");
       }
       lineCount++;
 
@@ -414,13 +427,14 @@ bool vtkSTLReader::ReadASCIISTL(FILE *fp, vtkPoints *newPts,
       {
         this->UpdateProgress((newPolys->GetNumberOfCells()%50000) / 50000.0);
       }
-      done = (fscanf(fp,"%s", line) == EOF);
+
+      done = (fscanf(fp, "%255s", line) == EOF);
       if (!strcmp(line, "ENDSOLID") || !strcmp(line, "endsolid"))
       {
         currentSolid++;
         if (!fgets(line, 255, fp) && !feof(fp))
         {
-          throw std::runtime_error("unable to read end solid.");
+          throw std::runtime_error("unable to read STL endsolid.");
         }
 
         done = feof(fp);
@@ -433,24 +447,32 @@ bool vtkSTLReader::ReadASCIISTL(FILE *fp, vtkPoints *newPts,
             done = feof(fp);
             if (!done)
             {
-              throw std::runtime_error("unable to read solid.");
+              throw std::runtime_error("unable to read STL solid.");
             }
           }
           lineCount++;
           done = feof(fp);
         }
 
-        done = (fscanf(fp,"%s", line)==EOF);
-        if (!strstr(line, "COLOR") || !strstr(line, "color"))
+        // get facet, but could also have color
+        done = (fscanf(fp, "%255s", line)==EOF);
+        if (!strcmp(line, "COLOR") || !strcmp(line, "color"))
         {
-          done = (fgets(line, 255, fp) == 0);
+          done = !fgets(line, 255, fp); // skip color field
           lineCount++;
-          done = done || (fscanf(fp,"%s", line)==EOF);
+        }
+
+        if (!done)
+        {
+          done = !fgets(line, 255, fp); // facet ...
+          lineCount++;
         }
       }
       else if (!done)
       {
-        done = (fgets(line, 255, fp) == 0);
+        // was 'endfacet'
+        // get and discard next line, which should be "facet normal"
+        done = !fgets(line, 255, fp);
         lineCount++;
       }
     }

@@ -1,15 +1,24 @@
 include(vtkObjectFactory)
 
 set(Module_SRCS
+  vtkMultiBlockVolumeMapper.cxx
   vtkOpenGLGPUVolumeRayCastMapper.cxx
   vtkOpenGLProjectedTetrahedraMapper.cxx
   vtkOpenGLRayCastImageDisplayHelper.cxx
   vtkSmartVolumeMapper.cxx
+  vtkVolumeTexture.cxx
   )
 
 set_source_files_properties(
   vtkVolumeShader
   WRAP_EXCLUDE
+  )
+
+set_source_files_properties(
+  vtkVolumeTexture
+  PROPERTIES
+    WRAP_EXCLUDE 1
+    WRAP_EXCLUDE_PYTHON 1
   )
 
 set(shader_files

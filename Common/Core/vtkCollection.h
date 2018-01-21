@@ -14,10 +14,10 @@
 =========================================================================*/
 /**
  * @class   vtkCollection
- * @brief   create and manipulate unsorted lists of objects
+ * @brief   create and manipulate ordered lists of objects
  *
  * vtkCollection is a general object for creating and manipulating lists
- * of objects. The lists are unsorted and allow duplicate entries.
+ * of objects. The lists are ordered and allow duplicate entries.
  * vtkCollection also serves as a base class for lists of specific types
  * of objects.
  *
@@ -37,7 +37,7 @@
 class vtkCollectionElement //;prevents pick-up by man page generator
 {
  public:
-  vtkCollectionElement():Item(NULL),Next(NULL) {}
+  vtkCollectionElement():Item(nullptr),Next(nullptr) {}
   vtkObject *Item;
   vtkCollectionElement *Next;
 };
@@ -49,7 +49,7 @@ class VTKCOMMONCORE_EXPORT vtkCollection : public vtkObject
 {
 public:
   vtkTypeMacro(vtkCollection,vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Construct with empty list.
@@ -57,7 +57,7 @@ public:
   static vtkCollection *New();
 
   /**
-   * Add an object to the list. Does not prevent duplicate entries.
+   * Add an object to the bottom of the list. Does not prevent duplicate entries.
    */
   void AddItem(vtkObject *);
 
@@ -68,7 +68,7 @@ public:
   void InsertItem(int i, vtkObject *);
 
   /**
-   * Replace the i'th item in the collection with a
+   * Replace the i'th item in the collection with another item.
    */
   void ReplaceItem(int i, vtkObject *);
 
@@ -103,7 +103,7 @@ public:
   /**
    * Return the number of objects in the list.
    */
-  int  GetNumberOfItems() { return this->NumberOfItems; }
+  int GetNumberOfItems() { return this->NumberOfItems; }
 
   /**
    * Initialize the traversal of the collection. This means the data pointer
@@ -119,13 +119,13 @@ public:
     cookie = static_cast<vtkCollectionSimpleIterator>(this->Top);};
 
   /**
-   * Get the next item in the collection. NULL is returned if the collection
+   * Get the next item in the collection. nullptr is returned if the collection
    * is exhausted.
    */
   vtkObject *GetNextItemAsObject();
 
   /**
-   * Get the i'th item in the collection. NULL is returned if i is out
+   * Get the i'th item in the collection. nullptr is returned if i is out
    * of range
    */
   vtkObject *GetItemAsObject(int i);
@@ -145,13 +145,13 @@ public:
   /**
    * Participate in garbage collection.
    */
-  void Register(vtkObjectBase* o) VTK_OVERRIDE;
-  void UnRegister(vtkObjectBase* o) VTK_OVERRIDE;
+  void Register(vtkObjectBase* o) override;
+  void UnRegister(vtkObjectBase* o) override;
   //@}
 
 protected:
   vtkCollection();
-  ~vtkCollection() VTK_OVERRIDE;
+  ~vtkCollection() override;
 
   virtual void RemoveElement(vtkCollectionElement *element,
                              vtkCollectionElement *previous);
@@ -164,10 +164,10 @@ protected:
   friend class vtkCollectionIterator;
 
   // See vtkGarbageCollector.h:
-  void ReportReferences(vtkGarbageCollector* collector) VTK_OVERRIDE;
+  void ReportReferences(vtkGarbageCollector* collector) override;
 private:
-  vtkCollection(const vtkCollection&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkCollection&) VTK_DELETE_FUNCTION;
+  vtkCollection(const vtkCollection&) = delete;
+  void operator=(const vtkCollection&) = delete;
 };
 
 
@@ -175,14 +175,14 @@ inline vtkObject *vtkCollection::GetNextItemAsObject()
 {
   vtkCollectionElement *elem=this->Current;
 
-  if ( elem != NULL )
+  if ( elem != nullptr )
   {
     this->Current = elem->Next;
     return elem->Item;
   }
   else
   {
-    return NULL;
+    return nullptr;
   }
 }
 
@@ -190,20 +190,15 @@ inline vtkObject *vtkCollection::GetNextItemAsObject(void *&cookie)
 {
   vtkCollectionElement *elem=static_cast<vtkCollectionElement *>(cookie);
 
-  if ( elem != NULL )
+  if ( elem != nullptr )
   {
     cookie = static_cast<void *>(elem->Next);
     return elem->Item;
   }
   else
   {
-    return NULL;
+    return nullptr;
   }
 }
 
 #endif
-
-
-
-
-

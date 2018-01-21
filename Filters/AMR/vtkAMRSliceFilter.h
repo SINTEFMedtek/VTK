@@ -43,7 +43,7 @@ class VTKFILTERSAMR_EXPORT vtkAMRSliceFilter :
 public:
   static vtkAMRSliceFilter* New();
   vtkTypeMacro( vtkAMRSliceFilter, vtkOverlappingAMRAlgorithm );
-  void PrintSelf(ostream &os, vtkIndent indent );
+  void PrintSelf(ostream &os, vtkIndent indent ) override;
 
   // Inline Gettters & Setters
   vtkSetMacro(OffSetFromOrigin,double);
@@ -87,36 +87,36 @@ public:
   //@{
   /**
    * Set/Get a multiprocess controller for paralle processing.
-   * By default this parameter is set to NULL by the constructor.
+   * By default this parameter is set to nullptr by the constructor.
    */
   vtkSetMacro( Controller, vtkMultiProcessController* );
   vtkGetMacro( Controller, vtkMultiProcessController* );
   //@}
 
   // Standard Pipeline methods
-  virtual int RequestData(
-     vtkInformation*,vtkInformationVector**,vtkInformationVector*);
-  virtual int FillInputPortInformation(int port, vtkInformation *info);
-  virtual int FillOutputPortInformation(int port, vtkInformation *info);
+  int RequestData(
+     vtkInformation*,vtkInformationVector**,vtkInformationVector*) override;
+  int FillInputPortInformation(int port, vtkInformation *info) override;
+  int FillOutputPortInformation(int port, vtkInformation *info) override;
 
   /**
    * Makes upstream request to a source, typically, a concrete instance of
    * vtkAMRBaseReader, for which blocks to load.
    */
-  virtual int RequestInformation(
+  int RequestInformation(
       vtkInformation *rqst,
       vtkInformationVector **inputVector,
-      vtkInformationVector *outputVector );
+      vtkInformationVector *outputVector ) override;
 
   /**
    * Performs upstream requests to the reader
    */
-  virtual int RequestUpdateExtent(
-      vtkInformation*, vtkInformationVector**,vtkInformationVector* );
+  int RequestUpdateExtent(
+      vtkInformation*, vtkInformationVector**,vtkInformationVector* ) override;
 
 protected:
   vtkAMRSliceFilter();
-  ~vtkAMRSliceFilter();
+  ~vtkAMRSliceFilter() override;
 
   /**
    * Returns the cell index w.r.t. the given input grid which contains
@@ -190,8 +190,8 @@ protected:
   std::vector< int > BlocksToLoad;
 
 private:
-  vtkAMRSliceFilter( const vtkAMRSliceFilter& ) VTK_DELETE_FUNCTION;
-  void operator=( const vtkAMRSliceFilter& ) VTK_DELETE_FUNCTION;
+  vtkAMRSliceFilter( const vtkAMRSliceFilter& ) = delete;
+  void operator=( const vtkAMRSliceFilter& ) = delete;
 };
 
 #endif /* vtkAMRSliceFilter_h */

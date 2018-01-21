@@ -33,16 +33,16 @@
 #define vtkTemporalSnapToTimeStep_h
 
 #include "vtkFiltersHybridModule.h" // For export macro
-#include "vtkAlgorithm.h"
+#include "vtkPassInputTypeAlgorithm.h"
 
 #include <vector> // used because I am a bad boy. So there.
 
-class VTKFILTERSHYBRID_EXPORT vtkTemporalSnapToTimeStep : public vtkAlgorithm
+class VTKFILTERSHYBRID_EXPORT vtkTemporalSnapToTimeStep : public vtkPassInputTypeAlgorithm
 {
 public:
   static vtkTemporalSnapToTimeStep *New();
-  vtkTypeMacro(vtkTemporalSnapToTimeStep, vtkAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  vtkTypeMacro(vtkTemporalSnapToTimeStep, vtkPassInputTypeAlgorithm);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   enum {
     VTK_SNAP_NEAREST=0,
@@ -58,41 +58,34 @@ public:
 
 protected:
   vtkTemporalSnapToTimeStep();
-  ~vtkTemporalSnapToTimeStep();
+  ~vtkTemporalSnapToTimeStep() override;
 
   /**
    * see vtkAlgorithm for details
    */
-  virtual int ProcessRequest(vtkInformation* request,
-                             vtkInformationVector** inputVector,
-                             vtkInformationVector* outputVector);
+  int ProcessRequest(vtkInformation* request,
+                     vtkInformationVector** inputVector,
+                     vtkInformationVector* outputVector) override;
 
-  virtual int FillInputPortInformation(int port, vtkInformation* info);
-  virtual int FillOutputPortInformation(int vtkNotUsed(port), vtkInformation* info);
+  int RequestUpdateExtent(vtkInformation* request,
+                          vtkInformationVector** inputVector,
+                          vtkInformationVector* outputVector) override;
 
-  virtual int RequestUpdateExtent (vtkInformation *,
-                                   vtkInformationVector **,
-                                   vtkInformationVector *);
-  virtual int RequestInformation (vtkInformation *,
-                                  vtkInformationVector **,
-                                  vtkInformationVector *);
+  int RequestInformation(vtkInformation* request,
+                         vtkInformationVector** inputVector,
+                         vtkInformationVector* outputVector) override;
 
-  virtual int RequestData(vtkInformation *,
-                          vtkInformationVector **,
-                          vtkInformationVector *);
+  int RequestData(vtkInformation* request,
+                  vtkInformationVector** inputVector,
+                  vtkInformationVector* outputVector) override;
 
-    std::vector<double>  InputTimeValues;
-    int HasDiscrete;
-    int SnapMode;
+  std::vector<double> InputTimeValues;
+  int HasDiscrete;
+  int SnapMode;
 
 private:
-  vtkTemporalSnapToTimeStep(const vtkTemporalSnapToTimeStep&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkTemporalSnapToTimeStep&) VTK_DELETE_FUNCTION;
+  vtkTemporalSnapToTimeStep(const vtkTemporalSnapToTimeStep&) = delete;
+  void operator=(const vtkTemporalSnapToTimeStep&) = delete;
 };
 
-
-
 #endif
-
-
-

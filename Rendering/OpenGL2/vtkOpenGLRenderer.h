@@ -39,17 +39,17 @@ class VTKRENDERINGOPENGL2_EXPORT vtkOpenGLRenderer : public vtkRenderer
 public:
   static vtkOpenGLRenderer *New();
   vtkTypeMacro(vtkOpenGLRenderer, vtkRenderer);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Concrete open gl render method.
    */
-  void DeviceRender(void);
+  void DeviceRender(void) override;
 
   /**
    * Overridden to support hidden line removal.
    */
-  virtual void DeviceRenderOpaqueGeometry();
+  void DeviceRenderOpaqueGeometry() override;
 
   /**
    * Render translucent polygonal geometry. Default implementation just call
@@ -57,14 +57,14 @@ public:
    * Subclasses of vtkRenderer that can deal with depth peeling must
    * override this method.
    */
-  virtual void DeviceRenderTranslucentPolygonalGeometry();
+  void DeviceRenderTranslucentPolygonalGeometry() override;
 
-  void Clear(void);
+  void Clear(void) override;
 
   /**
    * Ask lights to load themselves into graphics pipeline.
    */
-  int UpdateLights(void);
+  int UpdateLights(void) override;
 
   /**
    * Is rendering at translucent geometry stage using depth peeling and
@@ -80,9 +80,22 @@ public:
    */
   bool HaveApplePrimitiveIdBug();
 
+  /**
+   * Indicate if this system is subject to the apple/NVIDIA bug that causes
+   * crashes in the driver when too many query objects are allocated.
+   */
+  static bool HaveAppleQueryAllocationBug();
+
+  /**
+   * Dual depth peeling may be disabled for certain runtime configurations.
+   * This method returns true if vtkDualDepthPeelingPass will be used in place
+   * of vtkDepthPeelingPass.
+   */
+  bool IsDualDepthPeelingSupported();
+
 protected:
   vtkOpenGLRenderer();
-  ~vtkOpenGLRenderer();
+  ~vtkOpenGLRenderer() override;
 
   /**
    * Check the compilation status of some fragment shader source.
@@ -90,24 +103,24 @@ protected:
   void CheckCompilation(unsigned int fragmentShader);
 
   // Internal method to release graphics resources in any derived renderers.
-  virtual void ReleaseGraphicsResources(vtkWindow *w);
+  void ReleaseGraphicsResources(vtkWindow *w) override;
 
   /**
    * Ask all props to update and draw any opaque and translucent
    * geometry. This includes both vtkActors and vtkVolumes
    * Returns the number of props that rendered geometry.
    */
-  virtual int UpdateGeometry();
+  int UpdateGeometry() override;
 
   // Picking functions to be implemented by sub-classes
-  virtual void DevicePickRender();
-  virtual void StartPick(unsigned int pickFromSize);
-  virtual void UpdatePickId();
-  virtual void DonePick();
-  virtual unsigned int GetPickedId();
-  virtual unsigned int GetNumPickedIds();
-  virtual int GetPickedIds(unsigned int atMost, unsigned int *callerBuffer);
-  virtual double GetPickedZ();
+  void DevicePickRender() override;
+  void StartPick(unsigned int pickFromSize) override;
+  void UpdatePickId() override;
+  void DonePick() override;
+  unsigned int GetPickedId() override;
+  unsigned int GetNumPickedIds() override;
+  int GetPickedIds(unsigned int atMost, unsigned int *callerBuffer) override;
+  double GetPickedZ() override;
 
   // Ivars used in picking
   class vtkGLPickInfo* PickInfo;
@@ -146,8 +159,8 @@ protected:
   bool HaveApplePrimitiveIdBugChecked;
 
 private:
-  vtkOpenGLRenderer(const vtkOpenGLRenderer&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkOpenGLRenderer&) VTK_DELETE_FUNCTION;
+  vtkOpenGLRenderer(const vtkOpenGLRenderer&) = delete;
+  void operator=(const vtkOpenGLRenderer&) = delete;
 };
 
 #endif

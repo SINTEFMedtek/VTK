@@ -20,7 +20,7 @@
  * Places vertices on circles depending on the graph vertices hierarchy level.
  * The source graph could be vtkDirectedAcyclicGraph or vtkDirectedGraph if MarkedStartPoints array was added.
  * The algorithm collects the standalone points, too and take them to a separated circle. If method is FixedRadiusMethod,
- * the radius of the circles will be equal. If method is FixedDistanceMethod, the distance beetwen the points on circles will
+ * the radius of the circles will be equal. If method is FixedDistanceMethod, the distance between the points on circles will
  * be equal.
  *
  * In first step initial points are searched. A point is initial, if its in degree equal zero and out degree is greater than zero (or
@@ -54,7 +54,7 @@ class VTKINFOVISLAYOUT_EXPORT vtkSimple3DCirclesStrategy : public vtkGraphLayout
 public:
   static vtkSimple3DCirclesStrategy * New();
   vtkTypeMacro(vtkSimple3DCirclesStrategy,vtkGraphLayoutStrategy);
-  void PrintSelf( ostream& os, vtkIndent indent );
+  void PrintSelf( ostream& os, vtkIndent indent ) override;
 
   enum
   {
@@ -63,7 +63,7 @@ public:
 
   //@{
   /**
-   * Set or get cicrle generating method (FixedRadiusMethod/FixedDistanceMethod). Default is FixedRadiusMethod.
+   * Set or get circle generating method (FixedRadiusMethod/FixedDistanceMethod). Default is FixedRadiusMethod.
    */
   vtkSetMacro(Method,int);
   vtkGetMacro(Method,int);
@@ -120,7 +120,7 @@ public:
   //@{
   /**
    * Set or get ForceToUseUniversalStartPointsFinder. If ForceToUseUniversalStartPointsFinder is true, MarkedStartVertices won't be used.
-   * In this case the input graph must be vtkDirectedAcyclicGraph (Defualt: false).
+   * In this case the input graph must be vtkDirectedAcyclicGraph (Default: false).
    */
   vtkSetMacro(ForceToUseUniversalStartPointsFinder,int);
   vtkGetMacro(ForceToUseUniversalStartPointsFinder,int);
@@ -168,15 +168,15 @@ public:
   /**
    * Standard layout method
    */
-  virtual void Layout( void );
+  void Layout( void ) override;
   /**
    * Set graph (warning: HierarchicalOrder and HierarchicalLayers will set to zero. These reference counts will be decreased!)
    */
-  virtual void SetGraph( vtkGraph * graph );
+  void SetGraph( vtkGraph * graph ) override;
 protected:
 
   vtkSimple3DCirclesStrategy( void );
-  virtual ~vtkSimple3DCirclesStrategy( void );
+  ~vtkSimple3DCirclesStrategy( void ) override;
 
   inline void Transform( double Local[], double Global[] );
 
@@ -212,8 +212,8 @@ private:
 
   double T[3][3];
 
-  vtkSimple3DCirclesStrategy(const vtkSimple3DCirclesStrategy&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkSimple3DCirclesStrategy&) VTK_DELETE_FUNCTION;
+  vtkSimple3DCirclesStrategy(const vtkSimple3DCirclesStrategy&) = delete;
+  void operator=(const vtkSimple3DCirclesStrategy&) = delete;
 };
 
 #endif

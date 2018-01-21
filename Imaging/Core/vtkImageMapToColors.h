@@ -19,7 +19,7 @@
  * The vtkImageMapToColors filter will take an input image of any valid
  * scalar type, and map the first component of the image through a
  * lookup table.  The result is an image of type VTK_UNSIGNED_CHAR.
- * If the lookup table is not set, or is set to NULL, then the input
+ * If the lookup table is not set, or is set to nullptr, then the input
  * data will be passed through if it is already of type VTK_UNSIGNED_CHAR.
  *
  * @sa
@@ -40,7 +40,7 @@ class VTKIMAGINGCORE_EXPORT vtkImageMapToColors : public vtkThreadedImageAlgorit
 public:
   static vtkImageMapToColors *New();
   vtkTypeMacro(vtkImageMapToColors,vtkThreadedImageAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -83,7 +83,7 @@ public:
   /**
    * We need to check the modified time of the lookup table too.
    */
-  virtual vtkMTimeType GetMTime();
+  vtkMTimeType GetMTime() override;
 
   //@{
   /**
@@ -96,19 +96,21 @@ public:
 
 protected:
   vtkImageMapToColors();
-  ~vtkImageMapToColors();
+  ~vtkImageMapToColors() override;
 
-  virtual int RequestInformation (vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+  int RequestInformation(vtkInformation *,
+                                 vtkInformationVector **,
+                                 vtkInformationVector *) override;
 
   void ThreadedRequestData(vtkInformation *request,
                            vtkInformationVector **inputVector,
                            vtkInformationVector *outputVector,
                            vtkImageData ***inData, vtkImageData **outData,
-                           int extent[6], int id);
+                           int extent[6], int id) override;
 
-  virtual int RequestData(vtkInformation *request,
+  int RequestData(vtkInformation *request,
                           vtkInformationVector **inputVector,
-                          vtkInformationVector *outputVector);
+                          vtkInformationVector *outputVector) override;
 
   vtkScalarsToColors *LookupTable;
   int OutputFormat;
@@ -120,8 +122,8 @@ protected:
 
   unsigned char NaNColor[4];
 private:
-  vtkImageMapToColors(const vtkImageMapToColors&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkImageMapToColors&) VTK_DELETE_FUNCTION;
+  vtkImageMapToColors(const vtkImageMapToColors&) = delete;
+  void operator=(const vtkImageMapToColors&) = delete;
 };
 
 #endif

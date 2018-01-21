@@ -54,7 +54,7 @@ class VTKFILTERSCORE_EXPORT vtkHull : public vtkPolyDataAlgorithm
 public:
   static vtkHull *New();
   vtkTypeMacro(vtkHull,vtkPolyDataAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Remove all planes from the current set of planes.
@@ -165,7 +165,7 @@ public:
 
 protected:
   vtkHull();
-  ~vtkHull() VTK_OVERRIDE;
+  ~vtkHull() override;
 
   // The planes - 4 doubles per plane for A, B, C, D
   double     *Planes;
@@ -184,18 +184,18 @@ protected:
   // Internal method used to create the actual polygons from the set
   // of planes
   void      ClipPolygonsFromPlanes( vtkPoints *points, vtkCellArray *polys,
-                                    double *bounds );
+                                    const double *bounds );
 
   // Internal method used to create the initial "big" polygon from the
   // plane equation. This polygon is clipped by all other planes to form
   // the final polygon (or it may be clipped entirely)
-  void      CreateInitialPolygon( double *, int, double * );
+  void      CreateInitialPolygon( double *, int, const double * );
 
   // The method that does it all...
-  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) VTK_OVERRIDE;
+  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
 private:
-  vtkHull(const vtkHull&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkHull&) VTK_DELETE_FUNCTION;
+  vtkHull(const vtkHull&) = delete;
+  void operator=(const vtkHull&) = delete;
 };
 
 #endif

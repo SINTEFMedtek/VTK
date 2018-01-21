@@ -167,7 +167,7 @@ typedef struct {
   GLshort type, numverts;
   GLushort pattern;
   char boundary, offset, culled;
-  GLint factor;
+  GLint factor, linecap, linejoin;
   GLint sortid; /* Used to stabilize qsort sorting */
   GLfloat width, ofactor, ounits;
   GL2PSvertex *verts;
@@ -865,7 +865,8 @@ static void gl2psConvertPixmapToPNG(GL2PSimage *pixmap, GL2PSlist *png)
 
 static GLint gl2psAddText(GLint type, const char *str, const char *fontname,
                           GLshort fontsize, GLint alignment, GLfloat angle,
-                          GL2PSrgba color)
+                          GL2PSrgba color, GLboolean setblpos,
+                          GLfloat blx, GLfloat bly)
 {
   GLfloat pos[4];
   GL2PSprimitive *prim;
@@ -890,11 +891,16 @@ static GLint gl2psAddText(GLint type, const char *str, const char *fontname,
   prim = (GL2PSprimitive*)gl2psMalloc(sizeof(GL2PSprimitive));
   prim->type = type;
   prim->boundary = 0;
-  prim->numverts = 1;
-  prim->verts = (GL2PSvertex*)gl2psMalloc(sizeof(GL2PSvertex));
+  prim->numverts = setblpos ? 2 : 1;
+  prim->verts = (GL2PSvertex*)gl2psMalloc(sizeof(GL2PSvertex) * prim->numverts);
   prim->verts[0].xyz[0] = pos[0];
   prim->verts[0].xyz[1] = pos[1];
   prim->verts[0].xyz[2] = pos[2];
+  if (setblpos) {
+    prim->verts[1].xyz[0] = blx;
+    prim->verts[1].xyz[1] = bly;
+    prim->verts[1].xyz[2] = 0;
+  }
   prim->culled = 0;
   prim->offset = 0;
   prim->ofactor = 0.0;
@@ -2212,7 +2218,8 @@ GL2PSDLL_API void gl2psAddPolyPrimitive(GLshort type, GLshort numverts,
                                         GL2PSvertex *verts, GLint offset,
                                         GLfloat ofactor, GLfloat ounits,
                                         GLushort pattern, GLint factor,
-                                        GLfloat width, char boundary)
+                                        GLfloat width, GLint linecap,
+                                        GLint linejoin,char boundary)
 {
   GL2PSprimitive *prim;
 
@@ -2228,6 +2235,8 @@ GL2PSDLL_API void gl2psAddPolyPrimitive(GLshort type, GLshort numverts,
   prim->pattern = pattern;
   prim->factor = factor;
   prim->width = width;
+  prim->linecap = linecap;
+  prim->linejoin = linejoin;
   prim->culled = 0;
 
   /* FIXME: here we should have an option to split stretched
@@ -2288,7 +2297,7 @@ static void gl2psParseFeedbackBuffer(GLint used)
       current += i;
       used    -= i;
       gl2psAddPolyPrimitive(GL2PS_POINT, 1, vertices, 0, 0.0, 0.0,
-                            pattern, factor, psize, 0);
+                            pattern, factor, psize, 0, 0, 0);
       break;
     case GL_LINE_TOKEN :
     case GL_LINE_RESET_TOKEN :
@@ -2301,7 +2310,7 @@ static void gl2psParseFeedbackBuffer(GLint used)
       current += i;
       used    -= i;
       gl2psAddPolyPrimitive(GL2PS_LINE, 2, vertices, 0, 0.0, 0.0,
-                            pattern, factor, lwidth, 0);
+                            pattern, factor, lwidth, 0, 0, 0);
       break;
     case GL_POLYGON_TOKEN :
       count = (GLint)current[1];
@@ -2325,7 +2334,7 @@ static void gl2psParseFeedbackBuffer(GLint used)
           else
             flag = 0;
           gl2psAddPolyPrimitive(GL2PS_TRIANGLE, 3, vertices, offset, ofactor,
-                                ounits, pattern, factor, 1, flag);
+                                ounits, pattern, factor, 1, 0, 0, flag);
           vertices[1] = vertices[2];
         }
         else
@@ -3506,8 +3515,47 @@ static void gl2psPutPDFText(GL2PSstring *text, int cnt, GLfloat x, GLfloat y)
   }
 }
 
-static void gl2psPutPDFSpecial(GL2PSstring *text)
+/*
+  This is used for producing alligned text in PDF. (x, y) is the anchor for the
+  alligned text, (xbl, ybl) is the bottom left corner. Rotation happens
+  around (x, y).*/
+static void gl2psPutPDFTextBL(GL2PSstring *text, int cnt, GLfloat x, GLfloat y,
+                              GLfloat xbl, GLfloat ybl)
 {
+  if(text->angle == 0.0F){
+    gl2ps->streamlength += gl2psPrintf
+      ("BT\n"
+       "/F%d %d Tf\n"
+       "%f %f Td\n"
+       "(%s) Tj\n"
+       "ET\n",
+       cnt, text->fontsize, xbl, ybl, text->str);
+  }
+  else{
+    GLfloat a, ca, sa;
+    GLfloat pi = 3.141593F;
+    GLfloat i = atan2(y - ybl, x - xbl);
+    GLfloat r = sqrt((y - ybl) * (y - ybl) + (x - xbl) * (x - xbl));
+
+    a = (GLfloat)(pi * text->angle / 180.0F);
+    sa = (GLfloat)sin(a);
+    ca = (GLfloat)cos(a);
+    gl2ps->streamlength += gl2psPrintf
+      ("BT\n"
+       "/F%d %d Tf\n"
+       "%f %f %f %f %f %f Tm\n"
+       "(%s) Tj\n"
+       "ET\n",
+       cnt, text->fontsize,
+       ca, sa, -sa, ca,
+       xbl + r * (cos(i) - cos(i + a)), ybl + r * (sin(i) - sin(i+a)), text->str);
+  }
+}
+
+
+static void gl2psPutPDFSpecial(int prim, int sec, GL2PSstring *text)
+{
+  gl2ps->streamlength += gl2psPrintf("/GS%d%d gs\n", prim, sec);
   gl2ps->streamlength += gl2psPrintf("%s\n", text->str);
 }
 
@@ -3703,7 +3751,7 @@ static void gl2psSortOutTrianglePDFgroup(GL2PSpdfgroup *gro)
 
 static void gl2psPDFgroupListWriteMainStream(void)
 {
-  int i, j, lastel;
+  int i, j, lastel, count;
   GL2PSprimitive *prim = NULL, *prev = NULL;
   GL2PSpdfgroup *gro;
   GL2PStriangle t;
@@ -3711,7 +3759,9 @@ static void gl2psPDFgroupListWriteMainStream(void)
   if(!gl2ps->pdfgrouplist)
     return;
 
-  for(i = 0; i < gl2psListNbr(gl2ps->pdfgrouplist); ++i){
+  count = gl2psListNbr(gl2ps->pdfgrouplist);
+
+  for(i = 0; i < count; ++i){
     gro = (GL2PSpdfgroup*)gl2psListPointer(gl2ps->pdfgrouplist, i);
 
     lastel = gl2psListNbr(gro->ptrlist) - 1;
@@ -3877,14 +3927,26 @@ static void gl2psPDFgroupListWriteMainStream(void)
       for(j = 0; j <= lastel; ++j){
         prim = *(GL2PSprimitive**)gl2psListPointer(gro->ptrlist, j);
         gl2ps->streamlength += gl2psPrintPDFFillColor(prim->verts[0].rgba);
-        gl2psPutPDFText(prim->data.text, gro->fontno, prim->verts[0].xyz[0],
-                        prim->verts[0].xyz[1]);
+        if (prim->numverts == 2) {
+          gl2psPutPDFTextBL(prim->data.text, gro->fontno, prim->verts[0].xyz[0],
+                            prim->verts[0].xyz[1],
+                            prim->verts[1].xyz[0],
+                            prim->verts[1].xyz[1]);
+        }
+        else {
+          gl2psPutPDFText(prim->data.text, gro->fontno, prim->verts[0].xyz[0],
+                          prim->verts[0].xyz[1]);
+        }
       }
       break;
     case GL2PS_SPECIAL:
+      lastel = gl2psListNbr(gro->ptrlist) - 1;
+      if(lastel < 0)
+        continue;
+
       for(j = 0; j <= lastel; ++j){
         prim = *(GL2PSprimitive**)gl2psListPointer(gro->ptrlist, j);
-        gl2psPutPDFSpecial(prim->data.text);
+        gl2psPutPDFSpecial(i, j, prim->data.text);
       }
     default:
       break;
@@ -3897,17 +3959,39 @@ static void gl2psPDFgroupListWriteMainStream(void)
 static int gl2psPDFgroupListWriteGStateResources(void)
 {
   GL2PSpdfgroup *gro;
+  GL2PSprimitive* prim;
+  float op = 1;
   int offs = 0;
-  int i;
+  int i, j;
+  int index = 0;
+  int lastel;
 
   offs += fprintf(gl2ps->stream,
                   "/ExtGState\n"
                   "<<\n"
                   "/GSa 7 0 R\n");
+
   for(i = 0; i < gl2psListNbr(gl2ps->pdfgrouplist); ++i){
     gro = (GL2PSpdfgroup*)gl2psListPointer(gl2ps->pdfgrouplist, i);
     if(gro->gsno >= 0)
+    {
       offs += fprintf(gl2ps->stream, "/GS%d %d 0 R\n", gro->gsno, gro->gsobjno);
+      index = gro->gsno;
+    }
+
+    lastel = gl2psListNbr(gro->ptrlist) - 1;
+    if(lastel < 0)
+      continue;
+
+    for(j = 0; j <= lastel; ++j)
+    {
+      prim = *(GL2PSprimitive**)gl2psListPointer(gro->ptrlist, j);
+      if (prim->type == GL2PS_SPECIAL)
+      {
+      op = prim->verts[0].rgba[3];
+      offs += fprintf(gl2ps->stream, "/GS%d%d <<\n /CA %f\n /ca %f\n >>\n", i, j, op, op);
+      }
+    }
   }
   offs += fprintf(gl2ps->stream, ">>\n");
   return offs;
@@ -5985,24 +6069,44 @@ GL2PSDLL_API GLint gl2psTextOptColor(const char *str, const char *fontname,
                                      GL2PSrgba color)
 {
   return gl2psAddText(GL2PS_TEXT, str, fontname, fontsize, alignment, angle,
-                      color);
+                      color, GL_FALSE, 0, 0);
 }
+
+/**
+ * This version of gl2psTextOptColor is used to go around the
+ * fact that PDF does not support text allignment. The extra parameters
+ * (blx, bly) represent the bottom left corner of the text bounding box.
+ */
+GL2PSDLL_API GLint gl2psTextOptColorBL(const char *str, const char *fontname,
+                                       GLshort fontsize, GLint alignment, GLfloat angle,
+                                       GL2PSrgba color, GLfloat blx, GLfloat bly)
+{
+  return gl2psAddText(GL2PS_TEXT, str, fontname, fontsize, alignment, angle,
+                      color, GL_TRUE, blx, bly);
+}
+
 
 GL2PSDLL_API GLint gl2psTextOpt(const char *str, const char *fontname,
                                 GLshort fontsize, GLint alignment, GLfloat angle)
 {
-  return gl2psAddText(GL2PS_TEXT, str, fontname, fontsize, alignment, angle, NULL);
+  return gl2psAddText(GL2PS_TEXT, str, fontname, fontsize, alignment, angle, NULL,
+                      GL_FALSE, 0, 0);
 }
 
 GL2PSDLL_API GLint gl2psText(const char *str, const char *fontname, GLshort fontsize)
 {
   return gl2psAddText(GL2PS_TEXT, str, fontname, fontsize, GL2PS_TEXT_BL, 0.0F,
-                      NULL);
+                      NULL, GL_FALSE, 0, 0);
 }
 
 GL2PSDLL_API GLint gl2psSpecial(GLint format, const char *str)
 {
-  return gl2psAddText(GL2PS_SPECIAL, str, "", 0, format, 0.0F, NULL);
+  return gl2psAddText(GL2PS_SPECIAL, str, "", 0, format, 0.0F, NULL, GL_FALSE, 0, 0);
+}
+
+GL2PSDLL_API GLint gl2psSpecialColor(GLint format, const char *str, GL2PSrgba rgba)
+{
+  return gl2psAddText(GL2PS_SPECIAL, str, "", 0, format, 0.0F, rgba, GL_FALSE, 0, 0);
 }
 
 GL2PSDLL_API GLint gl2psDrawPixels(GLsizei width, GLsizei height,

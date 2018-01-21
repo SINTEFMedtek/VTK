@@ -42,12 +42,12 @@ class VTKFILTERSAMR_EXPORT vtkAMRToMultiBlockFilter :
 public:
   static vtkAMRToMultiBlockFilter* New();
   vtkTypeMacro(vtkAMRToMultiBlockFilter, vtkMultiBlockDataSetAlgorithm );
-  void PrintSelf(ostream &oss, vtkIndent indent );
+  void PrintSelf(ostream &oss, vtkIndent indent ) override;
 
   //@{
   /**
    * Set/Get a multiprocess controller for paralle processing.
-   * By default this parameter is set to NULL by the constructor.
+   * By default this parameter is set to nullptr by the constructor.
    */
   vtkSetMacro( Controller, vtkMultiProcessController* );
   vtkGetMacro( Controller, vtkMultiProcessController* );
@@ -55,14 +55,14 @@ public:
 
   // Standard pipeline routines
 
-  virtual int FillInputPortInformation(int port, vtkInformation *info);
-  virtual int FillOutputPortInformation(int port, vtkInformation *info);
-  virtual int RequestData(
-      vtkInformation*, vtkInformationVector**, vtkInformationVector* );
+  int FillInputPortInformation(int port, vtkInformation *info) override;
+  int FillOutputPortInformation(int port, vtkInformation *info) override;
+  int RequestData(
+      vtkInformation*, vtkInformationVector**, vtkInformationVector* ) override;
 
 protected:
   vtkAMRToMultiBlockFilter();
-  virtual ~vtkAMRToMultiBlockFilter();
+  ~vtkAMRToMultiBlockFilter() override;
 
   //@{
   /**
@@ -74,8 +74,8 @@ protected:
   //@}
 
 private:
-  vtkAMRToMultiBlockFilter(const vtkAMRToMultiBlockFilter& ) VTK_DELETE_FUNCTION;
-  void operator=(const vtkAMRToMultiBlockFilter& ) VTK_DELETE_FUNCTION;
+  vtkAMRToMultiBlockFilter(const vtkAMRToMultiBlockFilter& ) = delete;
+  void operator=(const vtkAMRToMultiBlockFilter& ) = delete;
 };
 
 #endif /* vtkAMRToMultiBlockFilter_h */

@@ -51,7 +51,7 @@ class VTKVIEWSINFOVIS_EXPORT vtkHeatmapItem : public vtkContextItem
 public:
   static vtkHeatmapItem *New();
   vtkTypeMacro(vtkHeatmapItem, vtkContextItem);
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
   /**
    * Set the table that this item draws.  The first column of the table
@@ -92,7 +92,7 @@ public:
   int GetOrientation();
 
   /**
-   * Get the angle that row labels should be rotated for the correponding
+   * Get the angle that row labels should be rotated for the corresponding
    * heatmap orientation.  For the default orientation (LEFT_TO_RIGHT), this
    * is 0 degrees.
    */
@@ -141,12 +141,12 @@ public:
    * Mark a row as blank, meaning that no cells will be drawn for it.
    * Used by vtkTreeHeatmapItem to represent missing data.
    */
-  void MarkRowAsBlank(std::string rowName);
+  void MarkRowAsBlank(const std::string& rowName);
 
   /**
    * Paints the table as a heatmap.
    */
-  virtual bool Paint(vtkContext2D *painter);
+  bool Paint(vtkContext2D *painter) override;
 
   //@{
   /**
@@ -171,21 +171,21 @@ public:
   /**
    * Returns true if the transform is interactive, false otherwise.
    */
-  virtual bool Hit(const vtkContextMouseEvent &mouse);
+  bool Hit(const vtkContextMouseEvent &mouse) override;
 
   /**
    * Display a tooltip when the user mouses over a cell in the heatmap.
    */
-  virtual bool MouseMoveEvent(const vtkContextMouseEvent &event);
+  bool MouseMoveEvent(const vtkContextMouseEvent &event) override;
 
   /**
    * Display a legend for a column of data.
    */
-  virtual bool MouseDoubleClickEvent(const vtkContextMouseEvent &event);
+  bool MouseDoubleClickEvent(const vtkContextMouseEvent &event) override;
 
 protected:
   vtkHeatmapItem();
-  ~vtkHeatmapItem();
+  ~vtkHeatmapItem() override;
 
   vtkVector2f PositionVector;
   float* Position;
@@ -279,8 +279,8 @@ protected:
   vtkStdString NameColumn;
 
 private:
-  vtkHeatmapItem(const vtkHeatmapItem&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkHeatmapItem&) VTK_DELETE_FUNCTION;
+  vtkHeatmapItem(const vtkHeatmapItem&) = delete;
+  void operator=(const vtkHeatmapItem&) = delete;
 
   unsigned long HeatmapBuildTime;
   vtkNew<vtkCategoryLegend> CategoryLegend;

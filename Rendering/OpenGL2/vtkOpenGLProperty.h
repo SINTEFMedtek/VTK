@@ -31,36 +31,36 @@ class VTKRENDERINGOPENGL2_EXPORT vtkOpenGLProperty : public vtkProperty
 public:
   static vtkOpenGLProperty *New();
   vtkTypeMacro(vtkOpenGLProperty, vtkProperty);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Implement base class method.
    */
-  void Render(vtkActor *a, vtkRenderer *ren);
+  void Render(vtkActor *a, vtkRenderer *ren) override;
 
   /**
    * Implement base class method.
    */
-  void BackfaceRender(vtkActor *a, vtkRenderer *ren);
+  void BackfaceRender(vtkActor *a, vtkRenderer *ren) override;
 
   /**
    * This method is called after the actor has been rendered.
    * Don't call this directly. This method cleans up
    * any shaders allocated.
    */
-  virtual void PostRender(vtkActor *a,
-                          vtkRenderer *r);
+  void PostRender(vtkActor *a,
+                          vtkRenderer *r) override;
 
   /**
    * Release any graphics resources that are being consumed by this
    * property. The parameter window could be used to determine which graphic
    * resources to release.
    */
-  virtual void ReleaseGraphicsResources(vtkWindow *win);
+  void ReleaseGraphicsResources(vtkWindow *win) override;
 
 protected:
   vtkOpenGLProperty();
-  ~vtkOpenGLProperty();
+  ~vtkOpenGLProperty() override;
 
   /**
    * Method called in vtkOpenGLProperty::Render() to render textures.
@@ -69,8 +69,8 @@ protected:
   bool RenderTextures(vtkActor* actor, vtkRenderer* renderer);
 
 private:
-  vtkOpenGLProperty(const vtkOpenGLProperty&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkOpenGLProperty&) VTK_DELETE_FUNCTION;
+  vtkOpenGLProperty(const vtkOpenGLProperty&) = delete;
+  void operator=(const vtkOpenGLProperty&) = delete;
 };
 
 #endif

@@ -105,7 +105,7 @@ void vtkPExodusIIWriter::CheckBlockInfoMap ()
   {
     int maxId = -1;
     std::map<int, Block>::const_iterator iter;
-    for (iter = this->BlockInfoMap.begin (); iter != this->BlockInfoMap.end (); iter ++)
+    for (iter = this->BlockInfoMap.begin (); iter != this->BlockInfoMap.end (); ++iter)
     {
       if (iter->first > maxId)
       {
@@ -160,4 +160,16 @@ int vtkPExodusIIWriter::GlobalContinueExecuting(int localContinue)
     c->AllReduce (&localContinue, &globalContinue, 1, vtkCommunicator::MIN_OP);
   }
   return globalContinue;
+}
+
+//----------------------------------------------------------------------------
+unsigned int vtkPExodusIIWriter::GetMaxNameLength()
+{
+  unsigned int maxName = this->Superclass::GetMaxNameLength();
+
+  vtkMultiProcessController *c =
+    vtkMultiProcessController::GetGlobalController();
+  unsigned int globalMaxName = 0;
+  c->AllReduce(&maxName, &globalMaxName, 1, vtkCommunicator::MAX_OP);
+  return maxName;
 }

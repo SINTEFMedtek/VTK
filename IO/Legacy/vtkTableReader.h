@@ -41,7 +41,7 @@ class VTKIOLEGACY_EXPORT vtkTableReader : public vtkDataReader
 public:
   static vtkTableReader *New();
   vtkTypeMacro(vtkTableReader,vtkDataReader);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -54,21 +54,21 @@ public:
 
 protected:
   vtkTableReader();
-  ~vtkTableReader();
+  ~vtkTableReader() override;
 
-  virtual int RequestData(vtkInformation *, vtkInformationVector **,
-                          vtkInformationVector *);
+  int RequestData(vtkInformation *, vtkInformationVector **,
+                          vtkInformationVector *) override;
 
   // Since the Outputs[0] has the same UpdateExtent format
   // as the generic DataObject we can copy the UpdateExtent
   // as a default behavior.
-  virtual int RequestUpdateExtent(vtkInformation *, vtkInformationVector **,
-                                  vtkInformationVector *);
+  int RequestUpdateExtent(vtkInformation *, vtkInformationVector **,
+                                  vtkInformationVector *) override;
 
-  virtual int FillOutputPortInformation(int, vtkInformation*);
+  int FillOutputPortInformation(int, vtkInformation*) override;
 private:
-  vtkTableReader(const vtkTableReader&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkTableReader&) VTK_DELETE_FUNCTION;
+  vtkTableReader(const vtkTableReader&) = delete;
+  void operator=(const vtkTableReader&) = delete;
 };
 
 #endif

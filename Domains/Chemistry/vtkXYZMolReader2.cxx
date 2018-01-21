@@ -24,8 +24,8 @@
 
 #include "vtkStreamingDemandDrivenPipeline.h"
 
-#include <math.h>
-#include <string.h>
+#include <cmath>
+#include <cstring>
 
 #include <sstream>
 //----------------------------------------------------------------------------
@@ -33,7 +33,7 @@ vtkStandardNewMacro(vtkXYZMolReader2);
 
 //----------------------------------------------------------------------------
 vtkXYZMolReader2::vtkXYZMolReader2()
-  : FileName(NULL)
+  : FileName(nullptr)
 {
   this->SetNumberOfInputPorts(0);
   this->NumberOfTimeSteps = 0;
@@ -43,7 +43,7 @@ vtkXYZMolReader2::vtkXYZMolReader2()
 //----------------------------------------------------------------------------
 vtkXYZMolReader2::~vtkXYZMolReader2()
 {
-  this->SetFileName(NULL);
+  this->SetFileName(nullptr);
 }
 
 //----------------------------------------------------------------------------
@@ -182,7 +182,7 @@ int vtkXYZMolReader2::RequestData(
       vtkWarningMacro ("XYZMolReader2 using its first timestep value of "
                       << requestedTimeStep);
     }
-    for (it = this->TimeSteps.begin(); it < this->TimeSteps.end(); it++, timestep++)
+    for (it = this->TimeSteps.begin(); it < this->TimeSteps.end(); ++it, ++timestep)
     {
       if ((*it > requestedTimeStep))
         break;
@@ -190,18 +190,19 @@ int vtkXYZMolReader2::RequestData(
 
     if(it != this->TimeSteps.end())
     {
-      it--;
-      timestep--;
+      --it;
+      --timestep;
       if(fabs(*it - requestedTimeStep) > fabs(*(it+1) - requestedTimeStep))
       {
         // closer to next timestep value
-        timestep++;
-        it++;
+        ++timestep;
+        ++it;
       }
     }
     else
     {
-      it--; timestep--;
+      --timestep;
+      --it;
     }
   }
   else

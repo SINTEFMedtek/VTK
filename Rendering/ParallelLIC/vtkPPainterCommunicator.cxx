@@ -59,7 +59,7 @@ void vtkPPainterCommunicatorInternals::SetCommunicator(
       MPI_Comm comm,
       bool ownership)
 {
-  // avoid uneccessary operations
+  // avoid unnecessary operations
   if (this->Communicator == comm)
   {
     return;
@@ -84,7 +84,7 @@ void vtkPPainterCommunicatorInternals::SetCommunicator(
 //-----------------------------------------------------------------------------
 void vtkPPainterCommunicatorInternals::DuplicateCommunicator(MPI_Comm comm)
 {
-  // avoid uneccessary operations
+  // avoid unnecessary operations
   if (this->Communicator == comm)
   {
     return;
@@ -217,7 +217,7 @@ int vtkPPainterCommunicator::GetWorldSize()
 // ----------------------------------------------------------------------------
 vtkMPICommunicatorOpaqueComm *vtkPPainterCommunicator::GetGlobalCommunicator()
 {
-  static vtkMPICommunicatorOpaqueComm *globalComm = NULL;
+  static vtkMPICommunicatorOpaqueComm *globalComm = nullptr;
   if (!globalComm)
   {
     if (vtkPPainterCommunicator::MPIInitialized())

@@ -36,23 +36,23 @@ class VTKIMAGINGCORE_EXPORT vtkImageStencilData : public vtkDataObject
 public:
   static vtkImageStencilData *New();
   vtkTypeMacro(vtkImageStencilData, vtkDataObject);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
-  void Initialize();
-  void DeepCopy(vtkDataObject *o);
-  void ShallowCopy(vtkDataObject *f);
+  void Initialize() override;
+  void DeepCopy(vtkDataObject *o) override;
+  void ShallowCopy(vtkDataObject *f) override;
   void InternalImageStencilDataCopy(vtkImageStencilData *s);
 
   /**
    * Get the data type as an integer (this will return VTK_DATA_OBJECT
    * for now, maybe a proper type constant will be reserved later).
    */
-  int GetDataObjectType() { return VTK_DATA_OBJECT; }
+  int GetDataObjectType() override { return VTK_DATA_OBJECT; }
 
   /**
    * The extent type is 3D, just like vtkImageData.
    */
-  int GetExtentType() { return VTK_3D_EXTENT; };
+  int GetExtentType() override { return VTK_3D_EXTENT; };
 
   /**
    * Given the total output x extent [xMin,xMax] and the current y, z indices,
@@ -147,8 +147,8 @@ public:
    * Override these to handle origin, spacing, scalar type, and scalar
    * number of components.  See vtkDataObject for details.
    */
-  virtual void CopyInformationFromPipeline(vtkInformation *info);
-  virtual void CopyInformationToPipeline(vtkInformation *info);
+  void CopyInformationFromPipeline(vtkInformation *info) override;
+  void CopyInformationToPipeline(vtkInformation *info) override;
   //@}
 
   //@{
@@ -184,7 +184,7 @@ public:
 
 protected:
   vtkImageStencilData();
-  ~vtkImageStencilData();
+  ~vtkImageStencilData() override;
 
   enum Operation { Merge, Erase };
 
@@ -232,8 +232,8 @@ protected:
   //@}
 
 private:
-  vtkImageStencilData(const vtkImageStencilData&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkImageStencilData&) VTK_DELETE_FUNCTION;
+  vtkImageStencilData(const vtkImageStencilData&) = delete;
+  void operator=(const vtkImageStencilData&) = delete;
 
   friend class vtkImageStencilIteratorFriendship;
 };
@@ -262,7 +262,7 @@ public:
    * extent. Pre-allocate the specified 1D allocateExtent, which must be
    * within the whole extent.
    */
-  void PrepareForNewData(const int allocateExtent[2] = 0);
+  void PrepareForNewData(const int allocateExtent[2] = nullptr);
 
   //@{
   /**
@@ -305,8 +305,8 @@ protected:
   double Tolerance;
 
 private:
-  vtkImageStencilRaster(const vtkImageStencilRaster&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkImageStencilRaster&) VTK_DELETE_FUNCTION;
+  vtkImageStencilRaster(const vtkImageStencilRaster&) = delete;
+  void operator=(const vtkImageStencilRaster&) = delete;
 };
 
 #endif

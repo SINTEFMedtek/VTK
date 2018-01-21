@@ -18,7 +18,6 @@ SET(Module_SRCS
   vtkFilteringInformationKeyManager.cxx
   vtkGraphAlgorithm.cxx
   vtkHierarchicalBoxDataSetAlgorithm.cxx
-  vtkHyperOctreeAlgorithm.cxx
   vtkHyperTreeGridAlgorithm.cxx
   vtkImageAlgorithm.cxx
   vtkImageInPlaceFilter.cxx
@@ -41,6 +40,7 @@ SET(Module_SRCS
   vtkSimpleImageToImageFilter.cxx
   vtkSimpleScalarTree.cxx
   vtkSpanSpace.cxx
+  vtkSphereTree.cxx
   vtkStreamingDemandDrivenPipeline.cxx
   vtkStructuredGridAlgorithm.cxx
   vtkTableAlgorithm.cxx
@@ -62,6 +62,13 @@ SET(Module_SRCS
   vtkOverlappingAMRAlgorithm.cxx
   vtkNonOverlappingAMRAlgorithm.cxx
   )
+
+
+if (NOT VTK_LEGACY_REMOVE)
+  list(APPEND Module_SRCS
+    vtkHyperOctreeAlgorithm.cxx
+  )
+endif()
 
 set_source_files_properties(
   vtkExecutive

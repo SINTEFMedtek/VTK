@@ -34,7 +34,7 @@ class VTKCOMMONDATAMODEL_EXPORT vtkStructuredExtent : public vtkObject
 public:
   static vtkStructuredExtent* New();
   vtkTypeMacro(vtkStructuredExtent, vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Clamps \c ext to fit in \c wholeExt.
@@ -59,6 +59,13 @@ public:
   static void Grow(int ext[6], int count);
 
   /**
+   * Grows the \c ext on each side by the given \c count
+   * while keeping it limited to the \c wholeExt.
+   */
+  static void Grow(int ext[6], int count, int wholeExt[6]);
+
+
+  /**
    * Makes \c ext relative to \c wholeExt.
    */
   static void Transform(int ext[6], int wholeExt[6]);
@@ -70,11 +77,11 @@ public:
 
 protected:
   vtkStructuredExtent();
-  ~vtkStructuredExtent() VTK_OVERRIDE;
+  ~vtkStructuredExtent() override;
 
 private:
-  vtkStructuredExtent(const vtkStructuredExtent&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkStructuredExtent&) VTK_DELETE_FUNCTION;
+  vtkStructuredExtent(const vtkStructuredExtent&) = delete;
+  void operator=(const vtkStructuredExtent&) = delete;
 
 };
 
@@ -144,6 +151,13 @@ inline void vtkStructuredExtent::Grow(int ext[6], int count)
   ext[1] += count;
   ext[3] += count;
   ext[5] += count;
+}
+
+//----------------------------------------------------------------------------
+inline void vtkStructuredExtent::Grow(int ext[6], int count, int wholeExt[6])
+{
+  vtkStructuredExtent::Grow(ext, count);
+  vtkStructuredExtent::Clamp(ext, wholeExt);
 }
 
 //----------------------------------------------------------------------------

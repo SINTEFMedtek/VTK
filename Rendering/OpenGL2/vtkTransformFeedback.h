@@ -41,7 +41,7 @@ class VTKRENDERINGOPENGL2_EXPORT vtkTransformFeedback : public vtkObject
 public:
   static vtkTransformFeedback *New();
   vtkTypeMacro(vtkTransformFeedback, vtkObject)
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
   /**
    * The role a captured varying fills. Useful for parsing later.
@@ -179,11 +179,11 @@ public:
 
 protected:
   vtkTransformFeedback();
-  ~vtkTransformFeedback();
+  ~vtkTransformFeedback() override;
 
 private:
-  vtkTransformFeedback(const vtkTransformFeedback &) VTK_DELETE_FUNCTION;
-  void operator=(const vtkTransformFeedback &) VTK_DELETE_FUNCTION;
+  vtkTransformFeedback(const vtkTransformFeedback &) = delete;
+  void operator=(const vtkTransformFeedback &) = delete;
 
   bool VaryingsBound;
 

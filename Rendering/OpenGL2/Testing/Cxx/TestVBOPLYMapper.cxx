@@ -33,26 +33,33 @@
 
 #include "vtkOpenGLRenderWindow.h"
 
+
 //----------------------------------------------------------------------------
 int TestVBOPLYMapper(int argc, char *argv[])
 {
+  bool timeit = false;
+  if (argc > 1 && argv[1] && !strcmp(argv[1], "-timeit"))
+  {
+    timeit = true;
+  }
+
   vtkNew<vtkActor> actor;
   vtkNew<vtkRenderer> renderer;
   vtkNew<vtkPolyDataMapper> mapper;
   renderer->SetBackground(0.0, 0.0, 0.0);
   vtkNew<vtkRenderWindow> renderWindow;
-  renderWindow->SetSize(300, 300);
-  renderWindow->AddRenderer(renderer.Get());
-  renderer->AddActor(actor.Get());
+  renderWindow->SetSize(timeit ? 800 : 300, timeit ? 800 : 300);
+  renderWindow->AddRenderer(renderer);
+  renderer->AddActor(actor);
   vtkNew<vtkRenderWindowInteractor>  iren;
-  iren->SetRenderWindow(renderWindow.Get());
+  iren->SetRenderWindow(renderWindow);
   vtkNew<vtkLightKit> lightKit;
-  lightKit->AddLightsToRenderer(renderer.Get());
+  lightKit->AddLightsToRenderer(renderer);
 
   if (!renderWindow->SupportsOpenGL())
   {
     cerr << "The platform does not support OpenGL as required\n";
-    cerr << vtkOpenGLRenderWindow::SafeDownCast(renderWindow.Get())->GetOpenGLSupportMessage();
+    cerr << vtkOpenGLRenderWindow::SafeDownCast(renderWindow)->GetOpenGLSupportMessage();
     cerr << renderWindow->ReportCapabilities();
     return 1;
   }
@@ -69,7 +76,7 @@ int TestVBOPLYMapper(int argc, char *argv[])
 
   mapper->SetInputConnection(reader->GetOutputPort());
   //mapper->SetInputConnection(norms->GetOutputPort());
-  actor->SetMapper(mapper.Get());
+  actor->SetMapper(mapper);
   actor->GetProperty()->SetAmbientColor(0.2, 0.2, 1.0);
   actor->GetProperty()->SetDiffuseColor(1.0, 0.65, 0.7);
   actor->GetProperty()->SetSpecularColor(1.0, 1.0, 1.0);
@@ -89,15 +96,15 @@ int TestVBOPLYMapper(int argc, char *argv[])
   double firstRender = timer->GetElapsedTime();
   cerr << "first render time: " << firstRender << endl;
   int major, minor;
-  vtkOpenGLRenderWindow::SafeDownCast(renderWindow.Get())->GetOpenGLVersion(major,minor);
+  vtkOpenGLRenderWindow::SafeDownCast(renderWindow)->GetOpenGLVersion(major,minor);
   cerr << "opengl version " << major << "." << minor << "\n";
 
   timer->StartTimer();
-  int numRenders = 8;
+  int numRenders = timeit ? 600 : 8;
   for (int i = 0; i < numRenders; ++i)
   {
-    renderer->GetActiveCamera()->Azimuth(10);
-    renderer->GetActiveCamera()->Elevation(10);
+    renderer->GetActiveCamera()->Azimuth(80.0/numRenders);
+    renderer->GetActiveCamera()->Elevation(80.0/numRenders);
     renderWindow->Render();
   }
   timer->StopTimer();
@@ -115,7 +122,7 @@ int TestVBOPLYMapper(int argc, char *argv[])
   renderWindow->Render();
   renderWindow->Render();
 
-  int retVal = vtkRegressionTestImage( renderWindow.Get() );
+  int retVal = vtkRegressionTestImage( renderWindow );
   if ( retVal == vtkRegressionTester::DO_INTERACTOR)
   {
     iren->Start();

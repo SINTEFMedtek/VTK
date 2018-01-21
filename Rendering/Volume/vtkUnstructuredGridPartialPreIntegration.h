@@ -55,14 +55,14 @@ public:
   vtkTypeMacro(vtkUnstructuredGridPartialPreIntegration,
                        vtkUnstructuredGridVolumeRayIntegrator);
   static vtkUnstructuredGridPartialPreIntegration *New();
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
-  virtual void Initialize(vtkVolume *volume, vtkDataArray *scalars);
+  void Initialize(vtkVolume *volume, vtkDataArray *scalars) override;
 
-  virtual void Integrate(vtkDoubleArray *intersectionLengths,
+  void Integrate(vtkDoubleArray *intersectionLengths,
                          vtkDataArray *nearIntersections,
                          vtkDataArray *farIntersections,
-                         float color[4]);
+                         float color[4]) override;
 
   //@{
   /**
@@ -95,7 +95,7 @@ public:
 
 protected:
   vtkUnstructuredGridPartialPreIntegration();
-  ~vtkUnstructuredGridPartialPreIntegration();
+  ~vtkUnstructuredGridPartialPreIntegration() override;
 
   vtkVolumeProperty *Property;
 
@@ -109,8 +109,8 @@ protected:
   static int PsiTableBuilt;
 
 private:
-  vtkUnstructuredGridPartialPreIntegration(const vtkUnstructuredGridPartialPreIntegration&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkUnstructuredGridPartialPreIntegration&) VTK_DELETE_FUNCTION;
+  vtkUnstructuredGridPartialPreIntegration(const vtkUnstructuredGridPartialPreIntegration&) = delete;
+  void operator=(const vtkUnstructuredGridPartialPreIntegration&) = delete;
 };
 
 inline float vtkUnstructuredGridPartialPreIntegration::Psi(float taufD,

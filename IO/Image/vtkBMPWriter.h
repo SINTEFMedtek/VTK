@@ -29,22 +29,46 @@
 #include "vtkIOImageModule.h" // For export macro
 #include "vtkImageWriter.h"
 
+class vtkUnsignedCharArray;
+
 class VTKIOIMAGE_EXPORT vtkBMPWriter : public vtkImageWriter
 {
 public:
   static vtkBMPWriter *New();
   vtkTypeMacro(vtkBMPWriter,vtkImageWriter);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
+
+  //@{
+  /**
+   * Write the image to memory (a vtkUnsignedCharArray)
+   */
+  vtkSetMacro(WriteToMemory, unsigned int);
+  vtkGetMacro(WriteToMemory, unsigned int);
+  vtkBooleanMacro(WriteToMemory, unsigned int);
+  //@}
+
+  //@{
+  /**
+   * When writing to memory this is the result, it will be NULL until the
+   * data is written the first time
+   */
+  virtual void SetResult(vtkUnsignedCharArray*);
+  vtkGetObjectMacro(Result, vtkUnsignedCharArray);
+  //@}
 
 protected:
   vtkBMPWriter();
-  ~vtkBMPWriter() {}
+  ~vtkBMPWriter() override;
 
-  virtual void WriteFile(ofstream *file, vtkImageData *data, int ext[6], int wExt[6]);
-  virtual void WriteFileHeader(ofstream *, vtkImageData *, int wExt[6]);
+  void WriteFile(ostream *file, vtkImageData *data, int ext[6], int wExt[6]) override;
+  void WriteFileHeader(ostream *, vtkImageData *, int wExt[6]) override;
+  void MemoryWrite(int, vtkImageData *, int wExt[6], vtkInformation *inInfo) override;
+
 private:
-  vtkBMPWriter(const vtkBMPWriter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkBMPWriter&) VTK_DELETE_FUNCTION;
+  vtkBMPWriter(const vtkBMPWriter&) = delete;
+  void operator=(const vtkBMPWriter&) = delete;
+
+  vtkUnsignedCharArray *Result;
 };
 
 #endif

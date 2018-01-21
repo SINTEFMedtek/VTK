@@ -21,6 +21,7 @@ reader.SetFileName(VTK_DATA_ROOT + "/Data/SPH_Points2D.vtu")
 reader.Update()
 output = reader.GetOutput()
 scalarRange = output.GetPointData().GetArray("Rho").GetRange()
+print("Scalar range: {}".format(scalarRange))
 
 # Something to sample with
 center = output.GetCenter()
@@ -82,4 +83,4 @@ ren0.SetBackground(0.1, 0.2, 0.4)
 iren.Initialize()
 renWin.Render()
 
-#iren.Start()
+iren.Start()

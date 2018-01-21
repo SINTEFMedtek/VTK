@@ -68,7 +68,7 @@ public:
    * Standard macros implementing standard VTK methods.
    */
   vtkTypeMacro(vtkAbstractWidget,vtkInteractorObserver);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   /**
@@ -78,13 +78,13 @@ public:
    * to interaction. If ProcessEvents is Off, enabling/disabling a widget
    * merely affects the visibility of the representation.
    */
-  virtual void SetEnabled(int);
+  void SetEnabled(int) override;
 
   //@{
   /**
    * Methods to change whether the widget responds to interaction.
    * Set this to Off to disable interaction. On by default.
-   * Subclasses must overide SetProcessEvents() to make sure
+   * Subclasses must override SetProcessEvents() to make sure
    * that they pass on the flag to all component widgets.
    */
   vtkSetClampMacro(ProcessEvents, int, 0, 1);
@@ -156,11 +156,11 @@ public:
    * priority of the widget. Unlike the superclass documentation, no
    * methods such as SetInteractor to null and reset it etc. are necessary
    */
-  virtual void SetPriority( float );
+  void SetPriority( float ) override;
 
 protected:
   vtkAbstractWidget();
-  ~vtkAbstractWidget();
+  ~vtkAbstractWidget() override;
 
   // Handles the events; centralized here for all widgets.
   static void ProcessEventsHandler(vtkObject* object, unsigned long event,
@@ -194,8 +194,8 @@ protected:
   int ProcessEvents;
 
 private:
-  vtkAbstractWidget(const vtkAbstractWidget&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkAbstractWidget&) VTK_DELETE_FUNCTION;
+  vtkAbstractWidget(const vtkAbstractWidget&) = delete;
+  void operator=(const vtkAbstractWidget&) = delete;
 };
 
 #endif

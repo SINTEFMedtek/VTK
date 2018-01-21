@@ -87,7 +87,7 @@ public:
    */
   static vtkPointInterpolator *New();
   vtkTypeMacro(vtkPointInterpolator,vtkDataSetAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   //@{
@@ -217,7 +217,7 @@ public:
   {
       if ( i < 0 || i >= static_cast<int>(this->ExcludedArrays.size()) )
       {
-        return NULL;
+        return nullptr;
       }
       return this->ExcludedArrays[i].c_str();
   }
@@ -268,11 +268,11 @@ public:
   /**
    * Get the MTime of this object also considering the locator and kernel.
    */
-  vtkMTimeType GetMTime();
+  vtkMTimeType GetMTime() override;
 
 protected:
   vtkPointInterpolator();
-  ~vtkPointInterpolator();
+  ~vtkPointInterpolator() override;
 
   vtkAbstractPointLocator *Locator;
   vtkInterpolationKernel *Kernel;
@@ -290,12 +290,12 @@ protected:
   bool PassPointArrays;
   bool PassFieldArrays;
 
-  virtual int RequestData(vtkInformation *, vtkInformationVector **,
-    vtkInformationVector *);
-  virtual int RequestInformation(vtkInformation *, vtkInformationVector **,
-    vtkInformationVector *);
-  virtual int RequestUpdateExtent(vtkInformation *, vtkInformationVector **,
-    vtkInformationVector *);
+  int RequestData(vtkInformation *, vtkInformationVector **,
+    vtkInformationVector *) override;
+  int RequestInformation(vtkInformation *, vtkInformationVector **,
+    vtkInformationVector *) override;
+  int RequestUpdateExtent(vtkInformation *, vtkInformationVector **,
+    vtkInformationVector *) override;
 
   /**
    * Virtual for specialized subclass(es)
@@ -316,8 +316,8 @@ protected:
                                double origin[3], double spacing[3]);
 
 private:
-  vtkPointInterpolator(const vtkPointInterpolator&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPointInterpolator&) VTK_DELETE_FUNCTION;
+  vtkPointInterpolator(const vtkPointInterpolator&) = delete;
+  void operator=(const vtkPointInterpolator&) = delete;
 
 };
 

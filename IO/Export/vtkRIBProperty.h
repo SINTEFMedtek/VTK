@@ -38,7 +38,7 @@ class VTKIOEXPORT_EXPORT vtkRIBProperty : public vtkProperty
 public:
   static vtkRIBProperty *New();
   vtkTypeMacro(vtkRIBProperty,vtkProperty);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -122,9 +122,9 @@ public:
 
 protected:
   vtkRIBProperty();
-  ~vtkRIBProperty();
+  ~vtkRIBProperty() override;
 
-  void Render(vtkActor *a, vtkRenderer *ren);
+  void Render(vtkActor *a, vtkRenderer *ren) override;
   vtkProperty *Property;
   char *SurfaceShader;
   char *DisplacementShader;
@@ -134,8 +134,8 @@ protected:
   bool SurfaceShaderUsesDefaultParameters;
 
 private:
-  vtkRIBProperty(const vtkRIBProperty&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkRIBProperty&) VTK_DELETE_FUNCTION;
+  vtkRIBProperty(const vtkRIBProperty&) = delete;
+  void operator=(const vtkRIBProperty&) = delete;
 };
 
 #endif

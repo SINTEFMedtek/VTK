@@ -101,7 +101,7 @@ class VTKFILTERSHYBRID_EXPORT vtkImplicitModeller : public vtkImageAlgorithm
 {
 public:
   vtkTypeMacro(vtkImplicitModeller,vtkImageAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Construct with sample dimensions=(50,50,50), and so that model bounds are
@@ -114,7 +114,7 @@ public:
    * Compute ModelBounds from input geometry. If input is not specified, the
    * input of the filter will be used.
    */
-  double ComputeModelBounds(vtkDataSet *input = NULL);
+  double ComputeModelBounds(vtkDataSet *input = nullptr);
 
   //@{
   /**
@@ -279,22 +279,22 @@ public:
    */
   void EndAppend();
 
-  // See the vtkAlgorithm for a desciption of what these do
+  // See the vtkAlgorithm for a description of what these do
   int ProcessRequest(vtkInformation*,
                      vtkInformationVector**,
-                     vtkInformationVector*);
+                     vtkInformationVector*) override;
 
 protected:
   vtkImplicitModeller();
-  ~vtkImplicitModeller();
+  ~vtkImplicitModeller() override;
 
   double GetScalarTypeMax(int type);
 
-  virtual int RequestInformation (vtkInformation *,
+  int RequestInformation (vtkInformation *,
                                   vtkInformationVector **,
-                                  vtkInformationVector *);
-  virtual int RequestData (vtkInformation *,
-                           vtkInformationVector **, vtkInformationVector *);
+                                  vtkInformationVector *) override;
+  int RequestData (vtkInformation *,
+                           vtkInformationVector **, vtkInformationVector *) override;
 
   void StartAppend(int internal);
   void Cap(vtkDataArray *s);
@@ -321,11 +321,11 @@ protected:
   // the max distance computed during that one call
   double InternalMaxDistance;
 
-  virtual int FillInputPortInformation(int, vtkInformation*);
+  int FillInputPortInformation(int, vtkInformation*) override;
 
 private:
-  vtkImplicitModeller(const vtkImplicitModeller&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkImplicitModeller&) VTK_DELETE_FUNCTION;
+  vtkImplicitModeller(const vtkImplicitModeller&) = delete;
+  void operator=(const vtkImplicitModeller&) = delete;
 };
 
 #endif

@@ -50,7 +50,7 @@ public:
    * Standard methods for instances of this class.
    */
   vtkTypeMacro(vtkPointHandleRepresentation3D,vtkHandleRepresentation);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   //@{
@@ -61,8 +61,8 @@ public:
    * the superclasses' SetWorldPosition() and SetDisplayPosition() in
    * order to set the focal point of the cursor properly.
    */
-  virtual void SetWorldPosition(double p[3]);
-  virtual void SetDisplayPosition(double p[3]);
+  void SetWorldPosition(double p[3]) override;
+  void SetDisplayPosition(double p[3]) override;
   //@}
 
   /**
@@ -174,34 +174,46 @@ public:
   /**
    * Overload the superclasses SetHandleSize() method to update internal variables.
    */
-  virtual void SetHandleSize(double size);
+  void SetHandleSize(double size) override;
 
   //@{
   /**
    * Methods to make this class properly act like a vtkWidgetRepresentation.
    */
-  virtual double *GetBounds();
-  virtual void BuildRepresentation();
-  virtual void StartWidgetInteraction(double eventPos[2]);
-  virtual void WidgetInteraction(double eventPos[2]);
-  virtual int ComputeInteractionState(int X, int Y, int modify=0);
-  virtual void PlaceWidget(double bounds[6]);
+  double *GetBounds() override;
+  void BuildRepresentation() override;
+  void StartWidgetInteraction(double eventPos[2]) override;
+  void WidgetInteraction(double eventPos[2]) override;
+  int ComputeInteractionState(int X, int Y, int modify=0) override;
+  void PlaceWidget(double bounds[6]) override;
+  void StartComplexInteraction(
+    vtkRenderWindowInteractor *iren,
+    vtkAbstractWidget *widget,
+    unsigned long event, void *calldata) override;
+  void ComplexInteraction(
+    vtkRenderWindowInteractor *iren,
+    vtkAbstractWidget *widget,
+    unsigned long event, void *calldata) override;
+  int ComputeComplexInteractionState(
+    vtkRenderWindowInteractor *iren,
+    vtkAbstractWidget *widget,
+    unsigned long event, void *calldata, int modify = 0) override;
   //@}
 
   //@{
   /**
    * Methods to make this class behave as a vtkProp.
    */
-  virtual void ShallowCopy(vtkProp *prop);
-  virtual void DeepCopy(vtkProp *prop);
-  virtual void GetActors(vtkPropCollection *);
-  virtual void ReleaseGraphicsResources(vtkWindow *);
-  virtual int RenderOpaqueGeometry(vtkViewport *viewport);
-  virtual int RenderTranslucentPolygonalGeometry(vtkViewport *viewport);
-  virtual int HasTranslucentPolygonalGeometry();
+  void ShallowCopy(vtkProp *prop) override;
+  void DeepCopy(vtkProp *prop) override;
+  void GetActors(vtkPropCollection *) override;
+  void ReleaseGraphicsResources(vtkWindow *) override;
+  int RenderOpaqueGeometry(vtkViewport *viewport) override;
+  int RenderTranslucentPolygonalGeometry(vtkViewport *viewport) override;
+  int HasTranslucentPolygonalGeometry() override;
   //@}
 
-  void Highlight(int highlight);
+  void Highlight(int highlight) override;
 
   //@{
   /**
@@ -222,7 +234,7 @@ public:
 
 protected:
   vtkPointHandleRepresentation3D();
-  ~vtkPointHandleRepresentation3D();
+  ~vtkPointHandleRepresentation3D() override;
 
   // the cursor3D
   vtkActor          *Actor;
@@ -233,10 +245,10 @@ protected:
   // Do the picking
   vtkCellPicker *CursorPicker;
   double LastPickPosition[3];
-  double LastEventPosition[2];
+  double LastEventPosition[3];
 
   // Register internal Pickers within PickingManager
-  virtual void RegisterPickers();
+  void RegisterPickers() override;
 
   // Methods to manipulate the cursor
   int  ConstraintAxis;
@@ -278,8 +290,8 @@ protected:
   int SmoothMotion;
 
 private:
-  vtkPointHandleRepresentation3D(const vtkPointHandleRepresentation3D&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPointHandleRepresentation3D&) VTK_DELETE_FUNCTION;
+  vtkPointHandleRepresentation3D(const vtkPointHandleRepresentation3D&) = delete;
+  void operator=(const vtkPointHandleRepresentation3D&) = delete;
 };
 
 #endif

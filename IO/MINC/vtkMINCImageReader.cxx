@@ -116,12 +116,12 @@ vtkMINCImageReader::~vtkMINCImageReader()
   if (this->DirectionCosines)
   {
     this->DirectionCosines->Delete();
-    this->DirectionCosines = 0;
+    this->DirectionCosines = nullptr;
   }
   if (this->ImageAttributes)
   {
     this->ImageAttributes->Delete();
-    this->ImageAttributes = 0;
+    this->ImageAttributes = nullptr;
   }
 }
 
@@ -157,7 +157,7 @@ void vtkMINCImageReader::SetFileName(const char *name)
   // Set FileNameHasChanged even if the file name hasn't changed,
   // because it is possible that the user is re-reading a file after
   // changing it.
-  if (!(name == 0 && this->GetFileName() == 0))
+  if (!(name == nullptr && this->GetFileName() == nullptr))
   {
     this->FileNameHasChanged = 1;
   }
@@ -291,7 +291,7 @@ int vtkMINCImageReader::OpenNetCDFFile(const char *filename, int& ncid)
 {
   int status = 0;
 
-  if (filename == 0)
+  if (filename == nullptr)
   {
     vtkErrorMacro("No filename was set");
     return 0;
@@ -461,7 +461,7 @@ int vtkMINCImageReader::ReadMINCFileAttributes()
       }
 
       // Get the attribute values as a vtkDataArray.
-      vtkDataArray *dataArray = 0;
+      vtkDataArray *dataArray = nullptr;
       switch (atttype)
       {
         case NC_BYTE:
@@ -469,7 +469,7 @@ int vtkMINCImageReader::ReadMINCFileAttributes()
           // NetCDF leaves it up to us to decide whether NC_BYTE
           // should be signed.
           vtkUnsignedCharArray *ucharArray = vtkUnsignedCharArray::New();
-          ucharArray->SetNumberOfValues(attlength);
+          ucharArray->SetNumberOfValues(static_cast<vtkIdType>(attlength));
           nc_get_att_uchar(ncid, varid, attname,
                            ucharArray->GetPointer(0));
           dataArray = ucharArray;
@@ -481,8 +481,8 @@ int vtkMINCImageReader::ReadMINCFileAttributes()
           vtkCharArray *charArray = vtkCharArray::New();
           // The netcdf standard doesn't enforce null-termination
           // of string attributes, so we add a null here.
-          charArray->Resize(attlength + 1);
-          char *dest = charArray->WritePointer(0, attlength);
+          charArray->Resize(static_cast<vtkIdType>(attlength + 1));
+          char *dest = charArray->WritePointer(0, static_cast<vtkIdType>(attlength));
           nc_get_att_text(ncid, varid, attname, dest);
           dest[attlength] = '\0';
           dataArray = charArray;
@@ -491,7 +491,7 @@ int vtkMINCImageReader::ReadMINCFileAttributes()
         case NC_SHORT:
         {
           vtkShortArray *shortArray = vtkShortArray::New();
-          shortArray->SetNumberOfValues(attlength);
+          shortArray->SetNumberOfValues(static_cast<vtkIdType>(attlength));
           nc_get_att_short(ncid, varid, attname,
                            shortArray->GetPointer(0));
           dataArray = shortArray;
@@ -500,7 +500,7 @@ int vtkMINCImageReader::ReadMINCFileAttributes()
         case NC_INT:
         {
           vtkIntArray *intArray = vtkIntArray::New();
-          intArray->SetNumberOfValues(attlength);
+          intArray->SetNumberOfValues(static_cast<vtkIdType>(attlength));
           nc_get_att_int(ncid, varid, attname,
                          intArray->GetPointer(0));
           dataArray = intArray;
@@ -509,7 +509,7 @@ int vtkMINCImageReader::ReadMINCFileAttributes()
         case NC_FLOAT:
         {
           vtkFloatArray *floatArray = vtkFloatArray::New();
-          floatArray->SetNumberOfValues(attlength);
+          floatArray->SetNumberOfValues(static_cast<vtkIdType>(attlength));
           nc_get_att_float(ncid, varid, attname,
                            floatArray->GetPointer(0));
           dataArray = floatArray;
@@ -518,7 +518,7 @@ int vtkMINCImageReader::ReadMINCFileAttributes()
         case NC_DOUBLE:
         {
           vtkDoubleArray *doubleArray = vtkDoubleArray::New();
-          doubleArray->SetNumberOfValues(attlength);
+          doubleArray->SetNumberOfValues(static_cast<vtkIdType>(attlength));
           nc_get_att_double(ncid, varid, attname,
                             doubleArray->GetPointer(0));
           dataArray = doubleArray;
@@ -574,7 +574,7 @@ int vtkMINCImageReader::ReadMINCFileAttributes()
           return 0;
         }
 
-        this->ImageAttributes->AddDimension(dimname, dimlength);
+        this->ImageAttributes->AddDimension(dimname, static_cast<vtkIdType>(dimlength));
 
         int dimIndex = this->IndexFromDimensionName(dimname);
 
@@ -640,7 +640,7 @@ int vtkMINCImageReader::ReadMINCFileAttributes()
         start[i] = 0;
         count[i] = dimlength;
 
-        size *= dimlength;
+        size *= static_cast<vtkIdType>(dimlength);
       }
 
       doubleArray->SetNumberOfValues(size);
@@ -1039,7 +1039,7 @@ void vtkMINCImageReaderExecuteChunk(
       break;
     }
 
-    dimprod *= count[idim];
+    dimprod *= static_cast<vtkIdType>(count[idim]);
   }
 
   // Save the count and permuted increment of this dimension.
@@ -1241,7 +1241,7 @@ void vtkMINCImageReader::ExecuteDataWithInformation(vtkDataObject *output,
     if (idim < nminmaxdims || hitChunkSizeLimit)
     {
       // Number of chunks is product of dimensions in minmax.
-      nchunks *= count[idim];
+      nchunks *= static_cast<vtkIdType>(count[idim]);
 
       // Only set nchunkdims once
       if (nchunkdimsIsSet == 0)
@@ -1252,13 +1252,13 @@ void vtkMINCImageReader::ExecuteDataWithInformation(vtkDataObject *output,
     }
     else
     {
-      chunkSize *= count[idim];
+      chunkSize *= static_cast<vtkIdType>(count[idim]);
     }
   }
 
   // Create a buffer for intermediate results.
   int fileType = this->ImageAttributes->GetDataType();
-  void *buffer = 0;
+  void *buffer = nullptr;
   switch (fileType)
   {
     vtkMINCImageReaderTemplateMacro(buffer=(void *)(new VTK_TT[chunkSize]));
@@ -1299,11 +1299,12 @@ void vtkMINCImageReader::ExecuteDataWithInformation(vtkDataObject *output,
       count2[idim] = 1;
       if (idim < nminmaxdims)
       {
-        minmaxIdx += start2[idim]*minmaxInc;
-        minmaxInc *= length[idim];
+        minmaxIdx += static_cast<vtkIdType>(start2[idim]*minmaxInc);
+        minmaxInc *= static_cast<vtkIdType>(length[idim]);
       }
-      chunkOffset += (start2[idim] - start[idim])*permutedInc[idim];
-      chunkProd *= count[idim];
+      chunkOffset += static_cast<vtkIdType>(
+        (start2[idim] - start[idim])*permutedInc[idim]);
+      chunkProd *= static_cast<vtkIdType>(count[idim]);
     }
 
     // Get the min and max values to apply to this chunk

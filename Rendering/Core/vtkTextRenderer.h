@@ -65,8 +65,8 @@ public:
   ~vtkTextRendererCleanup();
 
 private:
-  vtkTextRendererCleanup(const vtkTextRendererCleanup& other) VTK_DELETE_FUNCTION;
-  vtkTextRendererCleanup& operator=(const vtkTextRendererCleanup& rhs) VTK_DELETE_FUNCTION;
+  vtkTextRendererCleanup(const vtkTextRendererCleanup& other) = delete;
+  vtkTextRendererCleanup& operator=(const vtkTextRendererCleanup& rhs) = delete;
 };
 
 class VTKRENDERINGCORE_EXPORT vtkTextRenderer: public vtkObject
@@ -79,7 +79,8 @@ public:
      */
     Metrics()
       : BoundingBox(0),
-        TopLeft(0), TopRight(0), BottomLeft(0), BottomRight(0)
+        TopLeft(0), TopRight(0), BottomLeft(0), BottomRight(0),
+        Ascent(0), Descent(0)
     {
     }
 
@@ -99,11 +100,21 @@ public:
     vtkVector2i TopRight;
     vtkVector2i BottomLeft;
     vtkVector2i BottomRight;
-  };
     //@}
 
+    /**
+     * Vectors representing the rotated ascent and descent of the text. This is
+     * the distance above or below the baseline. Not all backends support this,
+     * and may leave these vectors set to 0.
+     * @{
+     */
+    vtkVector2i Ascent;
+    vtkVector2i Descent;
+    /**@}*/
+  };
+
   vtkTypeMacro(vtkTextRenderer, vtkObject)
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
   /**
    * This is a singleton pattern New. There will be only ONE reference
@@ -285,7 +296,7 @@ public:
 
 protected:
   vtkTextRenderer();
-  ~vtkTextRenderer();
+  ~vtkTextRenderer() override;
 
   //@{
   /**
@@ -359,8 +370,8 @@ protected:
   int DefaultBackend;
 
 private:
-  vtkTextRenderer(const vtkTextRenderer &) VTK_DELETE_FUNCTION;
-  void operator=(const vtkTextRenderer &) VTK_DELETE_FUNCTION;
+  vtkTextRenderer(const vtkTextRenderer &) = delete;
+  void operator=(const vtkTextRenderer &) = delete;
 };
 
 #endif //vtkTextRenderer_h

@@ -86,7 +86,7 @@ class VTKCOMMONCORE_EXPORT vtkMath : public vtkObject
 public:
   static vtkMath *New();
   vtkTypeMacro(vtkMath,vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * A mathematical constant. This version is atan(1.0) * 4.0
@@ -448,7 +448,7 @@ public:
    * v1 cross v2 = v3 (i.e. the vectors are perpendicular to each other).
    * There is an infinite number of such vectors, specify an angle theta
    * to choose one set.  If you want only one perpendicular vector,
-   * specify NULL for v3.
+   * specify nullptr for v3.
    */
   static void Perpendiculars(const double v1[3], double v2[3], double v3[3],
                              double theta);
@@ -753,6 +753,24 @@ public:
 
   //@{
   /**
+   * rotate a vector by a normalized quaternion
+   * using // https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
+   */
+  static void RotateVectorByNormalizedQuaternion(const float v[3], const float q[4], float r[3]);
+  static void RotateVectorByNormalizedQuaternion(const double v[3], const double q[4], double r[3]);
+  //@}
+
+  //@{
+  /**
+   * rotate a vector by WXYZ
+   * using // https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
+   */
+  static void RotateVectorByWXYZ(const float v[3], const float q[4], float r[3]);
+  static void RotateVectorByWXYZ(const double v[3], const double q[4], double r[3]);
+  //@}
+
+  //@{
+  /**
    * Orthogonalize a 3x3 matrix and put the result in B.  If matrix A
    * has a negative determinant, then B will be a rotation plus a flip
    * i.e. it will have a determinant of -1.
@@ -910,7 +928,6 @@ public:
   static int SolveHomogeneousLeastSquares(int numberOfSamples, double **xt, int xOrder,
                                 double **mt);
 
-
   /**
    * Solves for the least squares best fit matrix for the equation X'M' = Y'.
    * Uses pseudoinverse to get the ordinary least squares.
@@ -1057,7 +1074,7 @@ public:
   /**
    * Are the bounds initialized?
    */
-  static vtkTypeBool AreBoundsInitialized(double bounds[6]){
+  static vtkTypeBool AreBoundsInitialized(const double bounds[6]){
     if ( bounds[1]-bounds[0]<0.0 )
     {
       return 0;
@@ -1087,13 +1104,28 @@ public:
   //@}
 
   /**
-   * Clamp a value against a range and then normalized it between 0 and 1.
+   * Clamp a value against a range and then normalize it between 0 and 1.
    * If range[0]==range[1], the result is 0.
    * \pre valid_range: range[0]<=range[1]
    * \post valid_result: result>=0.0 && result<=1.0
    */
   static double ClampAndNormalizeValue(double value,
                                        const double range[2]);
+
+  /**
+   * Convert a 6-Component symmetric tensor into a 9-Component tensor, no allocation performed.
+   * Symmetric tensor is expected to have the following order : XX, YY, ZZ, XY, YZ, XZ
+   */
+  template<class T1, class T2>
+  static void TensorFromSymmetricTensor(T1 symmTensor[6], T2 tensor[9]);
+
+    /**
+   * Convert a 6-Component symmetric tensor into a 9-Component tensor, overwriting
+   * the tensor input.
+   * Symmetric tensor is expected to have the following order : XX, YY, ZZ, XY, YZ, XZ
+   */
+  template<class T>
+  static void TensorFromSymmetricTensor(T tensor[9]);
 
   /**
    * Return the scalar type that is most likely to have enough precision
@@ -1139,6 +1171,18 @@ public:
   static vtkTypeBool PointIsWithinBounds(double point[3], double bounds[6], double delta[3]);
 
   /**
+   * Implements Plane / Axis-Aligned Bounding-Box intersection as described in
+   * Graphics Gems IV, Ned Greene; pp. 75-76. Variable names are based on the
+   * description in the book. This function returns +1 if the box lies fully in
+   * the positive side of the plane (by convention, the side to which the plane's
+   * normal points to), -1 if the box fully lies in the negative side and 0 if
+   * the plane intersects the box.  -2 is returned if any of the arguments is
+   * invalid.
+   */
+  static int PlaneIntersectsAABB(double const bounds[6], double const normal[3],
+    double const point[3]);
+
+  /**
    * In Euclidean space, there is a unique circle passing through any given
    * three non-collinear points P1, P2, and P3. Using Cartesian coordinates
    * to represent these points as spatial vectors, it is possible to use the
@@ -1178,15 +1222,14 @@ public:
    * Test if a number has finite value i.e. it is normal, subnormal or zero, but not infinite or Nan.
    */
   static bool IsFinite(double x);
-
 protected:
   vtkMath() {}
-  ~vtkMath() VTK_OVERRIDE {}
+  ~vtkMath() override {}
 
   static vtkSmartPointer<vtkMathInternal> Internal;
 private:
-  vtkMath(const vtkMath&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkMath&) VTK_DELETE_FUNCTION;
+  vtkMath(const vtkMath&) = delete;
+  void operator=(const vtkMath&) = delete;
 };
 
 //----------------------------------------------------------------------------
@@ -1504,6 +1547,32 @@ inline double vtkMath::ClampAndNormalizeValue(double value,
   assert("post: valid_result" && result>=0.0 && result<=1.0);
 
   return result;
+}
+
+//-----------------------------------------------------------------------------
+template<class T1, class T2>
+inline void vtkMath::TensorFromSymmetricTensor(T1 symmTensor[9], T2 tensor[9])
+{
+  for (int i = 0; i < 3; i++)
+  {
+    tensor[4*i] = symmTensor[i];
+  }
+  tensor[1] = tensor[3] = symmTensor[3];
+  tensor[2] = tensor[6] = symmTensor[5];
+  tensor[5] = tensor[7] = symmTensor[4];
+}
+
+//-----------------------------------------------------------------------------
+template<class T>
+inline void vtkMath::TensorFromSymmetricTensor(T tensor[9])
+{
+  tensor[6] = tensor[5]; // XZ
+  tensor[7] = tensor[4]; // YZ
+  tensor[8] = tensor[2]; // ZZ
+  tensor[4] = tensor[1]; // YY
+  tensor[5] = tensor[7]; // YZ
+  tensor[2] = tensor[6]; // XZ
+  tensor[1] = tensor[3]; // XY
 }
 
 namespace vtk_detail

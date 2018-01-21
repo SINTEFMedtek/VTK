@@ -39,7 +39,7 @@ class vtkProperty2D;
 class VTKRENDERINGCORE_EXPORT vtkActor2D : public vtkProp
 {
 public:
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   vtkTypeMacro(vtkActor2D,vtkProp);
 
   /**
@@ -53,15 +53,15 @@ public:
   /**
    * Support the standard render methods.
    */
-  virtual int RenderOverlay(vtkViewport *viewport);
-  virtual int RenderOpaqueGeometry(vtkViewport *viewport);
-  virtual int RenderTranslucentPolygonalGeometry(vtkViewport *viewport);
+  int RenderOverlay(vtkViewport *viewport) override;
+  int RenderOpaqueGeometry(vtkViewport *viewport) override;
+  int RenderTranslucentPolygonalGeometry(vtkViewport *viewport) override;
   //@}
 
   /**
    * Does this prop have some translucent polygonal geometry?
    */
-  virtual int HasTranslucentPolygonalGeometry();
+  int HasTranslucentPolygonalGeometry() override;
 
   //@{
   /**
@@ -129,26 +129,26 @@ public:
   /**
    * Return this objects MTime.
    */
-  virtual vtkMTimeType GetMTime();
+  vtkMTimeType GetMTime() override;
 
   /**
    * For some exporters and other other operations we must be
    * able to collect all the actors or volumes. These methods
    * are used in that process.
    */
-  virtual void GetActors2D(vtkPropCollection *pc);
+  void GetActors2D(vtkPropCollection *pc) override;
 
   /**
    * Shallow copy of this vtkActor2D. Overloads the virtual vtkProp method.
    */
-  virtual void ShallowCopy(vtkProp *prop);
+  void ShallowCopy(vtkProp *prop) override;
 
   /**
    * Release any graphics resources that are being consumed by this actor.
    * The parameter window could be used to determine which graphic
    * resources to release.
    */
-  virtual void ReleaseGraphicsResources(vtkWindow *);
+  void ReleaseGraphicsResources(vtkWindow *) override;
 
   /**
    * Return the actual vtkCoordinate reference that the mapper should use
@@ -168,7 +168,7 @@ public:
 
 protected:
   vtkActor2D();
-  ~vtkActor2D();
+  ~vtkActor2D() override;
 
   vtkMapper2D *Mapper;
   int LayerNumber;
@@ -177,8 +177,8 @@ protected:
   vtkCoordinate *Position2Coordinate;
 
 private:
-  vtkActor2D(const vtkActor2D&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkActor2D&) VTK_DELETE_FUNCTION;
+  vtkActor2D(const vtkActor2D&) = delete;
+  void operator=(const vtkActor2D&) = delete;
 };
 
 #endif

@@ -55,12 +55,12 @@ vtkSphereRepresentation::vtkSphereRepresentation()
   this->Representation = VTK_SPHERE_WIREFRAME;
 
   // Set up the initial properties
-  this->SphereProperty = NULL;
-  this->SelectedSphereProperty = NULL;
-  this->HandleProperty = NULL;
-  this->SelectedHandleProperty = NULL;
-  this->HandleTextProperty = NULL;
-  this->RadialLineProperty = NULL;
+  this->SphereProperty = nullptr;
+  this->SelectedSphereProperty = nullptr;
+  this->HandleProperty = nullptr;
+  this->SelectedHandleProperty = nullptr;
+  this->HandleTextProperty = nullptr;
+  this->RadialLineProperty = nullptr;
   this->CreateDefaultProperties();
 
   // Build the representation of the widget
@@ -339,7 +339,7 @@ void vtkSphereRepresentation::WidgetInteraction(double e[2])
     vtkAssemblyPath* path = this->GetAssemblyPath(e[0], e[1], 0.,
                                                   this->SpherePicker);
 
-    if ( path != NULL )
+    if ( path != nullptr )
     {
       double pos[3], dir[3], c[3];
       this->SpherePicker->GetPickPosition(pos);
@@ -618,7 +618,7 @@ int vtkSphereRepresentation::ComputeInteractionState(int X, int Y, int vtkNotUse
   {
     path = this->GetAssemblyPath(X, Y, 0., this->HandlePicker);
 
-    if ( path != NULL )
+    if ( path != nullptr )
     {
       this->ValidPick = 1;
       this->InteractionState = vtkSphereRepresentation::MovingHandle;
@@ -632,7 +632,7 @@ int vtkSphereRepresentation::ComputeInteractionState(int X, int Y, int vtkNotUse
   {
     path = this->GetAssemblyPath(X, Y, 0., this->SpherePicker);
 
-    if ( path != NULL )
+    if ( path != nullptr )
     {
       this->ValidPick = 1;
       this->InteractionState = vtkSphereRepresentation::OnSphere;
@@ -713,7 +713,7 @@ void vtkSphereRepresentation::BuildRepresentation()
     r = (r<=0.0 ? 1.0 : r);
     double theta = vtkMath::DegreesFromRadians( atan2( ( hc[1] - c[1] ), ( hc[0] - c[0] ) ) );
     double phi   = vtkMath::DegreesFromRadians( acos( ( hc[2] - c[2] ) / r ) );
-    sprintf(str,"(%0.2g, %1.1f, %1.1f)", r, theta, phi);
+    snprintf(str,sizeof(str),"(%0.2g, %1.1f, %1.1f)", r, theta, phi);
     this->HandleTextMapper->SetInput(str);
     vtkInteractorObserver::ComputeWorldToDisplay(this->Renderer, hc[0], hc[1], hc[2], tc);
     this->HandleTextActor->GetPositionCoordinate()->SetValue(tc[0]+10,tc[1]+10);

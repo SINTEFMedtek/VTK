@@ -180,7 +180,7 @@ void vtkPixelExtent::Split(
 //-----------------------------------------------------------------------------
 void vtkPixelExtent::Subtract(
       const vtkPixelExtent &A,
-      vtkPixelExtent B,
+      const vtkPixelExtent& B,
       deque<vtkPixelExtent> &C)
 {
   // split method requires split point inside the extent
@@ -263,7 +263,7 @@ void vtkPixelExtent::Merge(deque<vtkPixelExtent> &exts)
       vtkPixelExtent &ext0 = tmpExts[t];
       if (ext0.Empty())
       {
-        // was merged in preceeding pass
+        // was merged in preceding pass
         continue;
       }
 
@@ -279,7 +279,7 @@ void vtkPixelExtent::Merge(deque<vtkPixelExtent> &exts)
         vtkPixelExtent &ext1 = tmpExts[c];
         if (ext1.Empty())
         {
-          // was merged in preceeding pass
+          // was merged in preceding pass
           continue;
         }
 

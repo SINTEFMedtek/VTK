@@ -413,7 +413,7 @@ bool vtkAMRVolumeMapper::ComputeResamplerBoundsFrustumMethod(
 {
   vtkMath::UninitializeBounds(out_bounds);
 
-  // First we need to create a bouding box that represents the visible region
+  // First we need to create a bounding box that represents the visible region
   // of the camera in World Coordinates
 
   // In order to produce as tight of bounding box as possible we need to determine
@@ -569,7 +569,7 @@ void vtkAMRVolumeMapper::UpdateGrid()
 #if PRINTSTATS
   this->Grid->GetDimensions(gridDim);
   this->Grid->GetOrigin(gridOrigin);
-  std::cerr << "Grid Dimenions: (" << gridDim[0] << ", " << gridDim[1] << ", "
+  std::cerr << "Grid Dimensions: (" << gridDim[0] << ", " << gridDim[1] << ", "
             << gridDim[2]
             << ") Origin:(" << gridOrigin[0] << ", "<< gridOrigin[1] << ", "
             << gridOrigin[2] << ")\n";

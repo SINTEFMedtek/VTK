@@ -102,14 +102,14 @@ public:
    * Standard vtkObject methods
    */
   vtkTypeMacro(vtkLineWidget2,vtkAbstractWidget);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   /**
    * Override superclasses' SetEnabled() method because the line
    * widget must enable its internal handle widgets.
    */
-  virtual void SetEnabled(int enabling);
+  void SetEnabled(int enabling) override;
 
   /**
    * Specify an instance of vtkWidgetRepresentation used to represent this
@@ -128,17 +128,17 @@ public:
   /**
    * Create the default widget representation if one is not set.
    */
-  void CreateDefaultRepresentation();
+  void CreateDefaultRepresentation() override;
 
   /**
    * Methods to change the whether the widget responds to interaction.
    * Overridden to pass the state to component widgets.
    */
-  virtual void SetProcessEvents(int);
+  void SetProcessEvents(int) override;
 
 protected:
   vtkLineWidget2();
-  ~vtkLineWidget2();
+  ~vtkLineWidget2() override;
 
   // Manage the state of the widget
   int WidgetState;
@@ -162,8 +162,8 @@ protected:
   static void ProcessKeyEvents(vtkObject *, unsigned long, void *, void *);
 
 private:
-  vtkLineWidget2(const vtkLineWidget2&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkLineWidget2&) VTK_DELETE_FUNCTION;
+  vtkLineWidget2(const vtkLineWidget2&) = delete;
+  void operator=(const vtkLineWidget2&) = delete;
 };
 
 #endif

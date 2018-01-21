@@ -41,7 +41,7 @@ class VTKIMAGINGCORE_EXPORT vtkImageResize : public vtkThreadedImageAlgorithm
 public:
   static vtkImageResize *New();
   vtkTypeMacro(vtkImageResize, vtkThreadedImageAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   enum
   {
@@ -153,25 +153,25 @@ public:
   /**
    * Get the modified time of the filter.
    */
-  vtkMTimeType GetMTime();
+  vtkMTimeType GetMTime() override;
 
 protected:
   vtkImageResize();
-  ~vtkImageResize();
+  ~vtkImageResize() override;
 
   virtual vtkAbstractImageInterpolator *GetInternalInterpolator();
 
-  virtual int RequestInformation(vtkInformation *, vtkInformationVector **,
-                                 vtkInformationVector *);
-  virtual int RequestUpdateExtent(vtkInformation *, vtkInformationVector **,
-                                  vtkInformationVector *);
-  virtual int RequestData(vtkInformation *, vtkInformationVector **,
-                          vtkInformationVector *);
-  virtual void ThreadedRequestData(vtkInformation *request,
+  int RequestInformation(vtkInformation *, vtkInformationVector **,
+                                 vtkInformationVector *) override;
+  int RequestUpdateExtent(vtkInformation *, vtkInformationVector **,
+                                  vtkInformationVector *) override;
+  int RequestData(vtkInformation *, vtkInformationVector **,
+                          vtkInformationVector *) override;
+  void ThreadedRequestData(vtkInformation *request,
                                    vtkInformationVector **inputVector,
                                    vtkInformationVector *outputVector,
                                    vtkImageData ***inData,
-                                   vtkImageData **outData, int ext[6], int id);
+                                   vtkImageData **outData, int ext[6], int id) override;
 
   int ResizeMethod;
   int OutputDimensions[3];
@@ -189,8 +189,8 @@ protected:
   int Interpolate;
 
 private:
-  vtkImageResize(const vtkImageResize&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkImageResize&) VTK_DELETE_FUNCTION;
+  vtkImageResize(const vtkImageResize&) = delete;
+  void operator=(const vtkImageResize&) = delete;
 };
 
 #endif

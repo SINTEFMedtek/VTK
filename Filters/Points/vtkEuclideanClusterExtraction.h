@@ -71,7 +71,7 @@ class VTKFILTERSPOINTS_EXPORT vtkEuclideanClusterExtraction : public vtkPolyData
 {
 public:
   vtkTypeMacro(vtkEuclideanClusterExtraction,vtkPolyDataAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Construct with default extraction mode to extract largest clusters.
@@ -89,7 +89,7 @@ public:
   //@{
   /**
    * Turn on/off connectivity based on scalar value. If on, points are
-   * connected only if the are proximal AND the scalar value of a candiate
+   * connected only if the are proximal AND the scalar value of a candidate
    * point falls in the scalar range specified. Of course input point scalar
    * data must be provided.
    */
@@ -191,7 +191,7 @@ public:
 
 protected:
   vtkEuclideanClusterExtraction();
-  ~vtkEuclideanClusterExtraction();
+  ~vtkEuclideanClusterExtraction() override;
 
   double Radius; //connection radius
   bool ColorClusters; //boolean turns on/off scalar gen for separate clusters
@@ -208,17 +208,17 @@ protected:
   vtkAbstractPointLocator *Locator;
 
   // Configure the pipeline
-  virtual int RequestData(vtkInformation *, vtkInformationVector **,
-                          vtkInformationVector *);
-  virtual int FillInputPortInformation(int port, vtkInformation *info);
+  int RequestData(vtkInformation *, vtkInformationVector **,
+                          vtkInformationVector *) override;
+  int FillInputPortInformation(int port, vtkInformation *info) override;
 
   // Internal method for propagating connected waves.
   void InsertIntoWave(vtkIdList *wave, vtkIdType ptId);
   void TraverseAndMark(vtkPoints *pts);
 
 private:
-  vtkEuclideanClusterExtraction(const vtkEuclideanClusterExtraction&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkEuclideanClusterExtraction&) VTK_DELETE_FUNCTION;
+  vtkEuclideanClusterExtraction(const vtkEuclideanClusterExtraction&) = delete;
+  void operator=(const vtkEuclideanClusterExtraction&) = delete;
 
   // used to support algorithm execution
   vtkFloatArray *NeighborScalars;

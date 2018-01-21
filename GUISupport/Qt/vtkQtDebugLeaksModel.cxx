@@ -31,17 +31,17 @@ public:
     vtkDebugLeaks::SetDebugLeaksObserver(this);
   }
 
-  virtual ~qObserver()
+  ~qObserver() override
   {
     vtkDebugLeaks::SetDebugLeaksObserver(0);
   }
 
-  virtual void ConstructingObject(vtkObjectBase* object)
+  void ConstructingObject(vtkObjectBase* object) override
   {
     this->Model.addObject(object);
   }
 
-  virtual void DestructingObject(vtkObjectBase* object)
+  void DestructingObject(vtkObjectBase* object) override
   {
     this->Model.removeObject(object);
   }
@@ -50,8 +50,8 @@ public:
 
 private:
 
-  qObserver(const qObserver&) VTK_DELETE_FUNCTION;
-  void operator=(const qObserver&) VTK_DELETE_FUNCTION;
+  qObserver(const qObserver&) = delete;
+  void operator=(const qObserver&) = delete;
 };
 
 

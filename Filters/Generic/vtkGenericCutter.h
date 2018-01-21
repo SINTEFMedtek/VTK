@@ -60,7 +60,7 @@ class VTKFILTERSGENERIC_EXPORT vtkGenericCutter : public vtkPolyDataAlgorithm
 {
 public:
   vtkTypeMacro(vtkGenericCutter,vtkPolyDataAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Construct with user-specified implicit function; initial value of 0.0; and
@@ -120,7 +120,7 @@ public:
    * Override GetMTime because we delegate to vtkContourValues and refer to
    * vtkImplicitFunction.
    */
-  vtkMTimeType GetMTime();
+  vtkMTimeType GetMTime() override;
 
   //@{
   /**
@@ -157,15 +157,15 @@ public:
   void CreateDefaultLocator();
 
 protected:
-  vtkGenericCutter(vtkImplicitFunction *cf=NULL);
-  ~vtkGenericCutter();
+  vtkGenericCutter(vtkImplicitFunction *cf=nullptr);
+  ~vtkGenericCutter() override;
 
   //@{
   /**
    * Actual implementation of the cutter operation.
    */
-  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-  int FillInputPortInformation(int, vtkInformation*);
+  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
+  int FillInputPortInformation(int, vtkInformation*) override;
   //@}
 
   vtkImplicitFunction *CutFunction;
@@ -179,8 +179,8 @@ protected:
   vtkCellData  *SecondaryCD;
 
 private:
-  vtkGenericCutter(const vtkGenericCutter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkGenericCutter&) VTK_DELETE_FUNCTION;
+  vtkGenericCutter(const vtkGenericCutter&) = delete;
+  void operator=(const vtkGenericCutter&) = delete;
 };
 
 #endif

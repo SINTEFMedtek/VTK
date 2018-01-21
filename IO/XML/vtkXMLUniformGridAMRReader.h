@@ -44,7 +44,7 @@ class VTKIOXML_EXPORT vtkXMLUniformGridAMRReader :
 public:
   static vtkXMLUniformGridAMRReader* New();
   vtkTypeMacro(vtkXMLUniformGridAMRReader,vtkXMLCompositeDataReader);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -62,7 +62,7 @@ public:
 
 protected:
   vtkXMLUniformGridAMRReader();
-  ~vtkXMLUniformGridAMRReader();
+  ~vtkXMLUniformGridAMRReader() override;
 
   /**
    * This method is used by CanReadFile() to check if the reader can read an XML
@@ -70,7 +70,7 @@ protected:
    * compares the name with the text returned by this->GetDataSetName().
    * Overridden to support all AMR types.
    */
-  virtual int CanReadFileWithDataType(const char* dsname);
+  int CanReadFileWithDataType(const char* dsname) override;
 
   /**
    * Read the top-level element from the file.  This is always the
@@ -78,7 +78,7 @@ protected:
    * Overridden to read the "type" information specified in the XML. The "type"
    * attribute helps us identify the output data type.
    */
-  virtual int ReadVTKFile(vtkXMLDataElement* eVTKFile);
+  int ReadVTKFile(vtkXMLDataElement* eVTKFile) override;
 
   /**
    * Read the meta-data from the AMR from the file. Note that since
@@ -86,41 +86,41 @@ protected:
    * technically not supporting time-varying AMR datasets in this format right
    * now.
    */
-  virtual int ReadPrimaryElement(vtkXMLDataElement* ePrimary);
+  int ReadPrimaryElement(vtkXMLDataElement* ePrimary) override;
 
   /**
    * Overridden to create an output data object based on the type in the file.
    * Since this reader can handle all subclasses of vtkUniformGrid, we need to
    * check in the file to decide what type to create.
    */
-  virtual int RequestDataObject(vtkInformation *request,
-    vtkInformationVector **inputVector, vtkInformationVector *outputVector);
+  int RequestDataObject(vtkInformation *request,
+    vtkInformationVector **inputVector, vtkInformationVector *outputVector) override;
 
   /**
    * Overridden to put vtkOverlappingAMR in the pipeline if
    * available/applicable.
    */
-  virtual int RequestInformation(vtkInformation *request,
-    vtkInformationVector **inputVector, vtkInformationVector *outputVector);
+  int RequestInformation(vtkInformation *request,
+    vtkInformationVector **inputVector, vtkInformationVector *outputVector) override;
 
   // Get the name of the data set being read.
-  virtual const char* GetDataSetName();
+  const char* GetDataSetName() override;
 
   // Read the XML element for the subtree of a the composite dataset.
   // dataSetIndex is used to rank the leaf nodes in an inorder traversal.
-  virtual void ReadComposite(vtkXMLDataElement* element,
+  void ReadComposite(vtkXMLDataElement* element,
     vtkCompositeDataSet* composite, const char* filePath,
-    unsigned int &dataSetIndex);
+    unsigned int &dataSetIndex) override;
 
   // Read the vtkDataSet (a leaf) in the composite dataset.
-  virtual vtkDataSet* ReadDataset(vtkXMLDataElement* xmlElem, const char* filePath);
+  vtkDataSet* ReadDataset(vtkXMLDataElement* xmlElem, const char* filePath) override;
 
   vtkSmartPointer<vtkOverlappingAMR> Metadata;
   unsigned int MaximumLevelsToReadByDefault;
 
 private:
-  vtkXMLUniformGridAMRReader(const vtkXMLUniformGridAMRReader&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkXMLUniformGridAMRReader&) VTK_DELETE_FUNCTION;
+  vtkXMLUniformGridAMRReader(const vtkXMLUniformGridAMRReader&) = delete;
+  void operator=(const vtkXMLUniformGridAMRReader&) = delete;
 
   char* OutputDataType;
   vtkSetStringMacro(OutputDataType);

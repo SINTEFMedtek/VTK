@@ -41,7 +41,7 @@ class VTKIOLEGACY_EXPORT vtkStructuredPointsReader : public vtkDataReader
 public:
   static vtkStructuredPointsReader *New();
   vtkTypeMacro(vtkStructuredPointsReader,vtkDataReader);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -56,24 +56,24 @@ public:
    * Read the meta information from the file.  This needs to be public to it
    * can be accessed by vtkDataSetReader.
    */
-  virtual int ReadMetaData(vtkInformation *outInfo);
+  int ReadMetaData(vtkInformation *outInfo) override;
 
 protected:
   vtkStructuredPointsReader();
-  ~vtkStructuredPointsReader();
+  ~vtkStructuredPointsReader() override;
 
-  virtual int RequestData(vtkInformation *, vtkInformationVector **,
-                          vtkInformationVector *);
+  int RequestData(vtkInformation *, vtkInformationVector **,
+                          vtkInformationVector *) override;
 
   // Default method performs Update to get information.  Not all the old
   // structured points sources compute information
-  virtual int RequestInformation(vtkInformation *, vtkInformationVector **,
-                                 vtkInformationVector *);
+  int RequestInformation(vtkInformation *, vtkInformationVector **,
+                                 vtkInformationVector *) override;
 
-  virtual int FillOutputPortInformation(int, vtkInformation *);
+  int FillOutputPortInformation(int, vtkInformation *) override;
 private:
-  vtkStructuredPointsReader(const vtkStructuredPointsReader&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkStructuredPointsReader&) VTK_DELETE_FUNCTION;
+  vtkStructuredPointsReader(const vtkStructuredPointsReader&) = delete;
+  void operator=(const vtkStructuredPointsReader&) = delete;
 };
 
 #endif

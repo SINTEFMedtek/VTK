@@ -39,13 +39,13 @@ class VTKIMAGINGCORE_EXPORT vtkImageClip : public vtkImageAlgorithm
 public:
   static vtkImageClip *New();
   vtkTypeMacro(vtkImageClip,vtkImageAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
    * The whole extent of the output has to be set explicitly.
    */
-  void SetOutputWholeExtent(int extent[6], vtkInformation *outInfo=0);
+  void SetOutputWholeExtent(int extent[6], vtkInformation *outInfo=nullptr);
   void SetOutputWholeExtent(int minX, int maxX, int minY, int maxY,
                             int minZ, int maxZ);
   void GetOutputWholeExtent(int extent[6]);
@@ -67,7 +67,7 @@ public:
 
 protected:
   vtkImageClip();
-  ~vtkImageClip() {}
+  ~vtkImageClip() override {}
 
   // Time when OutputImageExtent was computed.
   vtkTimeStamp CTime;
@@ -76,19 +76,19 @@ protected:
 
   int ClipData;
 
-  virtual int RequestInformation (vtkInformation *,
+  int RequestInformation (vtkInformation *,
                                   vtkInformationVector **,
-                                  vtkInformationVector *);
+                                  vtkInformationVector *) override;
 
   void CopyData(vtkImageData *inData, vtkImageData *outData, int *ext);
 
-  virtual int RequestData(vtkInformation *,
+  int RequestData(vtkInformation *,
                           vtkInformationVector **,
-                          vtkInformationVector *);
+                          vtkInformationVector *) override;
 
 private:
-  vtkImageClip(const vtkImageClip&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkImageClip&) VTK_DELETE_FUNCTION;
+  vtkImageClip(const vtkImageClip&) = delete;
+  void operator=(const vtkImageClip&) = delete;
 };
 
 

@@ -28,6 +28,8 @@
 #include "vtkObjectFactory.h"
 #include "vtkPointData.h"
 #include "vtkSmartPointer.h"
+#include "vtkSMPTools.h"
+#include "vtkSMPThreadLocalObject.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtkUnsignedCharArray.h"
 
@@ -36,6 +38,7 @@ vtkObjectFactoryNewMacro(vtkResampleWithDataSet);
 
 //-----------------------------------------------------------------------------
 vtkResampleWithDataSet::vtkResampleWithDataSet()
+  : MarkBlankPointsAndCells(true)
 {
   this->SetNumberOfInputPorts(2);
   this->SetNumberOfOutputPorts(1);
@@ -67,6 +70,18 @@ void vtkResampleWithDataSet::SetSourceData(vtkDataObject *input)
 }
 
 //----------------------------------------------------------------------------
+void vtkResampleWithDataSet::SetCategoricalData(bool arg)
+{
+  this->Prober->SetCategoricalData(arg);
+}
+
+bool vtkResampleWithDataSet::GetCategoricalData()
+{
+  // work around for Visual Studio warning C4800:
+  // 'int' : forcing value to bool 'true' or 'false' (performance warning)
+  return this->Prober->GetCategoricalData() ? true : false;
+}
+
 void vtkResampleWithDataSet::SetPassCellArrays(bool arg)
 {
   this->Prober->SetPassCellArrays(arg);
@@ -74,7 +89,7 @@ void vtkResampleWithDataSet::SetPassCellArrays(bool arg)
 
 bool vtkResampleWithDataSet::GetPassCellArrays()
 {
-  // work arround for Visual Studio warning C4800:
+  // work around for Visual Studio warning C4800:
   // 'int' : forcing value to bool 'true' or 'false' (performance warning)
   return this->Prober->GetPassCellArrays() ? true : false;
 }
@@ -100,9 +115,45 @@ bool vtkResampleWithDataSet::GetPassFieldArrays()
 }
 
 //----------------------------------------------------------------------------
+void vtkResampleWithDataSet::SetTolerance(double arg)
+{
+  this->Prober->SetTolerance(arg);
+}
+
+double vtkResampleWithDataSet::GetTolerance()
+{
+  return this->Prober->GetTolerance();
+}
+
+void vtkResampleWithDataSet::SetComputeTolerance(bool arg)
+{
+  this->Prober->SetComputeTolerance(arg);
+}
+
+bool vtkResampleWithDataSet::GetComputeTolerance()
+{
+  return this->Prober->GetComputeTolerance();
+}
+
+//----------------------------------------------------------------------------
 vtkMTimeType vtkResampleWithDataSet::GetMTime()
 {
   return std::max(this->Superclass::GetMTime(), this->Prober->GetMTime());
+}
+
+//----------------------------------------------------------------------------
+int vtkResampleWithDataSet::RequestInformation(vtkInformation *,
+                                               vtkInformationVector **inputVector,
+                                               vtkInformationVector *outputVector)
+{
+  // get the info objects
+  vtkInformation *sourceInfo = inputVector[1]->GetInformationObject(0);
+  vtkInformation *outInfo = outputVector->GetInformationObject(0);
+
+  outInfo->CopyEntry(sourceInfo, vtkStreamingDemandDrivenPipeline::TIME_STEPS());
+  outInfo->CopyEntry(sourceInfo, vtkStreamingDemandDrivenPipeline::TIME_RANGE());
+
+  return 1;
 }
 
 //-----------------------------------------------------------------------------
@@ -110,16 +161,22 @@ int vtkResampleWithDataSet::RequestUpdateExtent(vtkInformation *,
                                                 vtkInformationVector **inputVector,
                                                 vtkInformationVector *)
 {
-  // This filter always asks for whole extent downstream. To resample
-  // a subset of a structured input, you need to use ExtractVOI.
-  vtkInformation *inInfo = inputVector[0]->GetInformationObject(0);
-  inInfo->Remove(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT());
-  if (inInfo->Has(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT()))
+  vtkInformation *sourceInfo = inputVector[1]->GetInformationObject(0);
+
+  sourceInfo->Remove(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT());
+  if (sourceInfo->Has(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT()))
   {
-    inInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(),
-                inInfo->Get(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT()),
-                6);
+    sourceInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(),
+                    sourceInfo->Get(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT()),
+                    6);
   }
+
+  sourceInfo->Set(
+    vtkStreamingDemandDrivenPipeline::UPDATE_PIECE_NUMBER(), 0);
+  sourceInfo->Set(
+    vtkStreamingDemandDrivenPipeline::UPDATE_NUMBER_OF_PIECES(), 1);
+  sourceInfo->Set(
+    vtkStreamingDemandDrivenPipeline::UPDATE_NUMBER_OF_GHOST_LEVELS(), 0);
 
   return 1;
 }
@@ -148,6 +205,74 @@ const char* vtkResampleWithDataSet::GetMaskArrayName() const
 }
 
 //-----------------------------------------------------------------------------
+namespace
+{
+
+class MarkHiddenPoints
+{
+public:
+  MarkHiddenPoints(char *maskArray, vtkUnsignedCharArray *pointGhostArray)
+    : MaskArray(maskArray), PointGhostArray(pointGhostArray)
+  {
+  }
+
+  void operator()(vtkIdType begin, vtkIdType end)
+  {
+    for (vtkIdType i = begin; i < end; ++i)
+    {
+      if (!this->MaskArray[i])
+      {
+        this->PointGhostArray->SetValue(i, this->PointGhostArray->GetValue(i) |
+                                           vtkDataSetAttributes::HIDDENPOINT);
+      }
+    }
+  }
+
+private:
+  char *MaskArray;
+  vtkUnsignedCharArray *PointGhostArray;
+};
+
+class MarkHiddenCells
+{
+public:
+  MarkHiddenCells(vtkDataSet *data, char *maskArray,
+                  vtkUnsignedCharArray *cellGhostArray)
+    : Data(data), MaskArray(maskArray), CellGhostArray(cellGhostArray)
+  {
+  }
+
+  void operator()(vtkIdType begin, vtkIdType end)
+  {
+    vtkIdList *cellPoints = this->PointIds.Local();
+
+    for (vtkIdType i = begin; i < end; ++i)
+    {
+      this->Data->GetCellPoints(i, cellPoints);
+      vtkIdType npts = cellPoints->GetNumberOfIds();
+      for (vtkIdType j = 0; j < npts; ++j)
+      {
+        vtkIdType ptid = cellPoints->GetId(j);
+        if (!this->MaskArray[ptid])
+        {
+          this->CellGhostArray->SetValue(i, this->CellGhostArray->GetValue(i) |
+                                            vtkDataSetAttributes::HIDDENPOINT);
+          break;
+        }
+      }
+    }
+  }
+
+private:
+  vtkDataSet *Data;
+  char *MaskArray;
+  vtkUnsignedCharArray *CellGhostArray;
+
+  vtkSMPThreadLocalObject<vtkIdList> PointIds;
+};
+
+} // anonymous namespace
+
 void vtkResampleWithDataSet::SetBlankPointsAndCells(vtkDataSet *dataset)
 {
   if (dataset->GetNumberOfPoints() <= 0)
@@ -162,35 +287,23 @@ void vtkResampleWithDataSet::SetBlankPointsAndCells(vtkDataSet *dataset)
 
   dataset->AllocatePointGhostArray();
   vtkUnsignedCharArray *pointGhostArray = dataset->GetPointGhostArray();
+
   vtkIdType numPoints = dataset->GetNumberOfPoints();
-  for (vtkIdType i = 0; i < numPoints; ++i)
-  {
-    if (!mask[i])
-    {
-      pointGhostArray->SetValue(i, pointGhostArray->GetValue(i) |
-                                   vtkDataSetAttributes::HIDDENPOINT);
-    }
-  }
+  MarkHiddenPoints pointWorklet(mask, pointGhostArray);
+  vtkSMPTools::For(0, numPoints, pointWorklet);
+
 
   dataset->AllocateCellGhostArray();
   vtkUnsignedCharArray *cellGhostArray = dataset->GetCellGhostArray();
-  vtkNew<vtkIdList> cellPoints;
+
   vtkIdType numCells = dataset->GetNumberOfCells();
-  for (vtkIdType i = 0; i < numCells; ++i)
-  {
-    dataset->GetCellPoints(i, cellPoints.GetPointer());
-    vtkIdType npts = cellPoints->GetNumberOfIds();
-    for (vtkIdType j = 0; j < npts; ++j)
-    {
-      vtkIdType ptid = cellPoints->GetId(j);
-      if (!mask[ptid])
-      {
-        cellGhostArray->SetValue(i, cellGhostArray->GetValue(i) |
-                                    vtkDataSetAttributes::HIDDENPOINT);
-        break;
-      }
-    }
-  }
+  // GetCellPoints needs to be called once from a single thread for safe
+  // multi-threaded calls
+  vtkNew<vtkIdList> cpts;
+  dataset->GetCellPoints(0, cpts);
+
+  MarkHiddenCells cellWorklet(dataset, mask, cellGhostArray);
+  vtkSMPTools::For(0, numCells, cellWorklet);
 }
 
 //-----------------------------------------------------------------------------
@@ -216,7 +329,10 @@ int vtkResampleWithDataSet::RequestData(vtkInformation *vtkNotUsed(request),
     this->Prober->SetSourceData(source);
     this->Prober->Update();
     output->ShallowCopy(this->Prober->GetOutput());
-    this->SetBlankPointsAndCells(output);
+    if (this->MarkBlankPointsAndCells)
+    {
+      this->SetBlankPointsAndCells(output);
+    }
   }
   else if (inDataObject->IsA("vtkCompositeDataSet"))
   {
@@ -228,7 +344,7 @@ int vtkResampleWithDataSet::RequestData(vtkInformation *vtkNotUsed(request),
 
     vtkSmartPointer<vtkCompositeDataIterator> iter;
     iter.TakeReference(input->NewIterator());
-    for (iter->InitReverseTraversal(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
+    for (iter->InitTraversal(); !iter->IsDoneWithTraversal(); iter->GoToNextItem())
     {
       vtkDataSet *ds = static_cast<vtkDataSet*>(iter->GetCurrentDataObject());
       if (ds)
@@ -238,9 +354,12 @@ int vtkResampleWithDataSet::RequestData(vtkInformation *vtkNotUsed(request),
         vtkDataSet *result = this->Prober->GetOutput();
 
         vtkDataSet *block = result->NewInstance();
-        block->DeepCopy(result);
-        this->SetBlankPointsAndCells(block);
-        output->SetDataSet(iter.GetPointer(), block);
+        block->ShallowCopy(result);
+        if (this->MarkBlankPointsAndCells)
+        {
+          this->SetBlankPointsAndCells(block);
+        }
+        output->SetDataSet(iter, block);
         block->Delete();
       }
     }

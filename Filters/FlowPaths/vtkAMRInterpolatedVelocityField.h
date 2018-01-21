@@ -47,12 +47,12 @@ public:
 
   bool SetLastDataSet(int level, int id);
 
-  virtual void SetLastCellId( vtkIdType c, int dataindex );
+  void SetLastCellId( vtkIdType c, int dataindex ) override;
 
   /**
    * Set the cell id cached by the last evaluation.
    */
-  virtual void SetLastCellId( vtkIdType c )
+  void SetLastCellId( vtkIdType c ) override
     { this->Superclass::SetLastCellId( c ); }
 
   /**
@@ -66,9 +66,9 @@ public:
    * still valid
    */
 
-  virtual int FunctionValues( double * x, double * f );
+  int FunctionValues( double * x, double * f ) override;
 
-  void PrintSelf( ostream & os, vtkIndent indent );
+  void PrintSelf( ostream & os, vtkIndent indent ) override;
 
   // Descriptino:
   // Point location routine.
@@ -80,13 +80,13 @@ protected:
   int LastId;
 
   vtkAMRInterpolatedVelocityField();
-  ~vtkAMRInterpolatedVelocityField();
-  virtual int FunctionValues( vtkDataSet * ds, double * x, double * f )
+  ~vtkAMRInterpolatedVelocityField() override;
+  int FunctionValues( vtkDataSet * ds, double * x, double * f ) override
     { return this->Superclass::FunctionValues( ds, x, f ); }
 
 private:
-  vtkAMRInterpolatedVelocityField(const vtkAMRInterpolatedVelocityField&) VTK_DELETE_FUNCTION;
-  void operator = ( const vtkAMRInterpolatedVelocityField& ) VTK_DELETE_FUNCTION;
+  vtkAMRInterpolatedVelocityField(const vtkAMRInterpolatedVelocityField&) = delete;
+  void operator = ( const vtkAMRInterpolatedVelocityField& ) = delete;
 
 };
 

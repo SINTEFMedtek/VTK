@@ -88,13 +88,13 @@ GeoJSONReaderInternal::ParseRoot(
   // Initialize geometry containers
   vtkNew<vtkPoints> points;
   points->SetDataTypeToDouble();
-  output->SetPoints(points.GetPointer());
+  output->SetPoints(points);
   vtkNew<vtkCellArray> verts;
-  output->SetVerts(verts.GetPointer());
+  output->SetVerts(verts);
   vtkNew<vtkCellArray> lines;
-  output->SetLines(lines.GetPointer());
+  output->SetLines(lines);
   vtkNew<vtkCellArray> polys;
-  output->SetPolys(polys.GetPointer());
+  output->SetPolys(polys);
 
   // Initialize feature-id array
   vtkStringArray *featureIdArray = vtkStringArray::New();
@@ -114,9 +114,9 @@ GeoJSONReaderInternal::ParseRoot(
   vtkAbstractArray *array;
   std::vector<GeoJSONProperty>::iterator iter =
     this->PropertySpecs.begin();
-  for (; iter != this->PropertySpecs.end(); iter++)
+  for (; iter != this->PropertySpecs.end(); ++iter)
   {
-    array = NULL;
+    array = nullptr;
     switch (iter->Value.GetType())
     {
       case VTK_BIT:
@@ -285,7 +285,7 @@ void vtkGeoJSONReader::GeoJSONReaderInternal::ParseFeatureProperties(
   GeoJSONProperty property;
   std::vector<GeoJSONProperty>::iterator iter =
     this->PropertySpecs.begin();
-  for (; iter != this->PropertySpecs.end(); iter++)
+  for (; iter != this->PropertySpecs.end(); ++iter)
   {
     spec = *iter;
     property.Name = spec.Name;
@@ -343,7 +343,7 @@ GeoJSONReaderInternal::InsertFeatureProperties(vtkPolyData *polyData,
 {
   std::vector<GeoJSONProperty>::const_iterator iter =
     featureProperties.begin();
-  for(; iter != featureProperties.end(); iter++)
+  for(; iter != featureProperties.end(); ++iter)
   {
     std::string name = iter->Name;
     vtkVariant value = iter->Value;
@@ -374,12 +374,12 @@ GeoJSONReaderInternal::InsertFeatureProperties(vtkPolyData *polyData,
 //----------------------------------------------------------------------------
 vtkGeoJSONReader::vtkGeoJSONReader()
 {
-  this->FileName = NULL;
-  this->StringInput = NULL;
+  this->FileName = nullptr;
+  this->StringInput = nullptr;
   this->StringInputMode = false;
   this->TriangulatePolygons = false;
   this->OutlinePolygons = false;
-  this->SerializedPropertiesArrayName = NULL;
+  this->SerializedPropertiesArrayName = nullptr;
   this->SetNumberOfInputPorts(0);
   this->SetNumberOfOutputPorts(1);
   this->Internal = new GeoJSONReaderInternal;
@@ -402,7 +402,7 @@ AddFeatureProperty(const char *name, vtkVariant& typeAndDefaultValue)
   // Traverse internal list checking if name already used
   std::vector<GeoJSONReaderInternal::GeoJSONProperty>::iterator iter =
     this->Internal->PropertySpecs.begin();
-  for (; iter != this->Internal->PropertySpecs.end(); iter++)
+  for (; iter != this->Internal->PropertySpecs.end(); ++iter)
   {
     if (iter->Name == name)
     {

@@ -40,7 +40,7 @@ class VTKFILTERSEXTRACTION_EXPORT vtkExtractRectilinearGrid : public vtkRectilin
 public:
   static vtkExtractRectilinearGrid *New();
   vtkTypeMacro(vtkExtractRectilinearGrid,vtkRectilinearGridAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -80,11 +80,11 @@ public:
 
 protected:
   vtkExtractRectilinearGrid();
-  ~vtkExtractRectilinearGrid();
+  ~vtkExtractRectilinearGrid() override;
 
-  virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-  virtual int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-  virtual int RequestUpdateExtent(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
+  int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
+  int RequestUpdateExtent(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
 
   /**
    * Implementation for RequestData using a specified VOI. This is because the
@@ -101,8 +101,8 @@ protected:
 
   vtkExtractStructuredGridHelper* Internal;
 private:
-  vtkExtractRectilinearGrid(const vtkExtractRectilinearGrid&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkExtractRectilinearGrid&) VTK_DELETE_FUNCTION;
+  vtkExtractRectilinearGrid(const vtkExtractRectilinearGrid&) = delete;
+  void operator=(const vtkExtractRectilinearGrid&) = delete;
 };
 
 #endif

@@ -60,7 +60,7 @@ public:
    * Standard methods for type information and printing.
    */
   vtkTypeMacro(vtkSelectEnclosedPoints,vtkDataSetAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   /**
@@ -137,7 +137,7 @@ public:
 
 protected:
   vtkSelectEnclosedPoints();
-  ~vtkSelectEnclosedPoints();
+  ~vtkSelectEnclosedPoints() override;
 
   int    CheckSurface;
   int    InsideOut;
@@ -154,14 +154,14 @@ protected:
   double          Bounds[6];
   double          Length;
 
-  virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-  virtual int FillInputPortInformation(int, vtkInformation *);
+  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
+  int FillInputPortInformation(int, vtkInformation *) override;
 
-  void ReportReferences(vtkGarbageCollector*) VTK_OVERRIDE;
+  void ReportReferences(vtkGarbageCollector*) override;
 
 private:
-  vtkSelectEnclosedPoints(const vtkSelectEnclosedPoints&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkSelectEnclosedPoints&) VTK_DELETE_FUNCTION;
+  vtkSelectEnclosedPoints(const vtkSelectEnclosedPoints&) = delete;
+  void operator=(const vtkSelectEnclosedPoints&) = delete;
 };
 
 #endif

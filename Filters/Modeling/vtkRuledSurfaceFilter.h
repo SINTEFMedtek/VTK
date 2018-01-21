@@ -68,7 +68,7 @@ class VTKFILTERSMODELING_EXPORT vtkRuledSurfaceFilter : public vtkPolyDataAlgori
 {
 public:
   vtkTypeMacro(vtkRuledSurfaceFilter,vtkPolyDataAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Construct object with OnRatio=1, Offset=0. DistanceFactor=3.0,
@@ -150,7 +150,7 @@ public:
   //@{
   /**
    * Indicate whether the generating lines are to be passed to the output.
-   * By defualt lines are not passed to the output.
+   * By default lines are not passed to the output.
    */
   vtkSetMacro(PassLines,int);
   vtkGetMacro(PassLines,int);
@@ -162,7 +162,7 @@ public:
    * Indicate whether the starting points of the loops need to be determined.
    * If set to 0, then its assumes that the 0th point of each loop should be
    * always connected
-   * By defualt the loops are not oriented.
+   * By default the loops are not oriented.
    */
   vtkSetMacro(OrientLoops,int);
   vtkGetMacro(OrientLoops,int);
@@ -171,10 +171,10 @@ public:
 
 protected:
   vtkRuledSurfaceFilter();
-  ~vtkRuledSurfaceFilter();
+  ~vtkRuledSurfaceFilter() override;
 
   // Usual data generation method
-  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
 
   double DistanceFactor;
   int   OnRatio;
@@ -196,8 +196,8 @@ private:
                   int npts, vtkIdType *pts, int npts2, vtkIdType *pts2);
 
 private:
-  vtkRuledSurfaceFilter(const vtkRuledSurfaceFilter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkRuledSurfaceFilter&) VTK_DELETE_FUNCTION;
+  vtkRuledSurfaceFilter(const vtkRuledSurfaceFilter&) = delete;
+  void operator=(const vtkRuledSurfaceFilter&) = delete;
 };
 
 #endif

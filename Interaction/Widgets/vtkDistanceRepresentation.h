@@ -41,7 +41,7 @@ public:
    * Standard VTK methods.
    */
   vtkTypeMacro(vtkDistanceRepresentation,vtkWidgetRepresentation);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   /**
@@ -165,15 +165,27 @@ public:
   /**
    * These are methods that satisfy vtkWidgetRepresentation's API.
    */
-  virtual void BuildRepresentation();
-  virtual int ComputeInteractionState(int X, int Y, int modify=0);
-  virtual void StartWidgetInteraction(double e[2]);
-  virtual void WidgetInteraction(double e[2]);
+  void BuildRepresentation() override;
+  int ComputeInteractionState(int X, int Y, int modify=0) override;
+  void StartWidgetInteraction(double e[2]) override;
+  void WidgetInteraction(double e[2]) override;
+  void StartComplexInteraction(
+    vtkRenderWindowInteractor *iren,
+    vtkAbstractWidget *widget,
+    unsigned long event, void *calldata) override;
+  void ComplexInteraction(
+    vtkRenderWindowInteractor *iren,
+    vtkAbstractWidget *widget,
+    unsigned long event, void *calldata) override;
+  int ComputeComplexInteractionState(
+    vtkRenderWindowInteractor *iren,
+    vtkAbstractWidget *widget,
+    unsigned long event, void *calldata, int modify = 0) override;
   //@}
 
 protected:
   vtkDistanceRepresentation();
-  ~vtkDistanceRepresentation();
+  ~vtkDistanceRepresentation() override;
 
   // The handle and the rep used to close the handles
   vtkHandleRepresentation *HandleRepresentation;
@@ -196,8 +208,8 @@ protected:
   int NumberOfRulerTicks;
 
 private:
-  vtkDistanceRepresentation(const vtkDistanceRepresentation&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkDistanceRepresentation&) VTK_DELETE_FUNCTION;
+  vtkDistanceRepresentation(const vtkDistanceRepresentation&) = delete;
+  void operator=(const vtkDistanceRepresentation&) = delete;
 };
 
 #endif

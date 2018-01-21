@@ -38,8 +38,8 @@ class VTKRENDERINGCORE_EXPORT vtkDataSetMapper : public vtkMapper
 public:
   static vtkDataSetMapper *New();
   vtkTypeMacro(vtkDataSetMapper, vtkMapper);
-  void PrintSelf(ostream& os, vtkIndent indent);
-  void Render(vtkRenderer *ren, vtkActor *act);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
+  void Render(vtkRenderer *ren, vtkActor *act) override;
 
   //@{
   /**
@@ -53,12 +53,12 @@ public:
    * The parameter window could be used to determine which graphic
    * resources to release.
    */
-  void ReleaseGraphicsResources(vtkWindow *);
+  void ReleaseGraphicsResources(vtkWindow *) override;
 
   /**
    * Get the mtime also considering the lookup table.
    */
-  vtkMTimeType GetMTime();
+  vtkMTimeType GetMTime() override;
 
   //@{
   /**
@@ -70,19 +70,19 @@ public:
 
 protected:
   vtkDataSetMapper();
-  ~vtkDataSetMapper();
+  ~vtkDataSetMapper() override;
 
   vtkDataSetSurfaceFilter *GeometryExtractor;
   vtkPolyDataMapper *PolyDataMapper;
 
-  void ReportReferences(vtkGarbageCollector*) VTK_OVERRIDE;
+  void ReportReferences(vtkGarbageCollector*) override;
 
   // see algorithm for more info
-  virtual int FillInputPortInformation(int port, vtkInformation* info);
+  int FillInputPortInformation(int port, vtkInformation* info) override;
 
 private:
-  vtkDataSetMapper(const vtkDataSetMapper&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkDataSetMapper&) VTK_DELETE_FUNCTION;
+  vtkDataSetMapper(const vtkDataSetMapper&) = delete;
+  void operator=(const vtkDataSetMapper&) = delete;
 };
 
 #endif

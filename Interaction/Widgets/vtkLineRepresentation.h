@@ -68,7 +68,7 @@ public:
    * Standard methods for the class.
    */
   vtkTypeMacro(vtkLineRepresentation,vtkWidgetRepresentation);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   //@{
@@ -176,23 +176,23 @@ public:
   /**
    * These are methods that satisfy vtkWidgetRepresentation's API.
    */
-  virtual void PlaceWidget(double bounds[6]);
-  virtual void BuildRepresentation();
-  virtual int ComputeInteractionState(int X, int Y, int modify=0);
-  virtual void StartWidgetInteraction(double e[2]);
-  virtual void WidgetInteraction(double e[2]);
-  virtual double *GetBounds();
+  void PlaceWidget(double bounds[6]) override;
+  void BuildRepresentation() override;
+  int ComputeInteractionState(int X, int Y, int modify=0) override;
+  void StartWidgetInteraction(double e[2]) override;
+  void WidgetInteraction(double e[2]) override;
+  double *GetBounds() override;
   //@}
 
   //@{
   /**
    * Methods supporting the rendering process.
    */
-  virtual void GetActors(vtkPropCollection *pc);
-  virtual void ReleaseGraphicsResources(vtkWindow*);
-  virtual int RenderOpaqueGeometry(vtkViewport*);
-  virtual int RenderTranslucentPolygonalGeometry(vtkViewport*);
-  virtual int HasTranslucentPolygonalGeometry();
+  void GetActors(vtkPropCollection *pc) override;
+  void ReleaseGraphicsResources(vtkWindow*) override;
+  int RenderOpaqueGeometry(vtkViewport*) override;
+  int RenderTranslucentPolygonalGeometry(vtkViewport*) override;
+  int HasTranslucentPolygonalGeometry() override;
   //@}
 
   // Manage the state of the widget
@@ -234,12 +234,12 @@ public:
    * Overload the superclasses' GetMTime() because internal classes
    * are used to keep the state of the representation.
    */
-  virtual vtkMTimeType GetMTime();
+  vtkMTimeType GetMTime() override;
 
   /**
    * Overridden to set the rendererer on the internal representations.
    */
-  virtual void SetRenderer(vtkRenderer *ren);
+  void SetRenderer(vtkRenderer *ren) override;
 
   //@{
   /**
@@ -310,7 +310,7 @@ public:
 
 protected:
   vtkLineRepresentation();
-  ~vtkLineRepresentation();
+  ~vtkLineRepresentation() override;
 
   // The handle and the rep used to close the handles
   vtkPointHandleRepresentation3D *HandleRepresentation;
@@ -384,8 +384,8 @@ protected:
   int RestrictFlag;
 
 private:
-  vtkLineRepresentation(const vtkLineRepresentation&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkLineRepresentation&) VTK_DELETE_FUNCTION;
+  vtkLineRepresentation(const vtkLineRepresentation&) = delete;
+  void operator=(const vtkLineRepresentation&) = delete;
 };
 
 #endif

@@ -88,29 +88,29 @@ public:
   vtkTypeMacro(vtkMINCImageReader,vtkImageReader2);
 
   static vtkMINCImageReader *New();
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Set the file name.
    */
-  virtual void SetFileName(const char *name);
+  void SetFileName(const char *name) override;
 
   /**
    * Get the entension for this file format.
    */
-  virtual const char* GetFileExtensions() {
+  const char* GetFileExtensions() override {
     return ".mnc"; }
 
   /**
    * Get the name of this file format.
    */
-  virtual const char* GetDescriptiveName() {
+  const char* GetDescriptiveName() override {
     return "MINC"; }
 
   /**
    * Test whether the specified file can be read.
    */
-  virtual int CanReadFile(const char* name);
+  int CanReadFile(const char* name) override;
 
   /**
    * Get a matrix that describes the orientation of the data.
@@ -174,7 +174,7 @@ public:
 
 protected:
   vtkMINCImageReader();
-  ~vtkMINCImageReader();
+  ~vtkMINCImageReader() override;
 
   int MINCImageType;
   int MINCImageTypeSigned;
@@ -200,12 +200,12 @@ protected:
   virtual void FindRangeAndRescaleValues();
   static int ConvertMINCTypeToVTKType(int minctype, int mincsigned);
 
-  virtual void ExecuteInformation();
-  virtual void ExecuteDataWithInformation(vtkDataObject *out, vtkInformation *outInfo);
+  void ExecuteInformation() override;
+  void ExecuteDataWithInformation(vtkDataObject *out, vtkInformation *outInfo) override;
 
 private:
-  vtkMINCImageReader(const vtkMINCImageReader&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkMINCImageReader&) VTK_DELETE_FUNCTION;
+  vtkMINCImageReader(const vtkMINCImageReader&) = delete;
+  void operator=(const vtkMINCImageReader&) = delete;
 
 };
 

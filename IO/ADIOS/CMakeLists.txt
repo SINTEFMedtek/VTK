@@ -1,4 +1,4 @@
-find_package(ADIOS REQUIRED)
+find_package(ADIOS 1.11 REQUIRED)
 include_directories(SYSTEM ${ADIOS_INCLUDE_DIRS})
 
 find_package(MPI REQUIRED)
@@ -26,23 +26,25 @@ set(Module_SOURCES
   )
 
 set_source_files_properties(
-  ADIOSDefs
-  ADIOSUtilities
+  ADIOSDefs.cxx
+  ADIOSUtilities.cxx
 
-  ADIOSWriter
+  ADIOSWriter.cxx
 
-  ADIOSAttribute
-  ADIOSVarInfo
-  ADIOSScalar
-  ADIOSReader
+  ADIOSAttribute.cxx
+  ADIOSVarInfo.cxx
+  ADIOSScalar.cxx
+  ADIOSReader.cxx
 
-  vtkADIOSUtilities
+  vtkADIOSUtilities.cxx
 
-  vtkADIOSWriterDefine
-  vtkADIOSWriterWrite
+  vtkADIOSWriterDefine.cxx
+  vtkADIOSWriterWrite.cxx
 
-  vtkADIOSDirTree
-  WRAP_EXCLUDE
+  vtkADIOSDirTree.cxx
+  PROPERTIES
+    WRAP_EXCLUDE 1
+    WRAP_EXCLUDE_PYTHON 1
   )
 
 vtk_module_library(vtkIOADIOS ${Module_SOURCES})

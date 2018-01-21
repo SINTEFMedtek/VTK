@@ -16,8 +16,8 @@
  * @class   vtkDataSetCollection
  * @brief   maintain an unordered list of dataset objects
  *
- * vtkDataSetCollection is an object that creates and manipulates lists of
- * datasets. See also vtkCollection and subclasses.
+ * vtkDataSetCollection is an object that creates and manipulates ordered
+ * lists of datasets. See also vtkCollection and subclasses.
 */
 
 #ifndef vtkDataSetCollection_h
@@ -35,7 +35,7 @@ public:
   vtkTypeMacro(vtkDataSetCollection,vtkCollection);
 
   /**
-   * Add a dataset to the list.
+   * Add a dataset to the bottom of the list.
    */
   void AddItem(vtkDataSet *ds)
   {
@@ -71,15 +71,15 @@ public:
 
 protected:
   vtkDataSetCollection() {}
-  ~vtkDataSetCollection() VTK_OVERRIDE {}
+  ~vtkDataSetCollection() override {}
 
 private:
   // hide the standard AddItem from the user and the compiler.
   void AddItem(vtkObject *o) { this->vtkCollection::AddItem(o); };
 
 private:
-  vtkDataSetCollection(const vtkDataSetCollection&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkDataSetCollection&) VTK_DELETE_FUNCTION;
+  vtkDataSetCollection(const vtkDataSetCollection&) = delete;
+  void operator=(const vtkDataSetCollection&) = delete;
 };
 
 

@@ -88,7 +88,7 @@ class VTKRENDERINGOPENGL_EXPORT vtkFrameBufferObject2 : public vtkObject
 public:
   static vtkFrameBufferObject2* New();
   vtkTypeMacro(vtkFrameBufferObject2, vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -125,7 +125,7 @@ public:
 
   /**
    * Store the current framebuffer bindings. If this method
-   * is called then UnBind will restore the saved value accoring
+   * is called then UnBind will restore the saved value according
    * to its mode (DRAW_FRAMEBUFFER,READ_FRAMEBUFFER,FRAMEBUFFER)
    * Restoration occurs in UnBind.
    * Low level api
@@ -247,7 +247,7 @@ public:
   /**
    * Copy from the currently bound READ FBO to the currently
    * bound DRAW FBO. The method is static so that one doesn't
-   * need to ccreate an instance when transfering between attachments
+   * need to ccreate an instance when transferring between attachments
    * in the default FBO.
    */
   static
@@ -261,7 +261,7 @@ public:
    * Download data from the read color attachment of the currently
    * bound FBO into the retruned PBO. The PBO must be free'd when
    * you are finished with it. The number of components in the
-   * PBO is the same as in the name of the specific  download fucntion.
+   * PBO is the same as in the name of the specific download function.
    * When downloading a single color channel, the channel must be
    * identified by index, 1->red, 2->green, 3-> blue.
    */
@@ -330,7 +330,7 @@ protected:
   int GetOpenGLType(int vtkType);
 
   vtkFrameBufferObject2();
-  ~vtkFrameBufferObject2();
+  ~vtkFrameBufferObject2() override;
 
   vtkWeakPointer<vtkRenderWindow> Context;
 
@@ -342,8 +342,8 @@ protected:
   unsigned int PreviousReadBuffer;
 
 private:
-  vtkFrameBufferObject2(const vtkFrameBufferObject2&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkFrameBufferObject2&) VTK_DELETE_FUNCTION;
+  vtkFrameBufferObject2(const vtkFrameBufferObject2&) = delete;
+  void operator=(const vtkFrameBufferObject2&) = delete;
 
   friend class vtkRenderbuffer; // needs access to LoadRequiredExtentsions
 

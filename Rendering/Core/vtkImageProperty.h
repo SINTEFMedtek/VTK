@@ -37,7 +37,7 @@ class VTKRENDERINGCORE_EXPORT vtkImageProperty : public vtkObject
 {
 public:
   vtkTypeMacro(vtkImageProperty,vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Construct a property with no lookup table.
@@ -91,6 +91,7 @@ public:
    * The opacity of the image, where 1.0 is opaque and 0.0 is
    * transparent.  If the image has an alpha component, then
    * the alpha component will be multiplied by this value.
+   * The default is 1.0.
    */
   vtkSetClampMacro(Opacity, double, 0.0, 1.0);
   vtkGetMacro(Opacity, double);
@@ -189,11 +190,11 @@ public:
    * Get the MTime for this property.  If the lookup table is set,
    * the mtime will include the mtime of the lookup table.
    */
-  vtkMTimeType GetMTime();
+  vtkMTimeType GetMTime() override;
 
 protected:
   vtkImageProperty();
-  ~vtkImageProperty();
+  ~vtkImageProperty() override;
 
   vtkScalarsToColors *LookupTable;
   double ColorWindow;
@@ -211,8 +212,8 @@ protected:
   double BackingColor[3];
 
 private:
-  vtkImageProperty(const vtkImageProperty&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkImageProperty&) VTK_DELETE_FUNCTION;
+  vtkImageProperty(const vtkImageProperty&) = delete;
+  void operator=(const vtkImageProperty&) = delete;
 };
 
 #endif

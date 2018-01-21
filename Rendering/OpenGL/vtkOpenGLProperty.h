@@ -39,32 +39,32 @@ class VTKRENDERINGOPENGL_EXPORT vtkOpenGLProperty : public vtkProperty
 public:
   static vtkOpenGLProperty *New();
   vtkTypeMacro(vtkOpenGLProperty, vtkProperty);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Implement base class method.
    */
-  void Render(vtkActor *a, vtkRenderer *ren);
+  void Render(vtkActor *a, vtkRenderer *ren) override;
 
   /**
    * Implement base class method.
    */
-  void BackfaceRender(vtkActor *a, vtkRenderer *ren);
+  void BackfaceRender(vtkActor *a, vtkRenderer *ren) override;
 
   /**
    * This method is called after the actor has been rendered.
    * Don't call this directly. This method cleans up
    * any shaders allocated.
    */
-  virtual void PostRender(vtkActor *a,
-                          vtkRenderer *r);
+  void PostRender(vtkActor *a,
+                          vtkRenderer *r) override;
 
   /**
    * Release any graphics resources that are being consumed by this
    * property. The parameter window could be used to determine which graphic
    * resources to release.
    */
-  virtual void ReleaseGraphicsResources(vtkWindow *win);
+  void ReleaseGraphicsResources(vtkWindow *win) override;
 
   //@{
   /**
@@ -78,7 +78,7 @@ public:
   /**
    * Get the object that can pass vertex attribute to a vtkShaderProgram2.
    */
-  virtual vtkShaderDeviceAdapter2* GetShaderDeviceAdapter2();
+  vtkShaderDeviceAdapter2* GetShaderDeviceAdapter2() override;
 
   //@{
   /**
@@ -96,9 +96,9 @@ public:
    * - \p numVars - number of variables being set
    * - \p x - values
    */
-  virtual void AddShaderVariable(const char *name, int numVars, int *x);
-  virtual void AddShaderVariable(const char *name, int numVars, float *x);
-  virtual void AddShaderVariable(const char *name, int numVars, double *x);
+  void AddShaderVariable(const char *name, int numVars, int *x) override;
+  void AddShaderVariable(const char *name, int numVars, float *x) override;
+  void AddShaderVariable(const char *name, int numVars, double *x) override;
   //@}
 
   /**
@@ -112,7 +112,7 @@ public:
 
 protected:
   vtkOpenGLProperty();
-  ~vtkOpenGLProperty();
+  ~vtkOpenGLProperty() override;
 
   /**
    * Method called in vtkOpenGLProperty::Render() to render shaders and/or
@@ -156,8 +156,8 @@ protected:
   vtkGLSLShaderDeviceAdapter2 *ShaderDeviceAdapter2;
 
 private:
-  vtkOpenGLProperty(const vtkOpenGLProperty&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkOpenGLProperty&) VTK_DELETE_FUNCTION;
+  vtkOpenGLProperty(const vtkOpenGLProperty&) = delete;
+  void operator=(const vtkOpenGLProperty&) = delete;
 };
 
 #endif

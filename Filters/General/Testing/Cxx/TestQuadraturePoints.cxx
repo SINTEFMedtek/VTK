@@ -73,7 +73,7 @@ int TestQuadraturePoints(int argc,char *argv[])
   std::string tempBaseline=tempDir+"/TestQuadraturePoints.png";
 
   // Raed, xml or legacy file.
-  vtkUnstructuredGrid *input=0;
+  vtkUnstructuredGrid *input=nullptr;
   vtkSmartPointer<vtkXMLUnstructuredGridReader> xusgr = vtkSmartPointer<vtkXMLUnstructuredGridReader>::New();
   xusgr->SetFileName(inputFileName.c_str());
 
@@ -83,16 +83,16 @@ int TestQuadraturePoints(int argc,char *argv[])
   {
     input=xusgr->GetOutput();
     xusgr->Update();
-    lusgr=NULL;
+    lusgr=nullptr;
   }
   else if (lusgr->IsFileValid("unstructured_grid"))
   {
     lusgr->SetFileName(inputFileName.c_str());
     input=lusgr->GetOutput();
     lusgr->Update();
-    xusgr=NULL;
+    xusgr=nullptr;
   }
-  if (input==0)
+  if (input==nullptr)
   {
     std::cerr << "Error: Could not read file " << inputFileName << "." << std::endl;
     return EXIT_FAILURE;
@@ -105,7 +105,7 @@ int TestQuadraturePoints(int argc,char *argv[])
   std::string threshName=input->GetPointData()->GetArray(threshIdx)->GetName();
 
   // Add a quadrature scheme dictionary to the data set. This filter is
-  // solely for our convinience. Typically we would expect that users
+  // solely for our convenience. Typically we would expect that users
   // provide there own in XML format and use the readers or to generate
   // them on the fly.
   vtkSmartPointer<vtkQuadratureSchemeDictionaryGenerator> dictGen
@@ -119,27 +119,27 @@ int TestQuadraturePoints(int argc,char *argv[])
   fieldInterp->SetInputArrayToProcess(0, 0, 0, vtkDataObject::FIELD_ASSOCIATION_CELLS, "QuadratureOffset");
   fieldInterp->SetInputConnection(dictGen->GetOutputPort());
 
-  // Write the dataset as XML. This excercises the information writer.
+  // Write the dataset as XML. This exercises the information writer.
   vtkSmartPointer<vtkXMLUnstructuredGridWriter> xusgw
     = vtkSmartPointer<vtkXMLUnstructuredGridWriter>::New();
   xusgw->SetFileName(tempFile.c_str());
   xusgw->SetInputConnection(fieldInterp->GetOutputPort());
   xusgw->Write();
-  xusgw=NULL;
-  fieldInterp=NULL;
+  xusgw=nullptr;
+  fieldInterp=nullptr;
 
-  // Read the data back in form disk. This excercises the information reader.
-  xusgr=NULL;
+  // Read the data back in form disk. This exercises the information reader.
+  xusgr=nullptr;
   xusgr.TakeReference(vtkXMLUnstructuredGridReader::New());
   xusgr->SetFileName(tempFile.c_str());
   xusgr->Update();
 
   input=xusgr->GetOutput();
-  input->Register(0);
+  input->Register(nullptr);
   input->GetPointData()->SetActiveVectors(warpName.c_str());
   input->GetPointData()->SetActiveScalars(threshName.c_str());
 
-  xusgr=NULL;
+  xusgr=nullptr;
 
  // Demonstrate warp by vector.
   vtkSmartPointer<vtkWarpVector> warper = vtkSmartPointer<vtkWarpVector>::New();
@@ -182,7 +182,7 @@ int TestQuadraturePoints(int argc,char *argv[])
   pdmQPts->SetInputConnection(glyphs->GetOutputPort());
   pdmQPts->SetColorModeToMapScalars();
   pdmQPts->SetScalarModeToUsePointData();
-  if(output->GetPointData()->GetArray(0) == NULL)
+  if(output->GetPointData()->GetArray(0) == nullptr)
   {
     vtkGenericWarningMacro( << "no point data in output of vtkQuadraturePointsGenerator" );
     return EXIT_FAILURE;
@@ -203,7 +203,7 @@ int TestQuadraturePoints(int argc,char *argv[])
   surfaceActor->GetProperty()->SetRepresentationToSurface();
   surfaceActor->SetMapper(pdmWSurf);
   // Setup left render pane.
-  vtkCamera *camera=0;
+  vtkCamera *camera=nullptr;
   vtkSmartPointer<vtkRenderer> ren0 = vtkSmartPointer<vtkRenderer>::New();
   ren0->SetViewport(0.0,0.0,0.5,1.0);
   ren0->AddActor(outputActor);

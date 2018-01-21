@@ -33,7 +33,7 @@ class VTKFILTERSPARALLEL_EXPORT vtkPReflectionFilter : public vtkReflectionFilte
 public:
   static vtkPReflectionFilter* New();
   vtkTypeMacro(vtkPReflectionFilter, vtkReflectionFilter);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -45,17 +45,17 @@ public:
 
 protected:
   vtkPReflectionFilter();
-  ~vtkPReflectionFilter();
+  ~vtkPReflectionFilter() override;
 
   /**
    * Internal method to compute bounds.
    */
-  virtual int ComputeBounds(vtkDataObject* input, double bounds[6]);
+  int ComputeBounds(vtkDataObject* input, double bounds[6]) override;
 
   vtkMultiProcessController* Controller;
 private:
-  vtkPReflectionFilter(const vtkPReflectionFilter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPReflectionFilter&) VTK_DELETE_FUNCTION;
+  vtkPReflectionFilter(const vtkPReflectionFilter&) = delete;
+  void operator=(const vtkPReflectionFilter&) = delete;
 
 };
 

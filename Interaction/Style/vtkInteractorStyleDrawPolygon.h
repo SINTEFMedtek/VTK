@@ -37,15 +37,15 @@ class VTKINTERACTIONSTYLE_EXPORT vtkInteractorStyleDrawPolygon : public vtkInter
 public:
   static vtkInteractorStyleDrawPolygon *New();
   vtkTypeMacro(vtkInteractorStyleDrawPolygon, vtkInteractorStyle);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
    * Event bindings
    */
-  virtual void OnMouseMove();
-  virtual void OnLeftButtonDown();
-  virtual void OnLeftButtonUp();
+  void OnMouseMove() override;
+  void OnLeftButtonDown() override;
+  void OnLeftButtonUp() override;
   //@}
 
   //@{
@@ -64,7 +64,7 @@ public:
 
 protected:
   vtkInteractorStyleDrawPolygon();
-  ~vtkInteractorStyleDrawPolygon();
+  ~vtkInteractorStyleDrawPolygon() override;
 
   virtual void DrawPolygon();
 
@@ -77,8 +77,8 @@ protected:
   vtkUnsignedCharArray *PixelArray;
 
 private:
-  vtkInteractorStyleDrawPolygon(const vtkInteractorStyleDrawPolygon&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkInteractorStyleDrawPolygon&) VTK_DELETE_FUNCTION;
+  vtkInteractorStyleDrawPolygon(const vtkInteractorStyleDrawPolygon&) = delete;
+  void operator=(const vtkInteractorStyleDrawPolygon&) = delete;
 
   class vtkInternal;
   vtkInternal* Internal;

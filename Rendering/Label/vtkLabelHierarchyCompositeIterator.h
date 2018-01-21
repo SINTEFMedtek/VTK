@@ -49,7 +49,7 @@ class VTKRENDERINGLABEL_EXPORT vtkLabelHierarchyCompositeIterator : public vtkLa
 {
 public:
   vtkTypeMacro(vtkLabelHierarchyCompositeIterator, vtkLabelHierarchyIterator);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   static vtkLabelHierarchyCompositeIterator* New();
 
   /**
@@ -72,27 +72,27 @@ public:
    * This could include labels placed during a previous rendering or
    * a label located under the mouse pointer. You may pass a null pointer.
    */
-  virtual void Begin( vtkIdTypeArray* );
+  void Begin( vtkIdTypeArray* ) override;
 
   /**
    * Advance the iterator.
    */
-  virtual void Next();
+  void Next() override;
 
   /**
    * Returns true if the iterator is at the end.
    */
-  virtual bool IsAtEnd();
+  bool IsAtEnd() override;
 
   /**
    * Retrieves the current label id.
    */
-  virtual vtkIdType GetLabelId();
+  vtkIdType GetLabelId() override;
 
   /**
    * Retrieve the current label hierarchy.
    */
-  virtual vtkLabelHierarchy* GetHierarchy();
+  vtkLabelHierarchy* GetHierarchy() override;
 
   /**
    * Retrieve the coordinates of the center of the current hierarchy node
@@ -100,28 +100,28 @@ public:
    * Nodes are n-cubes, so the size is the length of any edge of the cube.
    * This is used by BoxNode().
    */
-  virtual void GetNodeGeometry( double ctr[3], double& size );
+  void GetNodeGeometry( double ctr[3], double& size ) override;
 
   /**
    * Not implemented.
    */
-  virtual void BoxNode() { }
+  void BoxNode() override { }
 
   /**
    * Not implemented.
    */
-  virtual void BoxAllNodes( vtkPolyData* ) { }
+  void BoxAllNodes( vtkPolyData* ) override { }
 
 protected:
   vtkLabelHierarchyCompositeIterator();
-  virtual ~vtkLabelHierarchyCompositeIterator();
+  ~vtkLabelHierarchyCompositeIterator() override;
 
   class Internal;
   Internal* Implementation;
 
 private:
-  vtkLabelHierarchyCompositeIterator( const vtkLabelHierarchyCompositeIterator& ) VTK_DELETE_FUNCTION;
-  void operator = ( const vtkLabelHierarchyCompositeIterator& ) VTK_DELETE_FUNCTION;
+  vtkLabelHierarchyCompositeIterator( const vtkLabelHierarchyCompositeIterator& ) = delete;
+  void operator = ( const vtkLabelHierarchyCompositeIterator& ) = delete;
 };
 
 #endif // vtkLabelHierarchyCompositeIterator_h

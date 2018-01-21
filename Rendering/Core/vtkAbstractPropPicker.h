@@ -80,7 +80,7 @@ class VTKRENDERINGCORE_EXPORT vtkAbstractPropPicker : public vtkAbstractPicker
 {
 public:
   vtkTypeMacro(vtkAbstractPropPicker,vtkAbstractPicker);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -146,14 +146,14 @@ public:
 
 protected:
   vtkAbstractPropPicker();
-  ~vtkAbstractPropPicker();
+  ~vtkAbstractPropPicker() override;
 
-  void Initialize();
+  void Initialize() override;
 
   vtkAssemblyPath *Path; //this is what is picked, and includes the prop
 private:
-  vtkAbstractPropPicker(const vtkAbstractPropPicker&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkAbstractPropPicker&) VTK_DELETE_FUNCTION;
+  vtkAbstractPropPicker(const vtkAbstractPropPicker&) = delete;
+  void operator=(const vtkAbstractPropPicker&) = delete;
 };
 
 #endif

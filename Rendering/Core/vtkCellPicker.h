@@ -65,7 +65,7 @@ class VTKRENDERINGCORE_EXPORT vtkCellPicker : public vtkPicker
 public:
   static vtkCellPicker *New();
   vtkTypeMacro(vtkCellPicker, vtkPicker);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Perform pick operation with selection point provided. Normally the
@@ -73,8 +73,15 @@ public:
    * the third value is z=0. The return value will be non-zero if
    * something was successfully picked.
    */
-  virtual int Pick(double selectionX, double selectionY, double selectionZ,
-                   vtkRenderer *renderer);
+  int Pick(double selectionX, double selectionY, double selectionZ,
+                   vtkRenderer *renderer) override;
+
+  /**
+   * Perform pick operation with selection point provided. The
+   * selectionPt is in world coordinates.
+   * Return non-zero if something was successfully picked.
+   */
+  int Pick3DRay(double selectionPt[3], double orient[4], vtkRenderer *ren) override;
 
   /**
    * Add a locator for one of the data sets that will be included in the
@@ -244,19 +251,27 @@ public:
 
 protected:
   vtkCellPicker();
-  ~vtkCellPicker();
+  ~vtkCellPicker() override;
 
-  void Initialize();
+  void Initialize() override;
 
   virtual void ResetPickInfo();
 
-  virtual double IntersectWithLine(double p1[3], double p2[3], double tol,
+  double IntersectWithLine(double p1[3], double p2[3], double tol,
                                   vtkAssemblyPath *path, vtkProp3D *p,
-                                  vtkAbstractMapper3D *m);
+                                  vtkAbstractMapper3D *m) override;
 
   virtual double IntersectActorWithLine(const double p1[3], const double p2[3],
                                         double t1, double t2, double tol,
                                         vtkProp3D *prop, vtkMapper *mapper);
+
+  virtual bool IntersectDataSetWithLine(vtkDataSet* dataSet,
+                                        const double p1[3], const double p2[3],
+                                        double t1, double t2, double tol,
+                                        vtkAbstractCellLocator* &locator,
+                                        vtkIdType& cellId, int& subId,
+                                        double &tMin, double &pDistMin,
+                                        double xyz[3], double minPCoords[3] );
 
   virtual double IntersectVolumeWithLine(const double p1[3],
                                          const double p2[3],
@@ -336,8 +351,8 @@ private:
   vtkDoubleArray *Gradients; //used in volume picking
 
 private:
-  vtkCellPicker(const vtkCellPicker&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkCellPicker&) VTK_DELETE_FUNCTION;
+  vtkCellPicker(const vtkCellPicker&) = delete;
+  void operator=(const vtkCellPicker&) = delete;
 };
 
 #endif

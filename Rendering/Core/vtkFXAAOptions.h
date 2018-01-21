@@ -48,7 +48,7 @@ public:
 
   static vtkFXAAOptions* New();
   vtkTypeMacro(vtkFXAAOptions, vtkObject)
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
   //@{
   /**
@@ -179,7 +179,7 @@ public:
 
 protected:
   vtkFXAAOptions();
-  ~vtkFXAAOptions();
+  ~vtkFXAAOptions() override;
 
   float RelativeContrastThreshold;
   float HardContrastThreshold;
@@ -190,8 +190,8 @@ protected:
   DebugOption DebugOptionValue;
 
 private:
-  vtkFXAAOptions(const vtkFXAAOptions&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkFXAAOptions&) VTK_DELETE_FUNCTION;
+  vtkFXAAOptions(const vtkFXAAOptions&) = delete;
+  void operator=(const vtkFXAAOptions&) = delete;
 };
 
 #endif // vtkFXAAOptions_h

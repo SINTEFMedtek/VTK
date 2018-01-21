@@ -19,7 +19,6 @@
 #include "vtkNew.h"
 #include "vtkOpenGLPolyDataMapper.h"
 #include "vtkPLYReader.h"
-#include "vtkPolyDataNormals.h"
 #include "vtkProperty.h"
 #include "vtkRegressionTestImage.h"
 #include "vtkRenderWindow.h"
@@ -28,6 +27,7 @@
 #include "vtkShaderProgram.h"
 #include "vtkTestUtilities.h"
 #include "vtkTimerLog.h"
+#include "vtkTriangleMeshPointNormals.h"
 
 
 #define VTK_CREATE(type, name) \
@@ -42,9 +42,9 @@ public:
   static vtkShaderCallback *New()
     { return new vtkShaderCallback; }
   vtkRenderer *Renderer;
-  void Execute(vtkObject *, unsigned long, void*cbo) VTK_OVERRIDE
+  void Execute(vtkObject *, unsigned long, void* calldata) override
   {
-    vtkOpenGLHelper *cellBO = reinterpret_cast<vtkOpenGLHelper*>(cbo);
+    vtkShaderProgram *program = reinterpret_cast<vtkShaderProgram*>(calldata);
 
     float diffuseColor[3];
 
@@ -77,11 +77,11 @@ public:
     diffuseColor[0] = 0.4;
     diffuseColor[1] = 0.7;
     diffuseColor[2] = 0.6;
-    cellBO->Program->SetUniform3f("diffuseColorUniform", diffuseColor);
+    program->SetUniform3f("diffuseColorUniform", diffuseColor);
 #endif
   }
 
-  vtkShaderCallback() { this->Renderer = 0; }
+  vtkShaderCallback() { this->Renderer = nullptr; }
 };
 
 //----------------------------------------------------------------------------
@@ -93,11 +93,11 @@ int TestUserShader2(int argc, char *argv[])
   renderer->SetBackground(0.0, 0.0, 0.0);
   vtkNew<vtkRenderWindow> renderWindow;
   renderWindow->SetSize(400, 400);
-  renderWindow->AddRenderer(renderer.Get());
-  renderer->AddActor(actor.Get());
+  renderWindow->AddRenderer(renderer);
+  renderer->AddActor(actor);
   renderer->GradientBackgroundOn();
   vtkNew<vtkRenderWindowInteractor>  iren;
-  iren->SetRenderWindow(renderWindow.Get());
+  iren->SetRenderWindow(renderWindow);
 
   const char* fileName = vtkTestUtilities::ExpandDataFileName(argc, argv,
                                                                "Data/dragon.ply");
@@ -105,12 +105,12 @@ int TestUserShader2(int argc, char *argv[])
   reader->SetFileName(fileName);
   reader->Update();
 
-  vtkNew<vtkPolyDataNormals> norms;
+  vtkNew<vtkTriangleMeshPointNormals> norms;
   norms->SetInputConnection(reader->GetOutputPort());
   norms->Update();
 
   mapper->SetInputConnection(norms->GetOutputPort());
-  actor->SetMapper(mapper.Get());
+  actor->SetMapper(mapper);
   actor->GetProperty()->SetAmbientColor(0.2, 0.2, 1.0);
   actor->GetProperty()->SetDiffuseColor(1.0, 0.65, 0.7);
   actor->GetProperty()->SetSpecularColor(1.0, 1.0, 1.0);
@@ -159,8 +159,8 @@ int TestUserShader2(int argc, char *argv[])
 
   // Setup a callback to change some uniforms
   VTK_CREATE(vtkShaderCallback, myCallback);
-  myCallback->Renderer = renderer.Get();
-  mapper->AddObserver(vtkCommand::UpdateShaderEvent,myCallback);
+  myCallback->Renderer = renderer;
+  mapper->AddObserver(vtkCommand::UpdateShaderEvent, myCallback);
 
   renderWindow->Render();
   renderer->GetActiveCamera()->SetPosition(-0.2,0.4,1);
@@ -170,11 +170,11 @@ int TestUserShader2(int argc, char *argv[])
   renderer->GetActiveCamera()->Zoom(2.0);
   renderWindow->Render();
 
-  int retVal = vtkRegressionTestImage( renderWindow.Get() );
+  int retVal = vtkRegressionTestImage( renderWindow );
   if ( retVal == vtkRegressionTester::DO_INTERACTOR)
   {
     iren->Start();
   }
 
-  return EXIT_SUCCESS;
+  return !retVal;
 }

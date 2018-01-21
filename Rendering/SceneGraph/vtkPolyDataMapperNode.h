@@ -39,7 +39,18 @@ class VTKRENDERINGSCENEGRAPH_EXPORT vtkPolyDataMapperNode :
 public:
   static vtkPolyDataMapperNode* New();
   vtkTypeMacro(vtkPolyDataMapperNode, vtkMapperNode);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
+
+  typedef struct {
+    std::vector<unsigned int> vertex_index;
+    std::vector<unsigned int> vertex_reverse;
+    std::vector<unsigned int> line_index;
+    std::vector<unsigned int> line_reverse;
+    std::vector<unsigned int> triangle_index;
+    std::vector<unsigned int> triangle_reverse;
+    std::vector<unsigned int> strip_index;
+    std::vector<unsigned int> strip_reverse;
+  } vtkPDConnectivity;
 
 protected:
   vtkPolyDataMapperNode();
@@ -62,18 +73,11 @@ protected:
    */
   static void MakeConnectivity(vtkPolyData *poly,
                                int representation,
-                               std::vector<unsigned int> &vertex_index,
-                               std::vector<unsigned int> &vertex_reverse,
-                               std::vector<unsigned int> &line_index,
-                               std::vector<unsigned int> &line_reverse,
-                               std::vector<unsigned int> &triangle_index,
-                               std::vector<unsigned int> &triangle_reverse,
-                               std::vector<unsigned int> &strip_index,
-                               std::vector<unsigned int> &strip_reverse);
+                               vtkPDConnectivity &conn);
 
  private:
-  vtkPolyDataMapperNode(const vtkPolyDataMapperNode&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPolyDataMapperNode&) VTK_DELETE_FUNCTION;
+  vtkPolyDataMapperNode(const vtkPolyDataMapperNode&) = delete;
+  void operator=(const vtkPolyDataMapperNode&) = delete;
 };
 
 #endif

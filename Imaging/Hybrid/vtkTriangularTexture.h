@@ -38,7 +38,7 @@ class VTKIMAGINGHYBRID_EXPORT vtkTriangularTexture : public vtkImageAlgorithm
 {
 public:
   vtkTypeMacro(vtkTriangularTexture,vtkImageAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Instantiate object with XSize and YSize = 64; the texture pattern =1
@@ -83,10 +83,10 @@ public:
 
 protected:
   vtkTriangularTexture();
-  ~vtkTriangularTexture() {}
+  ~vtkTriangularTexture() override {}
 
-  virtual int RequestInformation (vtkInformation *, vtkInformationVector**, vtkInformationVector *);
-  virtual void ExecuteDataWithInformation(vtkDataObject *data, vtkInformation *outInfo);
+  int RequestInformation (vtkInformation *, vtkInformationVector**, vtkInformationVector *) override;
+  void ExecuteDataWithInformation(vtkDataObject *data, vtkInformation *outInfo) override;
 
   int XSize;
   int YSize;
@@ -94,8 +94,8 @@ protected:
 
   int TexturePattern;
 private:
-  vtkTriangularTexture(const vtkTriangularTexture&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkTriangularTexture&) VTK_DELETE_FUNCTION;
+  vtkTriangularTexture(const vtkTriangularTexture&) = delete;
+  void operator=(const vtkTriangularTexture&) = delete;
 };
 
 #endif

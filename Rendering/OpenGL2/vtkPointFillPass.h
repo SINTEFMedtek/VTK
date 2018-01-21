@@ -32,7 +32,7 @@
 #include "vtkDepthImageProcessingPass.h"
 
 class vtkDepthPeelingPassLayerList; // Pimpl
-class vtkFrameBufferObject;
+class vtkOpenGLFramebufferObject;
 class vtkOpenGLHelper;
 class vtkOpenGLRenderWindow;
 class vtkTextureObject;
@@ -42,20 +42,20 @@ class VTKRENDERINGOPENGL2_EXPORT vtkPointFillPass : public vtkDepthImageProcessi
 public:
   static vtkPointFillPass *New();
   vtkTypeMacro(vtkPointFillPass,vtkDepthImageProcessingPass);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Perform rendering according to a render state \p s.
    * \pre s_exists: s!=0
    */
-  virtual void Render(const vtkRenderState *s);
+  void Render(const vtkRenderState *s) override;
 
   /**
    * Release graphics resources and ask components to release their own
    * resources.
    * \pre w_exists: w!=0
    */
-  void ReleaseGraphicsResources(vtkWindow *w);
+  void ReleaseGraphicsResources(vtkWindow *w) override;
 
   //@{
   /**
@@ -88,27 +88,24 @@ public:
   /**
    * Destructor.
    */
-  virtual ~vtkPointFillPass();
+  ~vtkPointFillPass() override;
 
   /**
    * Graphics resources.
    */
-  vtkFrameBufferObject *FrameBufferObject;
+  vtkOpenGLFramebufferObject *FrameBufferObject;
   vtkTextureObject *Pass1; // render target for the scene
   vtkTextureObject *Pass1Depth; // render target for the depth
 
   // Structures for the various cell types we render.
   vtkOpenGLHelper *BlurProgram;
 
-  bool Supported;
-  bool SupportProbed;
-
   float CandidatePointRatio;
   float MinimumCandidateAngle;
 
  private:
-  vtkPointFillPass(const vtkPointFillPass&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPointFillPass&) VTK_DELETE_FUNCTION;
+  vtkPointFillPass(const vtkPointFillPass&) = delete;
+  void operator=(const vtkPointFillPass&) = delete;
 };
 
 #endif

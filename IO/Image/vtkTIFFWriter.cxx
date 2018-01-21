@@ -25,7 +25,7 @@ vtkStandardNewMacro(vtkTIFFWriter);
 
 //----------------------------------------------------------------------------
 vtkTIFFWriter::vtkTIFFWriter()
-  : TIFFPtr(NULL), Compression(PackBits), Width(0), Height(0), Pages(0),
+  : TIFFPtr(nullptr), Compression(PackBits), Width(0), Height(0), Pages(0),
     XResolution(-1.0), YResolution(-1.0)
 {
 }
@@ -37,7 +37,7 @@ void vtkTIFFWriter::Write()
   this->GetInputAlgorithm()->Update();
   this->SetErrorCode(vtkErrorCode::NoError);
   // Error checking
-  if (this->GetInput() == NULL)
+  if (this->GetInput() == nullptr)
   {
     vtkErrorMacro(<<"Write: Please specify an input!");
     return;
@@ -92,23 +92,23 @@ void vtkTIFFWriter::Write()
   this->FilesDeleted = 0;
   this->UpdateProgress(0.0);
 
-  this->WriteFileHeader(0, this->GetInput(), wExtent);
-  this->WriteFile(0, this->GetInput(), wExtent, 0);
+  this->WriteFileHeader(nullptr, this->GetInput(), wExtent);
+  this->WriteFile(nullptr, this->GetInput(), wExtent, nullptr);
   if (this->ErrorCode == vtkErrorCode::OutOfDiskSpaceError)
   {
     this->DeleteFiles();
   }
   else
   {
-    this->WriteFileTrailer(0, 0);
+    this->WriteFileTrailer(nullptr, nullptr);
   }
 
   delete [] this->InternalFileName;
-  this->InternalFileName = NULL;
+  this->InternalFileName = nullptr;
 }
 
 //----------------------------------------------------------------------------
-void vtkTIFFWriter::WriteFileHeader(ofstream *, vtkImageData *data, int wExt[6])
+void vtkTIFFWriter::WriteFileHeader(ostream *, vtkImageData *data, int wExt[6])
 {
   int dims[3];
   data->GetDimensions(dims);
@@ -153,7 +153,7 @@ void vtkTIFFWriter::WriteFileHeader(ofstream *, vtkImageData *data, int wExt[6])
 
   if (!tif)
   {
-    this->TIFFPtr = 0;
+    this->TIFFPtr = nullptr;
     return;
   }
   this->TIFFPtr = tif;
@@ -237,7 +237,7 @@ void vtkTIFFWriter::WriteFileHeader(ofstream *, vtkImageData *data, int wExt[6])
 }
 
 //----------------------------------------------------------------------------
-void vtkTIFFWriter::WriteFile(ofstream *, vtkImageData *data,
+void vtkTIFFWriter::WriteFile(ostream *, vtkImageData *data,
                               int extent[6], int*)
 {
   // Make sure we actually have data.
@@ -396,7 +396,7 @@ void vtkTIFFWriter::WriteVolume(T* buffer)
 }
 
 //----------------------------------------------------------------------------
-void vtkTIFFWriter::WriteFileTrailer(ofstream *, vtkImageData *)
+void vtkTIFFWriter::WriteFileTrailer(ostream *, vtkImageData *)
 {
   TIFF* tif = reinterpret_cast<TIFF*>(this->TIFFPtr);
   if( tif)
@@ -409,7 +409,7 @@ void vtkTIFFWriter::WriteFileTrailer(ofstream *, vtkImageData *)
     this->SetErrorCode(vtkErrorCode::FileFormatError);
   }
 
-  this->TIFFPtr = 0;
+  this->TIFFPtr = nullptr;
 }
 
 //----------------------------------------------------------------------------

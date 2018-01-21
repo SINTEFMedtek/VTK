@@ -59,7 +59,7 @@ class VTKIOXDMF2_EXPORT vtkXdmfWriter : public vtkDataObjectAlgorithm
 public:
   static vtkXdmfWriter *New();
   vtkTypeMacro(vtkXdmfWriter,vtkDataObjectAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Set the input data set.
@@ -149,26 +149,26 @@ public:
 
 protected:
   vtkXdmfWriter();
-  ~vtkXdmfWriter();
+  ~vtkXdmfWriter() override;
 
   //Choose composite executive by default for time.
-  virtual vtkExecutive* CreateDefaultExecutive();
+  vtkExecutive* CreateDefaultExecutive() override;
 
   //Can take any one data object
-  virtual int FillInputPortInformation(int port, vtkInformation *info);
+  int FillInputPortInformation(int port, vtkInformation *info) override;
 
   //Overridden to ...
-  virtual int RequestInformation(vtkInformation*,
-                                 vtkInformationVector**,
-                                 vtkInformationVector*);
+  int RequestInformation(vtkInformation*,
+                         vtkInformationVector**,
+                         vtkInformationVector*) override;
   //Overridden to ...
-  virtual int RequestUpdateExtent(vtkInformation*,
-                                  vtkInformationVector**,
-                                  vtkInformationVector*);
-  //Overridden to ...
-  virtual int RequestData(vtkInformation*,
+  int RequestUpdateExtent(vtkInformation*,
                           vtkInformationVector**,
-                          vtkInformationVector*);
+                          vtkInformationVector*) override;
+  //Overridden to ...
+  int RequestData(vtkInformation*,
+                  vtkInformationVector**,
+                  vtkInformationVector*) override;
 
   //These do the work: recursively parse down input's structure all the way to arrays,
   //use XDMF lib to dump everything to file.
@@ -216,8 +216,8 @@ protected:
   std::vector<xdmf2::XdmfGeometry*> GeometryAtT0;
 
 private:
-  vtkXdmfWriter(const vtkXdmfWriter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkXdmfWriter&) VTK_DELETE_FUNCTION;
+  vtkXdmfWriter(const vtkXdmfWriter&) = delete;
+  void operator=(const vtkXdmfWriter&) = delete;
 };
 
 #endif /* vtkXdmfWriter_h */

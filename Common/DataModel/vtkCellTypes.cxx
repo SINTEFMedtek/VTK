@@ -19,7 +19,7 @@ vtkStandardNewMacro(vtkCellTypes);
 
 // This list should contain the cell class names in
 // the same order as the enums in vtkCellType.h. Make sure
-// this list is NULL terminated.
+// this list is nullptr terminated.
 static const char* vtkCellTypesStrings[] = {
   "vtkEmptyCell",
   "vtkVertex",
@@ -89,7 +89,7 @@ static const char* vtkCellTypesStrings[] = {
   "vtkHigherOrderWedge",
   "vtkHigherOrderPyramid",
   "vtkHigherOrderHexahedron",
-  NULL
+  nullptr
 };
 
 //----------------------------------------------------------------------------
@@ -100,7 +100,7 @@ const char* vtkCellTypes::GetClassNameFromTypeId(int type)
   // find length of table
   if (numClasses == 0)
   {
-    while (vtkCellTypesStrings[numClasses] != NULL)
+    while (vtkCellTypesStrings[numClasses] != nullptr)
     {
       numClasses++;
     }
@@ -125,7 +125,7 @@ int vtkCellTypes::GetTypeIdFromClassName(const char* classname)
     return -1;
   }
 
-  for(int idx=0; vtkCellTypesStrings[idx] != NULL; idx++)
+  for(int idx=0; vtkCellTypesStrings[idx] != nullptr; idx++)
   {
     if (strcmp(vtkCellTypesStrings[idx], classname) == 0)
     {
@@ -138,7 +138,7 @@ int vtkCellTypes::GetTypeIdFromClassName(const char* classname)
 
 //----------------------------------------------------------------------------
 vtkCellTypes::vtkCellTypes () :
-  TypeArray(vtkUnsignedCharArray::New()), LocationArray(vtkIntArray::New()),
+  TypeArray(vtkUnsignedCharArray::New()), LocationArray(vtkIdTypeArray::New()),
   Size(0), MaxId(-1), Extend(1000)
 {
   this->TypeArray->Register(this);
@@ -184,7 +184,7 @@ int vtkCellTypes::Allocate(int sz, int ext)
   {
     this->LocationArray->UnRegister(this);
   }
-  this->LocationArray = vtkIntArray::New();
+  this->LocationArray = vtkIdTypeArray::New();
   this->LocationArray->Allocate(sz,ext);
   this->LocationArray->Register(this);
   this->LocationArray->Delete();
@@ -194,7 +194,7 @@ int vtkCellTypes::Allocate(int sz, int ext)
 
 //----------------------------------------------------------------------------
 // Add a cell at specified id.
-void vtkCellTypes::InsertCell(int cellId, unsigned char type, int loc)
+void vtkCellTypes::InsertCell(vtkIdType cellId, unsigned char type, vtkIdType loc)
 {
   vtkDebugMacro(<<"Insert Cell id: " << cellId << " at location " << loc);
   TypeArray->InsertValue(cellId, type);
@@ -205,12 +205,11 @@ void vtkCellTypes::InsertCell(int cellId, unsigned char type, int loc)
   {
     this->MaxId = cellId;
   }
-  return;
 }
 
 //----------------------------------------------------------------------------
 // Add a cell to the object in the next available slot.
-vtkIdType vtkCellTypes::InsertNextCell(unsigned char type, int loc)
+vtkIdType vtkCellTypes::InsertNextCell(unsigned char type, vtkIdType loc)
 {
   vtkDebugMacro(<<"Insert Next Cell " << type << " location " << loc);
   this->InsertCell (++this->MaxId,type,loc);
@@ -219,8 +218,24 @@ vtkIdType vtkCellTypes::InsertNextCell(unsigned char type, int loc)
 
 //----------------------------------------------------------------------------
 // Specify a group of cell types.
-void vtkCellTypes::SetCellTypes(int ncells,
-    vtkUnsignedCharArray *cellTypes, vtkIntArray *cellLocations)
+void vtkCellTypes::SetCellTypes(vtkIdType ncells, vtkUnsignedCharArray *cellTypes, vtkIntArray *cellLocations)
+{
+  vtkIdTypeArray* cellLocations64 = vtkIdTypeArray::New();
+  cellLocations64->SetName(cellLocations->GetName());
+  cellLocations64->SetNumberOfComponents(cellLocations->GetNumberOfComponents());
+  cellLocations64->SetNumberOfTuples(cellLocations->GetNumberOfTuples());
+  for (vtkIdType i=0, iend=cellLocations->GetNumberOfValues(); i<iend; ++i)
+  {
+    cellLocations64->SetValue(i, cellLocations->GetValue(i));
+  }
+  this->SetCellTypes(ncells, cellTypes, cellLocations64);
+  cellLocations64->Delete();
+}
+
+//----------------------------------------------------------------------------
+// Specify a group of cell types.
+void vtkCellTypes::SetCellTypes(vtkIdType ncells,
+    vtkUnsignedCharArray *cellTypes, vtkIdTypeArray *cellLocations)
 {
   this->Size = ncells;
 
@@ -282,7 +297,7 @@ void vtkCellTypes::DeepCopy(vtkCellTypes *src)
   if (this->TypeArray)
   {
       this->TypeArray->UnRegister(this);
-      this->TypeArray = NULL;
+      this->TypeArray = nullptr;
   }
   if (src->TypeArray)
   {
@@ -295,11 +310,11 @@ void vtkCellTypes::DeepCopy(vtkCellTypes *src)
   if (this->LocationArray)
   {
       this->LocationArray->UnRegister(this);
-      this->LocationArray = NULL;
+      this->LocationArray = nullptr;
   }
   if (src->LocationArray)
   {
-      this->LocationArray = vtkIntArray::New();
+      this->LocationArray = vtkIdTypeArray::New();
       this->LocationArray->DeepCopy(src->LocationArray);
       this->LocationArray->Register(this);
       this->LocationArray->Delete();

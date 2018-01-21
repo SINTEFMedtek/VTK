@@ -34,19 +34,19 @@ class VTKIOIMAGE_EXPORT vtkPNGReader : public vtkImageReader2
 public:
   static vtkPNGReader *New();
   vtkTypeMacro(vtkPNGReader,vtkImageReader2);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Is the given file a PNG file?
    */
-  virtual int CanReadFile(const char* fname);
+  int CanReadFile(const char* fname) override;
 
   /**
    * Get the file extensions for this format.
    * Returns a string with a space separated list of extensions in
    * the format .extension
    */
-  virtual const char* GetFileExtensions()
+  const char* GetFileExtensions() override
   {
       return ".png";
   }
@@ -54,7 +54,7 @@ public:
   /**
    * Return a descriptive name for the file format that might be useful in a GUI.
    */
-  virtual const char* GetDescriptiveName()
+  const char* GetDescriptiveName() override
   {
       return "PNG";
   }
@@ -81,12 +81,22 @@ public:
    */
   size_t GetNumberOfTextChunks();
 
+  //@{
+  /**
+   * Set/Get if data spacing should be calculated from the PNG file.
+   * Use default spacing if the PNG file don't have valid pixel per meter parameters.
+   * Default is false.
+   */
+  vtkSetMacro(ReadSpacingFromFile, bool);
+  vtkGetMacro(ReadSpacingFromFile, bool);
+  vtkBooleanMacro(ReadSpacingFromFile, bool);
+  //@}
 protected:
   vtkPNGReader();
-  ~vtkPNGReader();
+  ~vtkPNGReader() override;
 
-  virtual void ExecuteInformation();
-  virtual void ExecuteDataWithInformation(vtkDataObject *out, vtkInformation *outInfo);
+  void ExecuteInformation() override;
+  void ExecuteDataWithInformation(vtkDataObject *out, vtkInformation *outInfo) override;
   template <class OT>
     void vtkPNGReaderUpdate(vtkImageData *data, OT *outPtr);
   template <class OT>
@@ -95,10 +105,11 @@ protected:
 
 
 private:
-  vtkPNGReader(const vtkPNGReader&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPNGReader&) VTK_DELETE_FUNCTION;
+  vtkPNGReader(const vtkPNGReader&) = delete;
+  void operator=(const vtkPNGReader&) = delete;
 
   class vtkInternals;
   vtkInternals* Internals;
+  bool ReadSpacingFromFile;
 };
 #endif

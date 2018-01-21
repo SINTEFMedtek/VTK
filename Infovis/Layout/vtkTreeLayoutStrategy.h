@@ -52,12 +52,12 @@ public:
   static vtkTreeLayoutStrategy *New();
 
   vtkTypeMacro(vtkTreeLayoutStrategy, vtkGraphLayoutStrategy);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Perform the tree layout.
    */
-  void Layout();
+  void Layout() override;
 
   //@{
   /**
@@ -132,7 +132,7 @@ public:
 
 protected:
   vtkTreeLayoutStrategy();
-  ~vtkTreeLayoutStrategy();
+  ~vtkTreeLayoutStrategy() override;
 
   double Angle;
   bool Radial;
@@ -144,8 +144,8 @@ protected:
 
 private:
 
-  vtkTreeLayoutStrategy(const vtkTreeLayoutStrategy&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkTreeLayoutStrategy&) VTK_DELETE_FUNCTION;
+  vtkTreeLayoutStrategy(const vtkTreeLayoutStrategy&) = delete;
+  void operator=(const vtkTreeLayoutStrategy&) = delete;
 };
 
 #endif

@@ -65,10 +65,10 @@ vtkMergeCells::vtkMergeCells()
   this->InputIsUGrid = 0;
   this->InputIsPointSet = 0;
 
-  this->ptList = NULL;
-  this->cellList = NULL;
+  this->ptList = nullptr;
+  this->cellList = nullptr;
 
-  this->UnstructuredGrid = NULL;
+  this->UnstructuredGrid = nullptr;
 
   this->GlobalIdMap = new vtkMergeCellsSTLCloak;
   this->GlobalCellIdMap = new vtkMergeCellsSTLCloak;
@@ -86,16 +86,16 @@ vtkMergeCells::~vtkMergeCells()
   delete this->GlobalIdMap;
   delete this->GlobalCellIdMap;
 
-  this->SetUnstructuredGrid(0);
+  this->SetUnstructuredGrid(nullptr);
 }
 
 void vtkMergeCells::FreeLists()
 {
   delete this->ptList;
-  this->ptList = NULL;
+  this->ptList = nullptr;
 
   delete this->cellList;
-  this->cellList = NULL;
+  this->cellList = nullptr;
 }
 
 
@@ -142,7 +142,7 @@ int vtkMergeCells::MergeDataSet(vtkDataSet *set)
     {
       this->InputIsPointSet = 1;
       vtkUnstructuredGrid *check2 = vtkUnstructuredGrid::SafeDownCast(set);
-      this->InputIsUGrid = (check2 != NULL);
+      this->InputIsUGrid = (check2 != nullptr);
     }
 
     this->StartUGrid(set);
@@ -180,7 +180,7 @@ int vtkMergeCells::MergeDataSet(vtkDataSet *set)
   }
   else
   {
-    idMap = NULL;
+    idMap = nullptr;
   }
 
   vtkIdType nextPt = (vtkIdType)this->NumberOfPoints;
@@ -221,7 +221,7 @@ int vtkMergeCells::MergeDataSet(vtkDataSet *set)
   }
 
   delete [] idMap;
-  idMap = 0;
+  idMap = nullptr;
 
   this->NumberOfPoints = nextPt;
   this->NumberOfCells = newCellId;
@@ -251,7 +251,8 @@ vtkIdType vtkMergeCells::AddNewCellsDataSet(vtkDataSet *set, vtkIdType *idMap)
 
     if (success)
     {
-      nextCellId = this->GlobalCellIdMap->IdTypeMap.size();
+      nextCellId =
+        static_cast<vtkIdType>(this->GlobalCellIdMap->IdTypeMap.size());
       duplicateCellTest = 1;
     }
   }
@@ -330,7 +331,7 @@ vtkIdType vtkMergeCells::AddNewCellsUnstructuredGrid(vtkDataSet *set,
   // If we are checking for duplicate cells, create a list now of
   // any cells in the new data set that we already have.
 
-  vtkIdList *duplicateCellIds = NULL;
+  vtkIdList *duplicateCellIds = nullptr;
   int numDuplicateCells = 0;
   int numDuplicateConnections = 0;
 
@@ -340,7 +341,8 @@ vtkIdType vtkMergeCells::AddNewCellsUnstructuredGrid(vtkDataSet *set,
 
     if (success)
     {
-      vtkIdType nextLocalId = this->GlobalCellIdMap->IdTypeMap.size();
+      vtkIdType nextLocalId =
+        static_cast<vtkIdType>(this->GlobalCellIdMap->IdTypeMap.size());
 
       duplicateCellIds = vtkIdList::New();
 
@@ -371,17 +373,17 @@ vtkIdType vtkMergeCells::AddNewCellsUnstructuredGrid(vtkDataSet *set,
       if (numDuplicateCells == 0)
       {
         duplicateCellIds->Delete();
-        duplicateCellIds = NULL;
+        duplicateCellIds = nullptr;
       }
     }
   }
 
   // connectivity for the merged ugrid so far
 
-  vtkCellArray *cellArray = NULL;
-  vtkIdType *cells = NULL;
-  vtkIdType *locs = NULL;
-  unsigned char *types = NULL;
+  vtkCellArray *cellArray = nullptr;
+  vtkIdType *cells = nullptr;
+  vtkIdType *locs = nullptr;
+  unsigned char *types = nullptr;
 
   int numCells = 0;
   int numConnections = 0;
@@ -560,8 +562,6 @@ void vtkMergeCells::StartUGrid(vtkDataSet *set)
     ugrid->GetCellData()->CopyGlobalIdsOn();
   }
   ugrid->GetCellData()->CopyAllocate(*cellList, this->TotalNumberOfCells);
-
-  return;
 }
 
 void vtkMergeCells::Finish()
@@ -579,8 +579,6 @@ void vtkMergeCells::Finish()
   }
 
   ugrid->Squeeze();
-
-  return;
 }
 
 //  Use an array of global node ids to map all points to
@@ -593,14 +591,15 @@ vtkIdType *vtkMergeCells::MapPointsToIdsUsingGlobalIds(vtkDataSet *set)
   if (!success)
   {
     vtkErrorMacro("global id array is not available");
-    return NULL;
+    return nullptr;
   }
 
   vtkIdType npoints = set->GetNumberOfPoints();
 
   vtkIdType *idMap = new vtkIdType [npoints];
 
-  vtkIdType nextNewLocalId = this->GlobalIdMap->IdTypeMap.size();
+  vtkIdType nextNewLocalId =
+    static_cast<vtkIdType>(this->GlobalIdMap->IdTypeMap.size());
 
   // map global point Ids to Ids in the new data set
 
@@ -864,7 +863,7 @@ int vtkMergeCells::GlobalCellIdAccessStart(vtkDataSet *set)
     }
   }
 
-  this->GlobalCellIdArray = 0;
+  this->GlobalCellIdArray = nullptr;
   return 0;
 }
 
@@ -896,7 +895,7 @@ int vtkMergeCells::GlobalNodeIdAccessStart(vtkDataSet *set)
     }
   }
 
-  this->GlobalIdArray = 0;
+  this->GlobalIdArray = nullptr;
   return 0;
 }
 

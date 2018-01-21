@@ -14,10 +14,10 @@
 =========================================================================*/
 /**
  * @class   vtkRenderWindowCollection
- * @brief   a list of RenderWindows
+ * @brief   an ordered list of RenderWindows
  *
  * vtkRenderWindowCollection represents and provides methods to manipulate a
- * list of RenderWindows. The list is unsorted and duplicate entries are
+ * list of RenderWindows. The list is ordered and duplicate entries are
  * not prevented.
  *
  * @sa
@@ -36,10 +36,10 @@ class VTKRENDERINGCORE_EXPORT vtkRenderWindowCollection : public vtkCollection
  public:
   static vtkRenderWindowCollection *New();
   vtkTypeMacro(vtkRenderWindowCollection,vtkCollection);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
-   * Add a RenderWindow to the list.
+   * Add a RenderWindow to the bottom of the list.
    */
   void AddItem(vtkRenderWindow *a)
   {
@@ -66,7 +66,7 @@ class VTKRENDERINGCORE_EXPORT vtkRenderWindowCollection : public vtkCollection
 
 protected:
   vtkRenderWindowCollection() {}
-  ~vtkRenderWindowCollection() {}
+  ~vtkRenderWindowCollection() override {}
 
 private:
   // hide the standard AddItem from the user and the compiler.
@@ -76,7 +76,7 @@ private:
   }
 
 private:
-  vtkRenderWindowCollection(const vtkRenderWindowCollection&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkRenderWindowCollection&) VTK_DELETE_FUNCTION;
+  vtkRenderWindowCollection(const vtkRenderWindowCollection&) = delete;
+  void operator=(const vtkRenderWindowCollection&) = delete;
 };
 #endif

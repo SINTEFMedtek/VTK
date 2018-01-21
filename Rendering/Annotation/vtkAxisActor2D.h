@@ -70,7 +70,7 @@ class VTKRENDERINGANNOTATION_EXPORT vtkAxisActor2D : public vtkActor2D
 {
 public:
   vtkTypeMacro(vtkAxisActor2D,vtkActor2D);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Instantiate object.
@@ -319,22 +319,22 @@ public:
   /**
    * Draw the axis.
    */
-  int RenderOverlay(vtkViewport* viewport);
-  int RenderOpaqueGeometry(vtkViewport* viewport);
-  virtual int RenderTranslucentPolygonalGeometry(vtkViewport *) {return 0;}
+  int RenderOverlay(vtkViewport* viewport) override;
+  int RenderOpaqueGeometry(vtkViewport* viewport) override;
+  int RenderTranslucentPolygonalGeometry(vtkViewport *) override {return 0;}
   //@}
 
   /**
    * Does this prop have some translucent polygonal geometry?
    */
-  virtual int HasTranslucentPolygonalGeometry();
+  int HasTranslucentPolygonalGeometry() override;
 
   /**
    * Release any graphics resources that are being consumed by this actor.
    * The parameter window could be used to determine which graphic
    * resources to release.
    */
-  void ReleaseGraphicsResources(vtkWindow *);
+  void ReleaseGraphicsResources(vtkWindow *) override;
 
   /**
    * This method computes the range of the axis given an input range.
@@ -380,11 +380,11 @@ public:
   /**
    * Shallow copy of an axis actor. Overloads the virtual vtkProp method.
    */
-  void ShallowCopy(vtkProp *prop);
+  void ShallowCopy(vtkProp *prop) override;
 
 protected:
   vtkAxisActor2D();
-  ~vtkAxisActor2D();
+  ~vtkAxisActor2D() override;
 
   vtkTextProperty *TitleTextProperty;
   vtkTextProperty *LabelTextProperty;
@@ -424,7 +424,7 @@ protected:
   virtual void BuildAxis(vtkViewport *viewport);
   static double ComputeStringOffset(double width, double height, double theta);
   static void SetOffsetPosition(double xTick[3], double theta,
-                                int stringHeight, int stringWidth,
+                                int stringWidth, int stringHeight,
                                 int offset, vtkActor2D *actor);
   virtual void UpdateAdjustedRange();
 
@@ -442,8 +442,8 @@ protected:
   vtkTimeStamp  BuildTime;
 
 private:
-  vtkAxisActor2D(const vtkAxisActor2D&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkAxisActor2D&) VTK_DELETE_FUNCTION;
+  vtkAxisActor2D(const vtkAxisActor2D&) = delete;
+  void operator=(const vtkAxisActor2D&) = delete;
 };
 
 

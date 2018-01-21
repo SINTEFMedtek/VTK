@@ -41,7 +41,7 @@ class VTKRENDERINGCORE_EXPORT vtkFollower : public vtkActor
 {
  public:
   vtkTypeMacro(vtkFollower,vtkActor);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Creates a follower with no camera set
@@ -63,48 +63,48 @@ class VTKRENDERINGCORE_EXPORT vtkFollower : public vtkActor
    * property, texture map and then mapper. If a property hasn't been
    * assigned, then the actor will create one automatically.
    */
-  virtual int RenderOpaqueGeometry(vtkViewport *viewport);
-  virtual int RenderTranslucentPolygonalGeometry(vtkViewport *viewport);
+  int RenderOpaqueGeometry(vtkViewport *viewport) override;
+  int RenderTranslucentPolygonalGeometry(vtkViewport *viewport) override;
   virtual void Render(vtkRenderer *ren);
   //@}
 
   /**
    * Does this prop have some translucent polygonal geometry?
    */
-  virtual int HasTranslucentPolygonalGeometry();
+  int HasTranslucentPolygonalGeometry() override;
 
   /**
    * Release any graphics resources associated with this vtkProp3DFollower.
    */
-  virtual void ReleaseGraphicsResources(vtkWindow*);
+  void ReleaseGraphicsResources(vtkWindow*) override;
 
   /**
    * Generate the matrix based on ivars. This method overloads its superclasses
    * ComputeMatrix() method due to the special vtkFollower matrix operations.
    */
-  virtual void ComputeMatrix();
+  void ComputeMatrix() override;
 
   /**
    * Shallow copy of a follower. Overloads the virtual vtkProp method.
    */
-  void ShallowCopy(vtkProp *prop);
+  void ShallowCopy(vtkProp *prop) override;
 
 protected:
   vtkFollower();
-  ~vtkFollower();
+  ~vtkFollower() override;
 
   vtkCamera *Camera;
   vtkActor  *Device;
 
-private:
-  vtkFollower(const vtkFollower&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkFollower&) VTK_DELETE_FUNCTION;
-
-  // hide the two parameter Render() method from the user and the compiler.
-  virtual void Render(vtkRenderer *, vtkMapper *) {}
-
   //Internal matrices to avoid New/Delete for performance reasons
   vtkMatrix4x4 *InternalMatrix;
+
+private:
+  vtkFollower(const vtkFollower&) = delete;
+  void operator=(const vtkFollower&) = delete;
+
+  // hide the two parameter Render() method from the user and the compiler.
+  void Render(vtkRenderer *, vtkMapper *) override {}
 };
 
 #endif

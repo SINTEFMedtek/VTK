@@ -66,8 +66,6 @@
 
 /* Threading system.  */
 #cmakedefine VTK_USE_PTHREADS
-#cmakedefine VTK_USE_SPROC
-#cmakedefine VTK_HP_PTHREADS
 #cmakedefine VTK_USE_WIN32_THREADS
 # define VTK_MAX_THREADS @VTK_MAX_THREADS@
 
@@ -102,6 +100,9 @@
 
 /* Whether vtkIdType is a 64-bit integer type (or a 32-bit integer type).  */
 #cmakedefine VTK_USE_64BIT_IDS
+
+/* Whether MTime should use a 64-bit integer type on 32 bit builds.  */
+#cmakedefine VTK_USE_64BIT_TIMESTAMPS
 
 @VTK_CONFIG_LEGACY_VERSION@
 
@@ -166,7 +167,7 @@
 
 /** extern template declarations for C++11
  */
-#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1700)
+#if ((__cplusplus >= 201103L) || (defined(_MSC_VER) && _MSC_VER >= 1700)) && !defined(__MINGW32__)
 #define VTK_USE_EXTERN_TEMPLATE
 #endif
 

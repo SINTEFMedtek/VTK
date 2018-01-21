@@ -65,7 +65,7 @@ public:
    * Define standard methods.
    */
   vtkTypeMacro(vtkBorderRepresentation,vtkWidgetRepresentation);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   //@{
@@ -205,19 +205,19 @@ public:
    * Return the MTime of this object. It takes into account MTimes
    * of position coordinates and border's property.
    */
-  virtual vtkMTimeType GetMTime();
+  vtkMTimeType GetMTime() override;
 
   //@{
   /**
    * Subclasses should implement these methods. See the superclasses'
    * documentation for more information.
    */
-  virtual void BuildRepresentation();
-  virtual void StartWidgetInteraction(double eventPos[2]);
-  virtual void WidgetInteraction(double eventPos[2]);
+  void BuildRepresentation() override;
+  void StartWidgetInteraction(double eventPos[2]) override;
+  void WidgetInteraction(double eventPos[2]) override;
   virtual void GetSize(double size[2])
     {size[0]=1.0; size[1]=1.0;}
-  virtual int ComputeInteractionState(int X, int Y, int modify=0);
+  int ComputeInteractionState(int X, int Y, int modify=0) override;
   //@}
 
   //@{
@@ -225,17 +225,17 @@ public:
    * These methods are necessary to make this representation behave as
    * a vtkProp.
    */
-  virtual void GetActors2D(vtkPropCollection*);
-  virtual void ReleaseGraphicsResources(vtkWindow*);
-  virtual int RenderOverlay(vtkViewport*);
-  virtual int RenderOpaqueGeometry(vtkViewport*);
-  virtual int RenderTranslucentPolygonalGeometry(vtkViewport*);
-  virtual int HasTranslucentPolygonalGeometry();
+  void GetActors2D(vtkPropCollection*) override;
+  void ReleaseGraphicsResources(vtkWindow*) override;
+  int RenderOverlay(vtkViewport*) override;
+  int RenderOpaqueGeometry(vtkViewport*) override;
+  int RenderTranslucentPolygonalGeometry(vtkViewport*) override;
+  int HasTranslucentPolygonalGeometry() override;
   //@}
 
 protected:
   vtkBorderRepresentation();
-  ~vtkBorderRepresentation();
+  ~vtkBorderRepresentation() override;
 
   // Ivars
   int           ShowVerticalBorder;
@@ -277,8 +277,8 @@ protected:
   int MaximumSize[2];
 
 private:
-  vtkBorderRepresentation(const vtkBorderRepresentation&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkBorderRepresentation&) VTK_DELETE_FUNCTION;
+  vtkBorderRepresentation(const vtkBorderRepresentation&) = delete;
+  void operator=(const vtkBorderRepresentation&) = delete;
 };
 
 #endif

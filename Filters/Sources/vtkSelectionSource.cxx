@@ -59,7 +59,7 @@ vtkSelectionSource::vtkSelectionSource()
   this->FieldType = vtkSelectionNode::CELL;
   this->ContainingCells = 1;
   this->Inverse = 0;
-  this->ArrayName = NULL;
+  this->ArrayName = nullptr;
   this->ArrayComponent = 0;
   for (int cc=0; cc < 32; cc++)
   {
@@ -68,7 +68,7 @@ vtkSelectionSource::vtkSelectionSource()
   this->CompositeIndex = -1;
   this->HierarchicalLevel = -1;
   this->HierarchicalIndex = -1;
-  this->QueryString = 0;
+  this->QueryString = nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -247,12 +247,12 @@ void vtkSelectionSource::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "ContainingCells: ";
   os << (this->ContainingCells?"CELLS":"POINTS") << endl;
   os << indent << "Inverse: " << this->Inverse << endl;
-  os << indent << "ArrayName: " << (this->ArrayName?this->ArrayName:"NULL") << endl;
+  os << indent << "ArrayName: " << (this->ArrayName?this->ArrayName:"nullptr") << endl;
   os << indent << "ArrayComponent: " << this->ArrayComponent << endl;
   os << indent << "CompositeIndex: " << this->CompositeIndex << endl;
   os << indent << "HierarchicalLevel: " << this->HierarchicalLevel << endl;
   os << indent << "HierarchicalIndex: " << this->HierarchicalIndex << endl;
-  os << indent << "QueryString: " << (this->QueryString ? this->QueryString : "NULL") << endl;
+  os << indent << "QueryString: " << (this->QueryString ? this->QueryString : "nullptr") << endl;
 }
 
 //----------------------------------------------------------------------------
@@ -321,7 +321,7 @@ int vtkSelectionSource::RequestData(
     vtkIdType numCommonElems = 0;
     if (!this->Internal->StringIDs.empty())
     {
-      numCommonElems = this->Internal->StringIDs[0].size();
+      numCommonElems = static_cast<vtkIdType>(this->Internal->StringIDs[0].size());
     }
     if (piece+1 >= (int)this->Internal->StringIDs.size() &&
         numCommonElems == 0)
@@ -349,11 +349,11 @@ int vtkSelectionSource::RequestData(
         if (!selSet.empty())
         {
           // Create the selection list
-          selectionList->SetNumberOfTuples(selSet.size());
+          selectionList->SetNumberOfTuples(static_cast<vtkIdType>(selSet.size()));
           // iterate over ids and insert to the selection list
           vtkSelectionSourceInternals::StringIDSetType::iterator iter =
             selSet.begin();
-          for (vtkIdType idx2=0; iter != selSet.end(); iter++, idx2++)
+          for (vtkIdType idx2=0; iter != selSet.end(); ++iter, ++idx2)
           {
             selectionList->SetValue(idx2, *iter);
           }
@@ -382,7 +382,7 @@ int vtkSelectionSource::RequestData(
     vtkIdType numCommonElems = 0;
     if (!this->Internal->IDs.empty())
     {
-      numCommonElems = this->Internal->IDs[0].size();
+      numCommonElems = static_cast<vtkIdType>(this->Internal->IDs[0].size());
     }
     if (piece+1 >= (int)this->Internal->IDs.size() &&
         numCommonElems == 0)
@@ -411,11 +411,11 @@ int vtkSelectionSource::RequestData(
         if (!selSet.empty())
         {
           // Create the selection list
-          selectionList->SetNumberOfTuples(selSet.size());
+          selectionList->SetNumberOfTuples(static_cast<vtkIdType>(selSet.size()));
           // iterate over ids and insert to the selection list
           vtkSelectionSourceInternals::IDSetType::iterator iter =
             selSet.begin();
-          for (vtkIdType idx2=0; iter != selSet.end(); iter++, idx2++)
+          for (vtkIdType idx2=0; iter != selSet.end(); ++iter, ++idx2)
           {
             selectionList->SetValue(idx2, *iter);
           }
@@ -433,7 +433,8 @@ int vtkSelectionSource::RequestData(
     // Create the selection list
     vtkDoubleArray* selectionList = vtkDoubleArray::New();
     selectionList->SetNumberOfComponents(3);
-    selectionList->SetNumberOfValues(this->Internal->Locations.size());
+    selectionList->SetNumberOfValues(
+      static_cast<vtkIdType>(this->Internal->Locations.size()));
 
     std::vector<double>::iterator iter =
       this->Internal->Locations.begin();
@@ -458,7 +459,8 @@ int vtkSelectionSource::RequestData(
     // Create the selection list
     vtkDoubleArray* selectionList = vtkDoubleArray::New();
     selectionList->SetNumberOfComponents(1);
-    selectionList->SetNumberOfValues(this->Internal->Thresholds.size());
+    selectionList->SetNumberOfValues(
+      static_cast<vtkIdType>(this->Internal->Thresholds.size()));
 
     std::vector<double>::iterator iter =
       this->Internal->Thresholds.begin();
@@ -494,7 +496,8 @@ int vtkSelectionSource::RequestData(
     oProperties->Set(vtkSelectionNode::CONTENT_TYPE(), this->ContentType);
     vtkUnsignedIntArray* selectionList = vtkUnsignedIntArray::New();
     selectionList->SetNumberOfComponents(1);
-    selectionList->SetNumberOfTuples(this->Internal->Blocks.size());
+    selectionList->SetNumberOfTuples(
+      static_cast<vtkIdType>(this->Internal->Blocks.size()));
     vtkSelectionSourceInternals::IDSetType::iterator iter;
     vtkIdType cc=0;
     for (iter = this->Internal->Blocks.begin();
@@ -511,6 +514,12 @@ int vtkSelectionSource::RequestData(
     oProperties->Set(vtkSelectionNode::CONTENT_TYPE(), this->ContentType);
     oProperties->Set(vtkSelectionNode::FIELD_TYPE(), this->FieldType);
     output->SetQueryString(this->QueryString);
+  }
+
+  if (this->ContentType == vtkSelectionNode::USER)
+  {
+    vtkErrorMacro("User-supplied, application-specific selections are not supported.");
+    return 0;
   }
 
   oProperties->Set(vtkSelectionNode::CONTAINING_CELLS(),

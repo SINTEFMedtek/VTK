@@ -63,9 +63,9 @@ vtkNetCDFPOPReader::vtkNetCDFPOPReader()
 {
   this->SetNumberOfInputPorts(0);
   this->SetNumberOfOutputPorts(1);
-  this->FileName = NULL;
+  this->FileName = nullptr;
   this->NCDFFD = 0;
-  this->OpenedFileName = NULL;
+  this->OpenedFileName = nullptr;
   this->Stride[0] = this->Stride[1] = this->Stride[2] = 1;
   this->SelectionObserver = vtkCallbackCommand::New();
   this->SelectionObserver->SetCallback
@@ -80,19 +80,19 @@ vtkNetCDFPOPReader::vtkNetCDFPOPReader()
 //delete filename and netcdf file descriptor
 vtkNetCDFPOPReader::~vtkNetCDFPOPReader()
 {
-  this->SetFileName(0);
+  this->SetFileName(nullptr);
   if(this->OpenedFileName)
   {
     nc_close(this->NCDFFD);
-    this->SetOpenedFileName(NULL);
+    this->SetOpenedFileName(nullptr);
   }
   if(this->SelectionObserver)
   {
     this->SelectionObserver->Delete();
-    this->SelectionObserver = NULL;
+    this->SelectionObserver = nullptr;
   }
   delete this->Internals;
-  this->Internals = NULL;
+  this->Internals = nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -101,9 +101,9 @@ void vtkNetCDFPOPReader::PrintSelf(ostream &os, vtkIndent indent)
   this->Superclass::PrintSelf(os, indent);
 
   os << indent << "FileName: "
-     << (this->FileName ? this->FileName : "(NULL)") << endl;
+     << (this->FileName ? this->FileName : "(nullptr)") << endl;
   os << indent << "OpenedFileName: "
-     << (this->OpenedFileName ? this->OpenedFileName : "(NULL)") << endl;
+     << (this->OpenedFileName ? this->OpenedFileName : "(nullptr)") << endl;
   os << indent << "Stride: {" << this->Stride[0] << ", "
      << this->Stride[1] << ", " << this->Stride[2] << ", "
      << "}" << endl;
@@ -123,18 +123,18 @@ int vtkNetCDFPOPReader::RequestInformation(
     vtkInformationVector* outputVector)
 {
   vtkInformation* outInfo = outputVector->GetInformationObject(0);
-  if(this->FileName == NULL)
+  if(this->FileName == nullptr)
   {
     vtkErrorMacro("FileName not set.");
     return 0;
   }
 
-  if(this->OpenedFileName == NULL || strcmp(this->OpenedFileName, this->FileName) != 0)
+  if(this->OpenedFileName == nullptr || strcmp(this->OpenedFileName, this->FileName) != 0)
   {
     if(this->OpenedFileName)
     {
       nc_close(this->NCDFFD);
-      this->SetOpenedFileName(NULL);
+      this->SetOpenedFileName(nullptr);
     }
     int retval = nc_open(this->FileName, NC_NOWRITE, &this->NCDFFD);//read file
     if (retval != NC_NOERR)//checks if read file error
@@ -278,15 +278,15 @@ int vtkNetCDFPOPReader::RequestData(vtkInformation* request,
                           start+2, count+2, rStride+2, z);
 #endif
         vtkFloatArray *xCoords = vtkFloatArray::New();
-        xCoords->SetArray(z, count[2], 0, 1);
+        xCoords->SetArray(z, static_cast<vtkIdType>(count[2]), 0, 1);
         vtkFloatArray *yCoords = vtkFloatArray::New();
-        yCoords->SetArray(y, count[1], 0, 1);
+        yCoords->SetArray(y, static_cast<vtkIdType>(count[1]), 0, 1);
         for (unsigned int q=0; q<count[0]; q++)
         {
           x[q] = -x[q];
         }
         vtkFloatArray *zCoords = vtkFloatArray::New();
-        zCoords->SetArray(x, count[0], 0, 1);
+        zCoords->SetArray(x, static_cast<vtkIdType>(count[0]), 0, 1);
         rgrid->SetXCoordinates(xCoords);
         rgrid->SetYCoordinates(yCoords);
         rgrid->SetZCoordinates(zCoords);
@@ -296,7 +296,7 @@ int vtkNetCDFPOPReader::RequestData(vtkInformation* request,
       }
       //create vtkFloatArray and get the scalars into it
       vtkFloatArray *scalars = vtkFloatArray::New();
-      vtkIdType numberOfTuples = (count[0])*(count[1])*(count[2]);
+      vtkIdType numberOfTuples = static_cast<vtkIdType>((count[0])*(count[1])*(count[2]));
       float* data = new float[numberOfTuples];
 #if 0
       nc_get_vara_float(this->NCDFFD, varidp, start, count, data);
@@ -335,7 +335,7 @@ const char* vtkNetCDFPOPReader::GetVariableArrayName(int index)
 {
   if(index < 0 || index >= this->GetNumberOfVariableArrays())
   {
-    return NULL;
+    return nullptr;
   }
   return this->Internals->VariableArraySelection->GetArrayName(index);
 }

@@ -33,7 +33,7 @@ public:
   static vtkImageEuclideanToPolar *New();
   vtkTypeMacro(vtkImageEuclideanToPolar,
                        vtkThreadedImageAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -47,15 +47,15 @@ public:
 
 protected:
   vtkImageEuclideanToPolar();
-  ~vtkImageEuclideanToPolar() {}
+  ~vtkImageEuclideanToPolar() override {}
 
   double ThetaMaximum;
 
   void ThreadedExecute (vtkImageData *inData, vtkImageData *outData,
-                       int ext[6], int id);
+                       int ext[6], int id) override;
 private:
-  vtkImageEuclideanToPolar(const vtkImageEuclideanToPolar&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkImageEuclideanToPolar&) VTK_DELETE_FUNCTION;
+  vtkImageEuclideanToPolar(const vtkImageEuclideanToPolar&) = delete;
+  void operator=(const vtkImageEuclideanToPolar&) = delete;
 };
 
 #endif

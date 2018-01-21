@@ -91,7 +91,7 @@ vtkStandardNewMacro(vtkOpenGLShaderCache);
 // ----------------------------------------------------------------------------
 vtkOpenGLShaderCache::vtkOpenGLShaderCache() : Internal(new Private)
 {
-  this->LastShaderBound  = NULL;
+  this->LastShaderBound  = nullptr;
 }
 
 // ----------------------------------------------------------------------------
@@ -99,7 +99,7 @@ vtkOpenGLShaderCache::~vtkOpenGLShaderCache()
 {
   typedef std::map<std::string,vtkShaderProgram*>::const_iterator SMapIter;
   SMapIter iter = this->Internal->ShaderPrograms.begin();
-  for ( ; iter != this->Internal->ShaderPrograms.end(); iter++)
+  for ( ; iter != this->Internal->ShaderPrograms.end(); ++iter)
   {
     iter->second->Delete();
   }
@@ -118,14 +118,17 @@ unsigned int vtkOpenGLShaderCache::ReplaceShaderValues(
   // assume their inputs come from a Vertex Shader. When we
   // have a Geometry shader we rename the frament shader inputs
   // to come from the geometry shader
-  if (GSSource.size() > 0)
+  if (!GSSource.empty())
   {
     vtkShaderProgram::Substitute(FSSource,"VSOut","GSOut");
   }
 
+#if GL_ES_VERSION_3_0 == 1
+  std::string version = "#version 300 es\n";
+  bool needFragDecls = true;
+#else
   std::string version = "#version 120\n";
   bool needFragDecls = false;
-#if GL_ES_VERSION_2_0 != 1
   int glMajorVersion = 2;
   int glMinorVersion = 0;
   glGetIntegerv(GL_MAJOR_VERSION, & glMajorVersion);
@@ -142,13 +145,6 @@ unsigned int vtkOpenGLShaderCache::ReplaceShaderValues(
       needFragDecls = true;
     }
   }
-#else
-#if GL_ES_VERSION_3_0 == 1
-  version = "#version 300 es\n";
-  needFragDecls = true;
-#else
-  version = "#version 100\n";
-#endif
 #endif
 
   vtkShaderProgram::Substitute(VSSource,"//VTK::System::Dec",
@@ -188,14 +184,6 @@ unsigned int vtkOpenGLShaderCache::ReplaceShaderValues(
     "#define texture2D texture\n"
     "#define texture3D texture\n"
     "#endif // 300\n"
-    "#if __VERSION__ == 100\n"
-    "#extension GL_OES_standard_derivatives : enable\n"
-    "#ifdef GL_FRAGMENT_PRECISION_HIGH\n"
-    "precision highp float;\n"
-    "#else\n"
-    "precision mediump float;\n"
-    "#endif\n"
-    "#endif // 100\n"
     "#else // GL_ES\n"
     "#define highp\n"
     "#define mediump\n"
@@ -249,6 +237,12 @@ unsigned int vtkOpenGLShaderCache::ReplaceShaderValues(
       done = !vtkShaderProgram::Substitute(FSSource, src.str(),dst.str());
       if (!done)
       {
+#if GL_ES_VERSION_3_0
+        src.str("");
+        src.clear();
+        src << count;
+        fragDecls += "layout(location = " + src.str() + ") ";
+#endif
         fragDecls += "out vec4 " + dst.str() + ";\n";
         count++;
       }
@@ -280,7 +274,7 @@ vtkShaderProgram *vtkOpenGLShaderCache::ReadyShaderProgram(
   return this->ReadyShaderProgram(shader, cap);
 }
 
-// return NULL if there is an issue
+// return nullptr if there is an issue
 vtkShaderProgram *vtkOpenGLShaderCache::ReadyShaderProgram(
   const char *vertexCode, const char *fragmentCode, const char *geometryCode,
   vtkTransformFeedback *cap)
@@ -301,32 +295,32 @@ vtkShaderProgram *vtkOpenGLShaderCache::ReadyShaderProgram(
   return this->ReadyShaderProgram(shader, cap);
 }
 
-// return NULL if there is an issue
+// return nullptr if there is an issue
 vtkShaderProgram *vtkOpenGLShaderCache::ReadyShaderProgram(
     vtkShaderProgram *shader, vtkTransformFeedback *cap)
 {
   if (!shader)
   {
-    return NULL;
+    return nullptr;
   }
 
   if (shader->GetTransformFeedback() != cap)
   {
     this->ReleaseCurrentShader();
-    shader->ReleaseGraphicsResources(NULL);
+    shader->ReleaseGraphicsResources(nullptr);
     shader->SetTransformFeedback(cap);
   }
 
   // compile if needed
   if (!shader->GetCompiled() && !shader->CompileShader())
   {
-    return NULL;
+    return nullptr;
   }
 
   // bind if needed
   if (!this->BindShader(shader))
   {
-    return NULL;
+    return nullptr;
   }
 
   return shader;
@@ -380,7 +374,7 @@ vtkShaderProgram *vtkOpenGLShaderCache::GetShaderProgram(
     vtkShaderProgram *sps = vtkShaderProgram::New();
     sps->GetVertexShader()->SetSource(vertexCode);
     sps->GetFragmentShader()->SetSource(fragmentCode);
-    if (geometryCode != NULL)
+    if (geometryCode != nullptr)
     {
       sps->GetGeometryShader()->SetSource(geometryCode);
     }
@@ -408,7 +402,7 @@ void vtkOpenGLShaderCache::ReleaseGraphicsResources(vtkWindow *win)
 
   typedef std::map<std::string,vtkShaderProgram*>::const_iterator SMapIter;
   SMapIter iter = this->Internal->ShaderPrograms.begin();
-  for ( ; iter != this->Internal->ShaderPrograms.end(); iter++)
+  for ( ; iter != this->Internal->ShaderPrograms.end(); ++iter)
   {
     iter->second->ReleaseGraphicsResources(win);
   }
@@ -420,7 +414,7 @@ void vtkOpenGLShaderCache::ReleaseCurrentShader()
   if (this->LastShaderBound)
   {
     this->LastShaderBound->Release();
-    this->LastShaderBound = NULL;
+    this->LastShaderBound = nullptr;
   }
 }
 

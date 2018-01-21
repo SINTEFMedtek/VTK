@@ -58,8 +58,8 @@ class VTKRENDERINGCORE_EXPORT vtkGraphMapper : public vtkMapper
 public:
   static vtkGraphMapper *New();
   vtkTypeMacro(vtkGraphMapper, vtkMapper);
-  void PrintSelf(ostream& os, vtkIndent indent);
-  void Render(vtkRenderer *ren, vtkActor *act);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
+  void Render(vtkRenderer *ren, vtkActor *act) override;
 
   //@{
   /**
@@ -232,12 +232,12 @@ public:
    * The parameter window could be used to determine which graphic
    * resources to release.
    */
-  void ReleaseGraphicsResources(vtkWindow *);
+  void ReleaseGraphicsResources(vtkWindow *) override;
 
   /**
    * Get the mtime also considering the lookup table.
    */
-  vtkMTimeType GetMTime();
+  vtkMTimeType GetMTime() override;
 
   //@{
   /**
@@ -251,8 +251,8 @@ public:
    * Return bounding box (array of six doubles) of data expressed as
    * (xmin,xmax, ymin,ymax, zmin,zmax).
    */
-  virtual double *GetBounds();
-  virtual void GetBounds(double* bounds)
+  double *GetBounds() override;
+  void GetBounds(double* bounds) override
     { Superclass::GetBounds(bounds); }
 
   //@{
@@ -265,7 +265,7 @@ public:
 
 protected:
   vtkGraphMapper();
-  ~vtkGraphMapper();
+  ~vtkGraphMapper() override;
 
   //@{
   /**
@@ -311,14 +311,14 @@ protected:
   vtkLookupTable* EdgeLookupTable;
   vtkLookupTable* VertexLookupTable;
 
-  void ReportReferences(vtkGarbageCollector*) VTK_OVERRIDE;
+  void ReportReferences(vtkGarbageCollector*) override;
 
   // see algorithm for more info
-  virtual int FillInputPortInformation(int port, vtkInformation* info);
+  int FillInputPortInformation(int port, vtkInformation* info) override;
 
 private:
-  vtkGraphMapper(const vtkGraphMapper&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkGraphMapper&) VTK_DELETE_FUNCTION;
+  vtkGraphMapper(const vtkGraphMapper&) = delete;
+  void operator=(const vtkGraphMapper&) = delete;
 
   // Helper function
   vtkPolyData* CreateCircle(bool filled);

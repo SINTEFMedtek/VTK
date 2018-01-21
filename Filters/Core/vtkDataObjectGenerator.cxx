@@ -106,14 +106,14 @@ public:
   vtkInternalStructureCache()
   {
     type = -1;
-    parent = NULL;
+    parent = nullptr;
   }
   ~vtkInternalStructureCache()
   {
     std::vector<vtkInternalStructureCache *>::iterator it;
     for (it = this->children.begin();
          it != this->children.end();
-         it++)
+         ++it)
     {
       delete *it;
     }
@@ -143,7 +143,7 @@ public:
     std::vector<vtkInternalStructureCache *>::iterator it;
     for (it = this->children.begin();
          it != this->children.end();
-         it++)
+         ++it)
     {
       (*it)->print(level+1);
     }
@@ -288,9 +288,9 @@ vtkDataObjectGenerator::vtkDataObjectGenerator()
 {
   this->SetNumberOfInputPorts(0);
 
-  this->Program=NULL;
+  this->Program=nullptr;
   this->SetProgram("ID1");
-  this->Structure = NULL;
+  this->Structure = nullptr;
 
   this->CellIdCounter = 0;
   this->PointIdCounter = 0;
@@ -302,7 +302,7 @@ vtkDataObjectGenerator::vtkDataObjectGenerator()
 //----------------------------------------------------------------------------
 vtkDataObjectGenerator::~vtkDataObjectGenerator()
 {
-  this->SetProgram(NULL);
+  this->SetProgram(nullptr);
   delete this->Structure;
 }
 
@@ -320,7 +320,7 @@ int vtkDataObjectGenerator::RequestDataObject(vtkInformation *,
                                               vtkInformationVector *outV)
 {
   vtkInformation *outInfo = outV->GetInformationObject(0);
-  vtkDataObject *outData = NULL;
+  vtkDataObject *outData = nullptr;
 
   if (!this->Program)
   {
@@ -348,9 +348,9 @@ vtkDataObject * vtkDataObjectGenerator::CreateOutputDataObjects(
   {
     case -1: //top holder it should hold a single data set, use it
     {
-    if (!structure->children.size())
+    if (structure->children.empty())
     {
-      return NULL;
+      return nullptr;
     }
     return this->CreateOutputDataObjects(structure->children.front());
     }
@@ -399,7 +399,7 @@ vtkDataObject * vtkDataObjectGenerator::CreateOutputDataObjects(
     case GE: //should never be created
     default:
     //cerr << "UH OH" << endl;
-    return NULL;
+    return nullptr;
   }
 }
 
@@ -414,7 +414,7 @@ int vtkDataObjectGenerator::RequestInformation(vtkInformation *req,
     return VTK_OK;
   }
 
-  if (!this->Structure->children.size())
+  if (this->Structure->children.empty())
   {
     vtkErrorMacro("Program was invalid.");
     return VTK_ERROR;
@@ -575,7 +575,7 @@ vtkDataObject * vtkDataObjectGenerator::FillOutputDataObjects(
   int stripe
   )
 {
-  vtkDataObject *outData = NULL;
+  vtkDataObject *outData = nullptr;
   int t = structure->type;
   if (t != -1 &&
       t != HBE &&
@@ -597,7 +597,7 @@ vtkDataObject * vtkDataObjectGenerator::FillOutputDataObjects(
            << vtkDataObjectGeneratorTypeStrings[t]
            << endl;
       */
-      return NULL;
+      return nullptr;
     }
     else
     {
@@ -615,9 +615,9 @@ vtkDataObject * vtkDataObjectGenerator::FillOutputDataObjects(
   {
     case -1: //top level is a holder, use the single data set inside instead
     {
-    if (!structure->children.size())
+    if (structure->children.empty())
     {
-      return NULL;
+      return nullptr;
     }
     return this->FillOutputDataObjects(structure->children.front(), level+1);
     }
@@ -687,10 +687,10 @@ vtkDataObject * vtkDataObjectGenerator::FillOutputDataObjects(
     std::vector<vtkInternalStructureCache *>::iterator git;
     for (git = structure->children.begin();
          git != structure->children.end();
-         git++)
+         ++git)
     {
       vtkInternalStructureCache *gptr = *git;
-      vtkIdType nds = gptr->children.size();
+      vtkIdType nds = static_cast<vtkIdType>(gptr->children.size());
       blocksPerLevel.push_back(nds);
     }
 
@@ -701,7 +701,7 @@ vtkDataObject * vtkDataObjectGenerator::FillOutputDataObjects(
     vtkIdType gcnt = 0;
     for (git = structure->children.begin();
          git != structure->children.end();
-         git++)
+         ++git)
     {
       //cerr << "LVL=" << gcnt  << endl;
 
@@ -728,7 +728,7 @@ vtkDataObject * vtkDataObjectGenerator::FillOutputDataObjects(
            dit != gptr->children.end()
              && dcnt<maxchildren //ignore extra children
              ;
-           dit++)
+           ++dit)
       {
         //cerr << "DS=" << dcnt  << endl;
         vtkInternalStructureCache *dptr = *dit;
@@ -748,7 +748,7 @@ vtkDataObject * vtkDataObjectGenerator::FillOutputDataObjects(
         cerr << "LO=" << lo[0] << "," << lo[1] << "," << lo[2] << " "
              << "HI=" << hi[0] << "," << hi[1] << "," << hi[2] << endl;
         */
-        vtkDataObject *dobj = NULL;
+        vtkDataObject *dobj = nullptr;
         double spacing = pow(0.5,static_cast<double>(gcnt+1)); //==1.0/(2*r2)
 
         //restrict HierarchicalBoxes's to contain only UniformGrids
@@ -811,7 +811,7 @@ vtkDataObject * vtkDataObjectGenerator::FillOutputDataObjects(
 
     for (git = structure->children.begin();
          git != structure->children.end();
-         git++)
+         ++git)
     {
       this->ZOffset += 1.0;
       vtkInternalStructureCache *gptr = *git;
@@ -840,7 +840,7 @@ vtkDataObject * vtkDataObjectGenerator::FillOutputDataObjects(
     case GE: //should never be created
     default:
     //cerr << "UH OH" << endl;
-    return NULL;
+    return nullptr;
   }
 }
 
@@ -876,7 +876,7 @@ void vtkDataObjectGenerator::MakeValues(vtkDataSet *ds)
   for (vtkIdType i = 0; i < num; i++)
   {
     ids->SetValue(i, this->CellIdCounter++);
-    double *bds = ds->GetCell(i)->GetBounds();
+    const double *bds = ds->GetCell(i)->GetBounds();
     xcoords->SetValue(i, (bds[0]+bds[1])*0.5);
     ycoords->SetValue(i, (bds[2]+bds[3])*0.5);
     zcoords->SetValue(i, (bds[4]+bds[5])*0.5);

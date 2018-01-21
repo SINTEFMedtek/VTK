@@ -42,34 +42,34 @@ public:
   static vtkSCurveSpline *New();
 
   vtkTypeMacro(vtkSCurveSpline,vtkSpline);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Compute SCurve Splines for each dependent variable
    */
-  void Compute ();
+  void Compute () override;
 
   /**
    * Evaluate a 1D SCurve spline.
    */
-  virtual double Evaluate (double t);
+  double Evaluate (double t) override;
 
   /**
    * Deep copy of SCurve spline data.
    */
-  virtual void DeepCopy(vtkSpline *s);
+  void DeepCopy(vtkSpline *s) override;
 
   vtkSetMacro(NodeWeight,double);
   vtkGetMacro(NodeWeight,double);
 protected:
   vtkSCurveSpline();
-  ~vtkSCurveSpline() {}
+  ~vtkSCurveSpline() override {}
 
   double NodeWeight;
 
 private:
-  vtkSCurveSpline(const vtkSCurveSpline&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkSCurveSpline&) VTK_DELETE_FUNCTION;
+  vtkSCurveSpline(const vtkSCurveSpline&) = delete;
+  void operator=(const vtkSCurveSpline&) = delete;
 };
 
 #endif

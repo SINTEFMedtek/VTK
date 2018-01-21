@@ -43,7 +43,7 @@ class VTKRENDERINGVOLUMEOPENGL2_EXPORT vtkOpenGLRayCastImageDisplayHelper
 public:
   static vtkOpenGLRayCastImageDisplayHelper *New();
   vtkTypeMacro(vtkOpenGLRayCastImageDisplayHelper,vtkRayCastImageDisplayHelper);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   void RenderTexture( vtkVolume *vol, vtkRenderer *ren,
                       int imageMemorySize[2],
@@ -51,7 +51,7 @@ public:
                       int imageInUseSize[2],
                       int imageOrigin[2],
                       float requestedDepth,
-                      unsigned char *image );
+                      unsigned char *image ) override;
 
   void RenderTexture( vtkVolume *vol, vtkRenderer *ren,
                       int imageMemorySize[2],
@@ -59,17 +59,17 @@ public:
                       int imageInUseSize[2],
                       int imageOrigin[2],
                       float requestedDepth,
-                      unsigned short *image );
+                      unsigned short *image ) override;
 
   void RenderTexture( vtkVolume *vol, vtkRenderer *ren,
                       vtkFixedPointRayCastImage *image,
-                      float requestedDepth );
+                      float requestedDepth ) override;
 
-  virtual void ReleaseGraphicsResources(vtkWindow *win);
+  void ReleaseGraphicsResources(vtkWindow *win) override;
 
 protected:
   vtkOpenGLRayCastImageDisplayHelper();
-  ~vtkOpenGLRayCastImageDisplayHelper();
+  ~vtkOpenGLRayCastImageDisplayHelper() override;
 
   void RenderTextureInternal( vtkVolume *vol, vtkRenderer *ren,
                               int imageMemorySize[2],
@@ -87,8 +87,8 @@ protected:
 
 
 private:
-  vtkOpenGLRayCastImageDisplayHelper(const vtkOpenGLRayCastImageDisplayHelper&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkOpenGLRayCastImageDisplayHelper&) VTK_DELETE_FUNCTION;
+  vtkOpenGLRayCastImageDisplayHelper(const vtkOpenGLRayCastImageDisplayHelper&) = delete;
+  void operator=(const vtkOpenGLRayCastImageDisplayHelper&) = delete;
 };
 
 #endif

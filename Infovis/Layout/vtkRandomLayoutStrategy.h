@@ -41,7 +41,7 @@ public:
   static vtkRandomLayoutStrategy *New();
 
   vtkTypeMacro(vtkRandomLayoutStrategy, vtkGraphLayoutStrategy);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -88,16 +88,16 @@ public:
   /**
    * Set the graph to layout.
    */
-  void SetGraph(vtkGraph *graph);
+  void SetGraph(vtkGraph *graph) override;
 
   /**
    * Perform the random layout.
    */
-  void Layout();
+  void Layout() override;
 
 protected:
   vtkRandomLayoutStrategy();
-  ~vtkRandomLayoutStrategy();
+  ~vtkRandomLayoutStrategy() override;
 
   int RandomSeed;
   double GraphBounds[6];
@@ -105,8 +105,8 @@ protected:
   int   ThreeDimensionalLayout;  //Boolean for a third dimension.
 private:
 
-  vtkRandomLayoutStrategy(const vtkRandomLayoutStrategy&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkRandomLayoutStrategy&) VTK_DELETE_FUNCTION;
+  vtkRandomLayoutStrategy(const vtkRandomLayoutStrategy&) = delete;
+  void operator=(const vtkRandomLayoutStrategy&) = delete;
 };
 
 #endif

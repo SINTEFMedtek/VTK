@@ -34,7 +34,7 @@ class VTKIMAGINGCORE_EXPORT vtkImageIterateFilter : public vtkThreadedImageAlgor
 {
 public:
   vtkTypeMacro(vtkImageIterateFilter,vtkThreadedImageAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -47,19 +47,19 @@ public:
 
 protected:
   vtkImageIterateFilter();
-  ~vtkImageIterateFilter();
+  ~vtkImageIterateFilter() override;
 
   // Implement standard requests by calling iterative versions the
   // specified number of times.
-  virtual int RequestUpdateExtent(vtkInformation*,
+  int RequestUpdateExtent(vtkInformation*,
                                   vtkInformationVector**,
-                                  vtkInformationVector*);
-  virtual int RequestInformation (vtkInformation*,
+                                  vtkInformationVector*) override;
+  int RequestInformation (vtkInformation*,
                                   vtkInformationVector**,
-                                  vtkInformationVector*);
-  virtual int RequestData(vtkInformation* request,
+                                  vtkInformationVector*) override;
+  int RequestData(vtkInformation* request,
                           vtkInformationVector** inputVector,
-                          vtkInformationVector* outputVector);
+                          vtkInformationVector* outputVector) override;
 
   // Iterative versions of standard requests.  These are given the
   // pipeline information object for the in/out pair at each
@@ -84,8 +84,8 @@ protected:
   vtkInformationVector* InputVector;
   vtkInformationVector* OutputVector;
 private:
-  vtkImageIterateFilter(const vtkImageIterateFilter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkImageIterateFilter&) VTK_DELETE_FUNCTION;
+  vtkImageIterateFilter(const vtkImageIterateFilter&) = delete;
+  void operator=(const vtkImageIterateFilter&) = delete;
 };
 
 #endif

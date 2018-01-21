@@ -51,14 +51,14 @@ class VTKGUISUPPORTQT_EXPORT vtkQtTreeModelAdapter : public vtkQtAbstractModelAd
 
 public:
   vtkQtTreeModelAdapter(QObject *parent = 0, vtkTree* tree = 0);
-  ~vtkQtTreeModelAdapter();
+  ~vtkQtTreeModelAdapter() override;
 
   //@{
   /**
    * Set/Get the VTK data object as input to this adapter
    */
-  virtual void SetVTKDataObject(vtkDataObject *data);
-  virtual vtkDataObject* GetVTKDataObject() const;
+  void SetVTKDataObject(vtkDataObject *data) override;
+  vtkDataObject* GetVTKDataObject() const override;
   //@}
 
   /**
@@ -75,15 +75,15 @@ public:
   /**
    * Selection conversion from VTK land to Qt land
    */
-  virtual vtkSelection* QModelIndexListToVTKIndexSelection(
-    const QModelIndexList qmil) const;
-  virtual QItemSelection VTKIndexSelectionToQItemSelection(
-    vtkSelection *vtksel) const;
+  vtkSelection* QModelIndexListToVTKIndexSelection(
+    const QModelIndexList qmil) const override;
+  QItemSelection VTKIndexSelectionToQItemSelection(
+    vtkSelection *vtksel) const override;
   //@}
 
-  virtual void SetKeyColumnName(const char* name);
+  void SetKeyColumnName(const char* name) override;
 
-  virtual void SetColorColumnName(const char* name);
+  void SetColorColumnName(const char* name) override;
 
   /**
    * Set up the model based on the current tree.
@@ -91,16 +91,16 @@ public:
   void setTree(vtkTree* t);
   vtkTree* tree() const { return this->Tree; }
 
-  QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
-  bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole);
-  Qt::ItemFlags flags(const QModelIndex &index) const;
+  QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+  bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
+  Qt::ItemFlags flags(const QModelIndex &index) const override;
   QVariant headerData(int section, Qt::Orientation orientation,
-                      int role = Qt::DisplayRole) const;
+                      int role = Qt::DisplayRole) const override;
   QModelIndex index(int row, int column,
-                    const QModelIndex &parent = QModelIndex()) const;
-  QModelIndex parent(const QModelIndex &index) const;
-  int rowCount(const QModelIndex &parent = QModelIndex()) const;
-  int columnCount(const QModelIndex &parent = QModelIndex()) const;
+                    const QModelIndex &parent = QModelIndex()) const override;
+  QModelIndex parent(const QModelIndex &index) const override;
+  int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+  int columnCount(const QModelIndex &parent = QModelIndex()) const override;
 
   //@{
   /**
@@ -108,9 +108,13 @@ public:
    * pedigreeid vtkSelection into a QMimeData when items are dragged.
    * Currently only leaves of the tree can be dragged.
    */
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
+  Qt::DropActions supportedDragActions() const override;
+#else
   Qt::DropActions supportedDragActions() const;
-  virtual QMimeData * mimeData ( const QModelIndexList & indexes ) const;
-  virtual QStringList mimeTypes () const ;
+#endif
+  QMimeData * mimeData ( const QModelIndexList & indexes ) const override;
+  QStringList mimeTypes () const override;
   //@}
 
 protected:
@@ -124,8 +128,8 @@ protected:
   QHash<QModelIndex, QVariant> IndexToDecoration;
 
 private:
-  vtkQtTreeModelAdapter(const vtkQtTreeModelAdapter &) VTK_DELETE_FUNCTION;
-  void operator=(const vtkQtTreeModelAdapter&) VTK_DELETE_FUNCTION;
+  vtkQtTreeModelAdapter(const vtkQtTreeModelAdapter &) = delete;
+  void operator=(const vtkQtTreeModelAdapter&) = delete;
 };
 
 #endif

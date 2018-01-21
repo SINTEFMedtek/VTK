@@ -57,7 +57,7 @@ class VTKRENDERINGANNOTATION_EXPORT vtkLeaderActor2D : public vtkActor2D
 {
 public:
   vtkTypeMacro(vtkLeaderActor2D,vtkActor2D);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Instantiate object.
@@ -195,22 +195,22 @@ public:
   /**
    * Methods required by vtkProp and vtkActor2D superclasses.
    */
-  int RenderOverlay(vtkViewport* viewport);
-  int RenderOpaqueGeometry(vtkViewport* viewport);
-  virtual int RenderTranslucentPolygonalGeometry(vtkViewport *) {return 0;}
+  int RenderOverlay(vtkViewport* viewport) override;
+  int RenderOpaqueGeometry(vtkViewport* viewport) override;
+  int RenderTranslucentPolygonalGeometry(vtkViewport *) override {return 0;}
   //@}
 
   /**
    * Does this prop have some translucent polygonal geometry?
    */
-  virtual int HasTranslucentPolygonalGeometry();
+  int HasTranslucentPolygonalGeometry() override;
 
-  void ReleaseGraphicsResources(vtkWindow *);
-  void ShallowCopy(vtkProp *prop);
+  void ReleaseGraphicsResources(vtkWindow *) override;
+  void ShallowCopy(vtkProp *prop) override;
 
 protected:
   vtkLeaderActor2D();
-  ~vtkLeaderActor2D();
+  ~vtkLeaderActor2D() override;
 
   // Internal helper methods
   virtual void BuildLeader(vtkViewport *viewport);
@@ -257,8 +257,8 @@ protected:
   vtkTimeStamp  BuildTime;
 
 private:
-  vtkLeaderActor2D(const vtkLeaderActor2D&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkLeaderActor2D&) VTK_DELETE_FUNCTION;
+  vtkLeaderActor2D(const vtkLeaderActor2D&) = delete;
+  void operator=(const vtkLeaderActor2D&) = delete;
 };
 
 

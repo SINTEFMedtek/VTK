@@ -1,24 +1,12 @@
 from vtk import *
+from vtk.web import getJSArrayType
 from vtk.web.camera import *
 from vtk.web.query_data_model import *
-
+from vtk.web import iteritems, buffer
 import json, os, math, gzip, shutil
 
 # Global helper variables
 encode_codes = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-arrayTypesMapping = '  bBhHiIlLfd'
-jsMapping = {
-    'b': 'Int8Array',
-    'B': 'Uint8Array',
-    'h': 'Int16Array',
-    'H': 'Int16Array',
-    'i': 'Int32Array',
-    'I': 'Uint32Array',
-    'l': 'Int32Array',
-    'L': 'Uint32Array',
-    'f': 'Float32Array',
-    'd': 'Float64Array'
-}
 
 # -----------------------------------------------------------------------------
 # Capture image from render window
@@ -27,7 +15,7 @@ jsMapping = {
 class CaptureRenderWindow(object):
     def __init__(self, magnification=1):
         self.windowToImage = vtkWindowToImageFilter()
-        self.windowToImage.SetMagnification(magnification)
+        self.windowToImage.SetScale(magnification)
         self.windowToImage.SetInputBufferTypeToRGB()
         self.windowToImage.ReadFrontBufferOn()
         self.writer = None
@@ -61,10 +49,10 @@ class DataSetBuilder(object):
         self.camera = None
         self.imageCapture = CaptureRenderWindow()
 
-        for key, value in metadata.iteritems():
+        for key, value in iteritems(metadata):
             self.dataHandler.addMetaData(key, value)
 
-        for key, value in sections.iteritems():
+        for key, value in iteritems(sections):
             self.dataHandler.addSection(key, value)
 
     def getDataHandler(self):
@@ -264,7 +252,7 @@ class VolumeCompositeDataSetBuilder(DataSetBuilder):
 
         if compress:
             for root, dirs, files in os.walk(self.dataHandler.getBasePath()):
-                print 'Compress', root
+                print('Compress', root)
                 for name in files:
                     if '.uint8' in name and '.gz' not in name:
                         with open(os.path.join(root, name), 'rb') as f_in:
@@ -309,7 +297,7 @@ class DataProberDataSetBuilder(DataSetBuilder):
                 with open(self.dataHandler.getDataAbsoluteFilePath(field), 'wb') as f:
                     f.write(b)
 
-                self.DataProber['types'][field] = jsMapping[arrayTypesMapping[array.GetDataType()]]
+                self.DataProber['types'][field] = getJSArrayType(array)
                 if field in self.DataProber['ranges']:
                     dataRange = array.GetRange()
                     if dataRange[0] < self.DataProber['ranges'][field][0]:
@@ -319,8 +307,8 @@ class DataProberDataSetBuilder(DataSetBuilder):
                 else:
                     self.DataProber['ranges'][field] = [array.GetRange()[0], array.GetRange()[1]]
             else:
-                print 'No array for', field
-                print self.resamplerFilter.GetOutput()
+                print('No array for', field)
+                print(self.resamplerFilter.GetOutput())
 
     def stop(self, compress=True):
         # Push metadata
@@ -331,7 +319,7 @@ class DataProberDataSetBuilder(DataSetBuilder):
 
         if compress:
             for root, dirs, files in os.walk(self.dataHandler.getBasePath()):
-                print 'Compress', root
+                print('Compress', root)
                 for name in files:
                     if '.array' in name and '.gz' not in name:
                         with open(os.path.join(root, name), 'rb') as f_in:
@@ -466,7 +454,7 @@ class SortedCompositeDataSetBuilder(VolumeCompositeDataSetBuilder):
         # Go through all directories and convert them
         for root, dirs, files in os.walk(self.dataHandler.getBasePath()):
             for name in dirs:
-                print 'Process', os.path.join(root, name)
+                print('Process', os.path.join(root, name))
                 self.dataConverter.convert(os.path.join(root, name))
 
         # Rename index.json to info_origin.json
@@ -497,14 +485,14 @@ class SortedCompositeDataSetBuilder(VolumeCompositeDataSetBuilder):
         # Clean temporary data
         if clean:
             for root, dirs, files in os.walk(self.dataHandler.getBasePath()):
-                print 'Clean', root
+                print('Clean', root)
                 for name in files:
                     if '_rgb.png' in name or '_depth.uint8' in name or name == "index_origin.json":
                         os.remove(os.path.join(root, name))
 
         if compress:
             for root, dirs, files in os.walk(self.dataHandler.getBasePath()):
-                print 'Compress', root
+                print('Compress', root)
                 for name in files:
                     if '.uint8' in name and '.gz' not in name:
                         with open(os.path.join(root, name), 'rb') as f_in:

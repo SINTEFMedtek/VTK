@@ -56,7 +56,7 @@ public:
   static vtkPolyDataSilhouette *New();
 
   vtkTypeMacro(vtkPolyDataSilhouette,vtkPolyDataAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -165,13 +165,13 @@ public:
    * Return MTime also considering the dependent objects: the camera
    * and/or the prop3D.
    */
-  vtkMTimeType GetMTime();
+  vtkMTimeType GetMTime() override;
 
 protected:
   vtkPolyDataSilhouette();
-  ~vtkPolyDataSilhouette();
+  ~vtkPolyDataSilhouette() override;
 
-  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
   void ComputeProjectionVector(double vector[3], double origin[3]);
 
   int Direction;
@@ -190,8 +190,8 @@ protected:
   vtkPolyDataEdges* PreComp; // precomputed data for a given point of view
 
 private:
-  vtkPolyDataSilhouette(const vtkPolyDataSilhouette&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPolyDataSilhouette&) VTK_DELETE_FUNCTION;
+  vtkPolyDataSilhouette(const vtkPolyDataSilhouette&) = delete;
+  void operator=(const vtkPolyDataSilhouette&) = delete;
 };
 
 #endif

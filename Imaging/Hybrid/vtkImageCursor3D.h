@@ -30,7 +30,7 @@ class VTKIMAGINGHYBRID_EXPORT vtkImageCursor3D : public vtkImageInPlaceFilter
 public:
   static vtkImageCursor3D *New();
   vtkTypeMacro(vtkImageCursor3D,vtkImageInPlaceFilter);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
 
   //@{
@@ -61,19 +61,19 @@ public:
 
 protected:
   vtkImageCursor3D();
-  ~vtkImageCursor3D() {}
+  ~vtkImageCursor3D() override {}
 
   double CursorPosition[3];
   double CursorValue;
   int CursorRadius;
 
-  virtual int RequestData(vtkInformation *request,
+  int RequestData(vtkInformation *request,
                           vtkInformationVector** inputVector,
-                          vtkInformationVector* outputVector);
+                          vtkInformationVector* outputVector) override;
 
 private:
-  vtkImageCursor3D(const vtkImageCursor3D&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkImageCursor3D&) VTK_DELETE_FUNCTION;
+  vtkImageCursor3D(const vtkImageCursor3D&) = delete;
+  void operator=(const vtkImageCursor3D&) = delete;
 };
 
 

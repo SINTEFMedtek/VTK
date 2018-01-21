@@ -52,7 +52,7 @@
 void GenerateElevationArray(vtkSmartPointer<vtkPolyDataAlgorithm> source)
 {
   vtkPolyData* data = source->GetOutput();
-  double* bounds = data->GetBounds();
+  const double* bounds = data->GetBounds();
 
   vtkSmartPointer<vtkElevationFilter> elevation =
     vtkSmartPointer<vtkElevationFilter>::New();
@@ -108,7 +108,7 @@ void GenerateElevationArray(vtkSmartPointer<vtkPolyDataAlgorithm> source)
   vtkSmartPointer<vtkArrayCalculator> calc =
     vtkSmartPointer<vtkArrayCalculator>::New();
   calc->SetInputConnection(source->GetOutputPort());
-  calc->SetAttributeModeToUsePointData();
+  calc->SetAttributeTypeToPointData();
   calc->AddScalarArrayName("delta_x");
   calc->AddScalarArrayName("delta_y");
   calc->AddScalarArrayName("delta_z");
@@ -125,7 +125,7 @@ void GenerateElevationArray(vtkSmartPointer<vtkPolyDataAlgorithm> source)
 
   /// Include the elevation vector (point and cell data) in the original data
   vtkPolyData* outputP2c = vtkPolyData::SafeDownCast(p2c->GetOutput());
-  data->GetPointData()->AddArray(calc->GetOutput()->GetPointData()->GetArray(
+  data->GetPointData()->AddArray(vtkDataSet::SafeDownCast(calc->GetOutput())->GetPointData()->GetArray(
     "elevationVector"));
   data->GetCellData()->AddArray(outputP2c->GetCellData()->GetArray("elevationVector"));
 };
@@ -236,7 +236,7 @@ int TestValuePassFloatingPoint(int argc, char *argv[])
   cameraPass->SetDelegatePass(sequence);
 
   vtkOpenGLRenderer *glRenderer =
-    vtkOpenGLRenderer::SafeDownCast(renderer.GetPointer());
+    vtkOpenGLRenderer::SafeDownCast(renderer);
 
   // Render the value pass
   glRenderer->SetPass(cameraPass);
@@ -259,7 +259,7 @@ int TestValuePassFloatingPoint(int argc, char *argv[])
     ////// Render results on-screen
     renderer->RemoveActor(actor);
 
-    // Add image actors to display the point dataArray's componets
+    // Add image actors to display the point dataArray's components
     vtkSmartPointer<vtkImageActor> ia_x = vtkSmartPointer<vtkImageActor>::New();
     ia_x->GetMapper()->SetInputData(colorImagesPoint.at(0));
     renderer->AddActor(ia_x);
@@ -299,16 +299,17 @@ int TestValuePassFloatingPoint(int argc, char *argv[])
     renderer->ResetCamera();
 
     // Use the default pass to render the colored image.
-    glRenderer->SetPass(NULL);
+    glRenderer->SetPass(nullptr);
     window->Render();
   }
 
   // initialize render loop
-  int retVal = vtkRegressionTestImage(window.GetPointer());
+  int retVal = vtkRegressionTestImage(window);
   if( retVal == vtkRegressionTester::DO_INTERACTOR)
   {
     interactor->Start();
   }
 
+  valuePass->ReleaseGraphicsResources(window);
   return !retVal;
 }

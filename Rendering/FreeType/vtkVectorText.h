@@ -43,7 +43,7 @@ class VTKRENDERINGFREETYPE_EXPORT vtkVectorText : public vtkPolyDataAlgorithm
 public:
   static vtkVectorText *New();
   vtkTypeMacro(vtkVectorText,vtkPolyDataAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -55,14 +55,14 @@ public:
 
 protected:
   vtkVectorText();
-  ~vtkVectorText();
+  ~vtkVectorText() override;
 
-  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
   char *Text;
 
 private:
-  vtkVectorText(const vtkVectorText&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkVectorText&) VTK_DELETE_FUNCTION;
+  vtkVectorText(const vtkVectorText&) = delete;
+  void operator=(const vtkVectorText&) = delete;
 };
 
 #endif

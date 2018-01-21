@@ -53,23 +53,23 @@ class VTKFILTERSPARALLELIMAGING_EXPORT vtkPComputeHistogram2DOutliers : public v
 public:
   static vtkPComputeHistogram2DOutliers* New();
   vtkTypeMacro(vtkPComputeHistogram2DOutliers, vtkComputeHistogram2DOutliers);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   virtual void SetController(vtkMultiProcessController*);
   vtkGetObjectMacro(Controller,vtkMultiProcessController);
 protected:
   vtkPComputeHistogram2DOutliers();
-  ~vtkPComputeHistogram2DOutliers();
+  ~vtkPComputeHistogram2DOutliers() override;
 
-  virtual int RequestData(
+  int RequestData(
     vtkInformation*,
     vtkInformationVector**,
-    vtkInformationVector*);
+    vtkInformationVector*) override;
 
   vtkMultiProcessController* Controller;
 private:
-  vtkPComputeHistogram2DOutliers(const vtkPComputeHistogram2DOutliers&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPComputeHistogram2DOutliers&) VTK_DELETE_FUNCTION;
+  vtkPComputeHistogram2DOutliers(const vtkPComputeHistogram2DOutliers&) = delete;
+  void operator=(const vtkPComputeHistogram2DOutliers&) = delete;
 };
 
 #endif

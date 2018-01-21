@@ -50,7 +50,7 @@ class VTKFILTERSEXTRACTION_EXPORT vtkConvertSelection : public vtkSelectionAlgor
 public:
   static vtkConvertSelection *New();
   vtkTypeMacro(vtkConvertSelection, vtkSelectionAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * A convenience method for setting the second input (i.e. the data object).
@@ -111,6 +111,16 @@ public:
   vtkSetMacro(MatchAnyValues, bool);
   vtkGetMacro(MatchAnyValues, bool);
   vtkBooleanMacro(MatchAnyValues, bool);
+  //@}
+
+  //@{
+  /**
+   * When enabled, not finding expected array will not return an error.
+   * Defaults to OFF.
+   */
+  vtkSetMacro(AllowMissingArray, bool);
+  vtkGetMacro(AllowMissingArray, bool);
+  vtkBooleanMacro(AllowMissingArray, bool);
   //@}
 
   //@{
@@ -192,17 +202,18 @@ public:
     vtkSelection* input,
     vtkDataObject* data,
     int type,
-    vtkStringArray* arrayNames = 0,
-    int inputFieldType = -1);
+    vtkStringArray* arrayNames = nullptr,
+    int inputFieldType = -1,
+    bool allowMissingArray = false);
 
 protected:
   vtkConvertSelection();
-  ~vtkConvertSelection();
+  ~vtkConvertSelection() override;
 
-  virtual int RequestData(
+  int RequestData(
     vtkInformation *,
     vtkInformationVector **,
-    vtkInformationVector *);
+    vtkInformationVector *) override;
 
   int Convert(
     vtkSelection* input,
@@ -227,18 +238,19 @@ protected:
   int ConvertToBlockSelection(
     vtkSelection* input, vtkCompositeDataSet* data, vtkSelection* output);
 
-  virtual int FillInputPortInformation(
-    int port, vtkInformation* info);
+  int FillInputPortInformation(
+    int port, vtkInformation* info) override;
 
   int OutputType;
   int InputFieldType;
   vtkStringArray* ArrayNames;
   bool MatchAnyValues;
+  bool AllowMissingArray;
   vtkExtractSelection* SelectionExtractor;
 
 private:
-  vtkConvertSelection(const vtkConvertSelection&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkConvertSelection&) VTK_DELETE_FUNCTION;
+  vtkConvertSelection(const vtkConvertSelection&) = delete;
+  void operator=(const vtkConvertSelection&) = delete;
 };
 
 #endif

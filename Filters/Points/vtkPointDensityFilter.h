@@ -29,12 +29,17 @@
  * To use this filter, specify an input of type vtkPointSet (i.e., has an
  * explicit representation of points). Optionally a scalar weighting function
  * can be provided (part of the input to the filter). Then specify how the
- * local spherical neigborhood is to be defined, either by a fixed radius or
+ * local spherical neighborhood is to be defined, either by a fixed radius or
  * a radius relative to the voxel size. Finally, specify how the density is
  * specified, either as a points/volume, or as number of points. (The
  * weighting scalar array will affect both of these results if provided and
  * enabled.)
  *
+ * An optional capability of the filter is to compute the gradients of the
+ * resulting density function (a 3-component vector), which also includes the
+ * gradient magnitude (single component scalar) and classification (regions
+ * of zero function, a scalar with single unsigned char value per voxel).
+
  * @warning
  * A point locator is used to speed up searches. By default a fast
  * vtkStaticPointLocator is used; however the user may specify an alternative
@@ -93,7 +98,7 @@ public:
    */
   static vtkPointDensityFilter *New();
   vtkTypeMacro(vtkPointDensityFilter,vtkImageAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   //@{
@@ -196,6 +201,19 @@ public:
 
   //@{
   /**
+   * Turn on/off the generation of the gradient vector, gradient magnitude
+   * scalar, and function classification scalar. By default this is off. Note
+   * that this will increase execution time and the size of the output. (The
+   * names of these point data arrays are: "Gradient", "Gradient Magnitude",
+   * and "Classification".)
+   */
+  vtkSetMacro(ComputeGradient,bool);
+  vtkGetMacro(ComputeGradient,bool);
+  vtkBooleanMacro(ComputeGradient,bool);
+  //@}
+
+  //@{
+  /**
    * Specify a point locator. By default a vtkStaticPointLocator is
    * used. The locator performs efficient searches to locate near a
    * specified interpolation position.
@@ -204,9 +222,21 @@ public:
   vtkGetObjectMacro(Locator,vtkAbstractPointLocator);
   //@}
 
+  /**
+   * This enum is used to classify the behavior of the function gradient. Regions
+   * where all density values used in the calculation of the gradient are zero
+   * are referred to as ZERO regions. Otherwise NON_ZERO. This can be used to
+   * differentiate between regions where data is available and where it is not.
+   */
+  enum FunctionClass
+  {
+    ZERO=0,
+    NON_ZERO=1
+  };
+
 protected:
   vtkPointDensityFilter();
-  ~vtkPointDensityFilter();
+  ~vtkPointDensityFilter() override;
 
   int SampleDimensions[3]; // dimensions of volume over which to estimate density
   double ModelBounds[6]; // bounding box of splatting dimensions
@@ -217,22 +247,23 @@ protected:
   double RelativeRadius; // Radius factor for estimating density
   double Radius; // Actually radius used
   bool ScalarWeighting; // Are point densities weighted or not?
+  bool ComputeGradient; // Compute the gradient vector and magnitude
   vtkAbstractPointLocator *Locator; //accelerate point searches
 
-  virtual int FillInputPortInformation(int port, vtkInformation* info);
-  virtual int RequestInformation (vtkInformation *,
+  int FillInputPortInformation(int port, vtkInformation* info) override;
+  int RequestInformation (vtkInformation *,
                                   vtkInformationVector **,
-                                  vtkInformationVector *);
-  virtual int RequestData(vtkInformation *,
+                                  vtkInformationVector *) override;
+  int RequestData(vtkInformation *,
                           vtkInformationVector **,
-                          vtkInformationVector *);
+                          vtkInformationVector *) override;
 
   void ComputeModelBounds(vtkDataSet *input, vtkImageData *output,
                           vtkInformation *outInfo);
 
 private:
-  vtkPointDensityFilter(const vtkPointDensityFilter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPointDensityFilter&) VTK_DELETE_FUNCTION;
+  vtkPointDensityFilter(const vtkPointDensityFilter&) = delete;
+  void operator=(const vtkPointDensityFilter&) = delete;
 };
 
 #endif

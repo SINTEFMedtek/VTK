@@ -34,7 +34,7 @@ class VTKRENDERINGCONTEXT2D_EXPORT vtkContextClip : public vtkAbstractContextIte
 {
 public:
   vtkTypeMacro(vtkContextClip, vtkAbstractContextItem);
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
   /**
    * Creates a vtkContextClip object.
@@ -46,12 +46,12 @@ public:
    * The scene should take care of calling this on all items before their
    * Paint function is invoked.
    */
-  virtual void Update();
+  void Update() override;
 
   /**
    * Paint event for the item, called whenever the item needs to be drawn.
    */
-  virtual bool Paint(vtkContext2D *painter);
+  bool Paint(vtkContext2D *painter) override;
 
   /**
    * Set the origin, width and height of the clipping rectangle. These are in
@@ -70,13 +70,13 @@ public:
 
 protected:
   vtkContextClip();
-  ~vtkContextClip();
+  ~vtkContextClip() override;
 
   float Dims[4];
 
 private:
-  vtkContextClip(const vtkContextClip &) VTK_DELETE_FUNCTION;
-  void operator=(const vtkContextClip &) VTK_DELETE_FUNCTION;
+  vtkContextClip(const vtkContextClip &) = delete;
+  void operator=(const vtkContextClip &) = delete;
 
 };
 

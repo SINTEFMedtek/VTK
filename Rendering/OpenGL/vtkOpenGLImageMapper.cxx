@@ -105,7 +105,8 @@ void vtkOpenGLImageMapperRenderDouble(vtkOpenGLImageMapper *self, vtkImageData *
   int width = inMax0 - inMin0 + 1;
   int height = inMax1 - inMin1 + 1;
 
-  vtkIdType* tempIncs = data->GetIncrements();
+  vtkIdType tempIncs[3];
+  data->GetIncrements(tempIncs);
   vtkIdType inInc1 = tempIncs[1];
 
   int bpp = data->GetNumberOfScalarComponents();
@@ -234,7 +235,8 @@ void vtkOpenGLImageMapperRenderShort(vtkOpenGLImageMapper *self, vtkImageData *d
   int width = inMax0 - inMin0 + 1;
   int height = inMax1 - inMin1 + 1;
 
-  vtkIdType* tempIncs = data->GetIncrements();
+  vtkIdType tempIncs[3];
+  data->GetIncrements(tempIncs);
   vtkIdType inInc1 = tempIncs[1];
 
   int bpp = data->GetNumberOfScalarComponents();
@@ -382,7 +384,8 @@ void vtkOpenGLImageMapperRenderChar(vtkOpenGLImageMapper *self, vtkImageData *da
   int width = inMax0 - inMin0 + 1;
   int height = inMax1 - inMin1 + 1;
 
-  vtkIdType* tempIncs = data->GetIncrements();
+  vtkIdType tempIncs[3];
+  data->GetIncrements(tempIncs);
   vtkIdType inInc1 = tempIncs[1];
 
   int bpp = data->GetPointData()->GetScalars()->GetNumberOfComponents();
@@ -685,9 +688,6 @@ void vtkOpenGLImageMapper::RenderData(vtkViewport* viewport,
   int front =
     (actor->GetProperty()->GetDisplayLocation() == VTK_FOREGROUND_LOCATION);
 
-#if defined(sparc) && defined(GL_VERSION_1_1)
-  glDisable(GL_BLEND);
-#endif
   switch (data->GetPointData()->GetScalars()->GetDataType())
   {
     vtkTemplateMacro(
@@ -704,9 +704,6 @@ void vtkOpenGLImageMapper::RenderData(vtkViewport* viewport,
   glMatrixMode( GL_MODELVIEW);
   glPopMatrix();
   glEnable( GL_LIGHTING);
-#if defined(sparc) && defined(GL_VERSION_1_1)
-  glEnable(GL_BLEND);
-#endif
 
   vtkOpenGLCheckErrorMacro("failed after RenderData");
 }

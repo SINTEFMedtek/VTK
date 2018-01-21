@@ -36,13 +36,13 @@ class VTKFILTERSPARALLELDIY2_EXPORT vtkPResampleToImage : public vtkResampleToIm
 {
 public:
   vtkTypeMacro(vtkPResampleToImage, vtkResampleToImage);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   static vtkPResampleToImage *New();
 
   //@{
   /**
-   * By defualt this filter uses the global controller,
+   * By default this filter uses the global controller,
    * but this method can be used to set another instead.
    */
   virtual void SetController(vtkMultiProcessController*);
@@ -54,13 +54,13 @@ protected:
   ~vtkPResampleToImage();
 
   virtual int RequestData(vtkInformation *, vtkInformationVector **,
-                          vtkInformationVector *);
+                          vtkInformationVector *) override;
 
   vtkMultiProcessController *Controller;
 
 private:
-  vtkPResampleToImage(const vtkPResampleToImage&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPResampleToImage&) VTK_DELETE_FUNCTION;
+  vtkPResampleToImage(const vtkPResampleToImage&) = delete;
+  void operator=(const vtkPResampleToImage&) = delete;
 };
 
 #endif

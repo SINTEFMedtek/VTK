@@ -46,98 +46,91 @@
 #include "vtkRenderingOpenGLModule.h" // For export macro
 #include "vtkPainterDeviceAdapter.h"
 
-// To switch off deprecated warning about
-// vtkPainterDeviceAdapter::MakeVertexEmphasisWithStencilCheck
-#if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable:4996)
-#endif
-
 class VTKRENDERINGOPENGL_EXPORT vtkOpenGLPainterDeviceAdapter :
   public vtkPainterDeviceAdapter
 {
 public:
   vtkTypeMacro(vtkOpenGLPainterDeviceAdapter, vtkPainterDeviceAdapter);
   static vtkOpenGLPainterDeviceAdapter *New();
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
   /**
    * Converts mode from VTK_* to GL_* and calls glBegin.
    */
-  virtual void BeginPrimitive(int mode);
+  void BeginPrimitive(int mode) override;
 
   /**
    * Calls glEnd.
    */
-  virtual void EndPrimitive();
+  void EndPrimitive() override;
 
   /**
    * Returns if the given attribute type is supported by the device.
    * Returns 1 is supported, 0 otherwise.
    */
-  virtual int IsAttributesSupported(int attribute);
+  int IsAttributesSupported(int attribute) override;
 
   /**
    * Calls one of glVertex*, glNormal*, glColor*, or glTexCoord*.
    */
-  virtual void SendAttribute(int index, int components, int type,
-                             const void *attribute, vtkIdType offset=0);
+  void SendAttribute(int index, int components, int type,
+                             const void *attribute, vtkIdType offset=0) override;
 
   /**
    * Calls glMultiTex
    */
-  virtual void SendMultiTextureCoords(int numcomp, int type, const void *attribute,
-                                      int idx, vtkIdType offset);
+  void SendMultiTextureCoords(int numcomp, int type, const void *attribute,
+                                      int idx, vtkIdType offset) override;
 
   /**
    * Calls one of glVertexPointer, glNormalPointer, glColorPointer, or
    * glTexCoordPointer.
    */
-  virtual void SetAttributePointer(int index, int numcomponents, int type,
-                                   int stride, const void *pointer);
+  void SetAttributePointer(int index, int numcomponents, int type,
+                                   int stride, const void *pointer) override;
 
   //@{
   /**
    * Calls glEnableClientState or glDisableClientState.
    */
-  virtual void EnableAttributeArray(int index);
-  virtual void DisableAttributeArray(int index);
+  void EnableAttributeArray(int index) override;
+  void DisableAttributeArray(int index) override;
   //@}
 
   /**
    * Calls glDrawArrays.  Mode is converted from VTK_* to GL_*.
    */
-  virtual void DrawArrays(int mode, vtkIdType first, vtkIdType count);
+  void DrawArrays(int mode, vtkIdType first, vtkIdType count) override;
 
   /**
    * Calls glDrawElements.  Mode and type are converted from VTK_* to GL_*.
    */
-  virtual void DrawElements(int mode, vtkIdType count, int type, void *indices);
+  void DrawElements(int mode, vtkIdType count, int type, void *indices) override;
 
   /**
    * Returns true if renderer is a vtkOpenGLRenderer.
    */
-  virtual int Compatible(vtkRenderer *renderer);
+  int Compatible(vtkRenderer *renderer) override;
 
   /**
    * Turns emphasis of vertices on or off for vertex selection.
    * When emphasized verts are drawn nearer to the camera and are drawn
    * larger than normal to make selection of them more reliable.
    */
-  virtual void MakeVertexEmphasis(bool mode);
+  void MakeVertexEmphasis(bool mode) override;
 
   //@{
   /**
    * Control use of the stencil buffer (for vertex selection).
    */
-  virtual void Stencil(int on);
-  virtual void WriteStencil(vtkIdType value);
-  virtual void TestStencil(vtkIdType value);
+  void Stencil(int on) override;
+  void WriteStencil(vtkIdType value) override;
+  void TestStencil(vtkIdType value) override;
   //@}
 
 protected:
   vtkOpenGLPainterDeviceAdapter();
-  ~vtkOpenGLPainterDeviceAdapter();
+  ~vtkOpenGLPainterDeviceAdapter() override;
 
   double PointSize;
   double RangeNear;
@@ -145,12 +138,8 @@ protected:
   int MaxStencil;
   bool Initialized;
 private:
-  vtkOpenGLPainterDeviceAdapter(const vtkOpenGLPainterDeviceAdapter &) VTK_DELETE_FUNCTION;
-  void operator=(const vtkOpenGLPainterDeviceAdapter &) VTK_DELETE_FUNCTION;
+  vtkOpenGLPainterDeviceAdapter(const vtkOpenGLPainterDeviceAdapter &) = delete;
+  void operator=(const vtkOpenGLPainterDeviceAdapter &) = delete;
 };
-
-#if defined(_MSC_VER)
-#pragma warning(pop)
-#endif
 
 #endif

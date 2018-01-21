@@ -48,14 +48,14 @@ public:
   vtkTypeMacro(vtkUnstructuredGridHomogeneousRayIntegrator,
                        vtkUnstructuredGridVolumeRayIntegrator);
   static vtkUnstructuredGridHomogeneousRayIntegrator *New();
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
-  virtual void Initialize(vtkVolume *volume, vtkDataArray *scalars);
+  void Initialize(vtkVolume *volume, vtkDataArray *scalars) override;
 
-  virtual void Integrate(vtkDoubleArray *intersectionLengths,
+  void Integrate(vtkDoubleArray *intersectionLengths,
                          vtkDataArray *nearIntersections,
                          vtkDataArray *farIntersections,
-                         float color[4]);
+                         float color[4]) override;
 
   //@{
   /**
@@ -69,7 +69,7 @@ public:
 
 protected:
   vtkUnstructuredGridHomogeneousRayIntegrator();
-  ~vtkUnstructuredGridHomogeneousRayIntegrator();
+  ~vtkUnstructuredGridHomogeneousRayIntegrator() override;
 
   vtkVolume *Volume;
   vtkVolumeProperty *Property;
@@ -87,8 +87,8 @@ protected:
   virtual void GetTransferFunctionTables(vtkDataArray *scalars);
 
 private:
-  vtkUnstructuredGridHomogeneousRayIntegrator(const vtkUnstructuredGridHomogeneousRayIntegrator&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkUnstructuredGridHomogeneousRayIntegrator&) VTK_DELETE_FUNCTION;
+  vtkUnstructuredGridHomogeneousRayIntegrator(const vtkUnstructuredGridHomogeneousRayIntegrator&) = delete;
+  void operator=(const vtkUnstructuredGridHomogeneousRayIntegrator&) = delete;
 };
 
 #endif //vtkUnstructuredGridHomogeneousRayIntegrator_h

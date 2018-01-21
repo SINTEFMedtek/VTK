@@ -37,7 +37,6 @@ vtkIOSRenderWindow::vtkIOSRenderWindow()
   this->SetWindowName("Visualization Toolkit - IOS");
   this->CursorHidden = 0;
   this->ForceMakeCurrent = 0;
-  this->Capabilities = 0;
   this->OnScreenInitialized = 0;
   this->OffScreenInitialized = 0;
   // it seems that LEFT/RIGHT cause issues on IOS so we just use
@@ -65,15 +64,11 @@ vtkIOSRenderWindow::~vtkIOSRenderWindow()
     ren->SetRenderWindow(NULL);
   }
 
-  delete[] this->Capabilities;
-  this->Capabilities = 0;
-
   this->SetContextId(NULL);
   this->SetPixelFormat(NULL);
   this->SetRootWindow(NULL);
   this->SetWindowId(NULL);
   this->SetParentId(NULL);
-
 }
 
 //----------------------------------------------------------------------------
@@ -108,71 +103,25 @@ void vtkIOSRenderWindow::DestroyWindow()
   this->SetRootWindow(NULL);
 }
 
-
-int vtkIOSRenderWindow::GetPixelData(int x1, int y1,
-                                     int x2, int y2,
-                                     int front, unsigned char* data)
+int vtkIOSRenderWindow::ReadPixels(
+  const vtkRecti& rect, int front, int glFormat, int glType, void* data,
+  int right)
 {
-  int     y_low, y_hi;
-  int     x_low, x_hi;
-
-  // set the current window
-  this->MakeCurrent();
-
-  if (y1 < y2)
+  if (glFormat != GL_RGB || glType != GL_UNSIGNED_BYTE)
   {
-    y_low = y1;
-    y_hi  = y2;
+    return this->Superclass::ReadPixels(rect, front, glFormat, glType, data,
+                                        right);
   }
-  else
-  {
-    y_low = y2;
-    y_hi  = y1;
-  }
-
-  if (x1 < x2)
-  {
-    x_low = x1;
-    x_hi  = x2;
-  }
-  else
-  {
-    x_low = x2;
-    x_hi  = x1;
-  }
-
-  // Must clear previous errors first.
-  while(glGetError() != GL_NO_ERROR)
-  {
-    ;
-  }
-
-  if (front)
-  {
-    glReadBuffer(static_cast<GLenum>(this->GetFrontLeftBuffer()));
-  }
-  else
-  {
-    glReadBuffer(static_cast<GLenum>(this->GetBackLeftBuffer()));
-  }
-
-  glDisable( GL_SCISSOR_TEST );
-
-  // Calling pack alignment ensures that we can grab the any size window
-  glPixelStorei( GL_PACK_ALIGNMENT, 1 );
 
   // iOS has issues with getting RGB so we get RGBA
-  int width = x_hi-x_low + 1;
-  int height = y_hi-y_low+1;
-  unsigned char *localData = new unsigned char[width*height*4];
-  glReadPixels(x_low, y_low, width, height, GL_RGBA,
-               GL_UNSIGNED_BYTE, localData);
+  unsigned char* uc4data = new unsigned char[rect.GetWidth() * rect.GetHeight() * 4];
+  int retVal = this->Superclass::ReadPixels(rect, front, GL_RGBA, GL_UNSIGNED_BYTE, uc4data, right);
 
-  unsigned char *dPtr = data;
-  unsigned char *lPtr = localData;
-  for (int i = 0; i < height; i++)
+  unsigned char* dPtr = reinterpret_cast<unsigned char*>(data);
+  const unsigned char* lPtr = uc4data;
+  for (int i = 0, height = rect.GetHeight(); i < height; i++)
   {
-    for (int j = 0; j < width; j++)
+    for (int j = 0, width = rect.GetWidth(); j < width; j++)
     {
       *(dPtr++) = *(lPtr++);
       *(dPtr++) = *(lPtr++);
@@ -180,18 +129,8 @@ int vtkIOSRenderWindow::GetPixelData(int x1, int y1,
       lPtr++;
     }
   }
-
-  delete [] localData;
-
-  if (glGetError() != GL_NO_ERROR)
-  {
-    return VTK_ERROR;
-  }
-  else
-  {
-    return VTK_OK;
-  }
-
+  delete[] uc4data;
+  return retVal;
 }
 
 
@@ -371,67 +310,6 @@ void vtkIOSRenderWindow::Frame()
   if (!this->AbortRender && this->DoubleBuffer && this->SwapBuffers)
   {
 //    [(NSOpenGLContext*)this->GetContextId() flushBuffer];
-  }
-}
-
-//----------------------------------------------------------------------------
-// Update system if needed due to stereo rendering.
-void vtkIOSRenderWindow::StereoUpdate()
-{
-  // if stereo is on and it wasn't before
-  if (this->StereoRender && (!this->StereoStatus))
-  {
-    switch (this->StereoType)
-    {
-      case VTK_STEREO_CRYSTAL_EYES:
-        this->StereoStatus = 1;
-        break;
-      case VTK_STEREO_RED_BLUE:
-        this->StereoStatus = 1;
-        break;
-      case VTK_STEREO_ANAGLYPH:
-        this->StereoStatus = 1;
-        break;
-      case VTK_STEREO_DRESDEN:
-        this->StereoStatus = 1;
-        break;
-      case VTK_STEREO_INTERLACED:
-        this->StereoStatus = 1;
-        break;
-      case VTK_STEREO_CHECKERBOARD:
-        this->StereoStatus = 1;
-        break;
-      case VTK_STEREO_SPLITVIEWPORT_HORIZONTAL:
-        this->StereoStatus = 1;
-        break;
-    }
-  }
-  else if ((!this->StereoRender) && this->StereoStatus)
-  {
-    switch (this->StereoType)
-    {
-      case VTK_STEREO_CRYSTAL_EYES:
-        this->StereoStatus = 0;
-        break;
-      case VTK_STEREO_RED_BLUE:
-        this->StereoStatus = 0;
-        break;
-      case VTK_STEREO_ANAGLYPH:
-        this->StereoStatus = 0;
-        break;
-      case VTK_STEREO_DRESDEN:
-        this->StereoStatus = 0;
-        break;
-      case VTK_STEREO_INTERLACED:
-        this->StereoStatus = 0;
-        break;
-      case VTK_STEREO_CHECKERBOARD:
-        this->StereoStatus = 0;
-        break;
-      case VTK_STEREO_SPLITVIEWPORT_HORIZONTAL:
-        this->StereoStatus = 0;
-        break;
-    }
   }
 }
 
@@ -666,7 +544,7 @@ void *vtkIOSRenderWindow::GetPixelFormat()
 //----------------------------------------------------------------------------
 void vtkIOSRenderWindow::SetWindowInfo(char *info)
 {
-  // The paramater is an ASCII string of a decimal number representing
+  // The parameter is an ASCII string of a decimal number representing
   // a pointer to the window. Convert it back to a pointer.
   ptrdiff_t tmp = 0;
   if (info)
@@ -680,7 +558,7 @@ void vtkIOSRenderWindow::SetWindowInfo(char *info)
 //----------------------------------------------------------------------------
 void vtkIOSRenderWindow::SetParentInfo(char *info)
 {
-  // The paramater is an ASCII string of a decimal number representing
+  // The parameter is an ASCII string of a decimal number representing
   // a pointer to the window. Convert it back to a pointer.
   ptrdiff_t tmp = 0;
   if (info)

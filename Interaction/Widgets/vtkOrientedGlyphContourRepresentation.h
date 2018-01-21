@@ -51,7 +51,7 @@ public:
    * Standard methods for instances of this class.
    */
   vtkTypeMacro(vtkOrientedGlyphContourRepresentation,vtkContourRepresentation);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   //@{
@@ -103,29 +103,29 @@ public:
    * are the methods that the widget and its representation use to
    * communicate with each other.
    */
-  virtual void SetRenderer(vtkRenderer *ren);
-  virtual void BuildRepresentation();
-  virtual void StartWidgetInteraction(double eventPos[2]);
-  virtual void WidgetInteraction(double eventPos[2]);
-  virtual int ComputeInteractionState(int X, int Y, int modified=0);
+  void SetRenderer(vtkRenderer *ren) override;
+  void BuildRepresentation() override;
+  void StartWidgetInteraction(double eventPos[2]) override;
+  void WidgetInteraction(double eventPos[2]) override;
+  int ComputeInteractionState(int X, int Y, int modified=0) override;
   //@}
 
   //@{
   /**
    * Methods to make this class behave as a vtkProp.
    */
-  virtual void GetActors(vtkPropCollection *);
-  virtual void ReleaseGraphicsResources(vtkWindow *);
-  virtual int RenderOverlay(vtkViewport *viewport);
-  virtual int RenderOpaqueGeometry(vtkViewport *viewport);
-  virtual int RenderTranslucentPolygonalGeometry(vtkViewport *viewport);
-  virtual int HasTranslucentPolygonalGeometry();
+  void GetActors(vtkPropCollection *) override;
+  void ReleaseGraphicsResources(vtkWindow *) override;
+  int RenderOverlay(vtkViewport *viewport) override;
+  int RenderOpaqueGeometry(vtkViewport *viewport) override;
+  int RenderTranslucentPolygonalGeometry(vtkViewport *viewport) override;
+  int HasTranslucentPolygonalGeometry() override;
   //@}
 
   /**
    * Get the points in this contour as a vtkPolyData.
    */
-  virtual vtkPolyData * GetContourRepresentationAsPolyData();
+  vtkPolyData * GetContourRepresentationAsPolyData() override;
 
   //@{
   /**
@@ -149,16 +149,16 @@ public:
    * A flag to indicate whether to show the Selected nodes
    * Default is to set it to false.
    */
-  virtual void SetShowSelectedNodes(int);
+  void SetShowSelectedNodes(int) override;
 
   /**
    * Return the bounds of the representation
    */
-  virtual double *GetBounds();
+  double *GetBounds() override;
 
 protected:
   vtkOrientedGlyphContourRepresentation();
-  ~vtkOrientedGlyphContourRepresentation();
+  ~vtkOrientedGlyphContourRepresentation() override;
 
   // Render the cursor
   vtkActor             *Actor;
@@ -212,11 +212,11 @@ protected:
 
   int AlwaysOnTop;
 
-  virtual void BuildLines();
+  void BuildLines() override;
 
 private:
-  vtkOrientedGlyphContourRepresentation(const vtkOrientedGlyphContourRepresentation&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkOrientedGlyphContourRepresentation&) VTK_DELETE_FUNCTION;
+  vtkOrientedGlyphContourRepresentation(const vtkOrientedGlyphContourRepresentation&) = delete;
+  void operator=(const vtkOrientedGlyphContourRepresentation&) = delete;
 };
 
 #endif

@@ -50,7 +50,7 @@ class VTKINFOVISCORE_EXPORT vtkReduceTable : public vtkTableAlgorithm
 public:
   static vtkReduceTable* New();
   vtkTypeMacro(vtkReduceTable,vtkTableAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -105,12 +105,12 @@ public:
 
 protected:
   vtkReduceTable();
-  ~vtkReduceTable();
+  ~vtkReduceTable() override;
 
   int RequestData(
     vtkInformation*,
     vtkInformationVector**,
-    vtkInformationVector*);
+    vtkInformationVector*) override;
 
   /**
    * Initialize the output table to have the same types of columns as
@@ -169,8 +169,8 @@ protected:
   int NonNumericalReductionMethod;
 
 private:
-  vtkReduceTable(const vtkReduceTable&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkReduceTable&) VTK_DELETE_FUNCTION;
+  vtkReduceTable(const vtkReduceTable&) = delete;
+  void operator=(const vtkReduceTable&) = delete;
 };
 
 #endif

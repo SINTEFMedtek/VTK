@@ -49,7 +49,7 @@ class VTKIONETCDF_EXPORT vtkNetCDFCFReader : public vtkNetCDFReader
 public:
   vtkTypeMacro(vtkNetCDFCFReader, vtkNetCDFReader);
   static vtkNetCDFCFReader *New();
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
   //@{
   /**
@@ -106,7 +106,7 @@ public:
 
 protected:
   vtkNetCDFCFReader();
-  ~vtkNetCDFCFReader();
+  ~vtkNetCDFCFReader() override;
 
   int SphericalCoordinates;
 
@@ -115,25 +115,25 @@ protected:
 
   int OutputType;
 
-  virtual int RequestDataObject(vtkInformation *request,
+  int RequestDataObject(vtkInformation *request,
                                 vtkInformationVector **inputVector,
-                                vtkInformationVector *outputVector);
+                                vtkInformationVector *outputVector) override;
 
-  virtual int RequestInformation(vtkInformation *request,
+  int RequestInformation(vtkInformation *request,
                                  vtkInformationVector **inputVector,
-                                 vtkInformationVector *outputVector);
+                                 vtkInformationVector *outputVector) override;
 
-  virtual int RequestData(vtkInformation *request,
+  int RequestData(vtkInformation *request,
                           vtkInformationVector **inputVector,
-                          vtkInformationVector *outputVector);
+                          vtkInformationVector *outputVector) override;
 
   //@{
   /**
    * Interprets the special conventions of COARDS.
    */
-  virtual int ReadMetaData(int ncFD);
-  virtual int IsTimeDimension(int ncFD, int dimId);
-  virtual vtkSmartPointer<vtkDoubleArray> GetTimeValues(int ncFD, int dimId);
+  int ReadMetaData(int ncFD) override;
+  int IsTimeDimension(int ncFD, int dimId) override;
+  vtkSmartPointer<vtkDoubleArray> GetTimeValues(int ncFD, int dimId) override;
   //@}
 
   class vtkDimensionInfo {
@@ -212,7 +212,7 @@ protected:
   vtkDependentDimensionInfoVector *DependentDimensionInfo;
 
   // Finds the dependent dimension information for the given set of dimensions.
-  // Returns NULL if no information has been recorded.
+  // Returns nullptr if no information has been recorded.
   vtkDependentDimensionInfo *FindDependentDimensionInfo(vtkIntArray *dims);
 
   /**
@@ -247,7 +247,7 @@ protected:
   /**
    * Returns false for spherical dimensions, which should use cell data.
    */
-  virtual bool DimensionsAreForPointData(vtkIntArray *dimensions);
+  bool DimensionsAreForPointData(vtkIntArray *dimensions) override;
 
   /**
    * Convenience function that takes piece information and then returns a set of
@@ -262,7 +262,7 @@ protected:
   /**
    * Overridden to retrieve stored extent for unstructured data.
    */
-  virtual void GetUpdateExtentForOutput(vtkDataSet *output, int extent[6]);
+  void GetUpdateExtentForOutput(vtkDataSet *output, int extent[6]) override;
 
   //@{
   /**
@@ -316,8 +316,8 @@ protected:
 
 
 private:
-  vtkNetCDFCFReader(const vtkNetCDFCFReader &) VTK_DELETE_FUNCTION;
-  void operator=(const vtkNetCDFCFReader &) VTK_DELETE_FUNCTION;
+  vtkNetCDFCFReader(const vtkNetCDFCFReader &) = delete;
+  void operator=(const vtkNetCDFCFReader &) = delete;
 };
 
 #endif //vtkNetCDFCFReader_h

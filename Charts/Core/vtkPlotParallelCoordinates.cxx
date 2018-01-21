@@ -66,8 +66,8 @@ vtkPlotParallelCoordinates::vtkPlotParallelCoordinates()
   this->Storage = new vtkPlotParallelCoordinates::Private;
   this->Pen->SetColor(0, 0, 0, 25);
 
-  this->LookupTable = 0;
-  this->Colors = 0;
+  this->LookupTable = nullptr;
+  this->Colors = nullptr;
   this->ScalarVisibility = 0;
 }
 
@@ -79,7 +79,7 @@ vtkPlotParallelCoordinates::~vtkPlotParallelCoordinates()
   {
     this->LookupTable->UnRegister(this);
   }
-  if ( this->Colors != 0 )
+  if ( this->Colors != nullptr )
   {
     this->Colors->UnRegister(this);
   }
@@ -116,7 +116,7 @@ bool vtkPlotParallelCoordinates::Paint(vtkContext2D *painter)
 
   painter->ApplyPen(this->Pen);
 
-  if (this->Storage->size() == 0)
+  if (this->Storage->empty())
   {
     return false;
   }
@@ -163,7 +163,7 @@ bool vtkPlotParallelCoordinates::Paint(vtkContext2D *painter)
       {
         line[j].Set(this->Storage->AxisPos[j], (*this->Storage)[j][i]);
       }
-      painter->GetPen()->SetColor(this->Colors->GetPointer(nc));
+      painter->GetPen()->SetColor(this->Colors->GetPointer(static_cast<vtkIdType>(nc)));
       painter->DrawPoly(line[0].GetData(), static_cast<int>(cols));
     }
   }
@@ -252,7 +252,7 @@ bool vtkPlotParallelCoordinates::SetSelectionRange(int axis, float low,
       if (col[i] >= low && col[i] <= high)
       {
         // Remove this point - no longer selected
-        this->Selection->InsertNextValue(i);
+        this->Selection->InsertNextValue(static_cast<vtkIdType>(i));
       }
     }
     this->Storage->SelectionInitialized = true;
@@ -394,7 +394,7 @@ bool vtkPlotParallelCoordinates::UpdateTableCache(vtkTable *table)
     if (this->Colors)
     {
       this->Colors->UnRegister(this);
-      this->Colors = 0;
+      this->Colors = nullptr;
     }
     if (c)
     {
@@ -434,7 +434,7 @@ void vtkPlotParallelCoordinates::SetLookupTable(vtkScalarsToColors *lut)
 //-----------------------------------------------------------------------------
 vtkScalarsToColors *vtkPlotParallelCoordinates::GetLookupTable()
 {
-  if ( this->LookupTable == 0 )
+  if ( this->LookupTable == nullptr )
   {
     this->CreateDefaultLookupTable();
   }
@@ -479,7 +479,6 @@ void vtkPlotParallelCoordinates::SelectColorArray(const vtkStdString &arrayName)
   vtkDebugMacro(<< "SelectColorArray called with invalid column name.");
   this->ColorArrayName = "";
   this->Modified();
-  return;
 }
 
 //-----------------------------------------------------------------------------

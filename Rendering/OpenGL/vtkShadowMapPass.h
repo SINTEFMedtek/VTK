@@ -63,20 +63,20 @@ class VTKRENDERINGOPENGL_EXPORT vtkShadowMapPass : public vtkRenderPass
 public:
   static vtkShadowMapPass *New();
   vtkTypeMacro(vtkShadowMapPass,vtkRenderPass);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Perform rendering according to a render state \p s.
    * \pre s_exists: s!=0
    */
-  virtual void Render(const vtkRenderState *s);
+  void Render(const vtkRenderState *s) override;
 
   /**
    * Release graphics resources and ask components to release their own
    * resources.
    * \pre w_exists: w!=0
    */
-  void ReleaseGraphicsResources(vtkWindow *w);
+  void ReleaseGraphicsResources(vtkWindow *w) override;
 
   //@{
   /**
@@ -112,7 +112,7 @@ public:
   /**
    * Destructor.
    */
-  virtual ~vtkShadowMapPass();
+  ~vtkShadowMapPass() override;
 
   /**
    * Build the intensity map.
@@ -148,8 +148,8 @@ public:
   vtkTimeStamp LastRenderTime;
 
 private:
-  vtkShadowMapPass(const vtkShadowMapPass&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkShadowMapPass&) VTK_DELETE_FUNCTION;
+  vtkShadowMapPass(const vtkShadowMapPass&) = delete;
+  void operator=(const vtkShadowMapPass&) = delete;
 };
 
 #endif

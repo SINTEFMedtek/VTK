@@ -50,7 +50,7 @@ vtkThreadedImageAlgorithm::vtkThreadedImageAlgorithm()
   this->SplitPath[2] = 0;
   this->SplitPathLength = 3;
 
-  // Minumum block size
+  // Minimum block size
   this->MinimumPieceSize[0] = 16;
   this->MinimumPieceSize[1] = 1;
   this->MinimumPieceSize[2] = 1;
@@ -354,7 +354,7 @@ int vtkThreadedImageAlgorithm::SplitExtent(int splitExt[6],
 // The old way to thread an image filter, before vtkSMPTools existed:
 // this mess is really a simple function. All it does is call
 // the ThreadedExecute method after setting the correct
-// extent for this thread. Its just a pain to calculate
+// extent for this thread. It's just a pain to calculate
 // the correct extent.
 static VTK_THREAD_RETURN_TYPE vtkThreadedImageAlgorithmThreadedExecute( void *arg )
 {
@@ -435,7 +435,7 @@ static VTK_THREAD_RETURN_TYPE vtkThreadedImageAlgorithmThreadedExecute( void *ar
   }
   // else
   //   {
-  //   otherwise don't use this thread. Sometimes the threads dont
+  //   otherwise don't use this thread. Sometimes the threads don't
   //   break up very well and it is just as efficient to leave a
   //   few threads idle.
   //   }
@@ -531,8 +531,8 @@ void vtkThreadedImageAlgorithm::PrepareImageData(
   vtkImageData*** inDataObjects,
   vtkImageData** outDataObjects)
 {
-  vtkImageData* firstInput = 0;
-  vtkImageData* firstOutput = 0;
+  vtkImageData* firstInput = nullptr;
+  vtkImageData* firstOutput = nullptr;
 
   // now we must create the output array
   int numOutputPorts = this->GetNumberOfOutputPorts();
@@ -604,8 +604,8 @@ int vtkThreadedImageAlgorithm::RequestData(
   str.Request = request;
   str.InputsInfo = inputVector;
   str.OutputsInfo = outputVector;
-  str.Inputs = 0;
-  str.Outputs = 0;
+  str.Inputs = nullptr;
+  str.Outputs = nullptr;
 
   // create an array for input data objects
   int numInputPorts = this->GetNumberOfInputPorts();

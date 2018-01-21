@@ -33,16 +33,9 @@
 class VTKIOXML_EXPORT vtkXMLDataReader : public vtkXMLReader
 {
 public:
-  enum FieldType
-  {
-    POINT_DATA,
-    CELL_DATA,
-    OTHER
-  };
-
 
   vtkTypeMacro(vtkXMLDataReader,vtkXMLReader);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Get the number of points in the output.
@@ -56,19 +49,19 @@ public:
 
   // For the specified port, copy the information this reader sets up in
   // SetupOutputInformation to outInfo
-  virtual void CopyOutputInformation(vtkInformation *outInfo, int port);
+  void CopyOutputInformation(vtkInformation *outInfo, int port) override;
 
 protected:
   vtkXMLDataReader();
-  ~vtkXMLDataReader();
+  ~vtkXMLDataReader() override;
 
   // Add functionality to methods from superclass.
-  virtual void CreateXMLParser();
-  virtual void DestroyXMLParser();
-  virtual void SetupOutputInformation(vtkInformation *outInfo);
+  void CreateXMLParser() override;
+  void DestroyXMLParser() override;
+  void SetupOutputInformation(vtkInformation *outInfo) override;
 
-  int ReadPrimaryElement(vtkXMLDataElement* ePrimary);
-  void SetupOutputData();
+  int ReadPrimaryElement(vtkXMLDataElement* ePrimary) override;
+  void SetupOutputData() override;
 
   // Setup the reader for a given number of pieces.
   virtual void SetupPieces(int numPieces);
@@ -82,22 +75,13 @@ protected:
   int ReadPieceData(int piece);
   virtual int ReadPieceData();
 
-  virtual void ReadXMLData();
+  void ReadXMLData() override;
 
   // Read a data array whose tuples coorrespond to points or cells.
   virtual int ReadArrayForPoints(vtkXMLDataElement* da,
                                  vtkAbstractArray* outArray);
   virtual int ReadArrayForCells(vtkXMLDataElement* da,
                                 vtkAbstractArray* outArray);
-
-  // Read an Array values starting at the given index and up to numValues.
-  // This method assumes that the array is of correct size to
-  // accommodate all numValues values. arrayIndex is the value index at which the read
-  // values will be put in the array.
-  int ReadArrayValues(
-    vtkXMLDataElement* da, vtkIdType arrayIndex, vtkAbstractArray* array,
-    vtkIdType startIndex, vtkIdType numValues, FieldType type = OTHER);
-
 
 
   // Callback registered with the DataProgressObserver.
@@ -121,10 +105,6 @@ protected:
   int NumberOfPointArrays;
   int NumberOfCellArrays;
 
-  // Flag for whether DataProgressCallback should actually update
-  // progress.
-  int InReadData;
-
   // The observer to report progress from reading data from XMLParser.
   vtkCallbackCommand* DataProgressObserver;
 
@@ -140,12 +120,12 @@ protected:
   int CellDataNeedToReadTimeStep(vtkXMLDataElement *eNested);
 
 private:
-  vtkXMLDataReader(const vtkXMLDataReader&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkXMLDataReader&) VTK_DELETE_FUNCTION;
+  vtkXMLDataReader(const vtkXMLDataReader&) = delete;
+  void operator=(const vtkXMLDataReader&) = delete;
 
   void ConvertGhostLevelsToGhostType(
     FieldType type, vtkAbstractArray* data, vtkIdType startIndex,
-    vtkIdType numValues);
+    vtkIdType numValues) override;
 
 };
 

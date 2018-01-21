@@ -35,7 +35,7 @@ class VTKIOSQL_EXPORT vtkTableToDatabaseWriter : public vtkWriter
 {
 public:
   vtkTypeMacro(vtkTableToDatabaseWriter, vtkWriter);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Set the database.  Must already be open.
@@ -65,10 +65,10 @@ public:
 
 protected:
    vtkTableToDatabaseWriter();
-  ~vtkTableToDatabaseWriter();
-  virtual void WriteData() = 0;
+  ~vtkTableToDatabaseWriter() override;
+  void WriteData() override = 0;
 
-  virtual int FillInputPortInformation(int port, vtkInformation *info);
+  int FillInputPortInformation(int port, vtkInformation *info) override;
 
 
   vtkSQLDatabase *Database;
@@ -77,8 +77,8 @@ protected:
   std::string TableName;
 
 private:
-  vtkTableToDatabaseWriter(const vtkTableToDatabaseWriter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkTableToDatabaseWriter&) VTK_DELETE_FUNCTION;
+  vtkTableToDatabaseWriter(const vtkTableToDatabaseWriter&) = delete;
+  void operator=(const vtkTableToDatabaseWriter&) = delete;
 };
 
 #endif

@@ -35,7 +35,7 @@ class VTKIOXML_EXPORT vtkXMLHierarchicalBoxDataFileConverter : public vtkObject
 public:
   static vtkXMLHierarchicalBoxDataFileConverter* New();
   vtkTypeMacro(vtkXMLHierarchicalBoxDataFileConverter, vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -60,7 +60,7 @@ public:
 
 protected:
   vtkXMLHierarchicalBoxDataFileConverter();
-  ~vtkXMLHierarchicalBoxDataFileConverter();
+  ~vtkXMLHierarchicalBoxDataFileConverter() override;
 
   vtkXMLDataElement* ParseXML(const char* filename);
 
@@ -74,8 +74,8 @@ protected:
   vtkSetStringMacro(FilePath);
 
 private:
-  vtkXMLHierarchicalBoxDataFileConverter(const vtkXMLHierarchicalBoxDataFileConverter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkXMLHierarchicalBoxDataFileConverter&) VTK_DELETE_FUNCTION;
+  vtkXMLHierarchicalBoxDataFileConverter(const vtkXMLHierarchicalBoxDataFileConverter&) = delete;
+  void operator=(const vtkXMLHierarchicalBoxDataFileConverter&) = delete;
 
 };
 

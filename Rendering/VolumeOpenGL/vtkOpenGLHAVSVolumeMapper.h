@@ -133,24 +133,24 @@ public:
   static vtkOpenGLHAVSVolumeMapper *New();
   vtkTypeMacro(vtkOpenGLHAVSVolumeMapper,
                        vtkHAVSVolumeMapper);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Render the volume
    */
-  virtual void Render(vtkRenderer *ren, vtkVolume *vol);
+  void Render(vtkRenderer *ren, vtkVolume *vol) override;
 
   /**
    * Release any graphics resources that are being consumed by this volume
    * renderer.
    */
-  virtual void ReleaseGraphicsResources(vtkWindow *);
+  void ReleaseGraphicsResources(vtkWindow *) override;
 
   /**
    * Set/get whether or not the data structures should be stored on the GPU
    * for better peformance.
    */
-  virtual void SetGPUDataStructures(bool);
+  void SetGPUDataStructures(bool) override;
 
   /**
    * Check hardware support for the HAVS algorithm.  Necessary
@@ -158,14 +158,14 @@ public:
    * render targets, and framebuffer objects.
    * Subclasses must override this method to indicate if supported by Hardware.
    */
-  virtual bool SupportedByHardware(vtkRenderer *r);
+  bool SupportedByHardware(vtkRenderer *r) override;
 protected:
 
   vtkOpenGLHAVSVolumeMapper();
-  ~vtkOpenGLHAVSVolumeMapper();
-  virtual int FillInputPortInformation(int port, vtkInformation* info);
+  ~vtkOpenGLHAVSVolumeMapper() override;
+  int FillInputPortInformation(int port, vtkInformation* info) override;
 
-  virtual void Initialize(vtkRenderer *ren, vtkVolume *vol);
+  void Initialize(vtkRenderer *ren, vtkVolume *vol) override;
   virtual void InitializeLookupTables(vtkVolume *vol);
   void InitializeGPUDataStructures();
   void InitializeShaders();
@@ -203,8 +203,8 @@ protected:
   vtkWeakPointer<vtkRenderWindow> RenderWindow;
 
 private:
-  vtkOpenGLHAVSVolumeMapper(const vtkOpenGLHAVSVolumeMapper&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkOpenGLHAVSVolumeMapper&) VTK_DELETE_FUNCTION;
+  vtkOpenGLHAVSVolumeMapper(const vtkOpenGLHAVSVolumeMapper&) = delete;
+  void operator=(const vtkOpenGLHAVSVolumeMapper&) = delete;
 };
 
 #endif

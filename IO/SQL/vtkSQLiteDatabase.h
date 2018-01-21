@@ -61,7 +61,7 @@ class VTKIOSQL_EXPORT vtkSQLiteDatabase : public vtkSQLDatabase
 
 public:
   vtkTypeMacro(vtkSQLiteDatabase, vtkSQLDatabase);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   static vtkSQLiteDatabase *New();
 
   enum {
@@ -81,55 +81,58 @@ public:
    * - CREATE_OR_CLEAR - Create new or clear existing file.
    * - CREATE - Create new, fail if file exists.
    */
-  bool Open(const char* password);
+  bool Open(const char* password) override;
   bool Open(const char* password, int mode);
   //@}
 
   /**
    * Close the connection to the database.
    */
-  void Close();
+  void Close() override;
 
   /**
    * Return whether the database has an open connection
    */
-  bool IsOpen();
+  bool IsOpen() override;
 
   /**
    * Return an empty query on this database.
    */
-  vtkSQLQuery* GetQueryInstance();
+  vtkSQLQuery* GetQueryInstance() override;
 
   /**
    * Get the list of tables from the database
    */
-  vtkStringArray* GetTables();
+  vtkStringArray* GetTables() override;
 
   /**
    * Get the list of fields for a particular table
    */
-  vtkStringArray* GetRecord(const char *table);
+  vtkStringArray* GetRecord(const char *table) override;
 
   /**
    * Return whether a feature is supported by the database.
    */
-  bool IsSupported(int feature);
+  bool IsSupported(int feature) override;
 
   /**
    * Did the last operation generate an error
    */
-  bool HasError();
+  bool HasError() override;
 
   /**
    * Get the last error text from the database
    */
-  const char* GetLastErrorText();
+  const char* GetLastErrorText() override;
 
   //@{
   /**
    * String representing database type (e.g. "sqlite").
    */
-  vtkGetStringMacro(DatabaseType);
+  const char* GetDatabaseType() override
+  {
+    return this->DatabaseType;
+  }
   //@}
 
   //@{
@@ -143,7 +146,7 @@ public:
   /**
    * Get the URL of the database.
    */
-  virtual vtkStdString GetURL();
+  vtkStdString GetURL() override;
 
   /**
    * Return the SQL string with the syntax to create a column inside a
@@ -151,20 +154,20 @@ public:
    * NB: this method implements the SQLite-specific syntax:
    * <column name> <column type> <column attributes>
    */
-  virtual vtkStdString GetColumnSpecification( vtkSQLDatabaseSchema* schema,
+  vtkStdString GetColumnSpecification( vtkSQLDatabaseSchema* schema,
                                                int tblHandle,
-                                               int colHandle );
+                                               int colHandle ) override;
 
 protected:
   vtkSQLiteDatabase();
-  ~vtkSQLiteDatabase();
+  ~vtkSQLiteDatabase() override;
 
   /**
    * Overridden to determine connection parameters given the URL.
    * This is called by CreateFromURL() to initialize the instance.
    * Look at CreateFromURL() for details about the URL format.
    */
-  virtual bool ParseURL(const char* url);
+  bool ParseURL(const char* url) override;
 
 private:
   vtk_sqlite3 *SQLiteInstance;
@@ -180,8 +183,8 @@ private:
 
   vtkStdString TempURL;
 
-  vtkSQLiteDatabase(const vtkSQLiteDatabase &) VTK_DELETE_FUNCTION;
-  void operator=(const vtkSQLiteDatabase &) VTK_DELETE_FUNCTION;
+  vtkSQLiteDatabase(const vtkSQLiteDatabase &) = delete;
+  void operator=(const vtkSQLiteDatabase &) = delete;
 };
 
 #endif // vtkSQLiteDatabase_h

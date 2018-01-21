@@ -42,7 +42,7 @@
  * DEP   - depth test and copy to back buffer
  *
  * The result of each stage is cached in a texture so that during interaction
- * a stage may be skipped if the user has not modified its paramters or input
+ * a stage may be skipped if the user has not modified its parameters or input
  * data.
  *
  * The parallel parts of algorithm are implemented in vtkPSurfaceLICMapper.
@@ -67,19 +67,19 @@ class VTKRENDERINGLICOPENGL2_EXPORT vtkSurfaceLICMapper : public vtkOpenGLPolyDa
 public:
   static vtkSurfaceLICMapper* New();
   vtkTypeMacro(vtkSurfaceLICMapper, vtkOpenGLPolyDataMapper);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Release any graphics resources that are being consumed by this mapper.
    * The parameter window could be used to determine which graphic
    * resources to release. In this case, releases the display lists.
    */
-  virtual void ReleaseGraphicsResources(vtkWindow * win);
+  void ReleaseGraphicsResources(vtkWindow * win) override;
 
   /**
    * Implemented by sub classes. Actual rendering is done here.
    */
-  virtual void RenderPiece(vtkRenderer *ren, vtkActor *act);
+  void RenderPiece(vtkRenderer *ren, vtkActor *act) override;
 
   /**
    * Shallow copy of an actor.
@@ -95,7 +95,7 @@ public:
 
 protected:
   vtkSurfaceLICMapper();
-  ~vtkSurfaceLICMapper();
+  ~vtkSurfaceLICMapper() override;
 
   /**
    * Methods used for parallel benchmarks. Use cmake to define
@@ -109,29 +109,26 @@ protected:
   /**
    * Build the VBO/IBO, called by UpdateBufferObjects
    */
-  virtual void BuildBufferObjects(vtkRenderer *ren, vtkActor *act);
+  void BuildBufferObjects(vtkRenderer *ren, vtkActor *act) override;
 
 protected:
   /**
    * Set the shader parameteres related to the mapper/input data, called by UpdateShader
    */
-  virtual void SetMapperShaderParameters(vtkOpenGLHelper &cellBO, vtkRenderer *ren, vtkActor *act);
+  void SetMapperShaderParameters(vtkOpenGLHelper &cellBO, vtkRenderer *ren, vtkActor *act) override;
 
   /**
    * Perform string replacments on the shader templates
    */
-  virtual void ReplaceShaderValues(
+  void ReplaceShaderValues(
     std::map<vtkShader::Type, vtkShader *> shaders,
-    vtkRenderer *ren, vtkActor *act);
-
-  // The vector VBO and its layout.
-  vtkOpenGLVertexBufferObject *VectorVBO;
+    vtkRenderer *ren, vtkActor *act) override;
 
   vtkSurfaceLICInterface *LICInterface;
 
 private:
-  vtkSurfaceLICMapper(const vtkSurfaceLICMapper&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkSurfaceLICMapper&) VTK_DELETE_FUNCTION;
+  vtkSurfaceLICMapper(const vtkSurfaceLICMapper&) = delete;
+  void operator=(const vtkSurfaceLICMapper&) = delete;
 };
 
 #endif

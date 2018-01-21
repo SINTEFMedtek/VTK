@@ -32,10 +32,10 @@ vtkStandardNewMacro(vtkCutMaterial);
 // Instantiate object with no input and no defined output.
 vtkCutMaterial::vtkCutMaterial()
 {
-  this->MaterialArrayName = NULL;
+  this->MaterialArrayName = nullptr;
   this->SetMaterialArrayName("material");
   this->Material = 0;
-  this->ArrayName = NULL;
+  this->ArrayName = nullptr;
 
   this->UpVector[0] = 0.0;
   this->UpVector[1] = 0.0;
@@ -59,10 +59,10 @@ vtkCutMaterial::vtkCutMaterial()
 vtkCutMaterial::~vtkCutMaterial()
 {
   this->PlaneFunction->Delete();
-  this->PlaneFunction = NULL;
+  this->PlaneFunction = nullptr;
 
-  this->SetMaterialArrayName(NULL);
-  this->SetArrayName(NULL);
+  this->SetMaterialArrayName(nullptr);
+  this->SetArrayName(nullptr);
 }
 
 int vtkCutMaterial::RequestData(
@@ -82,21 +82,20 @@ int vtkCutMaterial::RequestData(
 
   vtkThreshold *thresh;
   vtkCutter *cutter;
-  double *bds;
 
   // Check to see if we have the required field arrays.
-  if (this->MaterialArrayName == NULL || this->ArrayName == NULL)
+  if (this->MaterialArrayName == nullptr || this->ArrayName == nullptr)
   {
     vtkErrorMacro("Material and Array names must be set.");
     return 0;
   }
 
-  if (input->GetCellData()->GetArray(this->MaterialArrayName) == NULL)
+  if (input->GetCellData()->GetArray(this->MaterialArrayName) == nullptr)
   {
     vtkErrorMacro("Could not find cell array " << this->MaterialArrayName);
     return 0;
   }
-  if (input->GetCellData()->GetArray(this->ArrayName) == NULL)
+  if (input->GetCellData()->GetArray(this->ArrayName) == nullptr)
   {
     vtkErrorMacro("Could not find cell array " << this->ArrayName);
     return 0;
@@ -110,7 +109,7 @@ int vtkCutMaterial::RequestData(
   thresh->ThresholdBetween(this->Material-0.5, this->Material+0.5);
   thresh->Update();
 
-  bds = thresh->GetOutput()->GetBounds();
+  const double *bds = thresh->GetOutput()->GetBounds();
   this->CenterPoint[0] = 0.5 * (bds[0] + bds[1]);
   this->CenterPoint[1] = 0.5 * (bds[2] + bds[3]);
   this->CenterPoint[2] = 0.5 * (bds[4] + bds[5]);
@@ -172,11 +171,10 @@ void vtkCutMaterial::ComputeMaximumPoint(vtkDataSet *input)
   vtkIdType idx, bestIdx, num;
   double comp, best;
   vtkCell *cell;
-  double *bds;
 
   // Find the maximum value.
   data = input->GetCellData()->GetArray(this->ArrayName);
-  if (data == NULL)
+  if (data == nullptr)
   {
     vtkErrorMacro("What happened to the array " << this->ArrayName);
     return;
@@ -203,7 +201,7 @@ void vtkCutMaterial::ComputeMaximumPoint(vtkDataSet *input)
 
   // Get the cell with the larges value.
   cell = input->GetCell(bestIdx);
-  bds = cell->GetBounds();
+  const double *bds = cell->GetBounds();
   this->MaximumPoint[0] = (bds[0] + bds[1]) * 0.5;
   this->MaximumPoint[1] = (bds[2] + bds[3]) * 0.5;
   this->MaximumPoint[2] = (bds[4] + bds[5]) * 0.5;

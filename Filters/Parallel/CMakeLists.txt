@@ -1,4 +1,5 @@
 set(Module_SRCS
+  vtkAggregateDataSetFilter.cxx
   vtkAngularPeriodicFilter.cxx
   vtkCollectGraph.cxx
   vtkCollectPolyData.cxx
@@ -31,6 +32,7 @@ set(Module_SRCS
   vtkPipelineSize.cxx
   vtkProcessIdScalars.cxx
   vtkRectilinearGridOutlineFilter.cxx
+  vtkRemoveGhosts.cxx
   vtkTransmitPolyDataPiece.cxx
   vtkTransmitStructuredDataPiece.cxx
   vtkTransmitRectilinearGridPiece.cxx

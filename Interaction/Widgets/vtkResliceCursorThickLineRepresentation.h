@@ -45,7 +45,7 @@ public:
    * Standard VTK methods.
    */
   vtkTypeMacro(vtkResliceCursorThickLineRepresentation,vtkResliceCursorLineRepresentation);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   /**
@@ -54,24 +54,24 @@ public:
    * implementation and creates a vtkImageSlabReslice instead of a
    * vtkImageReslice.
    */
-  virtual void CreateDefaultResliceAlgorithm();
+  void CreateDefaultResliceAlgorithm() override;
 
   /**
    * INTERNAL - Do not use
    * Reslice parameters which are set from vtkResliceCursorWidget based on
    * user interactions.
    */
-  virtual void SetResliceParameters(
+  void SetResliceParameters(
       double outputSpacingX, double outputSpacingY,
-      int extentX, int extentY );
+      int extentX, int extentY ) override;
 
 protected:
   vtkResliceCursorThickLineRepresentation();
-  ~vtkResliceCursorThickLineRepresentation();
+  ~vtkResliceCursorThickLineRepresentation() override;
 
 private:
-  vtkResliceCursorThickLineRepresentation(const vtkResliceCursorThickLineRepresentation&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkResliceCursorThickLineRepresentation&) VTK_DELETE_FUNCTION;
+  vtkResliceCursorThickLineRepresentation(const vtkResliceCursorThickLineRepresentation&) = delete;
+  void operator=(const vtkResliceCursorThickLineRepresentation&) = delete;
 };
 
 #endif

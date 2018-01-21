@@ -45,7 +45,7 @@ class VTKFILTERSHYBRID_EXPORT vtkTemporalFractal: public vtkAlgorithm
 public:
   static vtkTemporalFractal *New();
   vtkTypeMacro(vtkTemporalFractal,vtkAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -134,9 +134,9 @@ public:
 
 protected:
   vtkTemporalFractal();
-  ~vtkTemporalFractal();
+  ~vtkTemporalFractal() override;
 
-  virtual int FillOutputPortInformation(int vtkNotUsed(port), vtkInformation* info);
+  int FillOutputPortInformation(int vtkNotUsed(port), vtkInformation* info) override;
 
   int StartBlock;
   int EndBlock;
@@ -145,9 +145,9 @@ protected:
   /**
    * see vtkAlgorithm for details
    */
-  virtual int ProcessRequest(vtkInformation* request,
+  int ProcessRequest(vtkInformation* request,
                              vtkInformationVector** inputVector,
-                             vtkInformationVector* outputVector);
+                             vtkInformationVector* outputVector) override;
 
   /**
    * This is called by the superclass.
@@ -250,8 +250,8 @@ protected:
   vtkSmartPointer<TemporalFractalOutputUtil> OutputUtil;
 
 private:
-  vtkTemporalFractal(const vtkTemporalFractal&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkTemporalFractal&) VTK_DELETE_FUNCTION;
+  vtkTemporalFractal(const vtkTemporalFractal&) = delete;
+  void operator=(const vtkTemporalFractal&) = delete;
 };
 
 

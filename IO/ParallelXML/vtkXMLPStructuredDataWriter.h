@@ -35,25 +35,25 @@ class VTKIOPARALLELXML_EXPORT vtkXMLPStructuredDataWriter : public vtkXMLPDataWr
 {
 public:
   vtkTypeMacro(vtkXMLPStructuredDataWriter,vtkXMLPDataWriter);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
 protected:
   vtkXMLPStructuredDataWriter();
-  ~vtkXMLPStructuredDataWriter();
+  ~vtkXMLPStructuredDataWriter() override;
 
   virtual vtkXMLStructuredDataWriter* CreateStructuredPieceWriter()=0;
-  void WritePrimaryElementAttributes(ostream &os, vtkIndent indent);
-  void WritePPieceAttributes(int index);
-  vtkXMLWriter* CreatePieceWriter(int index);
+  void WritePrimaryElementAttributes(ostream &os, vtkIndent indent) override;
+  void WritePPieceAttributes(int index) override;
+  vtkXMLWriter* CreatePieceWriter(int index) override;
 
-  virtual int WriteInternal();
+  int WriteInternal() override;
 
-  virtual void PrepareSummaryFile();
-  virtual int WritePiece(int index);
+  void PrepareSummaryFile() override;
+  int WritePiece(int index) override;
 
 private:
-  vtkXMLPStructuredDataWriter(const vtkXMLPStructuredDataWriter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkXMLPStructuredDataWriter&) VTK_DELETE_FUNCTION;
+  vtkXMLPStructuredDataWriter(const vtkXMLPStructuredDataWriter&) = delete;
+  void operator=(const vtkXMLPStructuredDataWriter&) = delete;
 
   typedef std::map<int, std::vector<int> > ExtentsType;
   ExtentsType Extents;

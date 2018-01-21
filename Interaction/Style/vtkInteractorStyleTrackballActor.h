@@ -47,35 +47,35 @@ class VTKINTERACTIONSTYLE_EXPORT vtkInteractorStyleTrackballActor : public vtkIn
 public:
   static vtkInteractorStyleTrackballActor *New();
   vtkTypeMacro(vtkInteractorStyleTrackballActor,vtkInteractorStyle);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
    * Event bindings controlling the effects of pressing mouse buttons
    * or moving the mouse.
    */
-  virtual void OnMouseMove();
-  virtual void OnLeftButtonDown();
-  virtual void OnLeftButtonUp();
-  virtual void OnMiddleButtonDown();
-  virtual void OnMiddleButtonUp();
-  virtual void OnRightButtonDown();
-  virtual void OnRightButtonUp();
+  void OnMouseMove() override;
+  void OnLeftButtonDown() override;
+  void OnLeftButtonUp() override;
+  void OnMiddleButtonDown() override;
+  void OnMiddleButtonUp() override;
+  void OnRightButtonDown() override;
+  void OnRightButtonUp() override;
   //@}
 
   // These methods for the different interactions in different modes
   // are overridden in subclasses to perform the correct motion. Since
   // they might be called from OnTimer, they do not have mouse coord parameters
   // (use interactor's GetEventPosition and GetLastEventPosition)
-  virtual void Rotate();
-  virtual void Spin();
-  virtual void Pan();
-  virtual void Dolly();
-  virtual void UniformScale();
+  void Rotate() override;
+  void Spin() override;
+  void Pan() override;
+  void Dolly() override;
+  void UniformScale() override;
 
 protected:
   vtkInteractorStyleTrackballActor();
-  ~vtkInteractorStyleTrackballActor();
+  ~vtkInteractorStyleTrackballActor() override;
 
   void FindPickedActor(int x, int y);
 
@@ -91,8 +91,8 @@ protected:
   vtkCellPicker *InteractionPicker;
 
 private:
-  vtkInteractorStyleTrackballActor(const vtkInteractorStyleTrackballActor&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkInteractorStyleTrackballActor&) VTK_DELETE_FUNCTION;
+  vtkInteractorStyleTrackballActor(const vtkInteractorStyleTrackballActor&) = delete;
+  void operator=(const vtkInteractorStyleTrackballActor&) = delete;
 };
 
 #endif

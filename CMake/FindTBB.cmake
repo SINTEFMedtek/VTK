@@ -160,7 +160,7 @@ endif ()
 # will never adequately match the user's setup, so there is no feasible way
 # to detect the "best" version to use. The user will have to manually
 # select the right files. (Chances are the distributions are shipping their
-# custom version of tbb, anyway, so the problem is probably nonexistant.)
+# custom version of tbb, anyway, so the problem is probably nonexistent.)
 if (WIN32 AND MSVC)
   set(COMPILER_PREFIX "vc7.1")
   if (MSVC_VERSION EQUAL 1400)
@@ -216,11 +216,23 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Darwin" AND
 endif ()
 
 # check compiler ABI
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND
-    CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.4)
-  set(COMPILER_PREFIX "gcc4.1")
-else () # Assume compatibility with 4.4 for other compilers
-  set(COMPILER_PREFIX "gcc4.4")
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  set(COMPILER_PREFIX)
+  if (NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.7)
+    list(APPEND COMPILER_PREFIX "gcc4.7")
+  endif()
+  if (NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.4)
+    list(APPEND COMPILER_PREFIX "gcc4.4")
+  endif()
+  list(APPEND COMPILER_PREFIX "gcc4.1")
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  set(COMPILER_PREFIX)
+  if (NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 3.6)
+    list(APPEND COMPILER_PREFIX "gcc4.7")
+  endif()
+  list(APPEND COMPILER_PREFIX "gcc4.4")
+else() # Assume compatibility with 4.4 for other compilers
+  list(APPEND COMPILER_PREFIX "gcc4.4")
 endif ()
 
 # if platform architecture is explicitly specified
@@ -233,17 +245,19 @@ if (TBB_ARCH_PLATFORM)
 endif ()
 
 foreach (dir IN LISTS TBB_PREFIX_PATH)
-  if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-    list(APPEND TBB_LIB_SEARCH_PATH ${dir}/lib/intel64)
-    list(APPEND TBB_LIB_SEARCH_PATH ${dir}/lib/intel64/${COMPILER_PREFIX})
-    list(APPEND TBB_LIB_SEARCH_PATH ${dir}/intel64/lib)
-    list(APPEND TBB_LIB_SEARCH_PATH ${dir}/intel64/${COMPILER_PREFIX}/lib)
-  else ()
-    list(APPEND TBB_LIB_SEARCH_PATH ${dir}/lib/ia32)
-    list(APPEND TBB_LIB_SEARCH_PATH ${dir}/lib/ia32/${COMPILER_PREFIX})
-    list(APPEND TBB_LIB_SEARCH_PATH ${dir}/ia32/lib)
-    list(APPEND TBB_LIB_SEARCH_PATH ${dir}/ia32/${COMPILER_PREFIX}/lib)
-  endif ()
+  foreach (prefix IN LISTS COMPILER_PREFIX)
+    if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+      list(APPEND TBB_LIB_SEARCH_PATH ${dir}/lib/intel64)
+      list(APPEND TBB_LIB_SEARCH_PATH ${dir}/lib/intel64/${prefix})
+      list(APPEND TBB_LIB_SEARCH_PATH ${dir}/intel64/lib)
+      list(APPEND TBB_LIB_SEARCH_PATH ${dir}/intel64/${prefix}/lib)
+    else ()
+      list(APPEND TBB_LIB_SEARCH_PATH ${dir}/lib/ia32)
+      list(APPEND TBB_LIB_SEARCH_PATH ${dir}/lib/ia32/${prefix})
+      list(APPEND TBB_LIB_SEARCH_PATH ${dir}/ia32/lib)
+      list(APPEND TBB_LIB_SEARCH_PATH ${dir}/ia32/${prefix}/lib)
+    endif ()
+  endforeach()
 endforeach ()
 
 # add general search paths

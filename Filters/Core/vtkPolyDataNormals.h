@@ -46,6 +46,12 @@
  * @warning
  * Triangle strips are broken up into triangle polygons. You may want to
  * restrip the triangles.
+ *
+ * @sa
+ * For high-performance rendering, you could use vtkTriangleMeshPointNormals
+ * if you know that you have a triangle mesh which does not require splitting
+ * nor consistency check on the cell orientations.
+ *
 */
 
 #ifndef vtkPolyDataNormals_h
@@ -62,7 +68,7 @@ class VTKFILTERSCORE_EXPORT vtkPolyDataNormals : public vtkPolyDataAlgorithm
 {
 public:
   vtkTypeMacro(vtkPolyDataNormals,vtkPolyDataAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Construct with feature angle=30, splitting and consistency turned on,
@@ -169,10 +175,10 @@ public:
 
 protected:
   vtkPolyDataNormals();
-  ~vtkPolyDataNormals() VTK_OVERRIDE {}
+  ~vtkPolyDataNormals() override {}
 
   // Usual data generation method
-  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) VTK_OVERRIDE;
+  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
 
   double FeatureAngle;
   int Splitting;
@@ -206,8 +212,8 @@ private:
   void MarkAndSplit(vtkIdType ptId);
 
 private:
-  vtkPolyDataNormals(const vtkPolyDataNormals&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPolyDataNormals&) VTK_DELETE_FUNCTION;
+  vtkPolyDataNormals(const vtkPolyDataNormals&) = delete;
+  void operator=(const vtkPolyDataNormals&) = delete;
 };
 
 #endif

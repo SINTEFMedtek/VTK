@@ -48,7 +48,7 @@ vtkLegendScaleActor::vtkLegendScaleActor()
   this->RightAxis = vtkAxisActor2D::New();
   this->RightAxis->GetPositionCoordinate()->SetCoordinateSystemToViewport();
   this->RightAxis->GetPosition2Coordinate()->SetCoordinateSystemToViewport();
-  this->RightAxis->GetPositionCoordinate()->SetReferenceCoordinate(NULL);
+  this->RightAxis->GetPositionCoordinate()->SetReferenceCoordinate(nullptr);
   this->RightAxis->SetFontFactor(0.6);
   this->RightAxis->SetNumberOfLabels(5);
   this->RightAxis->AdjustLabelsOff();
@@ -56,7 +56,7 @@ vtkLegendScaleActor::vtkLegendScaleActor()
   this->TopAxis = vtkAxisActor2D::New();
   this->TopAxis->GetPositionCoordinate()->SetCoordinateSystemToViewport();
   this->TopAxis->GetPosition2Coordinate()->SetCoordinateSystemToViewport();
-  this->TopAxis->GetPositionCoordinate()->SetReferenceCoordinate(NULL);
+  this->TopAxis->GetPositionCoordinate()->SetReferenceCoordinate(nullptr);
   this->TopAxis->SetFontFactor(0.6);
   this->TopAxis->SetNumberOfLabels(5);
   this->TopAxis->AdjustLabelsOff();
@@ -64,7 +64,7 @@ vtkLegendScaleActor::vtkLegendScaleActor()
   this->LeftAxis = vtkAxisActor2D::New();
   this->LeftAxis->GetPositionCoordinate()->SetCoordinateSystemToViewport();
   this->LeftAxis->GetPosition2Coordinate()->SetCoordinateSystemToViewport();
-  this->LeftAxis->GetPositionCoordinate()->SetReferenceCoordinate(NULL);
+  this->LeftAxis->GetPositionCoordinate()->SetReferenceCoordinate(nullptr);
   this->LeftAxis->SetFontFactor(0.6);
   this->LeftAxis->SetNumberOfLabels(5);
   this->LeftAxis->AdjustLabelsOff();
@@ -72,7 +72,7 @@ vtkLegendScaleActor::vtkLegendScaleActor()
   this->BottomAxis = vtkAxisActor2D::New();
   this->BottomAxis->GetPositionCoordinate()->SetCoordinateSystemToViewport();
   this->BottomAxis->GetPosition2Coordinate()->SetCoordinateSystemToViewport();
-  this->BottomAxis->GetPositionCoordinate()->SetReferenceCoordinate(NULL);
+  this->BottomAxis->GetPositionCoordinate()->SetReferenceCoordinate(nullptr);
   this->BottomAxis->SetFontFactor(0.6);
   this->BottomAxis->SetNumberOfLabels(5);
   this->BottomAxis->AdjustLabelsOff();
@@ -411,7 +411,7 @@ void vtkLegendScaleActor::BuildRepresentation(vtkViewport *viewport)
       double xR[3]; xR[0]=x[0];xR[1]=x[1];xR[2]=x[2];
       double len = sqrt(vtkMath::Distance2BetweenPoints(xL,xR));
       char buf[256];
-      sprintf(buf,"Scale 1 : %g",len);
+      snprintf(buf,sizeof(buf),"Scale 1 : %g",len);
       this->LabelMappers[5]->SetInput(buf);
 
       // Now specify the position of the legend labels

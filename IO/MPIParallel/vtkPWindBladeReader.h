@@ -42,30 +42,30 @@ public:
   static vtkPWindBladeReader *New();
   vtkTypeMacro(vtkPWindBladeReader, vtkWindBladeReader);
 
-  void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
 protected:
   vtkPWindBladeReader();
   ~vtkPWindBladeReader();
 
   virtual int RequestData(vtkInformation *, vtkInformationVector **,
-                          vtkInformationVector *);
+                          vtkInformationVector *) override;
 
   virtual void CalculatePressure(int pressure, int prespre,
-                                 int tempg, int density);
-  virtual void CalculateVorticity(int vort, int uvw, int density);
-  virtual void LoadVariableData(int var);
-  virtual bool ReadGlobalData();
-  virtual bool FindVariableOffsets();
-  virtual void CreateZTopography(float* zValues);
-  virtual void SetupBladeData();
-  virtual void LoadBladeData(int timeStep);
+                                 int tempg, int density) override;
+  virtual void CalculateVorticity(int vort, int uvw, int density) override;
+  virtual void LoadVariableData(int var) override;
+  virtual bool ReadGlobalData() override;
+  virtual bool FindVariableOffsets() override;
+  virtual void CreateZTopography(float* zValues) override;
+  virtual void SetupBladeData() override;
+  virtual void LoadBladeData(int timeStep) override;
 
 private:
   PWindBladeReaderInternal * PInternal;
 
-  vtkPWindBladeReader(const vtkPWindBladeReader &) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPWindBladeReader &) VTK_DELETE_FUNCTION;
+  vtkPWindBladeReader(const vtkPWindBladeReader &) = delete;
+  void operator=(const vtkPWindBladeReader &) = delete;
 };
 
 #endif

@@ -95,7 +95,7 @@ void vtkGenericDataArray<DerivedT, ValueTypeT>::InterpolateTuple(
   // way we don't waste time redoing the other checks in the superclass, and
   // can avoid doing a dispatch for the most common usage of this method.
   DerivedT *other1 = vtkArrayDownCast<DerivedT>(source1);
-  DerivedT *other2 = other1 ? vtkArrayDownCast<DerivedT>(source2) : NULL;
+  DerivedT *other2 = other1 ? vtkArrayDownCast<DerivedT>(source2) : nullptr;
   if (!other1 || !other2)
   {
     // Let the superclass handle dispatch/fallback.
@@ -226,7 +226,7 @@ void* vtkGenericDataArray<DerivedT, ValueTypeT>
 ::WriteVoidPointer(vtkIdType, vtkIdType)
 {
   vtkErrorMacro("WriteVoidPointer is not supported by this class.");
-  return NULL;
+  return nullptr;
 }
 
 //-----------------------------------------------------------------------------
@@ -265,7 +265,7 @@ template <class DerivedT, class ValueTypeT>
 void* vtkGenericDataArray<DerivedT, ValueTypeT>::GetVoidPointer(vtkIdType)
 {
   vtkErrorMacro("GetVoidPointer is not supported by this class.");
-  return NULL;
+  return nullptr;
 }
 
 //-----------------------------------------------------------------------------
@@ -771,7 +771,7 @@ vtkArrayIterator* vtkGenericDataArray<DerivedT, ValueTypeT>::NewIterator()
 {
   vtkWarningMacro(<< "No vtkArrayIterator defined for " << this->GetClassName()
                   << " arrays.");
-  return NULL;
+  return nullptr;
 }
 
 //-----------------------------------------------------------------------------
@@ -877,6 +877,42 @@ vtkGenericDataArray<DerivedT, ValueTypeT>::GetValueRange(int comp)
   this->LegacyValueRange.resize(2);
   this->GetValueRange(&this->LegacyValueRange[0], comp);
   return &this->LegacyValueRange[0];
+}
+
+//-----------------------------------------------------------------------------
+template <class DerivedT, class ValueTypeT>
+void vtkGenericDataArray<DerivedT, ValueTypeT>
+::FillTypedComponent(int compIdx, ValueType value)
+{
+  if (compIdx < 0 || compIdx >= this->NumberOfComponents)
+  {
+    vtkErrorMacro(<< "Specified component " << compIdx << " is not in [0, "
+    << this->NumberOfComponents << ")" );
+    return;
+  }
+  for (vtkIdType i = 0; i < this->GetNumberOfTuples(); ++i)
+  {
+    this->SetTypedComponent(i, compIdx, value);
+  }
+}
+
+//-----------------------------------------------------------------------------
+template <class DerivedT, class ValueTypeT>
+void vtkGenericDataArray<DerivedT, ValueTypeT>
+::FillValue(ValueType value)
+{
+  for (int i = 0; i < this->NumberOfComponents; ++i)
+  {
+    this->FillTypedComponent(i, value);
+  }
+}
+
+//-----------------------------------------------------------------------------
+template <class DerivedT, class ValueTypeT>
+void vtkGenericDataArray<DerivedT, ValueTypeT>
+::FillComponent(int compIdx, double value)
+{
+  this->FillTypedComponent(compIdx, static_cast<ValueType>(value));
 }
 
 //-----------------------------------------------------------------------------

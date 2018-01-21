@@ -13,11 +13,11 @@
 
 =========================================================================*/
 /**
- * @class   vtkResampleWithDataset
+ * @class   vtkResampleWithDataSet
  * @brief   sample point and cell data of a dataset on
  * points from another dataset.
  *
- * Similar to vtkCompositeDataProbeFilter, vtkResampleWithDataset takes two
+ * Similar to vtkCompositeDataProbeFilter, vtkResampleWithDataSet takes two
  * inputs - Input and Source, and samples the point and cell values of Source
  * on to the point locations of Input. The output has the same structure as
  * Input but its point data have the resampled values from Source. Unlike
@@ -42,7 +42,7 @@ class VTKFILTERSCORE_EXPORT vtkResampleWithDataSet : public vtkPassInputTypeAlgo
 {
 public:
   vtkTypeMacro(vtkResampleWithDataSet, vtkPassInputTypeAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   static vtkResampleWithDataSet *New();
 
@@ -61,6 +61,16 @@ public:
    * vectors, etc. for the output points based on the point locations.
    */
   void SetSourceConnection(vtkAlgorithmOutput* algOutput);
+
+  //@{
+  /**
+   * Control whether the source point data is to be treated as categorical. If
+   * the data is categorical, then the resultant data will be determined by
+   * a nearest neighbor interpolation scheme.
+   */
+  void SetCategoricalData(bool arg);
+  bool GetCategoricalData();
+  //@}
 
   //@{
   /**
@@ -92,21 +102,52 @@ public:
   vtkBooleanMacro(PassFieldArrays, bool);
   //@}
 
-  vtkMTimeType GetMTime() VTK_OVERRIDE;
+  //@{
+  /**
+   * Set the tolerance used to compute whether a point in the
+   * source is in a cell of the input.  This value is only used
+   * if ComputeTolerance is off.
+   */
+  void SetTolerance(double arg);
+  double GetTolerance();
+  //@}
+
+  //@{
+  /**
+   * Set whether to use the Tolerance field or precompute the tolerance.
+   * When on, the tolerance will be computed and the field
+   * value is ignored. Off by default.
+   */
+  void SetComputeTolerance(bool arg);
+  bool GetComputeTolerance();
+  vtkBooleanMacro(ComputeTolerance, bool);
+  //@}
+
+  //@{
+  /**
+   * Set whether points without resampled values, and their corresponding cells,
+   * should be marked as Blank. Default is On.
+   */
+  vtkSetMacro(MarkBlankPointsAndCells, bool);
+  vtkGetMacro(MarkBlankPointsAndCells, bool);
+  vtkBooleanMacro(MarkBlankPointsAndCells, bool);
+  //@}
+
+  vtkMTimeType GetMTime() override;
 
 protected:
   vtkResampleWithDataSet();
-  ~vtkResampleWithDataSet() VTK_OVERRIDE;
+  ~vtkResampleWithDataSet() override;
 
   // Usual data generation method
   int RequestData(vtkInformation *, vtkInformationVector **,
-                  vtkInformationVector *) VTK_OVERRIDE;
-  //virtual int RequestInformation(vtkInformation *, vtkInformationVector **,
-  //                               vtkInformationVector *);
+                  vtkInformationVector *) override;
+  int RequestInformation(vtkInformation *, vtkInformationVector **,
+                         vtkInformationVector *) override;
   int RequestUpdateExtent(vtkInformation *, vtkInformationVector **,
-                          vtkInformationVector *) VTK_OVERRIDE;
-  int FillInputPortInformation(int, vtkInformation *) VTK_OVERRIDE;
-  int FillOutputPortInformation(int, vtkInformation *) VTK_OVERRIDE;
+                          vtkInformationVector *) override;
+  int FillInputPortInformation(int, vtkInformation *) override;
+  int FillOutputPortInformation(int, vtkInformation *) override;
 
   /**
    * Get the name of the valid-points mask array.
@@ -119,10 +160,11 @@ protected:
   void SetBlankPointsAndCells(vtkDataSet *data);
 
   vtkNew<vtkCompositeDataProbeFilter> Prober;
+  bool MarkBlankPointsAndCells;
 
 private:
-  vtkResampleWithDataSet(const vtkResampleWithDataSet&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkResampleWithDataSet&) VTK_DELETE_FUNCTION;
+  vtkResampleWithDataSet(const vtkResampleWithDataSet&) = delete;
+  void operator=(const vtkResampleWithDataSet&) = delete;
 };
 
 #endif // vtkResampleWithDataSet_h

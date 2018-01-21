@@ -41,11 +41,11 @@ vtkAxisActor2D::vtkAxisActor2D()
 
   this->Position2Coordinate->SetCoordinateSystemToNormalizedViewport();
   this->Position2Coordinate->SetValue(0.75, 0.0);
-  this->Position2Coordinate->SetReferenceCoordinate(NULL);
+  this->Position2Coordinate->SetReferenceCoordinate(nullptr);
 
   this->NumberOfLabels = 5;
 
-  this->Title = NULL;
+  this->Title = nullptr;
 
   this->TitlePosition = 0.5;
 
@@ -77,7 +77,7 @@ vtkAxisActor2D::vtkAxisActor2D()
   this->TitleTextProperty->ShallowCopy(this->LabelTextProperty);
 
   this->LabelFormat = new char[8];
-  sprintf(this->LabelFormat,"%s","%-#6.3g");
+  snprintf(this->LabelFormat,8,"%s","%-#6.3g");
 
   this->TitleMapper = vtkTextMapper::New();
   this->TitleActor = vtkActor2D::New();
@@ -116,15 +116,15 @@ vtkAxisActor2D::vtkAxisActor2D()
 vtkAxisActor2D::~vtkAxisActor2D()
 {
   delete [] this->LabelFormat;
-  this->LabelFormat = NULL;
+  this->LabelFormat = nullptr;
 
   this->TitleMapper->Delete();
   this->TitleActor->Delete();
 
   delete [] this->Title;
-  this->Title = NULL;
+  this->Title = nullptr;
 
-  if (this->LabelMappers != NULL )
+  if (this->LabelMappers != nullptr )
   {
     for (int i=0; i < VTK_MAX_LABELS; i++)
     {
@@ -139,8 +139,8 @@ vtkAxisActor2D::~vtkAxisActor2D()
   this->AxisMapper->Delete();
   this->AxisActor->Delete();
 
-  this->SetLabelTextProperty(NULL);
-  this->SetTitleTextProperty(NULL);
+  this->SetLabelTextProperty(nullptr);
+  this->SetTitleTextProperty(nullptr);
 }
 
 //----------------------------------------------------------------------------
@@ -153,7 +153,7 @@ int vtkAxisActor2D::RenderOpaqueGeometry(vtkViewport *viewport)
   this->BuildAxis(viewport);
 
   // Everything is built, just have to render
-  if ( this->Title != NULL && this->Title[0] != 0 && this->TitleVisibility )
+  if ( this->Title != nullptr && this->Title[0] != 0 && this->TitleVisibility )
   {
     renderedSomething += this->TitleActor->RenderOpaqueGeometry(viewport);
   }
@@ -183,7 +183,7 @@ int vtkAxisActor2D::RenderOverlay(vtkViewport *viewport)
   int i, renderedSomething=0;
 
   // Everything is built, just have to render
-  if ( this->Title != NULL && this->Title[0] != 0 && this->TitleVisibility )
+  if ( this->Title != nullptr && this->Title[0] != 0 && this->TitleVisibility )
   {
     renderedSomething += this->TitleActor->RenderOverlay(viewport);
   }
@@ -520,7 +520,7 @@ void vtkAxisActor2D::BuildAxis(vtkViewport *viewport)
       for (i = 0; i < this->AdjustedNumberOfLabels; i++)
       {
         val = this->AdjustedRange[0] + i * interval;
-        sprintf(string, this->LabelFormat, val);
+        snprintf(string, sizeof(string), this->LabelFormat, val);
         this->LabelMappers[i]->SetInput(string);
 
         // Check if the label text has changed
@@ -604,7 +604,7 @@ void vtkAxisActor2D::BuildAxis(vtkViewport *viewport)
   } // If labels visible
 
   // Now build the title
-  if (this->Title != NULL && this->Title[0] != 0 && this->TitleVisibility)
+  if (this->Title != nullptr && this->Title[0] != 0 && this->TitleVisibility)
   {
     this->TitleMapper->SetInput(this->Title);
 
@@ -921,7 +921,7 @@ double vtkAxisActor2D::ComputeStringOffset(double width, double height,
 void vtkAxisActor2D::ShallowCopy(vtkProp *prop)
 {
   vtkAxisActor2D *a = vtkAxisActor2D::SafeDownCast(prop);
-  if ( a != NULL )
+  if ( a != nullptr )
   {
     this->SetRange(a->GetRange());
     this->SetNumberOfLabels(a->GetNumberOfLabels());

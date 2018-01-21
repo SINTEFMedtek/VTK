@@ -43,21 +43,20 @@ public:
   static vtkCone *New();
 
   vtkTypeMacro(vtkCone,vtkImplicitFunction);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
    * Evaluate cone equation.
    */
-  double EvaluateFunction(double x[3]) VTK_OVERRIDE;
-  double EvaluateFunction(double x, double y, double z)
-    {return this->vtkImplicitFunction::EvaluateFunction(x, y, z); } ;
+  using vtkImplicitFunction::EvaluateFunction;
+  double EvaluateFunction(double x[3]) override;
   //@}
 
   /**
    * Evaluate cone normal.
    */
-  void EvaluateGradient(double x[3], double g[3]) VTK_OVERRIDE;
+  void EvaluateGradient(double x[3], double g[3]) override;
 
   //@{
   /**
@@ -69,13 +68,13 @@ public:
 
 protected:
   vtkCone();
-  ~vtkCone() VTK_OVERRIDE {}
+  ~vtkCone() override {}
 
   double Angle;
 
 private:
-  vtkCone(const vtkCone&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkCone&) VTK_DELETE_FUNCTION;
+  vtkCone(const vtkCone&) = delete;
+  void operator=(const vtkCone&) = delete;
 };
 
 #endif

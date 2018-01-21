@@ -234,7 +234,6 @@ protected:
   int      ScreenSize[2];
   int      CursorHidden;
   int      ForceMakeCurrent;
-  char    *Capabilities;
 
   void CreateAWindow();
   void DestroyWindow();
@@ -244,8 +243,8 @@ protected:
 
 
 private:
-  vtkOSOpenGLRenderWindow(const vtkOSOpenGLRenderWindow&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkOSOpenGLRenderWindow&) VTK_DELETE_FUNCTION;
+  vtkOSOpenGLRenderWindow(const vtkOSOpenGLRenderWindow&) = delete;
+  void operator=(const vtkOSOpenGLRenderWindow&) = delete;
 };
 
 

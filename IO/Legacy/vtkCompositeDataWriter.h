@@ -43,7 +43,7 @@ class VTKIOLEGACY_EXPORT vtkCompositeDataWriter : public vtkDataWriter
 public:
   static vtkCompositeDataWriter* New();
   vtkTypeMacro(vtkCompositeDataWriter, vtkDataWriter);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -55,14 +55,14 @@ public:
 
 protected:
   vtkCompositeDataWriter();
-  ~vtkCompositeDataWriter();
+  ~vtkCompositeDataWriter() override;
 
   //@{
   /**
    * Performs the actual writing.
    */
-  virtual void WriteData();
-  virtual int FillInputPortInformation(int port, vtkInformation *info);
+  void WriteData() override;
+  int FillInputPortInformation(int port, vtkInformation *info) override;
   //@}
 
   bool WriteCompositeData(ostream*, vtkMultiBlockDataSet*);
@@ -73,8 +73,8 @@ protected:
   bool WriteBlock(ostream* fp, vtkDataObject* block);
 
 private:
-  vtkCompositeDataWriter(const vtkCompositeDataWriter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkCompositeDataWriter&) VTK_DELETE_FUNCTION;
+  vtkCompositeDataWriter(const vtkCompositeDataWriter&) = delete;
+  void operator=(const vtkCompositeDataWriter&) = delete;
 
 };
 

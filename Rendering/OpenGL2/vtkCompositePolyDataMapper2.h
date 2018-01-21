@@ -32,6 +32,7 @@
 #include "vtkColor.h" // used for ivars
 #include <map> // use for ivars
 #include <stack> // used for ivars
+#include <vector> // used for ivars
 
 class vtkCompositeDataDisplayAttributes;
 class vtkCompositeMapperHelper2;
@@ -42,7 +43,7 @@ class VTKRENDERINGOPENGL2_EXPORT vtkCompositePolyDataMapper2 : public vtkOpenGLP
 public:
   static vtkCompositePolyDataMapper2* New();
   vtkTypeMacro(vtkCompositePolyDataMapper2, vtkOpenGLPolyDataMapper);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Returns if the mapper does not expect to have translucent geometry. This
@@ -54,7 +55,7 @@ public:
    * Overridden to use the actual data and ScalarMode to determine if we have
    * opaque geometry.
    */
-  virtual bool GetIsOpaque();
+  bool GetIsOpaque() override;
 
   //@{
   /**
@@ -69,9 +70,11 @@ public:
    * Set/get the visibility for a block given its flat index.
    */
   void SetBlockVisibility(unsigned int index, bool visible);
-  bool GetBlockVisibility(unsigned int index) const;
+  bool GetBlockVisibility(unsigned int index);
   void RemoveBlockVisibility(unsigned int index);
-  void RemoveBlockVisibilites();
+  void RemoveBlockVisibilities();
+  // This method is deprecated and will be removed in VTK 8.2. It is misspelled.
+  VTK_LEGACY(void RemoveBlockVisibilites());
   //@}
 
   //@{
@@ -100,37 +103,56 @@ public:
   //@}
 
   /**
+   * If the current 'color by' array is missing on some datasets, color these
+   * dataset by the LookupTable's NaN color, if the lookup table supports it.
+   * Default is false.
+   * @{
+   */
+  vtkSetMacro(ColorMissingArraysWithNanColor, bool)
+  vtkGetMacro(ColorMissingArraysWithNanColor, bool)
+  vtkBooleanMacro(ColorMissingArraysWithNanColor, bool)
+  /**@}*/
+
+  /**
    * Release any graphics resources that are being consumed by this mapper.
    * The parameter window could be used to determine which graphic
    * resources to release.
    */
-  void ReleaseGraphicsResources(vtkWindow *);
+  void ReleaseGraphicsResources(vtkWindow *) override;
 
   /**
    * This calls RenderPiece (in a for loop if streaming is necessary).
    */
-  virtual void Render(vtkRenderer *ren, vtkActor *act);
+  void Render(vtkRenderer *ren, vtkActor *act) override;
+
+  /**
+   * Accessor to the ordered list of PolyData that we end last drew.
+   */
+  std::vector<vtkPolyData*> GetRenderedList()
+    {
+    return this->RenderedList;
+    }
 
 protected:
   vtkCompositePolyDataMapper2();
-  ~vtkCompositePolyDataMapper2();
+  ~vtkCompositePolyDataMapper2() override;
 
   /**
    * We need to override this method because the standard streaming
    * demand driven pipeline is not what we want - we are expecting
    * hierarchical data as input
    */
-  vtkExecutive* CreateDefaultExecutive();
+  vtkExecutive* CreateDefaultExecutive() override;
 
   /**
    * Need to define the type of data handled by this mapper.
    */
-  virtual int FillInputPortInformation(int port, vtkInformation* info);
+  int FillInputPortInformation(int port, vtkInformation* info) override;
 
   /**
    * Need to loop over the hierarchy to compute bounds
    */
-  virtual void ComputeBounds();
+  void ComputeBounds() override;
 
   /**
    * Time stamp for computation of bounds.
@@ -143,13 +165,16 @@ protected:
   std::map<vtkPolyData *, vtkCompositeMapperHelperData *> HelperDataMap;
   vtkTimeStamp HelperMTime;
 
+  virtual vtkCompositeMapperHelper2 *CreateHelper();
+
   // copy values to the helpers
-  void CopyMapperValuesToHelper(vtkCompositeMapperHelper2 *helper);
+  virtual void CopyMapperValuesToHelper(vtkCompositeMapperHelper2 *helper);
 
   class RenderBlockState
   {
     public:
       std::stack<bool> Visibility;
+      std::stack<bool> Pickability;
       std::stack<double> Opacity;
       std::stack<vtkColor3d> AmbientColor;
       std::stack<vtkColor3d> DiffuseColor;
@@ -175,13 +200,21 @@ protected:
 
   friend class vtkCompositeMapperHelper2;
 
+  /**
+   * If the current 'color by' array is missing on some datasets, color these
+   * dataset by the LookupTable's NaN color, if the lookup table supports it.
+   */
+  bool ColorMissingArraysWithNanColor;
+
+  std::vector<vtkPolyData*> RenderedList;
+
 private:
   vtkMTimeType LastOpaqueCheckTime;
   bool LastOpaqueCheckValue;
   double ColorResult[3];
 
-  vtkCompositePolyDataMapper2(const vtkCompositePolyDataMapper2&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkCompositePolyDataMapper2&) VTK_DELETE_FUNCTION;
+  vtkCompositePolyDataMapper2(const vtkCompositePolyDataMapper2&) = delete;
+  void operator=(const vtkCompositePolyDataMapper2&) = delete;
 
 };
 

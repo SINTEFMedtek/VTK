@@ -82,7 +82,6 @@ vtkInformationKeyMacro(vtkScalarsToColorsPainter, ARRAY_ID, Integer);
 vtkInformationKeyMacro(vtkScalarsToColorsPainter, ARRAY_NAME, String);
 vtkInformationKeyMacro(vtkScalarsToColorsPainter, ARRAY_COMPONENT, Integer);
 vtkInformationKeyMacro(vtkScalarsToColorsPainter, FIELD_DATA_TUPLE_ID, Integer);
-vtkInformationKeyMacro(vtkScalarsToColorsPainter, SCALAR_MATERIAL_MODE, Integer);
 
 //-----------------------------------------------------------------------------
 vtkScalarsToColorsPainter::vtkScalarsToColorsPainter()
@@ -103,7 +102,6 @@ vtkScalarsToColorsPainter::vtkScalarsToColorsPainter()
   this->UseLookupTableScalarRange = 1;
   this->ScalarRange[0] = 0.0;
   this->ScalarRange[1] = 1.0;
-  this->ScalarMaterialMode = VTK_MATERIALMODE_DEFAULT;
 
   this->UsingScalarColoring = 0;
   this->ScalarVisibility = 1;
@@ -194,12 +192,6 @@ void vtkScalarsToColorsPainter::ProcessInformation(vtkInformation* info)
     this->SetFieldDataTupleId(info->Get(FIELD_DATA_TUPLE_ID()));
   }
 
-  if (info->Has(SCALAR_MATERIAL_MODE()))
-  {
-    this->SetScalarMaterialMode(info->Get(SCALAR_MATERIAL_MODE()));
-  }
-
-
   // when the iVars will be set, this->MTime will get updated.
   // This will eventually get caught by PrepareForRendering()
   // which will update the output. We need to discard old colors,
@@ -225,7 +217,7 @@ vtkDataObject* vtkScalarsToColorsPainter::NewClone(vtkDataObject* data)
     vtkDataSet* ds = vtkDataSet::SafeDownCast(data);
     vtkDataSet* clone = ds->NewInstance();
     clone->ShallowCopy(ds);
-    // scalars passed thru this filter are colors, which will be buit in
+    // scalars passed through this filter are colors, which will be buit in
     // the pre-rendering stage.
     clone->GetCellData()->SetActiveAttribute(-1, vtkDataSetAttributes::SCALARS);
     clone->GetPointData()->SetActiveAttribute(-1, vtkDataSetAttributes::SCALARS);
@@ -789,7 +781,7 @@ void CreateColorTextureCoordinates(T* input, float* output,
                                    bool use_log_scale)
 {
   // We have to change the range used for computing texture
-  // coordinates slightly to accomodate the special above- and
+  // coordinates slightly to accommodate the special above- and
   // below-range colors that are the first and last texels,
   // respectively.
   double scalar_texel_width = (range[1] - range[0]) / static_cast<double>(tableNumberOfColors);

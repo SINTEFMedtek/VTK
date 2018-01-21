@@ -80,6 +80,7 @@
 class vtkFixedPointVolumeRayCastMapper;
 class vtkGPUVolumeRayCastMapper;
 class vtkImageResample;
+class vtkMultiBlockVolumeMapper;
 class vtkOSPRayVolumeInterface;
 class vtkRenderWindow;
 class vtkVolume;
@@ -91,7 +92,7 @@ class VTKRENDERINGVOLUMEOPENGL2_EXPORT vtkSmartVolumeMapper : public vtkVolumeMa
 public:
   static vtkSmartVolumeMapper *New();
   vtkTypeMacro(vtkSmartVolumeMapper,vtkVolumeMapper);
-  void PrintSelf( ostream& os, vtkIndent indent );
+  void PrintSelf( ostream& os, vtkIndent indent ) override;
 
   //@{
   /**
@@ -144,8 +145,8 @@ public:
     TextureRenderMode=3,
 #endif // !VTK_LEGACY_REMOVE
     GPURenderMode=4,
-    UndefinedRenderMode=5,
-    OSPRayRenderMode=6,
+    OSPRayRenderMode=5,
+    UndefinedRenderMode=6,
     InvalidRenderMode=7
   };
 
@@ -308,7 +309,7 @@ public:
    * WARNING: INTERNAL METHOD - NOT INTENDED FOR GENERAL USE
    * Initialize rendering for this volume.
    */
-  void Render( vtkRenderer *, vtkVolume * );
+  void Render( vtkRenderer *, vtkVolume * ) override;
 
   /**
    * WARNING: INTERNAL METHOD - NOT INTENDED FOR GENERAL USE
@@ -316,7 +317,7 @@ public:
    * The parameter window could be used to determine which graphic
    * resources to release.
    */
-  void ReleaseGraphicsResources(vtkWindow *);
+  void ReleaseGraphicsResources(vtkWindow *) override;
 
   //@{
   /**
@@ -333,7 +334,7 @@ public:
     COMPONENT = 1,
   };
 
-  vtkSetClampMacro(VectorMode, int, -1, 1);
+  void SetVectorMode(int mode);
   vtkGetMacro(VectorMode, int);
 
   vtkSetClampMacro(VectorComponent, int, 0, 3);
@@ -342,7 +343,7 @@ public:
 
 protected:
   vtkSmartVolumeMapper();
-  ~vtkSmartVolumeMapper();
+  ~vtkSmartVolumeMapper() override;
 
   /**
    * Connect input of the vtkSmartVolumeMapper to the input of the
@@ -434,6 +435,12 @@ protected:
   void  ComputeRenderMode(vtkRenderer *ren,
                           vtkVolume *vol);
 
+  /**
+   * Expose GPU mapper for additional customization.
+   */
+  friend class vtkMultiBlockVolumeMapper;
+  vtkGetObjectMacro(GPUMapper, vtkGPUVolumeRayCastMapper);
+
   //@{
   /**
    * The three potential mappers
@@ -488,6 +495,7 @@ protected:
    */
   int VectorMode;
   int VectorComponent;
+  vtkTimeStamp MagnitudeUploadTime;
   //@}
 
 private:
@@ -497,8 +505,8 @@ private:
    */
   void SetupVectorMode(vtkVolume* vol);
 
-  vtkSmartVolumeMapper(const vtkSmartVolumeMapper&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkSmartVolumeMapper&) VTK_DELETE_FUNCTION;
+  vtkSmartVolumeMapper(const vtkSmartVolumeMapper&) = delete;
+  void operator=(const vtkSmartVolumeMapper&) = delete;
 
   vtkOSPRayVolumeInterface *OSPRayMapper;
 };

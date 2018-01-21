@@ -42,19 +42,19 @@ class VTKFILTERSEXTRACTION_EXPORT vtkExtractSelectedIds : public vtkExtractSelec
 public:
   static vtkExtractSelectedIds *New();
   vtkTypeMacro(vtkExtractSelectedIds, vtkExtractSelectionBase);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
 protected:
   vtkExtractSelectedIds();
-  ~vtkExtractSelectedIds();
+  ~vtkExtractSelectedIds() override;
 
   // Overridden to indicate that the input must be a vtkDataSet.
-  virtual int FillInputPortInformation(int port, vtkInformation* info);
+  int FillInputPortInformation(int port, vtkInformation* info) override;
 
   // Usual data generation method
-  virtual int RequestData(vtkInformation *,
+  int RequestData(vtkInformation *,
                           vtkInformationVector **,
-                          vtkInformationVector *);
+                          vtkInformationVector *) override;
 
 
   int ExtractCells(vtkSelectionNode *sel, vtkDataSet *input,
@@ -63,8 +63,8 @@ protected:
                     vtkDataSet *output);
 
 private:
-  vtkExtractSelectedIds(const vtkExtractSelectedIds&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkExtractSelectedIds&) VTK_DELETE_FUNCTION;
+  vtkExtractSelectedIds(const vtkExtractSelectedIds&) = delete;
+  void operator=(const vtkExtractSelectedIds&) = delete;
 };
 
 #endif

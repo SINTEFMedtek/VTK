@@ -36,7 +36,7 @@ class VTKIMAGINGGENERAL_EXPORT vtkImageSlab : public vtkThreadedImageAlgorithm
 public:
   static vtkImageSlab *New();
   vtkTypeMacro(vtkImageSlab, vtkThreadedImageAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -123,17 +123,17 @@ public:
 
 protected:
   vtkImageSlab();
-  ~vtkImageSlab();
+  ~vtkImageSlab() override;
 
-  virtual int RequestInformation(vtkInformation *, vtkInformationVector **,
-                                 vtkInformationVector *);
-  virtual int RequestUpdateExtent(vtkInformation *, vtkInformationVector **,
-                                  vtkInformationVector *);
-  virtual void ThreadedRequestData(vtkInformation *request,
+  int RequestInformation(vtkInformation *, vtkInformationVector **,
+                                 vtkInformationVector *) override;
+  int RequestUpdateExtent(vtkInformation *, vtkInformationVector **,
+                                  vtkInformationVector *) override;
+  void ThreadedRequestData(vtkInformation *request,
                                    vtkInformationVector **inputVector,
                                    vtkInformationVector *outputVector,
                                    vtkImageData ***inData,
-                                   vtkImageData **outData, int ext[6], int id);
+                                   vtkImageData **outData, int ext[6], int id) override;
 
   vtkSetMacro(OutputScalarType, int);
 
@@ -145,8 +145,8 @@ protected:
   int TrapezoidIntegration;
 
 private:
-  vtkImageSlab(const vtkImageSlab&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkImageSlab&) VTK_DELETE_FUNCTION;
+  vtkImageSlab(const vtkImageSlab&) = delete;
+  void operator=(const vtkImageSlab&) = delete;
 };
 
 #endif

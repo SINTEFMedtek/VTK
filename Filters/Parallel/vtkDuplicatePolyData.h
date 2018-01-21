@@ -35,11 +35,11 @@ class VTKFILTERSPARALLEL_EXPORT vtkDuplicatePolyData : public vtkPolyDataAlgorit
 public:
   static vtkDuplicatePolyData *New();
   vtkTypeMacro(vtkDuplicatePolyData, vtkPolyDataAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
-   * By defualt this filter uses the global controller,
+   * By default this filter uses the global controller,
    * but this method can be used to set another instead.
    */
   virtual void SetController(vtkMultiProcessController*);
@@ -63,7 +63,7 @@ public:
   //@{
   /**
    * This duplicate filter works in client server mode when this
-   * controller is set.  We have a client flag to diferentiate the
+   * controller is set.  We have a client flag to differentiate the
    * client and server because the socket controller is odd:
    * Proth processes think their id is 0.
    */
@@ -84,11 +84,11 @@ public:
 
 protected:
   vtkDuplicatePolyData();
-  ~vtkDuplicatePolyData();
+  ~vtkDuplicatePolyData() override;
 
   // Data generation method
-  virtual int RequestUpdateExtent(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-  virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+  int RequestUpdateExtent(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
+  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
   void ClientExecute(vtkPolyData *output);
 
   vtkMultiProcessController *Controller;
@@ -105,8 +105,8 @@ protected:
   unsigned long MemorySize;
 
 private:
-  vtkDuplicatePolyData(const vtkDuplicatePolyData&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkDuplicatePolyData&) VTK_DELETE_FUNCTION;
+  vtkDuplicatePolyData(const vtkDuplicatePolyData&) = delete;
+  void operator=(const vtkDuplicatePolyData&) = delete;
 };
 
 #endif

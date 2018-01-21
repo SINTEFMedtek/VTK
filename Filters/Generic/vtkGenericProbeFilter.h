@@ -53,7 +53,7 @@ class VTKFILTERSGENERIC_EXPORT vtkGenericProbeFilter : public vtkDataSetAlgorith
 public:
   static vtkGenericProbeFilter *New();
   vtkTypeMacro(vtkGenericProbeFilter,vtkDataSetAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -74,18 +74,18 @@ public:
 
 protected:
   vtkGenericProbeFilter();
-  ~vtkGenericProbeFilter();
+  ~vtkGenericProbeFilter() override;
 
-  int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+  int RequestInformation(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
+  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
 
-  int FillInputPortInformation(int, vtkInformation*);
+  int FillInputPortInformation(int, vtkInformation*) override;
 
   vtkIdTypeArray *ValidPoints;
 
 private:
-  vtkGenericProbeFilter(const vtkGenericProbeFilter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkGenericProbeFilter&) VTK_DELETE_FUNCTION;
+  vtkGenericProbeFilter(const vtkGenericProbeFilter&) = delete;
+  void operator=(const vtkGenericProbeFilter&) = delete;
 };
 
 #endif

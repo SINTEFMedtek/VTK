@@ -15,7 +15,9 @@
 #include "vtkXMLGenericDataObjectReader.h"
 
 #include "vtkHierarchicalBoxDataSet.h"
+#if !defined(VTK_LEGACY_REMOVE)
 #include "vtkHyperOctree.h"
+#endif // LEGACY remove
 #include "vtkImageData.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
@@ -29,7 +31,9 @@
 #include "vtkStructuredGrid.h"
 #include "vtkUnstructuredGrid.h"
 #include "vtkXMLFileReadTester.h"
+#if !defined(VTK_LEGACY_REMOVE)
 #include "vtkXMLHyperOctreeReader.h"
+#endif // LEGACY remove
 #include "vtkXMLImageDataReader.h"
 #include "vtkXMLMultiBlockDataReader.h"
 #include "vtkXMLPImageDataReader.h"
@@ -51,13 +55,13 @@ vtkStandardNewMacro(vtkXMLGenericDataObjectReader);
 // ---------------------------------------------------------------------------
 vtkXMLGenericDataObjectReader::vtkXMLGenericDataObjectReader()
 {
-  this->Reader=0;
+  this->Reader=nullptr;
 }
 
 // ---------------------------------------------------------------------------
 vtkXMLGenericDataObjectReader::~vtkXMLGenericDataObjectReader()
 {
-  if(this->Reader!=0)
+  if(this->Reader!=nullptr)
   {
     this->Reader->Delete();
   }
@@ -78,7 +82,7 @@ int vtkXMLGenericDataObjectReader::ReadOutputType(const char *name,
   if(tester->TestReadFile())
   {
     char *cfileDataType=tester->GetFileDataType();
-    if(cfileDataType!=0)
+    if(cfileDataType!=nullptr)
     {
       std::string fileDataType(cfileDataType);
       if(fileDataType.compare("HierarchicalBoxDataSet")==0 ||
@@ -168,13 +172,13 @@ int vtkXMLGenericDataObjectReader::RequestDataObject(
     return 0;
   }
 
-  if(this->Reader!=0)
+  if(this->Reader!=nullptr)
   {
     this->Reader->Delete();
-    this->Reader=0;
+    this->Reader=nullptr;
   }
 
-  vtkDataObject *output=0;
+  vtkDataObject *output=nullptr;
 
   // Create reader.
   bool parallel=false;
@@ -193,9 +197,14 @@ int vtkXMLGenericDataObjectReader::RequestDataObject(
       output = vtkNonOverlappingAMR::New();
       break;
     case VTK_HYPER_OCTREE:
+#if !defined(VTK_LEGACY_REMOVE)
       this->Reader=vtkXMLHyperOctreeReader::New();
       output=vtkHyperOctree::New();
       break;
+#else // LEGACY remove
+      vtkErrorMacro("vtkHyperOctree has been deprecated.");
+      return 0;
+#endif // LEGACY remove
     case VTK_IMAGE_DATA:
       if(parallel)
       {
@@ -256,10 +265,10 @@ int vtkXMLGenericDataObjectReader::RequestDataObject(
       output=vtkUnstructuredGrid::New();
       break;
     default:
-      this->Reader=0;
+      this->Reader=nullptr;
   }
 
-  if(this->Reader!=0)
+  if(this->Reader!=nullptr)
   {
     this->Reader->SetFileName(this->GetFileName());
 //    this->Reader->SetStream(this->GetStream());
@@ -281,7 +290,7 @@ int vtkXMLGenericDataObjectReader::RequestDataObject(
       outInfo->Set(vtkDataObject::DATA_OBJECT(), output);
 
 //      outInfo->Set(vtkDataObject::DATA_OBJECT(),output);
-      if(output!=0)
+      if(output!=nullptr)
       {
         output->Delete();
       }
@@ -301,7 +310,7 @@ int vtkXMLGenericDataObjectReader::RequestInformation(
   vtkInformationVector *outputVector)
 {
   // reader is created in RequestDataObject.
-  if(this->Reader!=0)
+  if(this->Reader!=nullptr)
   {
     // RequestInformation() would be more appropriate but it is protected.
     return this->Reader->ProcessRequest(request, inputVector, outputVector);
@@ -319,7 +328,7 @@ int vtkXMLGenericDataObjectReader::RequestUpdateExtent(
   vtkInformationVector *outputVector)
 {
   // reader is created in RequestDataObject.
-  if(this->Reader!=0)
+  if(this->Reader!=nullptr)
   {
     // RequestUpdateExtent() would be more appropriate but it is protected.
     return this->Reader->ProcessRequest(request, inputVector, outputVector);
@@ -337,7 +346,7 @@ int vtkXMLGenericDataObjectReader::RequestData(
   vtkInformationVector *outputVector)
 {
   // reader is created in RequestDataObject.
-  if(this->Reader!=0)
+  if(this->Reader!=nullptr)
   {
     // RequestData() would be more appropriate but it is protected.
     return this->Reader->ProcessRequest(request, inputVector, outputVector);
@@ -374,11 +383,14 @@ vtkXMLGenericDataObjectReader::GetHierarchicalBoxDataSetOutput()
   return vtkHierarchicalBoxDataSet::SafeDownCast(this->GetOutput());
 }
 
+
+#if !defined(VTK_LEGACY_REMOVE)
 // ---------------------------------------------------------------------------
 vtkHyperOctree *vtkXMLGenericDataObjectReader::GetHyperOctreeOutput()
 {
   return vtkHyperOctree::SafeDownCast(this->GetOutput());
 }
+#endif // LEGACY remove
 
 // ---------------------------------------------------------------------------
 vtkImageData *vtkXMLGenericDataObjectReader::GetImageDataOutput()

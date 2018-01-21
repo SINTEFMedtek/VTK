@@ -31,7 +31,7 @@ class VTKCOMMONDATAMODEL_EXPORT vtkQuadric : public vtkImplicitFunction
 {
 public:
   vtkTypeMacro(vtkQuadric,vtkImplicitFunction);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Construct quadric with all coefficients = 1.
@@ -42,15 +42,14 @@ public:
   /**
    * Evaluate quadric equation.
    */
-  double EvaluateFunction(double x[3]) VTK_OVERRIDE;
-  double EvaluateFunction(double x, double y, double z)
-    {return this->vtkImplicitFunction::EvaluateFunction(x, y, z); } ;
+  using vtkImplicitFunction::EvaluateFunction;
+  double EvaluateFunction(double x[3]) override;
   //@}
 
   /**
    * Evaluate the gradient to the quadric equation.
    */
-  void EvaluateGradient(double x[3], double g[3]) VTK_OVERRIDE;
+  void EvaluateGradient(double x[3], double g[3]) override;
 
   //@{
   /**
@@ -64,13 +63,13 @@ public:
 
 protected:
   vtkQuadric();
-  ~vtkQuadric() VTK_OVERRIDE {}
+  ~vtkQuadric() override {}
 
   double Coefficients[10];
 
 private:
-  vtkQuadric(const vtkQuadric&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkQuadric&) VTK_DELETE_FUNCTION;
+  vtkQuadric(const vtkQuadric&) = delete;
+  void operator=(const vtkQuadric&) = delete;
 };
 
 #endif

@@ -57,7 +57,7 @@ public:
    * Standard methods for instances of this class.
    */
   vtkTypeMacro(vtkTerrainDataPointPlacer,vtkPointPlacer);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   // Descuription:
@@ -85,10 +85,10 @@ public:
    * For the Terrain point placer this computes world points that
    * lie at the specified height above the terrain.
    */
-  virtual int ComputeWorldPosition( vtkRenderer *ren,
+  int ComputeWorldPosition( vtkRenderer *ren,
                                     double displayPos[2],
                                     double worldPos[3],
-                                    double worldOrient[9] );
+                                    double worldOrient[9] ) override;
 
   /**
    * Given a renderer, a display position, and a reference world
@@ -96,29 +96,29 @@ public:
    * of this point. This method is typically used by the
    * representation to move the point.
    */
-  virtual int ComputeWorldPosition( vtkRenderer *ren,
+  int ComputeWorldPosition( vtkRenderer *ren,
                                     double displayPos[2],
                                     double refWorldPos[3],
                                     double worldPos[3],
-                                    double worldOrient[9] );
+                                    double worldOrient[9] ) override;
 
   /**
    * Given a world position check the validity of this
    * position according to the constraints of the placer
    */
-  virtual int ValidateWorldPosition( double worldPos[3] );
+  int ValidateWorldPosition( double worldPos[3] ) override;
 
   /**
    * Given a display position, check the validity of this position.
    */
-  virtual int ValidateDisplayPosition( vtkRenderer *, double displayPos[2] );
+  int ValidateDisplayPosition( vtkRenderer *, double displayPos[2] ) override;
 
   /**
    * Given a world position and a world orientation,
    * validate it according to the constraints of the placer.
    */
-  virtual int ValidateWorldPosition( double worldPos[3],
-                                     double worldOrient[9] );
+  int ValidateWorldPosition( double worldPos[3],
+                                     double worldOrient[9] ) override;
 
   //@{
   /**
@@ -129,7 +129,7 @@ public:
 
 protected:
   vtkTerrainDataPointPlacer();
-  ~vtkTerrainDataPointPlacer();
+  ~vtkTerrainDataPointPlacer() override;
 
   // The props that represents the terrain data (one or more) in a rendered
   // scene
@@ -138,8 +138,8 @@ protected:
   double              HeightOffset;
 
 private:
-  vtkTerrainDataPointPlacer(const vtkTerrainDataPointPlacer&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkTerrainDataPointPlacer&) VTK_DELETE_FUNCTION;
+  vtkTerrainDataPointPlacer(const vtkTerrainDataPointPlacer&) = delete;
+  void operator=(const vtkTerrainDataPointPlacer&) = delete;
 };
 
 #endif

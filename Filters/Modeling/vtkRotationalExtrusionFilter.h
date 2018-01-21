@@ -65,7 +65,7 @@ class VTKFILTERSMODELING_EXPORT vtkRotationalExtrusionFilter : public vtkPolyDat
 {
 public:
   vtkTypeMacro(vtkRotationalExtrusionFilter,vtkPolyDataAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Create object with capping on, angle of 360 degrees, resolution = 12, and
@@ -118,17 +118,17 @@ public:
 
 protected:
   vtkRotationalExtrusionFilter();
-  ~vtkRotationalExtrusionFilter() {}
+  ~vtkRotationalExtrusionFilter() override {}
 
-  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
   int Resolution;
   int Capping;
   double Angle;
   double Translation;
   double DeltaRadius;
 private:
-  vtkRotationalExtrusionFilter(const vtkRotationalExtrusionFilter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkRotationalExtrusionFilter&) VTK_DELETE_FUNCTION;
+  vtkRotationalExtrusionFilter(const vtkRotationalExtrusionFilter&) = delete;
+  void operator=(const vtkRotationalExtrusionFilter&) = delete;
 };
 
 #endif

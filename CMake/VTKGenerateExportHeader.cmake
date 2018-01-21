@@ -72,7 +72,7 @@
 # Generates a file called other_name_export.h containing the macros
 # OTHER_NAME_EXPORT, OTHER_NAME_NO_EXPORT and OTHER_NAME_DEPRECATED etc.
 #
-# The BASE_NAME may be overridden by specifiying other options in the function.
+# The BASE_NAME may be overridden by specifying other options in the function.
 # For example:
 #
 #   add_library(somelib someclass.cpp)
@@ -214,9 +214,6 @@ macro(_vtk_test_compiler_hidden_visibility)
     check_cxx_compiler_flag(-fvisibility=hidden COMPILER_HAS_HIDDEN_VISIBILITY)
     check_cxx_compiler_flag(-fvisibility-inlines-hidden
       COMPILER_HAS_HIDDEN_INLINE_VISIBILITY)
-    option(USE_COMPILER_HIDDEN_VISIBILITY
-      "Use HIDDEN visibility support if available." ON)
-    mark_as_advanced(USE_COMPILER_HIDDEN_VISIBILITY)
   endif()
 endmacro()
 
@@ -262,7 +259,7 @@ macro(_vtk_do_set_macro_values TARGET_LIBRARY)
     if(WIN32)
       set(DEFINE_EXPORT "__declspec(dllexport)")
       set(DEFINE_IMPORT "__declspec(dllimport)")
-    elseif(COMPILER_HAS_HIDDEN_VISIBILITY AND USE_COMPILER_HIDDEN_VISIBILITY)
+    elseif(COMPILER_HAS_HIDDEN_VISIBILITY)
       set(DEFINE_EXPORT "__attribute__((visibility(\"default\")))")
       set(DEFINE_IMPORT "__attribute__((visibility(\"default\")))")
       set(DEFINE_NO_EXPORT "__attribute__((visibility(\"hidden\")))")
@@ -370,6 +367,9 @@ function(vtk_add_compiler_export_flags)
   _vtk_test_compiler_hidden_visibility()
   _vtk_test_compiler_has_deprecated()
 
+  option(USE_COMPILER_HIDDEN_VISIBILITY
+    "Use HIDDEN visibility support if available." ON)
+  mark_as_advanced(USE_COMPILER_HIDDEN_VISIBILITY)
   if(NOT (USE_COMPILER_HIDDEN_VISIBILITY AND COMPILER_HAS_HIDDEN_VISIBILITY))
     # Just return if there are no flags to add.
     return()

@@ -45,7 +45,7 @@ class VTKIOPARALLEL_EXPORT vtkPSLACReader : public vtkSLACReader
 public:
   vtkTypeMacro(vtkPSLACReader, vtkSLACReader);
   static vtkPSLACReader *New();
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
   //@{
   /**
@@ -60,47 +60,47 @@ public:
 
 protected:
   vtkPSLACReader();
-  ~vtkPSLACReader();
+  ~vtkPSLACReader() override;
 
   vtkMultiProcessController *Controller;
 
-  virtual int RequestInformation(vtkInformation *request,
+  int RequestInformation(vtkInformation *request,
                                  vtkInformationVector **inputVector,
-                                 vtkInformationVector *outputVector);
+                                 vtkInformationVector *outputVector) override;
 
-  virtual int RequestData(vtkInformation *request,
+  int RequestData(vtkInformation *request,
                           vtkInformationVector **inputVector,
-                          vtkInformationVector *outputVector);
+                          vtkInformationVector *outputVector) override;
 
-  virtual int CheckTetrahedraWinding(int meshFD);
-  virtual int ReadConnectivity(int meshFD, vtkMultiBlockDataSet *surfaceOutput,
-                               vtkMultiBlockDataSet *volumeOutput);
-  virtual int ReadCoordinates(int meshFD, vtkMultiBlockDataSet *output);
-  virtual int ReadMidpointCoordinates(int meshFD, vtkMultiBlockDataSet *output,
-                                      MidpointCoordinateMap &map);
-  virtual int ReadMidpointData(int meshFD, vtkMultiBlockDataSet *output,
-                               MidpointIdMap &map);
-  virtual int RestoreMeshCache(vtkMultiBlockDataSet *surfaceOutput,
+  int CheckTetrahedraWinding(int meshFD) override;
+  int ReadConnectivity(int meshFD, vtkMultiBlockDataSet *surfaceOutput,
+                               vtkMultiBlockDataSet *volumeOutput) override;
+  int ReadCoordinates(int meshFD, vtkMultiBlockDataSet *output) override;
+  int ReadMidpointCoordinates(int meshFD, vtkMultiBlockDataSet *output,
+                                      MidpointCoordinateMap &map) override;
+  int ReadMidpointData(int meshFD, vtkMultiBlockDataSet *output,
+                               MidpointIdMap &map) override;
+  int RestoreMeshCache(vtkMultiBlockDataSet *surfaceOutput,
                                vtkMultiBlockDataSet *volumeOutput,
-                               vtkMultiBlockDataSet *compositeOutput);
-  virtual int ReadFieldData(const int *modeFDArray,
+                               vtkMultiBlockDataSet *compositeOutput) override;
+  int ReadFieldData(const int *modeFDArray,
                             int numModeFDs,
-                            vtkMultiBlockDataSet *output);
+                            vtkMultiBlockDataSet *output) override;
 
-  virtual int ReadTetrahedronInteriorArray(int meshFD,
-                                           vtkIdTypeArray *connectivity);
-  virtual int ReadTetrahedronExteriorArray(int meshFD,
-                                           vtkIdTypeArray *connectivity);
+  int ReadTetrahedronInteriorArray(int meshFD,
+                                           vtkIdTypeArray *connectivity) override;
+  int ReadTetrahedronExteriorArray(int meshFD,
+                                           vtkIdTypeArray *connectivity) override;
 
-  virtual int MeshUpToDate();
+  int MeshUpToDate() override;
 
   /**
    * Reads point data arrays.  Called by ReadCoordinates and ReadFieldData.
    */
-  virtual vtkSmartPointer<vtkDataArray> ReadPointDataArray(int ncFD, int varId);
+  vtkSmartPointer<vtkDataArray> ReadPointDataArray(int ncFD, int varId) override;
 
   class vtkInternal;
-  vtkInternal *Internal;
+  vtkInternal *PInternal;
 
   //@{
   /**
@@ -144,8 +144,8 @@ protected:
   //@}
 
 private:
-  vtkPSLACReader(const vtkPSLACReader &) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPSLACReader &) VTK_DELETE_FUNCTION;
+  vtkPSLACReader(const vtkPSLACReader &) = delete;
+  void operator=(const vtkPSLACReader &) = delete;
 };
 
 #endif //vtkPSLACReader_h

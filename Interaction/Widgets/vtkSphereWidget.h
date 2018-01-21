@@ -79,18 +79,18 @@ public:
   static vtkSphereWidget *New();
 
   vtkTypeMacro(vtkSphereWidget,vtk3DWidget);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
    * Methods that satisfy the superclass' API.
    */
-  virtual void SetEnabled(int);
-  virtual void PlaceWidget(double bounds[6]);
-  void PlaceWidget()
+  void SetEnabled(int) override;
+  void PlaceWidget(double bounds[6]) override;
+  void PlaceWidget() override
     {this->Superclass::PlaceWidget();}
   void PlaceWidget(double xmin, double xmax, double ymin, double ymax,
-                   double zmin, double zmax)
+                   double zmin, double zmax) override
     {this->Superclass::PlaceWidget(xmin,xmax,ymin,ymax,zmin,zmax);}
   //@}
 
@@ -242,7 +242,7 @@ public:
 
 protected:
   vtkSphereWidget();
-  ~vtkSphereWidget();
+  ~vtkSphereWidget() override;
 
   // Manage the state of the widget
   int State;
@@ -282,7 +282,7 @@ protected:
   vtkCellPicker *Picker;
 
   // Register internal Pickers within PickingManager
-  virtual void RegisterPickers();
+  void RegisterPickers() override;
 
   // Methods to manipulate the sphere widget
   int Translation;
@@ -308,11 +308,11 @@ protected:
   int HandleVisibility;
   double HandleDirection[3];
   double HandlePosition[3];
-  virtual void SizeHandles();
+  void SizeHandles() override;
 
 private:
-  vtkSphereWidget(const vtkSphereWidget&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkSphereWidget&) VTK_DELETE_FUNCTION;
+  vtkSphereWidget(const vtkSphereWidget&) = delete;
+  void operator=(const vtkSphereWidget&) = delete;
 };
 
 #endif

@@ -37,18 +37,18 @@ class VTKCHARTSCORE_EXPORT vtkPlotSurface : public vtkPlot3D
 {
 public:
   vtkTypeMacro(vtkPlotSurface, vtkPlot3D);
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
   static vtkPlotSurface * New();
 
   /**
    * Paint event for the XY plot, called whenever the chart needs to be drawn
    */
-  virtual bool Paint(vtkContext2D *painter);
+  bool Paint(vtkContext2D *painter) override;
 
   /**
    * Set the input to the surface plot.
    */
-  virtual void SetInputData(vtkTable *input);
+  void SetInputData(vtkTable *input) override;
 
   //@{
   /**
@@ -56,15 +56,15 @@ public:
    * Do not use these versions of SetInputData, as all the parameters
    * beyond the vtkTable are ignored.
    */
-  virtual void SetInputData(vtkTable *input, const vtkStdString &xName,
+  void SetInputData(vtkTable *input, const vtkStdString &xName,
                             const vtkStdString &yName,
-                            const vtkStdString &zName);
-  virtual void SetInputData(vtkTable *input, const vtkStdString &xName,
+                            const vtkStdString &zName) override;
+  void SetInputData(vtkTable *input, const vtkStdString &xName,
                             const vtkStdString &yName,
                             const vtkStdString &zName,
-                            const vtkStdString &colorName);
-  virtual void SetInputData(vtkTable *input, vtkIdType xColumn,
-                            vtkIdType yColumn, vtkIdType zColumn);
+                            const vtkStdString &colorName) override;
+  void SetInputData(vtkTable *input, vtkIdType xColumn,
+                            vtkIdType yColumn, vtkIdType zColumn) override;
   //@}
 
   /**
@@ -85,7 +85,7 @@ public:
 
 protected:
   vtkPlotSurface();
-  ~vtkPlotSurface();
+  ~vtkPlotSurface() override;
 
   /**
    * Generate a surface (for OpenGL) from our list of points.
@@ -133,11 +133,6 @@ protected:
   vtkIdType NumberOfVertices;
 
   /**
-   * This array indicates how the surface should be colored.
-   */
-  vtkNew<vtkUnsignedCharArray> Colors;
-
-  /**
    * The number of components used to color the surface.
    */
   int ColorComponents;
@@ -169,8 +164,8 @@ protected:
   bool DataHasBeenRescaled;
 
 private:
-  vtkPlotSurface(const vtkPlotSurface &) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPlotSurface &) VTK_DELETE_FUNCTION;
+  vtkPlotSurface(const vtkPlotSurface &) = delete;
+  void operator=(const vtkPlotSurface &) = delete;
 
 };
 

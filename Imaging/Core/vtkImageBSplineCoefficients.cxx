@@ -85,7 +85,7 @@ int vtkImageBSplineCoefficients::RequestData(
   else if (this->DataWasPassed)
   {
     // force reallocation of the scalars
-    outData->GetPointData()->SetScalars(NULL);
+    outData->GetPointData()->SetScalars(nullptr);
     this->DataWasPassed = 0;
   }
 
@@ -407,7 +407,7 @@ const char *vtkImageBSplineCoefficients::GetOutputScalarTypeAsString()
 //----------------------------------------------------------------------------
 int vtkImageBSplineCoefficients::CheckBounds(const double point[3])
 {
-  double *bounds = this->GetOutput()->GetBounds();
+  const double *bounds = this->GetOutput()->GetBounds();
   for (int i = 0; i < 3; i++)
   {
     double a = bounds[0];

@@ -155,6 +155,7 @@ void vtkWin32OpenGLRenderWindow::CleanUpRenderers()
        (ren = this->Renderers->GetNextRenderer(rsit));)
   {
     ren->SetRenderWindow(NULL);
+    ren->SetRenderWindow(this);
   }
 }
 
@@ -838,7 +839,7 @@ LRESULT vtkWin32OpenGLRenderWindow::MessageProc(HWND hWnd, UINT message,
   {
     case WM_CREATE:
     {
-    // nothing to be done here, opengl is initilized after the call to
+    // nothing to be done here, opengl is initialized after the call to
     // create now
     return 0;
     }
@@ -1103,7 +1104,7 @@ void vtkWin32OpenGLRenderWindow::WindowInitialize()
 // Initialize the rendering window.
 void vtkWin32OpenGLRenderWindow::Initialize (void)
 {
-  // make sure we havent already been initialized
+  // make sure we haven't already been initialized
   if (!this->OffScreenRendering && !this->ContextId)
   {
     this->WindowInitialize();
@@ -1528,14 +1529,7 @@ void vtkWin32OpenGLRenderWindow::CreateOffScreenDC(HBITMAP hbmp, HDC aHdc)
   GetObject(hbmp, sizeof(BITMAP), &bm);
 
   // Renderers will need to redraw anything cached in display lists
-  vtkRenderer *ren;
-  vtkCollectionSimpleIterator rsit;
-  this->Renderers->InitTraversal(rsit);
-  while ((ren = this->Renderers->GetNextRenderer(rsit)))
-  {
-    ren->SetRenderWindow(NULL);
-    ren->SetRenderWindow(this);
-  }
+  this->CleanUpRenderers();
 
   this->MemoryBuffer = hbmp;
 
@@ -1639,15 +1633,7 @@ void vtkWin32OpenGLRenderWindow::ResumeScreenRendering(void)
   if (this->ContextId!=0)
   {
       this->MakeCurrent();
-      // Renderers will need to redraw anything cached in display lists
-      vtkRenderer *ren;
-      vtkCollectionSimpleIterator rsit;
-      this->Renderers->InitTraversal(rsit);
-      while ((ren = this->Renderers->GetNextRenderer(rsit)))
-      {
-        ren->SetRenderWindow(NULL);
-        ren->SetRenderWindow(this);
-      }
+      this->CleanUpRenderers();
   }
 
   if (this->MemoryBuffer)

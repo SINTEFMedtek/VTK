@@ -37,7 +37,7 @@ class VTKRENDERINGOPENGL_EXPORT vtkUniformVariables : public vtkObject
 public:
   static vtkUniformVariables *New();
   vtkTypeMacro(vtkUniformVariables,vtkObject);
-  void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
   /**
    * Set an integer uniform variable.
@@ -177,11 +177,11 @@ public:
 
 protected:
   vtkUniformVariables();
-  virtual ~vtkUniformVariables();
+  ~vtkUniformVariables() override;
 
 private:
-  vtkUniformVariables(const vtkUniformVariables&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkUniformVariables&) VTK_DELETE_FUNCTION;
+  vtkUniformVariables(const vtkUniformVariables&) = delete;
+  void operator=(const vtkUniformVariables&) = delete;
 
   vtkUniformVariablesMap *Map;
 };

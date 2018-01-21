@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import vtk
-from vtk.test import Testing
 from vtk.util.misc import vtkGetDataRoot
 VTK_DATA_ROOT = vtkGetDataRoot()
 
@@ -20,7 +19,6 @@ renWin.StereoRenderOn()
 sphere = vtk.vtkSphereSource()
 sphereMapper = vtk.vtkPolyDataMapper()
 sphereMapper.SetInputConnection(sphere.GetOutputPort())
-sphereMapper.GlobalImmediateModeRenderingOn()
 sphereActor = vtk.vtkLODActor()
 sphereActor.SetMapper(sphereMapper)
 # create the spikes using a cone source and the sphere source

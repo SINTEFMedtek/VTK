@@ -31,7 +31,7 @@ class VTKIOIMAGE_EXPORT vtkJSONImageWriter : public vtkImageAlgorithm
 public:
   static vtkJSONImageWriter *New();
   vtkTypeMacro(vtkJSONImageWriter,vtkImageAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -43,7 +43,7 @@ public:
 
   //@{
   /**
-   * Specify ArrayName to export. By default NULL which will dump ALL arrays.
+   * Specify ArrayName to export. By default nullptr which will dump ALL arrays.
    */
   vtkSetStringMacro(ArrayName);
   vtkGetStringMacro(ArrayName);
@@ -64,19 +64,19 @@ public:
 
 protected:
   vtkJSONImageWriter();
-  ~vtkJSONImageWriter();
+  ~vtkJSONImageWriter() override;
 
   char *FileName;
   char *ArrayName;
   int Slice;
 
-  virtual int RequestData(vtkInformation *request,
+  int RequestData(vtkInformation *request,
                           vtkInformationVector** inputVector,
-                          vtkInformationVector* outputVector);
+                          vtkInformationVector* outputVector) override;
 
 private:
-  vtkJSONImageWriter(const vtkJSONImageWriter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkJSONImageWriter&) VTK_DELETE_FUNCTION;
+  vtkJSONImageWriter(const vtkJSONImageWriter&) = delete;
+  void operator=(const vtkJSONImageWriter&) = delete;
 };
 
 #endif

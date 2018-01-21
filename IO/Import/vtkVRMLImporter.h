@@ -77,7 +77,7 @@ public:
   static vtkVRMLImporter *New();
 
   vtkTypeMacro(vtkVRMLImporter, vtkImporter);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -108,15 +108,15 @@ public:
 
 protected:
   vtkVRMLImporter();
-  ~vtkVRMLImporter();
+  ~vtkVRMLImporter() override;
 
   int OpenImportFile();
-  virtual int ImportBegin();
-  virtual void ImportEnd();
-  virtual void ImportActors(vtkRenderer*) {}
-  virtual void ImportCameras(vtkRenderer*) {}
-  virtual void ImportLights(vtkRenderer*) {}
-  virtual void ImportProperties(vtkRenderer*) {}
+  int ImportBegin() override;
+  void ImportEnd() override;
+  void ImportActors(vtkRenderer*) override {}
+  void ImportCameras(vtkRenderer*) override {}
+  void ImportLights(vtkRenderer*) override {}
+  void ImportProperties(vtkRenderer*) override {}
 
   //@{
   /**
@@ -164,8 +164,8 @@ private:
   vtkPolyDataMapper* CurrentMapper;
 
 private:
-  vtkVRMLImporter(const vtkVRMLImporter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkVRMLImporter&) VTK_DELETE_FUNCTION;
+  vtkVRMLImporter(const vtkVRMLImporter&) = delete;
+  void operator=(const vtkVRMLImporter&) = delete;
 };
 
 #endif

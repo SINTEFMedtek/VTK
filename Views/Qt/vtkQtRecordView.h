@@ -49,7 +49,7 @@ Q_OBJECT
 public:
   static vtkQtRecordView *New();
   vtkTypeMacro(vtkQtRecordView, vtkQtView);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Get the main container of this view (a  QWidget).
@@ -57,7 +57,7 @@ public:
    * to GetWidget(): something like this
    * this->ui->box->layout()->addWidget(this->View->GetWidget());
    */
-  virtual QWidget* GetWidget();
+  QWidget* GetWidget() override;
 
   enum
   {
@@ -84,15 +84,15 @@ public:
   /**
    * Updates the view.
    */
-  virtual void Update();
+  void Update() override;
 
 protected:
 
   vtkQtRecordView();
-  ~vtkQtRecordView();
+  ~vtkQtRecordView() override;
 
-  virtual void AddRepresentationInternal(vtkDataRepresentation* rep);
-  virtual void RemoveRepresentationInternal(vtkDataRepresentation* rep);
+  void AddRepresentationInternal(vtkDataRepresentation* rep) override;
+  void RemoveRepresentationInternal(vtkDataRepresentation* rep) override;
 
   vtkSmartPointer<vtkDataObjectToTable> DataObjectToTable;
 
@@ -104,8 +104,8 @@ protected:
 
 
 private:
-  vtkQtRecordView(const vtkQtRecordView&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkQtRecordView&) VTK_DELETE_FUNCTION;
+  vtkQtRecordView(const vtkQtRecordView&) = delete;
+  void operator=(const vtkQtRecordView&) = delete;
 
   vtkMTimeType CurrentSelectionMTime;
   vtkMTimeType LastInputMTime;

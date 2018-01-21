@@ -35,7 +35,7 @@ class VTKRENDERINGCORE_EXPORT vtkShaderDeviceAdapter2 : public vtkObject
 {
 public:
   vtkTypeMacro(vtkShaderDeviceAdapter2, vtkObject);
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
   /**
    * Sends a single attribute to the graphics card.
@@ -70,13 +70,13 @@ public:
 
 protected:
   vtkShaderDeviceAdapter2();
-  ~vtkShaderDeviceAdapter2();
+  ~vtkShaderDeviceAdapter2() override;
 
   vtkShaderProgram2* ShaderProgram;
 
 private:
-  vtkShaderDeviceAdapter2(const vtkShaderDeviceAdapter2&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkShaderDeviceAdapter2&) VTK_DELETE_FUNCTION;
+  vtkShaderDeviceAdapter2(const vtkShaderDeviceAdapter2&) = delete;
+  void operator=(const vtkShaderDeviceAdapter2&) = delete;
 
 };
 

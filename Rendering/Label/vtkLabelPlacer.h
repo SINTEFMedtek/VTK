@@ -54,7 +54,7 @@ class VTKRENDERINGLABEL_EXPORT vtkLabelPlacer : public vtkPolyDataAlgorithm
 public:
   static vtkLabelPlacer* New();
   vtkTypeMacro(vtkLabelPlacer,vtkPolyDataAlgorithm);
-  virtual void PrintSelf( ostream& os, vtkIndent indent );
+  void PrintSelf( ostream& os, vtkIndent indent ) override;
 
   vtkGetObjectMacro(Renderer,vtkRenderer);
   virtual void SetRenderer( vtkRenderer* );
@@ -133,7 +133,7 @@ public:
   vtkBooleanMacro(UseUnicodeStrings,bool);
   //@}
 
-  virtual vtkMTimeType GetMTime();
+  vtkMTimeType GetMTime() override;
 
   //@{
   /**
@@ -188,13 +188,13 @@ public:
 
 protected:
   vtkLabelPlacer();
-  virtual ~vtkLabelPlacer();
+  ~vtkLabelPlacer() override;
 
   virtual void SetAnchorTransform( vtkCoordinate* );
 
-  int FillInputPortInformation( int port, vtkInformation* info );
-  virtual int RequestData( vtkInformation* request,
-    vtkInformationVector** inputVector, vtkInformationVector* outputVector );
+  int FillInputPortInformation( int port, vtkInformation* info ) override;
+  int RequestData( vtkInformation* request,
+    vtkInformationVector** inputVector, vtkInformationVector* outputVector ) override;
 
   class Internal;
   Internal* Buckets;
@@ -219,8 +219,8 @@ protected:
   int OutputCoordinateSystem;
 
 private:
-  vtkLabelPlacer( const vtkLabelPlacer& ) VTK_DELETE_FUNCTION;
-  void operator = ( const vtkLabelPlacer& ) VTK_DELETE_FUNCTION;
+  vtkLabelPlacer( const vtkLabelPlacer& ) = delete;
+  void operator = ( const vtkLabelPlacer& ) = delete;
 };
 
 #endif // vtkLabelPlacer_h

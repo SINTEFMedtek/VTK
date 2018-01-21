@@ -22,7 +22,7 @@
  * Generate periodic dataset by transforming points, vectors, tensors
  * data arrays from an original data array.
  * The generated dataset is of the same type than the input (float or double).
- * This is an abstract class wich do not implement the actual transformation.
+ * This is an abstract class which do not implement the actual transformation.
  * Point coordinates are transformed, as well as all vectors (3-components) and
  * tensors (9 components) in points and cell data arrays.
  * The generated multiblock will have the same tree architecture than the input,
@@ -53,7 +53,7 @@ class VTKFILTERSPARALLEL_EXPORT vtkPeriodicFilter : public vtkMultiBlockDataSetA
 {
 public:
   vtkTypeMacro(vtkPeriodicFilter, vtkMultiBlockDataSetAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -102,14 +102,14 @@ public:
 
 protected:
   vtkPeriodicFilter();
-  ~vtkPeriodicFilter();
+  ~vtkPeriodicFilter() override;
 
   // see algorithm for more info
-  virtual int FillInputPortInformation(int port, vtkInformation* info);
+  int FillInputPortInformation(int port, vtkInformation* info) override;
 
-  virtual int RequestData(vtkInformation *,
+  int RequestData(vtkInformation *,
                           vtkInformationVector **,
-                          vtkInformationVector *);
+                          vtkInformationVector *) override;
 
   /**
    * Create a periodic data, leaf of the tree
@@ -129,8 +129,8 @@ protected:
   bool ReducePeriodNumbers;
 
 private:
-  vtkPeriodicFilter(const vtkPeriodicFilter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPeriodicFilter&) VTK_DELETE_FUNCTION;
+  vtkPeriodicFilter(const vtkPeriodicFilter&) = delete;
+  void operator=(const vtkPeriodicFilter&) = delete;
 
   int IterationMode;
   int NumberOfPeriods;      // User provided number of periods

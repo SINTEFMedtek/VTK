@@ -79,7 +79,7 @@ vtkFieldData* vtkComputeQuartiles::GetInputFieldData(vtkDataObject* input)
   if (!input)
   {
     vtkErrorMacro(<<"Cannot extract fields from null input");
-    return 0;
+    return nullptr;
   }
 
   if (vtkTable::SafeDownCast(input))
@@ -113,7 +113,7 @@ vtkFieldData* vtkComputeQuartiles::GetInputFieldData(vtkDataObject* input)
     case vtkDataObject::FIELD_ASSOCIATION_ROWS:
       return vtkTable::SafeDownCast(input)->GetRowData();
   }
-  return 0;
+  return nullptr;
 }
 
 //-----------------------------------------------------------------------------
@@ -162,7 +162,7 @@ void vtkComputeQuartiles::ComputeTable(vtkDataObject* input,
   // Fill table for descriptive statistics input.
   vtkNew<vtkTable> inDescStats;
   vtkNew<vtkOrderStatistics> os;
-  os->SetInputData(vtkStatisticsAlgorithm::INPUT_DATA, inDescStats.GetPointer());
+  os->SetInputData(vtkStatisticsAlgorithm::INPUT_DATA, inDescStats);
 
   for (int i = 0; i < field->GetNumberOfArrays(); i++)
   {
@@ -195,7 +195,7 @@ void vtkComputeQuartiles::ComputeTable(vtkDataObject* input,
   os->SetAssessOption(false);
   os->Update();
 
-  // Get the ouput table of the descriptive statistics that contains quantiles
+  // Get the output table of the descriptive statistics that contains quantiles
   // of the input data series.
   vtkMultiBlockDataSet *outputModelDS =
     vtkMultiBlockDataSet::SafeDownCast(
@@ -217,7 +217,7 @@ void vtkComputeQuartiles::ComputeTable(vtkDataObject* input,
     vtkNew<vtkDoubleArray> ncol;
     ncol->SetNumberOfComponents(1);
     ncol->SetNumberOfValues(5);
-    outputTable->AddColumn(ncol.GetPointer());
+    outputTable->AddColumn(ncol);
     if (blockId >= 0)
     {
       std::stringstream ss;

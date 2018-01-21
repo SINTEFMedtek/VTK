@@ -86,10 +86,10 @@ vtkDecimatePro::vtkDecimatePro()
   this->InflectionPointRatio = 10.0;
   this->OutputPointsPrecision = DEFAULT_PRECISION;
 
-  this->Queue = NULL;
-  this->VertexError = NULL;
+  this->Queue = nullptr;
+  this->VertexError = nullptr;
 
-  this->Mesh = NULL;
+  this->Mesh = nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -141,7 +141,7 @@ int vtkDecimatePro::RequestData(
   vtkIdType pt1, pt2, cellId, fedges[2];
   vtkIdType *cells;
   vtkIdList *CollapseTris;
-  double max, *bounds;
+  double max;
   if (!input)
   {
     vtkErrorMacro(<<"No input!");
@@ -149,7 +149,7 @@ int vtkDecimatePro::RequestData(
   }
   vtkPointData *outputPD=output->GetPointData();
   vtkPointData *inPD=input->GetPointData();
-  vtkPointData *meshPD=0;
+  vtkPointData *meshPD=nullptr;
   vtkIdType *map, numNewPts, totalPts;
   vtkIdType newCellPts[3];
   int abortExecute=0;
@@ -166,7 +166,7 @@ int vtkDecimatePro::RequestData(
   }
 
   // Initialize
-  bounds = input->GetBounds();
+  const double *bounds = input->GetBounds();
   for (max=0.0, i=0; i<3; i++)
   {
     max = ((bounds[2*i+1]-bounds[2*i]) > max ?
@@ -213,7 +213,7 @@ int vtkDecimatePro::RequestData(
     inPolys = input->GetPolys();
 
     // this static should be eliminated
-    if (this->Mesh != NULL) {this->Mesh->Delete(); this->Mesh = NULL;}
+    if (this->Mesh != nullptr) {this->Mesh->Delete(); this->Mesh = nullptr;}
     this->Mesh = vtkPolyData::New();
 
     newPts = vtkPoints::New();
@@ -433,7 +433,7 @@ int vtkDecimatePro::RequestData(
   delete [] map;
   output->SetPoints(newPts);
   output->SetPolys(newPolys);
-  if (this->Mesh != NULL) {this->Mesh->Delete(); this->Mesh = NULL;}
+  if (this->Mesh != nullptr) {this->Mesh->Delete(); this->Mesh = nullptr;}
   newPolys->Delete();
 
   return 1;
@@ -1097,8 +1097,6 @@ void vtkDecimatePro::SplitVertex(vtkIdType ptId, int type,
     cellIds->Delete();
     group->Delete();
   }
-
-  return;
 }
 
 
@@ -1562,7 +1560,7 @@ int vtkDecimatePro::Pop(double &error)
     }
   }
 
-  // If here, then this->Mesh splitting hasn't helped or is exhausted. Run thru
+  // If here, then this->Mesh splitting hasn't helped or is exhausted. Run through
   // vertices and split them as necessary no matter what.
   if ( this->NumberOfRemainingTris > 0 && this->Split && this->SplitState != VTK_STATE_SPLIT_ALL )
   {
@@ -1704,7 +1702,7 @@ void vtkDecimatePro::DeleteQueue()
   {
     this->Queue->Delete();
   }
-  this->Queue=NULL;
+  this->Queue=nullptr;
 }
 
 //----------------------------------------------------------------------------

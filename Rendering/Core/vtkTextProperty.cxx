@@ -38,8 +38,8 @@ vtkTextProperty::vtkTextProperty()
   this->FrameColor[1] = 1.0;
   this->FrameColor[2] = 1.0;
 
-  this->FontFamilyAsString = 0;
-  this->FontFile = NULL;
+  this->FontFamilyAsString = nullptr;
+  this->FontFile = nullptr;
   this->SetFontFamilyAsString( "Arial" );
   this->FontSize = 12;
 
@@ -62,8 +62,8 @@ vtkTextProperty::vtkTextProperty()
 //----------------------------------------------------------------------------
 vtkTextProperty::~vtkTextProperty()
 {
-  this->SetFontFamilyAsString(NULL);
-  this->SetFontFile(NULL);
+  this->SetFontFamilyAsString(nullptr);
+  this->SetFontFile(nullptr);
 }
 
 //----------------------------------------------------------------------------
@@ -96,6 +96,8 @@ void vtkTextProperty::ShallowCopy(vtkTextProperty *tprop)
 
   this->SetJustification(tprop->GetJustification());
   this->SetVerticalJustification(tprop->GetVerticalJustification());
+
+  this->SetUseTightBoundingBox(tprop->GetUseTightBoundingBox());
 
   this->SetLineOffset(tprop->GetLineOffset());
   this->SetLineSpacing(tprop->GetLineSpacing());
@@ -159,8 +161,8 @@ void vtkTextProperty::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "Vertical justification: "
      << this->GetVerticalJustificationAsString() << "\n";
 
+  os << indent << "UseTightBoundingBox: " << this->UseTightBoundingBox << "\n";
   os << indent << "Orientation: " << this->Orientation << "\n";
-
   os << indent << "Line Offset: " << this->LineOffset << "\n";
   os << indent << "Line Spacing: " << this->LineSpacing << "\n";
 }

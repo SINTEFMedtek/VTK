@@ -39,7 +39,7 @@ public:
   static vtkGeoArcs *New();
 
   vtkTypeMacro(vtkGeoArcs,vtkPolyDataAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -73,17 +73,17 @@ public:
 
 protected:
   vtkGeoArcs();
-  ~vtkGeoArcs() {}
+  ~vtkGeoArcs() override {}
 
-  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
 
   double GlobeRadius;
   double ExplodeFactor;
   int NumberOfSubdivisions;
 
 private:
-  vtkGeoArcs(const vtkGeoArcs&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkGeoArcs&) VTK_DELETE_FUNCTION;
+  vtkGeoArcs(const vtkGeoArcs&) = delete;
+  void operator=(const vtkGeoArcs&) = delete;
 };
 
 #endif

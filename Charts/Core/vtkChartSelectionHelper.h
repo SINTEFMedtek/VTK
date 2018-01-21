@@ -14,9 +14,8 @@
 =========================================================================*/
 
 /**
- * @class   vtkChartSelectionHelper
- * @brief   helper functions for making selections in
- * charts.
+ * @namespace vtkChartSelectionHelper
+ * @brief     helper functions for making selections in charts.
  *
  *
  * This contains several inline methods intended for use inside chart
@@ -52,7 +51,7 @@ namespace vtkChartSelectionHelper
 static void MakeSelection(vtkAnnotationLink *link, vtkIdTypeArray *selectionIds,
                           vtkPlot *plot)
 {
-  assert(link != NULL && selectionIds != NULL);
+  assert(link != nullptr && selectionIds != nullptr);
 
   if (plot)
   {
@@ -86,15 +85,14 @@ static void MakeSelection(vtkAnnotationLink *link, vtkIdTypeArray *selectionIds,
     // Use a simple single selection node layout, remove previous selections.
     vtkNew<vtkSelection> selection;
     vtkNew<vtkSelectionNode> node;
-    selection->AddNode(node.GetPointer());
+    selection->AddNode(node);
     node->SetContentType(vtkSelectionNode::INDICES);
     node->SetFieldType(vtkSelectionNode::POINT);
     node->SetSelectionList(selectionIds);
-    link->SetCurrentSelection(selection.GetPointer());
+    link->SetCurrentSelection(selection);
   }
 }
 
-//@{
 /**
  * Subtract the supplied selection from the oldSelection.
  */
@@ -110,7 +108,6 @@ static void MinusSelection(vtkIdTypeArray *selection, vtkIdTypeArray *oldSelecti
   vtkIdType size = selection->GetNumberOfTuples();
   vtkIdType i = 0;
   vtkIdType iOld = 0;
-//@}
 
   while (i < size && iOld < oldSize)
   {
@@ -132,7 +129,7 @@ static void MinusSelection(vtkIdTypeArray *selection, vtkIdTypeArray *oldSelecti
   {
     output.push_back(ptrOldSelection[iOld++]);
   }
-  selection->SetNumberOfTuples(output.size());
+  selection->SetNumberOfTuples(static_cast<vtkIdType>(output.size()));
   ptrSelection = static_cast<vtkIdType *>(selection->GetVoidPointer(0));
   for (std::vector<vtkIdType>::iterator it = output.begin();
        it != output.end(); ++it, ++ptrSelection)
@@ -141,7 +138,6 @@ static void MinusSelection(vtkIdTypeArray *selection, vtkIdTypeArray *oldSelecti
   }
 }
 
-//@{
 /**
  * Add the supplied selection from the oldSelection.
  */
@@ -169,9 +165,7 @@ static void AddSelection(vtkIdTypeArray *selection, vtkIdTypeArray *oldSelection
     *ptrSelection = *i;
   }
 }
-//@}
 
-//@{
 /**
  * Toggle the supplied selection from the oldSelection.
  */
@@ -211,7 +205,7 @@ static void ToggleSelection(vtkIdTypeArray *selection, vtkIdTypeArray *oldSelect
   {
     output.push_back(ptrOldSelection[iOld++]);
   }
-  selection->SetNumberOfTuples(output.size());
+  selection->SetNumberOfTuples(static_cast<vtkIdType>(output.size()));
   ptrSelection = static_cast<vtkIdType *>(selection->GetVoidPointer(0));
   for (std::vector<vtkIdType>::iterator it = output.begin();
        it != output.end(); ++it, ++ptrSelection)
@@ -219,11 +213,10 @@ static void ToggleSelection(vtkIdTypeArray *selection, vtkIdTypeArray *oldSelect
     *ptrSelection = *it;
   }
 }
-//@}
 
 /**
  * Build a selection based on the supplied selectionMode using the new
- * plotSelection and combining it with the oldSelection. If link is not NULL
+ * plotSelection and combining it with the oldSelection. If link is not nullptr
  * then the resulting selection will be set on the link.
  */
 static void BuildSelection(vtkAnnotationLink *link, int selectionMode,
@@ -259,7 +252,6 @@ static void BuildSelection(vtkAnnotationLink *link, int selectionMode,
   }
 }
 
-//@{
 /**
  * Combine the SelectionMode with any mouse modifiers to get an effective
  * selection mode for this click event.
@@ -282,7 +274,6 @@ static int GetMouseSelectionMode(const vtkContextMouseEvent &mouse, int selectio
   }
   return selectionMode;
 }
-//@}
 
 } // End vtkChartSelectionHelper namespace
 

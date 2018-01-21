@@ -45,7 +45,7 @@ class VTKRENDERINGCORE_EXPORT vtkVolume : public vtkProp3D
 {
 public:
   vtkTypeMacro(vtkVolume, vtkProp3D);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Creates a Volume with the following defaults: origin(0,0,0)
@@ -75,7 +75,7 @@ public:
    * able to collect all the actors or volumes. This method
    * is used in that process.
    */
-  void GetVolumes(vtkPropCollection *vc);
+  void GetVolumes(vtkPropCollection *vc) override;
 
   /**
    * Update the volume rendering pipeline by updating the volume mapper
@@ -87,7 +87,7 @@ public:
    * Get the bounds - either all six at once
    * (xmin, xmax, ymin, ymax, zmin, zmax) or one at a time.
    */
-  double *GetBounds();
+  double *GetBounds() override;
   void GetBounds(double bounds[6])
     { this->vtkProp3D::GetBounds(bounds); }
   double GetMinXBound();
@@ -101,7 +101,7 @@ public:
   /**
    * Return the MTime also considering the property etc.
    */
-  vtkMTimeType GetMTime();
+  vtkMTimeType GetMTime() override;
 
   /**
    * Return the mtime of anything that would cause the rendered image to
@@ -109,12 +109,12 @@ public:
    * prop plus anything else it depends on such as properties, mappers,
    * etc.
    */
-  vtkMTimeType GetRedrawMTime();
+  vtkMTimeType GetRedrawMTime() override;
 
   /**
    * Shallow copy of this vtkVolume. Overloads the virtual vtkProp method.
    */
-  void ShallowCopy(vtkProp *prop);
+  void ShallowCopy(vtkProp *prop) override;
 
   /**
    * WARNING: INTERNAL METHOD - NOT INTENDED FOR GENERAL USE
@@ -124,7 +124,7 @@ public:
    * this method (FRAMEBUFFER volume such as texture mapping will
    * be rendered this way)
    */
-  int RenderVolumetricGeometry(vtkViewport *viewport);
+  int RenderVolumetricGeometry(vtkViewport *viewport) override;
 
   /**
    * WARNING: INTERNAL METHOD - NOT INTENDED FOR GENERAL USE
@@ -132,7 +132,7 @@ public:
    * The parameter window could be used to determine which graphic
    * resources to release.
    */
-  void ReleaseGraphicsResources(vtkWindow *);
+  void ReleaseGraphicsResources(vtkWindow *) override;
 
   /**
    * WARNING: INTERNAL METHOD - NOT INTENDED FOR GENERAL USE
@@ -206,12 +206,12 @@ public:
   /// selection.
   /// @warning INTERNAL METHOD - NOT INTENDED FOR GENERAL USE
   /// DO NOT USE THIS METHOD OUTSIDE OF THE RENDERING PROCESS
-  virtual bool GetSupportsSelection()
+  bool GetSupportsSelection() override
    { return true; }
 
 protected:
   vtkVolume();
-  ~vtkVolume();
+  ~vtkVolume() override;
 
   vtkAbstractVolumeMapper *Mapper;
   vtkVolumeProperty *Property;
@@ -262,8 +262,8 @@ protected:
   double ComputeScreenCoverage(vtkViewport *vp);
 
 private:
-  vtkVolume(const vtkVolume&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkVolume&) VTK_DELETE_FUNCTION;
+  vtkVolume(const vtkVolume&) = delete;
+  void operator=(const vtkVolume&) = delete;
 };
 
 #endif

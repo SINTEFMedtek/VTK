@@ -54,7 +54,7 @@ public:
    * Standard methods for instances of this class.
    */
   vtkTypeMacro(vtkPolygonalSurfaceContourLineInterpolator, vtkPolyDataContourLineInterpolator);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   static vtkPolygonalSurfaceContourLineInterpolator *New();
@@ -64,9 +64,9 @@ public:
    * For instance vtkBezierContourLineInterpolator adds nodes between idx1
    * and idx2, that allow the contour to adhere to a bezier curve.
    */
-  virtual int InterpolateLine( vtkRenderer *ren,
+  int InterpolateLine( vtkRenderer *ren,
                                vtkContourRepresentation *rep,
-                               int idx1, int idx2 );
+                               int idx1, int idx2 ) override;
 
   /**
    * The interpolator is given a chance to update the node.
@@ -75,9 +75,9 @@ public:
    * constructs the contour.
    * Returns 0 if the node (world position) is unchanged.
    */
-  virtual int UpdateNode( vtkRenderer *,
+  int UpdateNode( vtkRenderer *,
                           vtkContourRepresentation *,
-                          double * vtkNotUsed(node), int vtkNotUsed(idx) );
+                          double * vtkNotUsed(node), int vtkNotUsed(idx) ) override;
 
   //@{
   /**
@@ -98,7 +98,7 @@ public:
 
 protected:
   vtkPolygonalSurfaceContourLineInterpolator();
-  ~vtkPolygonalSurfaceContourLineInterpolator();
+  ~vtkPolygonalSurfaceContourLineInterpolator() override;
 
   /**
    * Draw the polyline at a certain height (in the direction of the vertex
@@ -107,8 +107,8 @@ protected:
   double         DistanceOffset;
 
 private:
-  vtkPolygonalSurfaceContourLineInterpolator(const vtkPolygonalSurfaceContourLineInterpolator&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPolygonalSurfaceContourLineInterpolator&) VTK_DELETE_FUNCTION;
+  vtkPolygonalSurfaceContourLineInterpolator(const vtkPolygonalSurfaceContourLineInterpolator&) = delete;
+  void operator=(const vtkPolygonalSurfaceContourLineInterpolator&) = delete;
 
   // Cache the last used vertex id's (start and end).
   // If they are the same, don't recompute.

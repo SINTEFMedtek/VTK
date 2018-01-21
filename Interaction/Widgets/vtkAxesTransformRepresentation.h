@@ -60,7 +60,7 @@ public:
    * Standard VTK methods.
    */
   vtkTypeMacro(vtkAxesTransformRepresentation,vtkWidgetRepresentation);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   //@{
@@ -133,20 +133,20 @@ public:
   /**
    * Method to satisfy superclasses' API.
    */
-  virtual void BuildRepresentation();
-  virtual int ComputeInteractionState(int X, int Y, int modify=0);
-  virtual void StartWidgetInteraction(double e[2]);
-  virtual void WidgetInteraction(double e[2]);
-  virtual double *GetBounds();
+  void BuildRepresentation() override;
+  int ComputeInteractionState(int X, int Y, int modify=0) override;
+  void StartWidgetInteraction(double e[2]) override;
+  void WidgetInteraction(double e[2]) override;
+  double *GetBounds() override;
   //@}
 
   //@{
   /**
    * Methods required by vtkProp superclass.
    */
-  virtual void ReleaseGraphicsResources(vtkWindow *w);
-  virtual int RenderOpaqueGeometry(vtkViewport *viewport);
-  virtual int RenderTranslucentPolygonalGeometry(vtkViewport *viewport);
+  void ReleaseGraphicsResources(vtkWindow *w) override;
+  int RenderOpaqueGeometry(vtkViewport *viewport) override;
+  int RenderTranslucentPolygonalGeometry(vtkViewport *viewport) override;
   //@}
 
   //@{
@@ -173,7 +173,7 @@ public:
 
 protected:
   vtkAxesTransformRepresentation();
-  ~vtkAxesTransformRepresentation();
+  ~vtkAxesTransformRepresentation() override;
 
   // The handle and the rep used to close the handles
   vtkHandleRepresentation *OriginRepresentation;
@@ -212,8 +212,8 @@ protected:
   double LastEventPosition[3];
 
 private:
-  vtkAxesTransformRepresentation(const vtkAxesTransformRepresentation&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkAxesTransformRepresentation&) VTK_DELETE_FUNCTION;
+  vtkAxesTransformRepresentation(const vtkAxesTransformRepresentation&) = delete;
+  void operator=(const vtkAxesTransformRepresentation&) = delete;
 };
 
 #endif

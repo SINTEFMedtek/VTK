@@ -42,7 +42,29 @@ class VTKIOXML_EXPORT vtkXMLCompositeDataReader : public vtkXMLReader
 {
 public:
   vtkTypeMacro(vtkXMLCompositeDataReader,vtkXMLReader);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
+
+  enum
+  {
+    Block,
+    Interleave
+  };
+
+  /**
+   * Set the strategy for assigning files to parallel readers. The default is
+   * @a Block.
+   *
+   * Let @a X be the rank of a specific reader, and @a N be the number of
+   * reader, then:
+   * @arg @c Block Each processor is assigned a contiguous block of files,
+   *      [@a X * @a N, ( @a X + 1) * @a N ).
+   * @arg @c Interleave The files are interleaved across readers,
+   * @a i * @a N + @a X.
+   * @{
+   */
+  vtkSetClampMacro(PieceDistribution, int, Block, Interleave)
+  vtkGetMacro(PieceDistribution, int)
+  /**@}*/
 
   //@{
   /**
@@ -54,30 +76,30 @@ public:
 
 protected:
   vtkXMLCompositeDataReader();
-  ~vtkXMLCompositeDataReader();
+  ~vtkXMLCompositeDataReader() override;
 
   // Get the name of the data set being read.
-  virtual const char* GetDataSetName();
+  const char* GetDataSetName() override;
 
   // Returns the primary element pass to ReadPrimaryElement().
   vtkXMLDataElement* GetPrimaryElement();
 
-  virtual void ReadXMLData();
-  virtual int ReadPrimaryElement(vtkXMLDataElement* ePrimary);
+  void ReadXMLData() override;
+  int ReadPrimaryElement(vtkXMLDataElement* ePrimary) override;
 
   // Setup the output with no data available.  Used in error cases.
-  virtual void SetupEmptyOutput();
+  void SetupEmptyOutput() override;
 
-  virtual int FillOutputPortInformation(int, vtkInformation* info);
+  int FillOutputPortInformation(int, vtkInformation* info) override;
 
   // Create a default executive.
-  virtual vtkExecutive* CreateDefaultExecutive();
+  vtkExecutive* CreateDefaultExecutive() override;
 
   vtkXMLReader* GetReaderOfType(const char* type);
 
-  virtual int RequestInformation(vtkInformation*,
+  int RequestInformation(vtkInformation*,
                                  vtkInformationVector**,
-                                 vtkInformationVector*);
+                                 vtkInformationVector*) override;
 
 
 
@@ -95,6 +117,9 @@ protected:
   // Read the vtkDataSet (a leaf) in the composite dataset.
   virtual vtkDataSet* ReadDataset(vtkXMLDataElement* xmlElem, const char* filePath);
 
+  // Read the vtkDataObject (a leaf) in the composite dataset.
+  virtual vtkDataObject* ReadDataObject(vtkXMLDataElement* xmlElem, const char* filePath);
+
   // Counts "DataSet" elements in the subtree.
   unsigned int CountLeaves(vtkXMLDataElement* elem);
 
@@ -104,9 +129,14 @@ protected:
    */
   int ShouldReadDataSet(unsigned int datasetIndex);
 
+  bool DataSetIsValidForBlockStrategy(unsigned int datasetIndex);
+  bool DataSetIsValidForInterleaveStrategy(unsigned int datasetIndex);
+
 private:
-  vtkXMLCompositeDataReader(const vtkXMLCompositeDataReader&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkXMLCompositeDataReader&) VTK_DELETE_FUNCTION;
+  vtkXMLCompositeDataReader(const vtkXMLCompositeDataReader&) = delete;
+  void operator=(const vtkXMLCompositeDataReader&) = delete;
+
+  int PieceDistribution;
 
   vtkXMLCompositeDataReaderInternals* Internal;
 };

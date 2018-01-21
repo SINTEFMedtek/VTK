@@ -56,20 +56,20 @@ static int my_getline(std::istream& stream, vtkStdString &output, char delim='\n
 
 vtkFixedWidthTextReader::vtkFixedWidthTextReader()
 {
-  this->FileName = NULL;
+  this->FileName = nullptr;
   this->StripWhiteSpace = false;
   this->HaveHeaders = false;
   this->FieldWidth = 10;
   this->SetNumberOfInputPorts(0);
   this->SetNumberOfOutputPorts(1);
-  this->TableErrorObserver = NULL;
+  this->TableErrorObserver = nullptr;
 }
 
 // ----------------------------------------------------------------------
 
 vtkFixedWidthTextReader::~vtkFixedWidthTextReader()
 {
-  this->SetFileName(0);
+  this->SetFileName(nullptr);
   if (this->TableErrorObserver)
   {
     this->TableErrorObserver->Delete();
@@ -140,11 +140,8 @@ int vtkFixedWidthTextReader::RequestData(
 
     for (unsigned int i = 0; i < firstLineFields.size(); ++i)
     {
-      // I know it's not a great idea to use sprintf.  It's safe right
-      // here because an unsigned int will never take up enough
-      // characters to fill up this buffer.
       char fieldName[64];
-      sprintf(fieldName, "Field %u", i);
+      snprintf(fieldName, sizeof(fieldName), "Field %u", i);
       headers.push_back(fieldName);
     }
   }
@@ -238,7 +235,7 @@ splitString(const vtkStdString& input,
             std::vector<vtkStdString>& results,
             bool includeEmpties)
 {
-  if (input.size() == 0)
+  if (input.empty())
   {
     return 0;
   }
@@ -281,7 +278,7 @@ splitString(const vtkStdString& input,
       parsedField = thisFieldText;
     }
     ++ thisField;
-    if (parsedField.size() > 0 || includeEmpties)
+    if (!parsedField.empty() || includeEmpties)
     {
       results.push_back(parsedField);
     }

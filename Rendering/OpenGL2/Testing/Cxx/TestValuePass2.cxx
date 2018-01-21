@@ -230,11 +230,11 @@ int TestValuePass2(int argc, char* argv[])
   cameraPass->SetDelegatePass(sequence);
 
   vtkOpenGLRenderer *glRenderer =
-    vtkOpenGLRenderer::SafeDownCast(renderer.GetPointer());
+    vtkOpenGLRenderer::SafeDownCast(renderer);
   glRenderer->SetPass(cameraPass);
 
 
-  vtkDataArray *values = NULL;
+  vtkDataArray *values = nullptr;
   double *minmax;
   PrepArray(byName, drawCell, arrayIndex, arrayComponent,
             dataset, values, valuePass, minmax);
@@ -298,7 +298,7 @@ int TestValuePass2(int argc, char* argv[])
   double value;
   for (int i = 0; i < id->GetNumberOfPoints(); i++)
   {
-    vtkMapper::ColorToValue(ptr, minmax[0], scale, value);
+    valuePass->ColorToValue(ptr, minmax[0], scale, value);
     if (found.find(value)==found.end())
     {
       found.insert(value);

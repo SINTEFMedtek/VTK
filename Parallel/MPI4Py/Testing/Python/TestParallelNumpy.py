@@ -9,10 +9,10 @@ try:
 except ImportError:
     print("Numpy (http://numpy.scipy.org) not found.", end=' ')
     print("This test requires numpy!")
-    sys.exit(0)
+    from vtk.test import Testing
+    Testing.skip()
 
 import vtk
-from vtk.test import Testing
 import vtk.numpy_interface.dataset_adapter as dsa
 import vtk.numpy_interface.algorithms as algs
 from mpi4py import MPI

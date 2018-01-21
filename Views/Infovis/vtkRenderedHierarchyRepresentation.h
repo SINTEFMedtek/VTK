@@ -34,7 +34,7 @@ class VTKVIEWSINFOVIS_EXPORT vtkRenderedHierarchyRepresentation : public vtkRend
 public:
   static vtkRenderedHierarchyRepresentation* New();
   vtkTypeMacro(vtkRenderedHierarchyRepresentation, vtkRenderedGraphRepresentation);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -111,14 +111,14 @@ public:
 
 protected:
   vtkRenderedHierarchyRepresentation();
-  ~vtkRenderedHierarchyRepresentation();
+  ~vtkRenderedHierarchyRepresentation() override;
 
   //@{
   /**
    * Called by the view to add/remove this representation.
    */
-  virtual bool AddToView(vtkView* view);
-  virtual bool RemoveFromView(vtkView* view);
+  bool AddToView(vtkView* view) override;
+  bool RemoveFromView(vtkView* view) override;
   //@}
 
   /**
@@ -126,26 +126,26 @@ protected:
    */
   bool ValidIndex(int idx);
 
-  virtual vtkSelection* ConvertSelection(vtkView* view, vtkSelection* sel);
+  vtkSelection* ConvertSelection(vtkView* view, vtkSelection* sel) override;
 
-  virtual int FillInputPortInformation(int port, vtkInformation* info);
+  int FillInputPortInformation(int port, vtkInformation* info) override;
 
   /**
    * Sets up the input connections for this representation.
    */
-  virtual int RequestData(
+  int RequestData(
     vtkInformation* request,
     vtkInformationVector** inputVector,
-    vtkInformationVector* outputVector);
+    vtkInformationVector* outputVector) override;
 
-  virtual void ApplyViewTheme(vtkViewTheme* theme);
+  void ApplyViewTheme(vtkViewTheme* theme) override;
 
   class Internals;
   Internals* Implementation;
 
 private:
-  vtkRenderedHierarchyRepresentation(const vtkRenderedHierarchyRepresentation&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkRenderedHierarchyRepresentation&) VTK_DELETE_FUNCTION;
+  vtkRenderedHierarchyRepresentation(const vtkRenderedHierarchyRepresentation&) = delete;
+  void operator=(const vtkRenderedHierarchyRepresentation&) = delete;
 };
 
 #endif

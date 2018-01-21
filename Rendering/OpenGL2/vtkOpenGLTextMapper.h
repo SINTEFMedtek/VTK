@@ -31,20 +31,20 @@ class VTKRENDERINGOPENGL2_EXPORT vtkOpenGLTextMapper: public vtkTextMapper
 public:
   static vtkOpenGLTextMapper* New();
   vtkTypeMacro(vtkOpenGLTextMapper, vtkTextMapper)
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
-  void RenderOverlay(vtkViewport *vp, vtkActor2D *act);
+  void RenderOverlay(vtkViewport *vp, vtkActor2D *act) override;
 
 protected:
   vtkOpenGLTextMapper();
-  ~vtkOpenGLTextMapper();
+  ~vtkOpenGLTextMapper() override;
 
   void RenderGL2PS(vtkViewport *vp, vtkActor2D *act,
                    vtkOpenGLGL2PSHelper *gl2ps);
 
 private:
-  vtkOpenGLTextMapper(const vtkOpenGLTextMapper&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkOpenGLTextMapper&) VTK_DELETE_FUNCTION;
+  vtkOpenGLTextMapper(const vtkOpenGLTextMapper&) = delete;
+  void operator=(const vtkOpenGLTextMapper&) = delete;
 };
 
 #endif // vtkOpenGLTextMapper_h

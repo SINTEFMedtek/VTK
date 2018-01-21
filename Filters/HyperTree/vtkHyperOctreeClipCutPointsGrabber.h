@@ -28,10 +28,10 @@
 #include "vtkFiltersHyperTreeModule.h" // For export macro
 #include "vtkHyperOctreePointsGrabber.h"
 
+#if !defined(VTK_LEGACY_REMOVE)
 class vtkHyperOctreeIdSet; // Pimpl idiom
 class vtkPolygon;
 class vtkOrderedTriangulator;
-
 
 class VTKFILTERSHYPERTREE_EXPORT vtkHyperOctreeClipCutPointsGrabber : public vtkHyperOctreePointsGrabber
 {
@@ -40,14 +40,14 @@ public:
 
   vtkTypeMacro(vtkHyperOctreeClipCutPointsGrabber,vtkHyperOctreePointsGrabber);
 
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Set the dimension of the hyperoctree.
    * \pre valid_dim: (dim==2 || dim==3)
    * \post is_set: GetDimension()==dim
    */
-  virtual void SetDimension(int dim);
+  void SetDimension(int dim) override;
 
   /**
    * Initialize the points insertion scheme.
@@ -57,31 +57,31 @@ public:
    * that lie on an hyperoctant.
    * \pre only_in_3d: GetDimension()==3
    */
-  virtual void InitPointInsertion();
+  void InitPointInsertion() override;
 
   /**
    * Insert a point, assuming the point is unique and does not require a
    * locator. Tt does not mean it does not use a locator. It just mean that
    * some implementation may skip the use of a locator.
    */
-  virtual void InsertPoint(vtkIdType ptId,
+  void InsertPoint(vtkIdType ptId,
                            double pt[3],
                            double pcoords[3],
-                           int ijk[3]);
+                           int ijk[3]) override;
 
   /**
    * Insert a point using a locator.
    */
-  virtual void InsertPointWithMerge(vtkIdType ptId,
+  void InsertPointWithMerge(vtkIdType ptId,
                                     double pt[3],
                                     double pcoords[3],
-                                    int ijk[3]);
+                                    int ijk[3]) override;
 
   /**
    * Insert a point in the quadtree case.
    */
-  virtual void InsertPoint2D(double pt[3],
-                             int ijk[3]);
+  void InsertPoint2D(double pt[3],
+                             int ijk[3]) override;
 
   /**
    * Return the ordered triangulator.
@@ -97,15 +97,16 @@ public:
 protected:
   // Constructor with default bounds (0,1, 0,1, 0,1).
   vtkHyperOctreeClipCutPointsGrabber();
-  ~vtkHyperOctreeClipCutPointsGrabber();
+  ~vtkHyperOctreeClipCutPointsGrabber() override;
 
   vtkOrderedTriangulator *Triangulator;
   vtkPolygon *Polygon;
   vtkHyperOctreeIdSet *IdSet;
 
 private:
-  vtkHyperOctreeClipCutPointsGrabber(const vtkHyperOctreeClipCutPointsGrabber&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkHyperOctreeClipCutPointsGrabber&) VTK_DELETE_FUNCTION;
+  vtkHyperOctreeClipCutPointsGrabber(const vtkHyperOctreeClipCutPointsGrabber&) = delete;
+  void operator=(const vtkHyperOctreeClipCutPointsGrabber&) = delete;
 };
+#endif // LEGACY remove
 
 #endif

@@ -52,6 +52,7 @@ vtkAxis::vtkAxis()
   this->Position2.Set(0.0, 10.0);
   this->TickInterval = 1.0;
   this->NumberOfTicks = -1;
+  this->TickLength = 5;
   this->LabelProperties = vtkTextProperty::New();
   this->LabelProperties->SetColor(0.0, 0.0, 0.0);
   this->LabelProperties->SetFontSize(12);
@@ -370,7 +371,7 @@ bool vtkAxis::Paint(vtkContext2D *painter)
 
   // There are five possible tick label positions, which should be set by the
   // class laying out the axes.
-  float tickLength = 5;
+  float tickLength = this->TickLength;
   float labelOffset = this->LabelOffset;
   if (this->Position == vtkAxis::LEFT || this->Position == vtkAxis::PARALLEL ||
       this->Position == vtkAxis::BOTTOM)
@@ -395,6 +396,20 @@ bool vtkAxis::Paint(vtkContext2D *painter)
   vtkRectf maxLabelRect(0, 0, 0, 0);
   float* minLabelBounds = minLabelRect.GetData();
   float* maxLabelBounds = maxLabelRect.GetData();
+
+  // Scale tickLength and labelOffset to the tiling scale of the scene
+  if (this->Position == vtkAxis::LEFT || this->Position == vtkAxis::PARALLEL ||
+      this->Position == vtkAxis::RIGHT)
+  {
+    // Horizontal or vertical axis.
+    tickLength *= tileScale.GetX();
+    labelOffset *= tileScale.GetX();
+  }
+  else
+  {
+    tickLength *= tileScale.GetY();
+    labelOffset *= tileScale.GetY();
+  }
 
   // Optionally draw min/max labels
   if (this->RangeLabelsVisible)
@@ -465,10 +480,6 @@ bool vtkAxis::Paint(vtkContext2D *painter)
   if (this->Position == vtkAxis::LEFT || this->Position == vtkAxis::PARALLEL ||
       this->Position == vtkAxis::RIGHT)
   {
-    // Adptating tickLength and labelOffset to the tiling of the scene
-    tickLength *= tileScale.GetX();
-    labelOffset *= tileScale.GetX();
-
     // Draw the tick marks and labels
     for (vtkIdType i = 0; i < numMarks; ++i)
     {
@@ -506,11 +517,6 @@ bool vtkAxis::Paint(vtkContext2D *painter)
   }
   else if (this->Position == vtkAxis::TOP || this->Position == vtkAxis::BOTTOM)
   {
-
-    // Adptating tickLength and labelOffset to the tiling of the scene
-    tickLength *= tileScale.GetY();
-    labelOffset *= tileScale.GetY();
-
     // Draw the tick marks and labels
     for (vtkIdType i = 0; i < numMarks; ++i)
     {
@@ -1667,10 +1673,10 @@ double vtkAxis::LogScaleTickMark(double number,
                                  bool &niceValue,
                                  int &order)
 {
-  // We need to retrive the order of our number.
+  // We need to retrieve the order of our number.
   order = static_cast<int>(floor(log10(number)));
 
-  // We retrive the basis of our number depending on roundUp and return it as
+  // We retrieve the basis of our number depending on roundUp and return it as
   // result.
   number = number * pow(10.0, static_cast<double>(order*(-1)));
   double result = roundUp ? ceil(number) : floor(number);
@@ -1839,6 +1845,7 @@ void vtkAxis::PrintSelf(ostream &os, vtkIndent indent)
   os << indent << "Range limits: "
     << this->MinimumLimit << " - " << this->MaximumLimit << endl;
   os << indent << "Number of tick marks: " << this->NumberOfTicks << endl;
+  os << indent << "Tick length: " << this->TickLength << endl;
   os << indent << "LogScale: " << (this->LogScale ? "TRUE" : "FALSE") << endl;
   os << indent << "LogScaleActive: " << (this->LogScaleActive ? "TRUE" : "FALSE") << endl;
   os << indent << "GridVisible: " << (this->GridVisible ? "TRUE" : "FALSE") << endl;

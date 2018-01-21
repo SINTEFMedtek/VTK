@@ -83,18 +83,18 @@ public:
   static vtkPointWidget *New();
 
   vtkTypeMacro(vtkPointWidget,vtk3DWidget);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
    * Methods that satisfy the superclass' API.
    */
-  virtual void SetEnabled(int);
-  virtual void PlaceWidget(double bounds[6]);
-  void PlaceWidget()
+  void SetEnabled(int) override;
+  void PlaceWidget(double bounds[6]) override;
+  void PlaceWidget() override
     {this->Superclass::PlaceWidget();}
   void PlaceWidget(double xmin, double xmax, double ymin, double ymax,
-                   double zmin, double zmax)
+                   double zmin, double zmax) override
     {this->Superclass::PlaceWidget(xmin,xmax,ymin,ymax,zmin,zmax);}
   //@}
 
@@ -223,7 +223,7 @@ public:
 
 protected:
   vtkPointWidget();
-  ~vtkPointWidget();
+  ~vtkPointWidget() override;
 
   // Manage the state of the widget
   friend class vtkLineWidget;
@@ -263,7 +263,7 @@ protected:
   vtkCellPicker *CursorPicker;
 
   // Register internal Pickers within PickingManager
-  virtual void RegisterPickers();
+  void RegisterPickers() override;
 
   // Methods to manipulate the cursor
   int ConstraintAxis;
@@ -285,8 +285,8 @@ protected:
   int WaitCount;
 
 private:
-  vtkPointWidget(const vtkPointWidget&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPointWidget&) VTK_DELETE_FUNCTION;
+  vtkPointWidget(const vtkPointWidget&) = delete;
+  void operator=(const vtkPointWidget&) = delete;
 };
 
 #endif

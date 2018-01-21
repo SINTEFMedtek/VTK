@@ -14,10 +14,10 @@
 =========================================================================*/
 /**
  * @class   vtkVolumeCollection
- * @brief   a list of volumes
+ * @brief   an ordered list of volumes
  *
  * vtkVolumeCollection represents and provides methods to manipulate a
- * list of volumes (i.e., vtkVolume and subclasses). The list is unsorted
+ * list of volumes (i.e., vtkVolume and subclasses). The list is ordered
  * and duplicate entries are not prevented.
  *
  * @sa
@@ -37,10 +37,10 @@ class VTKRENDERINGCORE_EXPORT vtkVolumeCollection : public vtkPropCollection
  public:
   static vtkVolumeCollection *New();
   vtkTypeMacro(vtkVolumeCollection, vtkPropCollection);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
-   * Add a Volume to the list.
+   * Add a Volume to the bottom of the list.
    */
   void AddItem(vtkVolume *a)
     { this->vtkCollection::AddItem(a); }
@@ -70,7 +70,7 @@ class VTKRENDERINGCORE_EXPORT vtkVolumeCollection : public vtkPropCollection
 
 protected:
   vtkVolumeCollection() {}
-  ~vtkVolumeCollection() {}
+  ~vtkVolumeCollection() override {}
 
 private:
   // hide the standard AddItem from the user and the compiler.
@@ -80,8 +80,8 @@ private:
     { this->vtkPropCollection::AddItem(o); }
 
 private:
-  vtkVolumeCollection(const vtkVolumeCollection&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkVolumeCollection&) VTK_DELETE_FUNCTION;
+  vtkVolumeCollection(const vtkVolumeCollection&) = delete;
+  void operator=(const vtkVolumeCollection&) = delete;
 };
 
 #endif

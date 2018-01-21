@@ -58,7 +58,7 @@ public:
    * Standard VTK class methods.
    */
   vtkTypeMacro(vtkCaptionRepresentation,vtkBorderRepresentation);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   //@{
@@ -92,8 +92,8 @@ public:
   /**
    * Satisfy the superclasses API.
    */
-  virtual void BuildRepresentation();
-  virtual void GetSize(double size[2])
+  void BuildRepresentation() override;
+  void GetSize(double size[2]) override
     {size[0]=2.0; size[1]=2.0;}
 
   //@{
@@ -101,12 +101,12 @@ public:
    * These methods are necessary to make this representation behave as
    * a vtkProp.
    */
-  virtual void GetActors2D(vtkPropCollection*);
-  virtual void ReleaseGraphicsResources(vtkWindow*);
-  virtual int RenderOverlay(vtkViewport*);
-  virtual int RenderOpaqueGeometry(vtkViewport*);
-  virtual int RenderTranslucentPolygonalGeometry(vtkViewport*);
-  virtual int HasTranslucentPolygonalGeometry();
+  void GetActors2D(vtkPropCollection*) override;
+  void ReleaseGraphicsResources(vtkWindow*) override;
+  int RenderOverlay(vtkViewport*) override;
+  int RenderOpaqueGeometry(vtkViewport*) override;
+  int RenderTranslucentPolygonalGeometry(vtkViewport*) override;
+  int HasTranslucentPolygonalGeometry() override;
   //@}
 
   //@{
@@ -120,7 +120,7 @@ public:
 
 protected:
   vtkCaptionRepresentation();
-  ~vtkCaptionRepresentation();
+  ~vtkCaptionRepresentation() override;
 
   // the text to manage
   vtkCaptionActor2D *CaptionActor2D;
@@ -137,8 +137,8 @@ protected:
   virtual void AdjustCaptionBoundary();
 
 private:
-  vtkCaptionRepresentation(const vtkCaptionRepresentation&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkCaptionRepresentation&) VTK_DELETE_FUNCTION;
+  vtkCaptionRepresentation(const vtkCaptionRepresentation&) = delete;
+  void operator=(const vtkCaptionRepresentation&) = delete;
 };
 
 #endif

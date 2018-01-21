@@ -19,6 +19,7 @@
 #include "vtkLookupTable.h"
 #include "vtkObjectFactory.h"
 #include "vtkPointData.h"
+#include <vtksys/SystemTools.hxx>
 
 vtkStandardNewMacro(vtkBMPReader);
 
@@ -32,7 +33,7 @@ vtkStandardNewMacro(vtkBMPReader);
 
 vtkBMPReader::vtkBMPReader()
 {
-  this->Colors = NULL;
+  this->Colors = nullptr;
   this->SetDataByteOrderToLittleEndian();
   this->Depth = 0;
   // we need to create it now in case its asked for later (pointer must be valid)
@@ -45,12 +46,12 @@ vtkBMPReader::~vtkBMPReader()
 {
   // free any old memory
   delete [] this->Colors;
-  this->Colors = NULL;
+  this->Colors = nullptr;
 
   if (this->LookupTable)
   {
     this->LookupTable->Delete();
-    this->LookupTable = NULL;
+    this->LookupTable = nullptr;
   }
 }
 
@@ -66,7 +67,7 @@ void vtkBMPReader::ExecuteInformation()
 
   // free any old memory
   delete [] this->Colors;
-  this->Colors = NULL;
+  this->Colors = nullptr;
 
   // if the user has not set the extent, but has set the VOI
   // set the zaxis extent to the VOI z axis
@@ -78,12 +79,12 @@ void vtkBMPReader::ExecuteInformation()
   }
 
   this->ComputeInternalFileName(this->DataExtent[4]);
-  if (this->InternalFileName == NULL || this->InternalFileName[0] == '\0')
+  if (this->InternalFileName == nullptr || this->InternalFileName[0] == '\0')
   {
     return;
   }
   // get the magic number by reading in a file
-  fp = fopen(this->InternalFileName,"rb");
+  fp = vtksys::SystemTools::Fopen(this->InternalFileName,"rb");
   if (!fp)
   {
     vtkErrorMacro("Unable to open file " << this->InternalFileName);
@@ -262,9 +263,9 @@ void vtkBMPReader::ExecuteInformation()
       for (tmp=0; tmp<numColors; tmp++)
       {
         this->LookupTable->SetTableValue(tmp,
-              (float)this->Colors[tmp*3+0]/255.0,
-              (float)this->Colors[tmp*3+1]/255.0,
-              (float)this->Colors[tmp*3+2]/255.0,
+              this->Colors[tmp*3+0]/255.0,
+              this->Colors[tmp*3+1]/255.0,
+              this->Colors[tmp*3+2]/255.0,
               1);
       }
       this->LookupTable->SetRange(0,255);
@@ -541,7 +542,7 @@ void vtkBMPReader::ExecuteDataWithInformation(vtkDataObject *output,
   {
     return;
   }
-  if (this->InternalFileName == NULL)
+  if (this->InternalFileName == nullptr)
   {
     vtkErrorMacro(<< "Either a FileName or FilePrefix must be specified.");
     return;
@@ -580,7 +581,7 @@ void vtkBMPReader::PrintSelf(ostream& os, vtkIndent indent)
   }
     else
     {
-    os << indent << "LookupTable: NULL\n";
+    os << indent << "LookupTable: nullptr\n";
     }
 }
 
@@ -588,7 +589,7 @@ void vtkBMPReader::PrintSelf(ostream& os, vtkIndent indent)
 int vtkBMPReader::CanReadFile(const char* fname)
 {
   // get the magic number by reading in a file
-  FILE* fp = fopen(fname,"rb");
+  FILE* fp = vtksys::SystemTools::Fopen(fname, "rb");
   if (!fp)
   {
     return 0;

@@ -48,7 +48,7 @@ public:
    */
   static vtkResliceCursorActor *New();
   vtkTypeMacro(vtkResliceCursorActor,vtkProp3D);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   //@{
@@ -61,29 +61,29 @@ public:
   /**
    * Support the standard render methods.
    */
-  virtual int RenderOpaqueGeometry(vtkViewport *viewport);
+  int RenderOpaqueGeometry(vtkViewport *viewport) override;
 
   /**
    * Does this prop have some translucent polygonal geometry? No.
    */
-  virtual int HasTranslucentPolygonalGeometry();
+  int HasTranslucentPolygonalGeometry() override;
 
   /**
    * Release any graphics resources that are being consumed by this actor.
    * The parameter window could be used to determine which graphic
    * resources to release.
    */
-  void ReleaseGraphicsResources(vtkWindow *);
+  void ReleaseGraphicsResources(vtkWindow *) override;
 
   /**
    * Get the bounds for this Actor as (Xmin,Xmax,Ymin,Ymax,Zmin,Zmax).
    */
-  double *GetBounds();
+  double *GetBounds() override;
 
   /**
    * Get the actors mtime plus consider its algorithm.
    */
-  vtkMTimeType GetMTime();
+  vtkMTimeType GetMTime() override;
 
   //@{
   /**
@@ -105,9 +105,9 @@ public:
 
 protected:
   vtkResliceCursorActor();
-  ~vtkResliceCursorActor();
+  ~vtkResliceCursorActor() override;
 
-  void UpdateViewProps( vtkViewport * v = NULL );
+  void UpdateViewProps( vtkViewport * v = nullptr );
   void UpdateHoleSize( vtkViewport * v );
 
   vtkResliceCursorPolyDataAlgorithm * CursorAlgorithm;
@@ -119,8 +119,8 @@ protected:
   vtkProperty                       * ThickSlabProperty[3];
 
 private:
-  vtkResliceCursorActor(const vtkResliceCursorActor&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkResliceCursorActor&) VTK_DELETE_FUNCTION;
+  vtkResliceCursorActor(const vtkResliceCursorActor&) = delete;
+  void operator=(const vtkResliceCursorActor&) = delete;
 };
 
 #endif

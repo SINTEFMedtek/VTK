@@ -92,18 +92,18 @@ public:
   static vtkImplicitPlaneWidget *New();
 
   vtkTypeMacro(vtkImplicitPlaneWidget,vtkPolyDataSourceWidget);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
    * Methods that satisfy the superclass' API.
    */
-  virtual void SetEnabled(int);
-  virtual void PlaceWidget(double bounds[6]);
-  void PlaceWidget()
+  void SetEnabled(int) override;
+  void PlaceWidget(double bounds[6]) override;
+  void PlaceWidget() override
     {this->Superclass::PlaceWidget();}
   void PlaceWidget(double xmin, double xmax, double ymin, double ymax,
-                   double zmin, double zmax)
+                   double zmin, double zmax) override
     {this->Superclass::PlaceWidget(xmin,xmax,ymin,ymax,zmin,zmax);}
   //@}
 
@@ -225,7 +225,7 @@ public:
    * Satisfies superclass API.  This returns a pointer to the underlying
    * PolyData (which represents the plane).
    */
-  vtkPolyDataAlgorithm* GetPolyDataAlgorithm();
+  vtkPolyDataAlgorithm* GetPolyDataAlgorithm() override;
 
   /**
    * Get the implicit function for the plane. The user must provide the
@@ -239,12 +239,12 @@ public:
    * Satisfies the superclass API.  This will change the state of the widget
    * to match changes that have been made to the underlying PolyDataSource
    */
-  void UpdatePlacement();
+  void UpdatePlacement() override;
 
   /**
    * Control widget appearance
    */
-  virtual void SizeHandles();
+  void SizeHandles() override;
 
   //@{
   /**
@@ -281,7 +281,7 @@ public:
 
 protected:
   vtkImplicitPlaneWidget();
-  ~vtkImplicitPlaneWidget();
+  ~vtkImplicitPlaneWidget() override;
 
   // Manage the state of the widget
   int State;
@@ -377,7 +377,7 @@ protected:
   vtkCellPicker *Picker;
 
   // Register internal Pickers within PickingManager
-  virtual void RegisterPickers();
+  void RegisterPickers() override;
 
   // Transform the normal (used for rotation)
   vtkTransform *Transform;
@@ -405,8 +405,8 @@ protected:
   void GeneratePlane();
 
 private:
-  vtkImplicitPlaneWidget(const vtkImplicitPlaneWidget&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkImplicitPlaneWidget&) VTK_DELETE_FUNCTION;
+  vtkImplicitPlaneWidget(const vtkImplicitPlaneWidget&) = delete;
+  void operator=(const vtkImplicitPlaneWidget&) = delete;
 };
 
 #endif

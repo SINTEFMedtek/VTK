@@ -3,14 +3,18 @@ include_directories(${OSPRAY_INCLUDE_DIRS})
 
 set(Module_SRCS
   vtkOSPRayActorNode.cxx
+  vtkOSPRayAMRVolumeMapperNode.cxx
   vtkOSPRayVolumeNode.cxx
   vtkOSPRayCameraNode.cxx
   vtkOSPRayCompositePolyDataMapper2Node.cxx
   vtkOSPRayLightNode.cxx
+  vtkOSPRayMaterialHelpers.cxx
+  vtkOSPRayMaterialLibrary.cxx
   vtkOSPRayPass.cxx
   vtkOSPRayPolyDataMapperNode.cxx
   vtkOSPRayVolumeMapper.cxx
   vtkOSPRayVolumeMapperNode.cxx
+  vtkOSPRayTetrahedraMapperNode.cxx
   vtkOSPRayRendererNode.cxx
   vtkOSPRayViewNodeFactory.cxx
   vtkOSPRayWindowNode.cxx
@@ -23,6 +27,7 @@ list(APPEND Module_SRCS
   ${CMAKE_CURRENT_BINARY_DIR}/${vtk-module}ObjectFactory.cxx)
 set_source_files_properties(
   ${vtk-module}ObjectFactory.cxx
+  vtkOSPRayMaterialHelpers.cxx
   PROPERTIES
     WRAP_EXCLUDE 1
     WRAP_EXCLUDE_PYTHON 1

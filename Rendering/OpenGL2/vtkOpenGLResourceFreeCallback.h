@@ -26,7 +26,7 @@ class vtkGenericOpenGLResourceFreeCallback
 {
   public:
     vtkGenericOpenGLResourceFreeCallback() {
-        this->VTKWindow = NULL; this->Releasing = false; }
+        this->VTKWindow = nullptr; this->Releasing = false; }
     virtual ~vtkGenericOpenGLResourceFreeCallback() { }
 
     // Called when the event is invoked
@@ -54,9 +54,9 @@ public:
     this->Method = method;
   }
 
-  virtual ~vtkOpenGLResourceFreeCallback() { }
+  ~vtkOpenGLResourceFreeCallback() override { }
 
-  virtual void RegisterGraphicsResources(vtkOpenGLRenderWindow *rw) {
+  void RegisterGraphicsResources(vtkOpenGLRenderWindow *rw) override {
     if (this->VTKWindow == rw)
     {
       return;
@@ -66,11 +66,14 @@ public:
       this->Release();
     }
     this->VTKWindow = rw;
-    this->VTKWindow->RegisterGraphicsResources(this);
+    if (this->VTKWindow)
+    {
+      this->VTKWindow->RegisterGraphicsResources(this);
+    }
   }
 
   // Called when the event is invoked
-  virtual void Release()
+  void Release() override
   {
     if (this->VTKWindow && this->Handler && !this->Releasing)
     {
@@ -79,7 +82,7 @@ public:
       (this->Handler->*this->Method)(this->VTKWindow);
       this->VTKWindow->UnregisterGraphicsResources(this);
       this->VTKWindow->PopContext();
-      this->VTKWindow = NULL;
+      this->VTKWindow = nullptr;
       this->Releasing = false;
     }
   }

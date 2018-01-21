@@ -39,22 +39,22 @@ public:
   /**
    * Reimplemented from base class
    */
-  virtual void Render(vtkRenderer *, vtkActor *);
-  virtual void ReleaseGraphicsResources(vtkWindow *);
+  void Render(vtkRenderer *, vtkActor *) override;
+  void ReleaseGraphicsResources(vtkWindow *) override;
   //@}
 
   /**
    * provide access to the underlying mappers
    */
   vtkOpenGLSphereMapper *GetFastAtomMapper() {
-      return this->FastAtomMapper.Get(); }
+      return this->FastAtomMapper; }
 
 protected:
   vtkOpenGLMoleculeMapper();
-  ~vtkOpenGLMoleculeMapper();
+  ~vtkOpenGLMoleculeMapper() override;
 
-  virtual void UpdateAtomGlyphPolyData();
-  virtual void UpdateBondGlyphPolyData();
+  void UpdateAtomGlyphPolyData() override;
+  void UpdateBondGlyphPolyData() override;
 
   //@{
   /**
@@ -65,8 +65,8 @@ protected:
   //@}
 
 private:
-  vtkOpenGLMoleculeMapper(const vtkOpenGLMoleculeMapper&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkOpenGLMoleculeMapper&) VTK_DELETE_FUNCTION;
+  vtkOpenGLMoleculeMapper(const vtkOpenGLMoleculeMapper&) = delete;
+  void operator=(const vtkOpenGLMoleculeMapper&) = delete;
 };
 
 #endif

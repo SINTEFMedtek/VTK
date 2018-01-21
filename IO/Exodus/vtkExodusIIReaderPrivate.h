@@ -341,7 +341,7 @@ public:
     /// Cached cell connectivity arrays for mesh
     vtkUnstructuredGrid* CachedConnectivity;
 
-    BlockSetInfoType(){this->CachedConnectivity=0;}
+    BlockSetInfoType(){this->CachedConnectivity=nullptr;}
     BlockSetInfoType(const BlockSetInfoType& block);
     ~BlockSetInfoType();
     BlockSetInfoType& operator=(const BlockSetInfoType& block);
@@ -428,23 +428,23 @@ public:
   const char* GetPartName(int idx);
   const char* GetPartBlockInfo(int idx);
   int GetPartStatus(int idx);
-  int GetPartStatus(vtkStdString name);
+  int GetPartStatus(const vtkStdString& name);
   void SetPartStatus(int idx, int on);
-  void SetPartStatus(vtkStdString name, int flag);
+  void SetPartStatus(const vtkStdString& name, int flag);
 
   int GetNumberOfMaterials();
   const char* GetMaterialName(int idx);
   int GetMaterialStatus(int idx);
-  int GetMaterialStatus(vtkStdString name);
+  int GetMaterialStatus(const vtkStdString& name);
   void SetMaterialStatus(int idx, int on);
-  void SetMaterialStatus(vtkStdString name, int flag);
+  void SetMaterialStatus(const vtkStdString& name, int flag);
 
   int GetNumberOfAssemblies();
   const char* GetAssemblyName(int idx);
   int GetAssemblyStatus(int idx);
-  int GetAssemblyStatus(vtkStdString name);
+  int GetAssemblyStatus(const vtkStdString& name);
   void SetAssemblyStatus(int idx, int on);
-  void SetAssemblyStatus(vtkStdString name, int flag);
+  void SetAssemblyStatus(const vtkStdString& name, int flag);
 
   void SetFastPathObjectType(vtkExodusIIReader::ObjectType type)
     {this->FastPathObjectType = type;};
@@ -492,7 +492,7 @@ public:
 
 protected:
   vtkExodusIIReaderPrivate();
-  ~vtkExodusIIReaderPrivate();
+  ~vtkExodusIIReaderPrivate() override;
 
   /// Build SIL. This must be called only after RequestInformation().
   void BuildSIL();
@@ -574,13 +574,34 @@ protected:
     */
   int AssembleArraysOverTime(vtkMultiBlockDataSet* output);
 
-  /// Insert polyhedral cells (called from InsertBlockCells when a block is polyhedra)
+  /** Fetch the face-connectivity for one face of one polyhedron.
+    *
+    * The number of points (or zero) is returned and
+    * facePtIds holds a pointer to the connectivity upon exit.
+    * The pointer is owned by this object's PolyhedralFaceConnArrays
+    * member and must be freed by calling FreePolyhedronFaceConnectivity().
+    * However, you should only free the cache after processing all of
+    * the faces of interest (it is currently called once per polyhedral
+    * element block) so that the cost of generating the cache can be
+    * amortized across many calls.
+    *
+    * The point IDs returned in \a facePtIds do **not** include any mapping
+    * due to SqueezePoints (i.e., GetSqueezePointId is not called on
+    * each point). This is because multiple blocks may refer to the same
+    * face, but each block will have a different vtkPoints object.
+    */
+  vtkIdType GetPolyhedronFaceConnectivity(
+    vtkIdType fileLocalFaceId,
+    vtkIdType*& facePtIds);
+
+  /// Free any arrays held by PolyhedralFaceConnArrays (for polyhedral-face-connectivity lookup).
+  void FreePolyhedronFaceArrays();
+
+  /// Insert polyhedral cells (called from InsertBlockCells when a block is polyhedral).
   void InsertBlockPolyhedra(
     BlockInfoType* binfo,
     vtkIntArray* facesPerCell,
-    vtkIntArray* pointsPerFace,
-    vtkIntArray* exoCellConn,
-    vtkIntArray* exoFaceConn);
+    vtkIntArray* exoCellConn);
 
   /// Insert cells from a specified block into a mesh
   void InsertBlockCells(
@@ -711,7 +732,7 @@ protected:
    * "DISPX ", "DISPY ", "DISPZ " (note trailing spaces),
    * which prevented glomming and use of the vector field for displacements.
    */
-  void RemoveBeginningAndTrailingSpaces( int len, char **names );
+  void RemoveBeginningAndTrailingSpaces( int len, char **names, int maxNameLength );
 
   /// Delete any cached connectivity information (for all blocks and sets)
   void ClearConnectivityCaches();
@@ -824,14 +845,24 @@ protected:
 
   vtkExodusIIReaderParser* Parser;
 
+  /** Face connectivity for polyhedra.
+    *
+    * This is a map from face block index to ragged connectivity arrays for
+    * each face in a block.
+    * We store the ragged arrays of face connectivity without squeeze-points
+    * applied since multiple blocks (with different squeeze-points) can refer
+    * to the same face.
+    */
+  std::map<int, std::vector< std::vector< vtkIdType > > > PolyhedralFaceConnArrays;
+
   vtkExodusIIReader::ObjectType FastPathObjectType;
   vtkIdType FastPathObjectId;
   char* FastPathIdType;
 
   vtkMutableDirectedGraph* SIL;
 private:
-  vtkExodusIIReaderPrivate( const vtkExodusIIReaderPrivate& ) VTK_DELETE_FUNCTION;
-  void operator = ( const vtkExodusIIReaderPrivate& ) VTK_DELETE_FUNCTION;
+  vtkExodusIIReaderPrivate( const vtkExodusIIReaderPrivate& ) = delete;
+  void operator = ( const vtkExodusIIReaderPrivate& ) = delete;
 };
 
 #endif // vtkExodusIIReaderPrivate_h

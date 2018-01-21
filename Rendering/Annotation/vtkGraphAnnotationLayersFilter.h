@@ -63,7 +63,7 @@ class VTKRENDERINGANNOTATION_EXPORT vtkGraphAnnotationLayersFilter: public vtkPo
 public:
   static vtkGraphAnnotationLayersFilter *New();
   vtkTypeMacro(vtkGraphAnnotationLayersFilter, vtkPolyDataAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -109,26 +109,26 @@ public:
   /**
    * The modified time of this filter.
    */
-  virtual vtkMTimeType GetMTime();
+  vtkMTimeType GetMTime() override;
 
 protected:
   vtkGraphAnnotationLayersFilter();
-  ~vtkGraphAnnotationLayersFilter();
+  ~vtkGraphAnnotationLayersFilter() override;
 
   /**
    * This is called by the superclass. This is the method you should override.
    */
   int RequestData(vtkInformation *, vtkInformationVector **,
-    vtkInformationVector *);
+    vtkInformationVector *) override;
 
   /**
    * Set the input to vtkGraph and vtkAnnotationLayers.
    */
-  int FillInputPortInformation(int port, vtkInformation* info);
+  int FillInputPortInformation(int port, vtkInformation* info) override;
 
 private:
-  vtkGraphAnnotationLayersFilter(const vtkGraphAnnotationLayersFilter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkGraphAnnotationLayersFilter&) VTK_DELETE_FUNCTION;
+  vtkGraphAnnotationLayersFilter(const vtkGraphAnnotationLayersFilter&) = delete;
+  void operator=(const vtkGraphAnnotationLayersFilter&) = delete;
 
   vtkSmartPointer<vtkAppendPolyData> HullAppend;
   vtkSmartPointer<vtkAppendPolyData> OutlineAppend;

@@ -34,7 +34,7 @@ vtkCxxSetObjectMacro(vtkFollower,Camera,vtkCamera);
 // Creates a follower with no camera set
 vtkFollower::vtkFollower()
 {
-  this->Camera = NULL;
+  this->Camera = nullptr;
   this->Device = vtkActor::New();
 
   this->InternalMatrix = vtkMatrix4x4::New();
@@ -273,7 +273,10 @@ void vtkFollower::Render(vtkRenderer *ren)
   // make sure the device has the same matrix
   this->ComputeMatrix();
   this->Device->SetUserMatrix(this->Matrix);
-
+  if (this->GetPropertyKeys())
+  {
+    this->Device->SetPropertyKeys(this->GetPropertyKeys());
+  }
   this->Device->Render(ren,this->Mapper);
 }
 
@@ -281,7 +284,7 @@ void vtkFollower::Render(vtkRenderer *ren)
 void vtkFollower::ShallowCopy(vtkProp *prop)
 {
   vtkFollower *f = vtkFollower::SafeDownCast(prop);
-  if ( f != NULL )
+  if ( f != nullptr )
   {
     this->SetCamera(f->GetCamera());
   }

@@ -65,7 +65,7 @@ public:
    * Standard methods for instances of this class.
    */
   vtkTypeMacro(vtkRectilinearWipeRepresentation,vtkWidgetRepresentation);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   //@{
@@ -108,10 +108,10 @@ public:
    * are the methods that the widget and its representation use to
    * communicate with each other.
    */
-  virtual void BuildRepresentation();
-  virtual void StartWidgetInteraction(double eventPos[2]);
-  virtual void WidgetInteraction(double eventPos[2]);
-  virtual int ComputeInteractionState(int X, int Y, int modify=0);
+  void BuildRepresentation() override;
+  void StartWidgetInteraction(double eventPos[2]) override;
+  void WidgetInteraction(double eventPos[2]) override;
+  int ComputeInteractionState(int X, int Y, int modify=0) override;
   //@}
 
   // Enums define the state of the prop relative to the mouse pointer
@@ -129,17 +129,17 @@ public:
   /**
    * Methods to make this class behave as a vtkProp.
    */
-  virtual void GetActors2D(vtkPropCollection *);
-  virtual void ReleaseGraphicsResources(vtkWindow *);
-  virtual int RenderOverlay(vtkViewport *viewport);
-  virtual int RenderOpaqueGeometry(vtkViewport *viewport);
-  virtual int RenderTranslucentPolygonalGeometry(vtkViewport *viewport);
-  virtual int HasTranslucentPolygonalGeometry();
+  void GetActors2D(vtkPropCollection *) override;
+  void ReleaseGraphicsResources(vtkWindow *) override;
+  int RenderOverlay(vtkViewport *viewport) override;
+  int RenderOpaqueGeometry(vtkViewport *viewport) override;
+  int RenderTranslucentPolygonalGeometry(vtkViewport *viewport) override;
+  int HasTranslucentPolygonalGeometry() override;
   //@}
 
 protected:
   vtkRectilinearWipeRepresentation();
-  ~vtkRectilinearWipeRepresentation();
+  ~vtkRectilinearWipeRepresentation() override;
 
   // Instances that this class manipulates
   vtkImageRectilinearWipe *RectilinearWipe;
@@ -176,8 +176,8 @@ protected:
   int J;
 
 private:
-  vtkRectilinearWipeRepresentation(const vtkRectilinearWipeRepresentation&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkRectilinearWipeRepresentation&) VTK_DELETE_FUNCTION;
+  vtkRectilinearWipeRepresentation(const vtkRectilinearWipeRepresentation&) = delete;
+  void operator=(const vtkRectilinearWipeRepresentation&) = delete;
 };
 
 #endif

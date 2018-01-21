@@ -49,7 +49,7 @@ vtkOpenGLImageMapper::vtkOpenGLImageMapper()
   vtkNew<vtkPolyData> polydata;
   vtkNew<vtkPoints> points;
   points->SetNumberOfPoints(4);
-  polydata->SetPoints(points.Get());
+  polydata->SetPoints(points);
 
   vtkNew<vtkCellArray> tris;
   tris->InsertNextCell(3);
@@ -60,23 +60,23 @@ vtkOpenGLImageMapper::vtkOpenGLImageMapper()
   tris->InsertCellPoint(0);
   tris->InsertCellPoint(2);
   tris->InsertCellPoint(3);
-  polydata->SetPolys(tris.Get());
+  polydata->SetPolys(tris);
 
   vtkNew<vtkTrivialProducer> prod;
-  prod->SetOutput(polydata.Get());
+  prod->SetOutput(polydata);
 
   // Set some properties.
   mapper->SetInputConnection(prod->GetOutputPort());
-  this->Actor->SetMapper(mapper.Get());
+  this->Actor->SetMapper(mapper);
 
   vtkNew<vtkTexture> texture;
   texture->RepeatOff();
-  this->Actor->SetTexture(texture.Get());
+  this->Actor->SetTexture(texture);
 
   vtkNew<vtkFloatArray> tcoords;
   tcoords->SetNumberOfComponents(2);
   tcoords->SetNumberOfTuples(4);
-  polydata->GetPointData()->SetTCoords(tcoords.Get());
+  polydata->GetPointData()->SetTCoords(tcoords);
 }
 
 vtkOpenGLImageMapper::~vtkOpenGLImageMapper()
@@ -159,7 +159,8 @@ void vtkOpenGLImageMapperRenderDouble(vtkOpenGLImageMapper *self, vtkImageData *
   int width = inMax0 - inMin0 + 1;
   int height = inMax1 - inMin1 + 1;
 
-  vtkIdType* tempIncs = data->GetIncrements();
+  vtkIdType tempIncs[3];
+  data->GetIncrements(tempIncs);
   vtkIdType inInc1 = tempIncs[1];
 
   int bpp = data->GetNumberOfScalarComponents();
@@ -272,7 +273,8 @@ void vtkOpenGLImageMapperRenderShort(vtkOpenGLImageMapper *self, vtkImageData *d
   int width = inMax0 - inMin0 + 1;
   int height = inMax1 - inMin1 + 1;
 
-  vtkIdType* tempIncs = data->GetIncrements();
+  vtkIdType tempIncs[3];
+  data->GetIncrements(tempIncs);
   vtkIdType inInc1 = tempIncs[1];
 
   int bpp = data->GetNumberOfScalarComponents();
@@ -402,7 +404,8 @@ void vtkOpenGLImageMapperRenderChar(vtkOpenGLImageMapper *self, vtkImageData *da
   int width = inMax0 - inMin0 + 1;
   int height = inMax1 - inMin1 + 1;
 
-  vtkIdType* tempIncs = data->GetIncrements();
+  vtkIdType tempIncs[3];
+  data->GetIncrements(tempIncs);
   vtkIdType inInc1 = tempIncs[1];
 
   int bpp = data->GetPointData()->GetScalars()->GetNumberOfComponents();
@@ -671,6 +674,7 @@ void vtkOpenGLImageMapper::DrawPixels(vtkViewport *viewport, int width, int heig
   points->SetPoint(1, width*xscale, 0.0, 0);
   points->SetPoint(2, width*xscale, height*yscale, 0);
   points->SetPoint(3, 0.0, height*yscale, 0);
+  points->GetData()->Modified();
 
   vtkDataArray *tcoords = pd->GetPointData()->GetTCoords();
   float tmp[2];
@@ -683,6 +687,7 @@ void vtkOpenGLImageMapper::DrawPixels(vtkViewport *viewport, int width, int heig
   tcoords->SetTuple(2,tmp);
   tmp[0] = 0.0;
   tcoords->SetTuple(3,tmp);
+  tcoords->Modified();
 
   vtkImageData *id = vtkImageData::New();
   id->SetExtent(0,width-1, 0,height-1, 0,0);

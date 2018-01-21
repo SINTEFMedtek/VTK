@@ -23,7 +23,6 @@ Run bison like this (use bison 3.0.2 or later)
   bison --no-lines -b vtkParse vtkParse.y
 
 Modify vtkParse.tab.c:
-  - convert TABs to spaces (eight per tab)
   - replace all instances of "static inline" with "static"
   - replace "#if ! defined lint || defined __GNUC__" with "#if 1"
   - remove YY_ATTRIBUTE_UNUSED from yyfillin, yyfill, and yynormal
@@ -31,7 +30,7 @@ Modify vtkParse.tab.c:
   - replace "(1-yyrhslen)" with "(1-(int)yyrhslen)"
   - remove dead store "yynewStates = YY_NULLPTR;"
   - replace "sizeof yynewStates[0] with "sizeof (yyGLRState*)"
-  - remove 'struct yy_trans_info', which is unneeded (despite the comment)
+  - replace "sizeof yynewLookaheadNeeds[0] with "sizeof (yybool)"
 */
 
 /*
@@ -116,7 +115,7 @@ to the more usual form y x; without parentheses.
 
 /* Borland and MSVC do not define __STDC__ properly. */
 #if !defined(__STDC__)
-# if defined(_MSC_VER) || defined(__BORLANDC__)
+# if defined(_MSC_VER) || (defined(__BORLANDC__) && (__BORLANDC__ < 0x660))
 #  define __STDC__ 1
 # endif
 #endif
@@ -126,7 +125,7 @@ to the more usual form y x; without parentheses.
 # pragma warning (disable: 4127) /* conditional expression is constant */
 # pragma warning (disable: 4244) /* conversion to smaller integer type */
 #endif
-#if defined(__BORLANDC__)
+#if defined(__BORLANDC__) && (__BORLANDC__ < 0x660)
 # pragma warn -8004 /* assigned a value that is never used */
 # pragma warn -8008 /* conditional is always true */
 # pragma warn -8066 /* unreachable code */
@@ -233,7 +232,7 @@ void print_parser_error(const char *text, const char *cp, size_t n);
 /* helper functions */
 const char *type_class(unsigned int type, const char *classname);
 void start_class(const char *classname, int is_struct_or_union);
-void end_class();
+void end_class(void);
 void add_base_class(ClassInfo *cls, const char *name, int access_lev,
                     unsigned int extra);
 void output_friend_function(void);
@@ -249,7 +248,7 @@ void add_using(const char *name, int is_namespace);
 void start_enum(const char *name, int is_scoped,
                 unsigned int type, const char *basename);
 void add_enum(const char *name, const char *value);
-void end_enum();
+void end_enum(void);
 unsigned int guess_constant_type(const char *value);
 void add_constant(const char *name, const char *value,
                   unsigned int type, const char *typeclass, int global);
@@ -361,20 +360,6 @@ static const char *vtkstrcat4(const char *str1, const char *str2,
   return vtkstrncat(4, cp);
 }
 
-static const char *vtkstrcat5(const char *str1, const char *str2,
-                              const char *str3, const char *str4,
-                              const char *str5)
-{
-  const char *cp[5];
-
-  cp[0] = str1;
-  cp[1] = str2;
-  cp[2] = str3;
-  cp[3] = str4;
-  cp[4] = str5;
-  return vtkstrncat(5, cp);
-}
-
 static const char *vtkstrcat7(const char *str1, const char *str2,
                               const char *str3, const char *str4,
                               const char *str5, const char *str6,
@@ -461,7 +446,7 @@ struct DoxygenCommandInfo doxygenCommands[] = {
   { NULL, 0, DOX_COMMAND_OTHER }
 };
 
-void closeComment();
+void closeComment(void);
 
 /* Clear the comment buffer */
 void clearComment()
@@ -729,7 +714,7 @@ void applyComment(ClassInfo *cls)
 }
 
 /* This is called when a comment block ends */
-void closeComment()
+void closeComment(void)
 {
   const char *cp;
   size_t l;
@@ -1261,7 +1246,7 @@ void swapSig()
 }
 
 /* chop the last space from the signature */
-void chopSig(void)
+void chopSig()
 {
   if (signature)
   {
@@ -1272,6 +1257,39 @@ void chopSig(void)
       sigLength--;
     }
   }
+}
+
+/* chop the last space from the signature unless the preceding token
+   is an operator (used to remove spaces before argument lists) */
+void postSigLeftBracket(const char *s)
+{
+  if (signature)
+  {
+    size_t n = sigLength;
+    if (n > 1 && signature[n-1] == ' ')
+    {
+      const char *ops = "%*/-+!~&|^<>=.,:;{}";
+      char c = signature[n-2];
+      const char *cp;
+      for (cp = ops; *cp != '\0'; cp++)
+      {
+        if (*cp == c) { break; }
+      }
+      if (*cp == '\0')
+      {
+        signature[n-1] = '\0';
+        sigLength--;
+      }
+    }
+  }
+  postSig(s);
+}
+
+/* chop trailing space and add a right bracket */
+void postSigRightBracket(const char *s)
+{
+  chopSig();
+  postSig(s);
 }
 
 /*----------------------------------------------------------------
@@ -1634,6 +1652,7 @@ FunctionInfo *getFunction()
  */
 
 int attributeRole = 0;
+const char *attributePrefix = NULL;
 
 /* Set kind of attributes to collect in attribute_specifier_seq */
 void setAttributeRole(int x)
@@ -1651,6 +1670,18 @@ int getAttributeRole()
 void clearAttributeRole()
 {
   attributeRole = 0;
+}
+
+/* Set the "using" prefix for attributes */
+void setAttributePrefix(const char *x)
+{
+  attributePrefix = x;
+}
+
+/* Get the "using" prefix for attributes */
+const char *getAttributePrefix()
+{
+  return attributePrefix;
 }
 
 /*----------------------------------------------------------------
@@ -1787,9 +1818,9 @@ unsigned int add_indirection_to_array(unsigned int type)
    and five from '(' constructor_args ')' in initializer */
 %expect 10
 
-/* Expect 121 reduce/reduce conflicts, these can be cleared by removing
+/* Expect 122 reduce/reduce conflicts, these can be cleared by removing
    either '<' or angle_brackets_sig from constant_expression_item. */
-%expect-rr 121
+%expect-rr 122
 
 /* The parser will shift/reduce values <str> or <integer>, where
    <str> is for IDs and <integer> is for types, modifiers, etc. */
@@ -1938,14 +1969,6 @@ unsigned int add_indirection_to_array(unsigned int type)
 %token TypeFloat64
 
 /* VTK macros */
-%token SetMacro
-%token GetMacro
-%token SetStringMacro
-%token GetStringMacro
-%token SetClampMacro
-%token SetObjectMacro
-%token GetObjectMacro
-%token BooleanMacro
 %token SetVector2Macro
 %token SetVector3Macro
 %token SetVector4Macro
@@ -1958,7 +1981,6 @@ unsigned int add_indirection_to_array(unsigned int type)
 %token GetVectorMacro
 %token ViewportCoordinateMacro
 %token WorldCoordinateMacro
-%token TypeMacro
 
 /* VTK special tokens */
 %token VTK_BYTE_SWAP_DECL
@@ -2521,8 +2543,8 @@ conversion_function:
       currentFunction->IsExplicit = ((getType() & VTK_PARSE_EXPLICIT) != 0);
       set_return(currentFunction, getType(), getTypeId(), 0);
     }
-    parameter_declaration_clause ')' func_attribute_specifier_seq
-    { postSig(")"); } function_trailer_clause opt_trailing_return_type
+    parameter_declaration_clause ')' { postSig(")"); }
+    function_trailer_clause
     {
       postSig(";");
       closeSig();
@@ -2537,8 +2559,7 @@ conversion_function_id:
     { $<str>$ = copySig(); }
 
 operator_function_nr:
-    operator_function_sig { postSig(")"); }
-    function_trailer_clause opt_trailing_return_type
+    operator_function_sig function_trailer_clause
     {
       postSig(";");
       closeSig();
@@ -2554,7 +2575,7 @@ operator_function_sig:
       currentFunction->IsOperator = 1;
       set_return(currentFunction, getType(), getTypeId(), 0);
     }
-    parameter_declaration_clause ')' func_attribute_specifier_seq
+    parameter_declaration_clause ')' { postSig(")"); }
 
 operator_function_id:
     operator_sig operator_id
@@ -2564,7 +2585,7 @@ operator_sig:
     OPERATOR { markSig(); postSig("operator "); }
 
 function_nr:
-    function_sig function_trailer_clause opt_trailing_return_type
+    function_sig function_trailer_clause
     {
       postSig(";");
       closeSig();
@@ -2574,32 +2595,48 @@ function_nr:
     }
 
 function_trailer_clause:
-  | function_trailer_clause function_trailer
+    func_cv_qualifier_seq opt_noexcept_specifier opt_ref_qualifier
+    func_attribute_specifier_seq opt_trailing_return_type
+    virt_specifier_seq opt_body_as_trailer
 
-function_trailer:
-    THROW { postSig(" throw "); } parentheses_sig { chopSig(); }
-  | CONST { postSig(" const"); currentFunction->IsConst = 1; }
+func_cv_qualifier_seq:
+  | func_cv_qualifier
+
+func_cv_qualifier:
+    CONST { postSig(" const"); currentFunction->IsConst = 1; }
+  | VOLATILE { postSig(" volatile"); }
+
+opt_noexcept_specifier:
+  | noexcept_sig parentheses_sig { chopSig(); }
+  | noexcept_sig
+
+noexcept_sig:
+    NOEXCEPT { postSig(" noexcept"); }
+  | THROW { postSig(" throw"); }
+
+opt_ref_qualifier:
+  | '&' { postSig("&"); }
+  | OP_LOGIC_AND { postSig("&&"); }
+
+virt_specifier_seq:
+  | virt_specifier_seq virt_specifier
+
+virt_specifier:
+    ID
+    {
+      postSig(" "); postSig($<str>1);
+      if (strcmp($<str>1, "final") == 0) { currentFunction->IsFinal = 1; }
+    }
+
+opt_body_as_trailer:
+  | '=' DELETE { currentFunction->IsDeleted = 1; }
+  | '=' DEFAULT
   | '=' ZERO
     {
       postSig(" = 0");
       currentFunction->IsPureVirtual = 1;
       if (currentClass) { currentClass->IsAbstract = 1; }
     }
-  | ID
-    {
-      postSig(" "); postSig($<str>1);
-      if (strcmp($<str>1, "final") == 0) { currentFunction->IsFinal = 1; }
-    }
-  | noexcept_sig parentheses_sig { chopSig(); }
-  | noexcept_sig
-  | function_body_as_trailer
-
-noexcept_sig:
-    NOEXCEPT { postSig(" noexcept"); }
-
-function_body_as_trailer:
-    '=' DELETE { currentFunction->IsDeleted = 1; }
-  | '=' DEFAULT
 
 opt_trailing_return_type:
   | trailing_return_type
@@ -2629,8 +2666,7 @@ function_sig:
       postSig("(");
       set_return(currentFunction, getType(), getTypeId(), 0);
     }
-    parameter_declaration_clause ')' func_attribute_specifier_seq
-    { postSig(")"); }
+    parameter_declaration_clause ')' { postSig(")"); }
 
 
 /*
@@ -2640,7 +2676,7 @@ function_sig:
 structor_declaration:
     structor_sig { closeSig(); }
     opt_ctor_initializer { openSig(); }
-    function_trailer_clause opt_trailing_return_type
+    function_trailer_clause
     {
       postSig(";");
       closeSig();
@@ -2659,8 +2695,7 @@ structor_declaration:
 
 structor_sig:
     unqualified_id '(' { pushType(); postSig("("); }
-    parameter_declaration_clause ')' func_attribute_specifier_seq
-    { popType(); postSig(")"); }
+    parameter_declaration_clause ')' { postSig(")"); popType(); }
 
 opt_ctor_initializer:
   | ':' mem_initializer_list
@@ -2883,7 +2918,7 @@ lp_or_la:
 opt_array_or_parameters:
     { $<integer>$ = 0; }
   | '(' { pushFunction(); postSig("("); } parameter_declaration_clause ')'
-    func_attribute_specifier_seq { postSig(")"); } function_qualifiers
+    { postSig(")"); } function_qualifiers func_attribute_specifier_seq
     {
       $<integer>$ = VTK_PARSE_FUNCTION;
       popFunction();
@@ -3303,7 +3338,16 @@ attribute_specifier_seq:
   | attribute_specifier_seq attribute_specifier
 
 attribute_specifier:
-    BEGIN_ATTRIB attribute_list ']' ']'
+    BEGIN_ATTRIB attribute_specifier_contents ']' ']'
+    { setAttributePrefix(NULL); }
+
+attribute_specifier_contents:
+    attribute_using_prefix attribute_list
+  | attribute_list
+
+attribute_using_prefix:
+    USING using_id ':'
+    { setAttributePrefix(vtkstrcat($<str>2, "::")); }
 
 attribute_list:
   | attribute
@@ -3332,117 +3376,7 @@ attribute_token:
  */
 
 declaration_macro:
-  SetMacro '(' simple_id ',' {preSig("void Set"); postSig("(");} store_type ')'
-   {
-   postSig("a);");
-   currentFunction->Macro = "vtkSetMacro";
-   currentFunction->Name = vtkstrcat("Set", $<str>3);
-   currentFunction->Comment = vtkstrdup(getComment());
-   add_parameter(currentFunction, getType(), getTypeId(), 0);
-   set_return(currentFunction, VTK_PARSE_VOID, "void", 0);
-   output_function();
-   }
-| GetMacro '(' {postSig("Get");} simple_id ','
-   {markSig();} store_type {swapSig();} ')'
-   {
-   postSig("();");
-   currentFunction->Macro = "vtkGetMacro";
-   currentFunction->Name = vtkstrcat("Get", $<str>4);
-   currentFunction->Comment = vtkstrdup(getComment());
-   set_return(currentFunction, getType(), getTypeId(), 0);
-   output_function();
-   }
-| SetStringMacro '(' {preSig("void Set");} simple_id ')'
-   {
-   postSig("(char *);");
-   currentFunction->Macro = "vtkSetStringMacro";
-   currentFunction->Name = vtkstrcat("Set", $<str>4);
-   currentFunction->Comment = vtkstrdup(getComment());
-   add_parameter(currentFunction, VTK_PARSE_CHAR_PTR, "char", 0);
-   set_return(currentFunction, VTK_PARSE_VOID, "void", 0);
-   output_function();
-   }
-| GetStringMacro '(' {preSig("char *Get");} simple_id ')'
-   {
-   postSig("();");
-   currentFunction->Macro = "vtkGetStringMacro";
-   currentFunction->Name = vtkstrcat("Get", $<str>4);
-   currentFunction->Comment = vtkstrdup(getComment());
-   set_return(currentFunction, VTK_PARSE_CHAR_PTR, "char", 0);
-   output_function();
-   }
-| SetClampMacro '(' simple_id ',' {startSig(); markSig();} store_type {closeSig();}
-     ',' ignored_expression ')'
-   {
-   const char *typeText;
-   chopSig();
-   typeText = copySig();
-
-   currentFunction->Macro = "vtkSetClampMacro";
-   currentFunction->Name = vtkstrcat("Set", $<str>3);
-   currentFunction->Signature =
-     vtkstrcat5("void ", currentFunction->Name, "(", typeText, ");");
-   currentFunction->Comment = vtkstrdup(getComment());
-   add_parameter(currentFunction, getType(), getTypeId(), 0);
-   set_return(currentFunction, VTK_PARSE_VOID, "void", 0);
-   output_function();
-
-   currentFunction->Macro = "vtkSetClampMacro";
-   currentFunction->Name = vtkstrcat3("Get", $<str>3, "MinValue");
-   currentFunction->Signature =
-     vtkstrcat4(typeText, " ", currentFunction->Name, "();");
-   currentFunction->Comment = vtkstrdup(getComment());
-   set_return(currentFunction, getType(), getTypeId(), 0);
-   output_function();
-
-   currentFunction->Macro = "vtkSetClampMacro";
-   currentFunction->Name = vtkstrcat3("Get", $<str>3, "MaxValue");
-   currentFunction->Signature =
-     vtkstrcat4(typeText, " ", currentFunction->Name, "();");
-   currentFunction->Comment = vtkstrdup(getComment());
-   set_return(currentFunction, getType(), getTypeId(), 0);
-   output_function();
-   }
-| SetObjectMacro '(' simple_id ','
-  {preSig("void Set"); postSig("("); } store_type ')'
-   {
-   postSig("*);");
-   currentFunction->Macro = "vtkSetObjectMacro";
-   currentFunction->Name = vtkstrcat("Set", $<str>3);
-   currentFunction->Comment = vtkstrdup(getComment());
-   add_parameter(currentFunction, VTK_PARSE_OBJECT_PTR, getTypeId(), 0);
-   set_return(currentFunction, VTK_PARSE_VOID, "void", 0);
-   output_function();
-   }
-| GetObjectMacro '(' {postSig("*Get");} simple_id ','
-   {markSig();} store_type {swapSig();} ')'
-   {
-   postSig("();");
-   currentFunction->Macro = "vtkGetObjectMacro";
-   currentFunction->Name = vtkstrcat("Get", $<str>4);
-   currentFunction->Comment = vtkstrdup(getComment());
-   set_return(currentFunction, VTK_PARSE_OBJECT_PTR, getTypeId(), 0);
-   output_function();
-   }
-| BooleanMacro '(' simple_id ',' store_type ')'
-   {
-   currentFunction->Macro = "vtkBooleanMacro";
-   currentFunction->Name = vtkstrcat($<str>3, "On");
-   currentFunction->Comment = vtkstrdup(getComment());
-   currentFunction->Signature =
-     vtkstrcat3("void ", currentFunction->Name, "();");
-   set_return(currentFunction, VTK_PARSE_VOID, "void", 0);
-   output_function();
-
-   currentFunction->Macro = "vtkBooleanMacro";
-   currentFunction->Name = vtkstrcat($<str>3, "Off");
-   currentFunction->Comment = vtkstrdup(getComment());
-   currentFunction->Signature =
-     vtkstrcat3("void ", currentFunction->Name, "();");
-   set_return(currentFunction, VTK_PARSE_VOID, "void", 0);
-   output_function();
-   }
-| SetVector2Macro '(' simple_id ',' {startSig(); markSig();} store_type ')'
+  SetVector2Macro '(' simple_id ',' {startSig(); markSig();} store_type ')'
    {
    chopSig();
    outputSetVectorMacro($<str>3, getType(), copySig(), 2);
@@ -3588,46 +3522,6 @@ declaration_macro:
      set_return(currentFunction, VTK_PARSE_DOUBLE_PTR, "double", 3);
      output_function();
    }
-| TypeMacro '(' simple_id ',' id_expression opt_comma ')'
-   {
-   currentFunction->Macro = "vtkTypeMacro";
-   currentFunction->Name = "GetClassName";
-   currentFunction->Signature = "const char *GetClassName();";
-   currentFunction->Comment = vtkstrdup(getComment());
-   set_return(currentFunction, (VTK_PARSE_CONST | VTK_PARSE_CHAR_PTR),
-              "char", 0);
-   output_function();
-
-   currentFunction->Macro = "vtkTypeMacro";
-   currentFunction->Name = "IsA";
-   currentFunction->Signature = "int IsA(const char *name);";
-   currentFunction->Comment = vtkstrdup(getComment());
-   add_parameter(currentFunction, (VTK_PARSE_CONST | VTK_PARSE_CHAR_PTR),
-                "char", 0);
-   set_return(currentFunction, VTK_PARSE_INT, "int", 0);
-   output_function();
-
-   currentFunction->Macro = "vtkTypeMacro";
-   currentFunction->Name = "NewInstance";
-   currentFunction->Signature = vtkstrcat($<str>3, " *NewInstance();");
-   currentFunction->Comment = vtkstrdup(getComment());
-   set_return(currentFunction, VTK_PARSE_NEWINSTANCE | VTK_PARSE_OBJECT_PTR,
-              $<str>3, 0);
-   output_function();
-
-   currentFunction->Macro = "vtkTypeMacro";
-   currentFunction->Name = "SafeDownCast";
-   currentFunction->Signature =
-     vtkstrcat($<str>3, " *SafeDownCast(vtkObject* o);");
-   currentFunction->Comment = vtkstrdup(getComment());
-   add_parameter(currentFunction, VTK_PARSE_OBJECT_PTR, "vtkObject", 0);
-   set_return(currentFunction, (VTK_PARSE_STATIC | VTK_PARSE_OBJECT_PTR),
-              $<str>3, 0);
-   output_function();
-   }
-
-opt_comma:
-  | ','
 
 /*
  * Operators
@@ -3694,6 +3588,7 @@ keyword:
   | PROTECTED { $<str>$ = "protected"; }
   | PRIVATE { $<str>$ = "private"; }
   | CONST { $<str>$ = "const"; }
+  | VOLATILE { $<str>$ = "volatile"; }
   | STATIC { $<str>$ = "static"; }
   | THREAD_LOCAL { $<str>$ = "thread_local"; }
   | CONSTEXPR { $<str>$ = "constexpr"; }
@@ -3750,9 +3645,9 @@ common_bracket_item_no_scope_operator:
   | braces_sig
   | operator_id_no_delim
     {
-      if ((($<str>1)[0] == '+' || ($<str>1)[0] == '-' ||
-           ($<str>1)[0] == '*' || ($<str>1)[0] == '&') &&
-          ($<str>1)[1] == '\0')
+      const char *op = $<str>1;
+      if ((op[0] == '+' || op[0] == '-' || op[0] == '*' || op[0] == '&') &&
+          op[1] == '\0')
       {
         int c1 = 0;
         size_t l;
@@ -3760,23 +3655,28 @@ common_bracket_item_no_scope_operator:
         chopSig();
         cp = getSig();
         l = getSigLength();
-        if (l != 0) { c1 = cp[l-1]; }
+        if (l > 0) { c1 = cp[l-1]; }
         if (c1 != 0 && c1 != '(' && c1 != '[' && c1 != '=')
         {
           postSig(" ");
         }
-        postSig($<str>1);
+        postSig(op);
         if (vtkParse_CharType(c1, (CPRE_XID|CPRE_QUOTE)) ||
             c1 == ')' || c1 == ']')
         {
           postSig(" ");
         }
       }
-       else
-       {
-        postSig($<str>1);
+      else if ((op[0] == '-' && op[1] == '>') || op[0] == '.')
+      {
+        chopSig();
+        postSig(op);
+      }
+      else
+      {
+        postSig(op);
         postSig(" ");
-       }
+      }
     }
   | ':' { postSig(":"); postSig(" "); } | '.' { postSig("."); }
   | keyword { postSig($<str>1); postSig(" "); }
@@ -3857,18 +3757,18 @@ right_angle_bracket:
   | OP_RSHIFT_A
 
 brackets_sig:
-    '[' { postSig("["); } any_bracket_contents ']'
-    { chopSig(); postSig("] "); }
+    '[' { postSigLeftBracket("["); } any_bracket_contents ']'
+    { postSigRightBracket("] "); }
   | BEGIN_ATTRIB { postSig("[["); } any_bracket_contents ']' ']'
     { chopSig(); postSig("]] "); }
 
 parentheses_sig:
-    '(' { postSig("("); } any_bracket_contents ')'
-    { chopSig(); postSig(") "); }
-  | LP { postSig("("); postSig($<str>1); postSig("*"); }
-    any_bracket_contents ')' { chopSig(); postSig(") "); }
-  | LA { postSig("("); postSig($<str>1); postSig("&"); }
-    any_bracket_contents ')' { chopSig(); postSig(") "); }
+    '(' { postSigLeftBracket("("); } any_bracket_contents ')'
+    { postSigRightBracket(") "); }
+  | LP { postSigLeftBracket("("); postSig($<str>1); postSig("*"); }
+    any_bracket_contents ')' { postSigRightBracket(") "); }
+  | LA { postSigLeftBracket("("); postSig($<str>1); postSig("&"); }
+    any_bracket_contents ')' { postSigRightBracket(") "); }
 
 braces_sig:
     '{' { postSig("{ "); } braces_contents '}' { postSig("} "); }
@@ -4064,7 +3964,7 @@ void start_class(const char *classname, int is_struct_or_union)
 }
 
 /* reached the end of a class definition */
-void end_class()
+void end_class(void)
 {
   /* add default constructors */
   vtkParse_AddDefaultConstructors(currentClass, data->Strings);
@@ -4107,6 +4007,7 @@ void add_using(const char *name, int is_namespace)
     item->Name = vtkstrdup(&name[i]);
     while (i > 0 && name[i-1] == ':') { i--; }
     item->Scope = vtkstrndup(name, i);
+    item->Access = access_level;
   }
 
   if (currentClass)
@@ -4168,7 +4069,7 @@ void start_enum(const char *name, int is_scoped,
 }
 
 /* finish the enum */
-void end_enum()
+void end_enum(void)
 {
   if (currentClass && currentClass->ItemType == VTK_ENUM_INFO)
   {
@@ -4464,11 +4365,13 @@ void add_constant(const char *name, const char *value,
   }
 }
 
-/* if the name is a const in this namespace, the scope it */
+/* if the name is a const in this namespace, then scope it */
 const char *add_const_scope(const char *name)
 {
   static char text[256];
   NamespaceInfo *scope = currentNamespace;
+  TemplateInfo *tparams;
+  const char *classname;
   int i, j;
   int addscope = 0;
 
@@ -4480,8 +4383,24 @@ const char *add_const_scope(const char *name)
     {
       if (strcmp(currentClass->Constants[j]->Name, text) == 0)
       {
-        prepend_scope(text, currentClass->Name);
+        classname = currentClass->Name;
+        tparams = currentClass->Template;
+        if (tparams)
+        {
+          classname = vtkstrcat(classname, "<");
+          for (i = 0; i < tparams->NumberOfParameters; i++)
+          {
+            if (i != 0)
+            {
+              classname = vtkstrcat(classname, ",");
+            }
+            classname = vtkstrcat(classname, tparams->Parameters[i]->Name);
+          }
+          classname = vtkstrcat(classname, ">");
+        }
+        prepend_scope(text, classname);
         addscope = 1;
+        break;
       }
     }
   }
@@ -4500,6 +4419,7 @@ const char *add_const_scope(const char *name)
         {
           prepend_scope(text, scope->Name);
           addscope = 1;
+          break;
         }
       }
     }
@@ -4758,11 +4678,18 @@ void handle_attribute(const char *att, int pack)
   int role = getAttributeRole();
 
   size_t l = 0;
+  size_t la = 0;
   const char *args = NULL;
 
   if (!att)
   {
     return;
+  }
+
+  /* append the prefix from the "using" statement */
+  if (getAttributePrefix())
+  {
+    att = vtkstrcat(getAttributePrefix(), att);
   }
 
   /* search for arguments */
@@ -4774,28 +4701,95 @@ void handle_attribute(const char *att, int pack)
   }
   if (att[l] == '(')
   {
-    args = &att[l];
+    /* strip the parentheses and whitespace from the args */
+    args = &att[l+1];
+    while (*args == ' ') { args++; }
+    la = strlen(args);
+    while (la > 0 && args[la-1] == ' ') { la--; }
+    if (la > 0 && args[la-1] == ')') { la--; }
+    while (la > 0 && args[la-1] == ' ') { la--; }
   }
 
   /* check for namespace */
   if (strncmp(att, "vtk::", 5) == 0)
   {
-    if (args)
-    {
-      /* no current vtk attributes use arguments */
-      print_parser_error("attribute takes no args", att, l);
-      exit(1);
-    }
-    else if (pack)
+    if (pack)
     {
       /* no current vtk attributes use '...' */
       print_parser_error("attribute takes no ...", att, l);
       exit(1);
     }
-    else if (strcmp(att, "vtk::newinstance") == 0 &&
-             role == VTK_PARSE_ATTRIB_DECL)
+    else if (l == 16 && strncmp(att, "vtk::newinstance", l) == 0 &&
+             !args && role == VTK_PARSE_ATTRIB_DECL)
     {
       setTypeMod(VTK_PARSE_NEWINSTANCE);
+    }
+    else if (l == 13 && strncmp(att, "vtk::zerocopy", l) == 0 &&
+             !args && role == VTK_PARSE_ATTRIB_DECL)
+    {
+      setTypeMod(VTK_PARSE_ZEROCOPY);
+    }
+    else if (l == 12 && strncmp(att, "vtk::expects", l) == 0 &&
+             args && role == VTK_PARSE_ATTRIB_FUNC)
+    {
+      /* add to the preconditions */
+      vtkParse_AddStringToArray(&currentFunction->Preconds,
+                                &currentFunction->NumberOfPreconds,
+                                vtkstrndup(args, la));
+    }
+    else if (l == 13 && strncmp(att, "vtk::sizehint", l) == 0 &&
+             args && role == VTK_PARSE_ATTRIB_FUNC)
+    {
+      /* first arg is parameter name, unless return value hint */
+      ValueInfo *arg = currentFunction->ReturnValue;
+      size_t n = vtkParse_SkipId(args);
+      preproc_int_t count;
+      int is_unsigned;
+      int i;
+
+      l = n;
+      while (args[n] == ' ') { n++; }
+      if (l > 0 && args[n] == ',')
+      {
+        do { n++; } while (args[n] == ' ');
+        /* find the named parameter */
+        for (i = 0; i < currentFunction->NumberOfParameters; i++)
+        {
+          arg = currentFunction->Parameters[i];
+          if (arg->Name && strlen(arg->Name) == l &&
+              strncmp(arg->Name, args, l) == 0)
+          {
+            break;
+          }
+        }
+        if (i == currentFunction->NumberOfParameters)
+        {
+          print_parser_error("unrecognized parameter name", args, l);
+          exit(1);
+        }
+        /* advance args to second attribute arg */
+        args += n;
+        la -= n;
+      }
+      /* set the size hint */
+      arg->CountHint = vtkstrndup(args, la);
+      /* see if hint is an integer */
+      if (VTK_PARSE_OK == vtkParsePreprocess_EvaluateExpression(
+          preprocessor, arg->CountHint, &count, &is_unsigned))
+      {
+        if (count > 0 && count < 127)
+        {
+          arg->CountHint = NULL;
+          arg->Count = (int)count;
+#ifndef VTK_PARSE_LEGACY_REMOVE
+          if (arg == currentFunction->ReturnValue)
+          {
+            currentFunction->HaveHint = 1;
+            currentFunction->HintSize = arg->Count;
+          }
+#endif
+        }
+      }
     }
     else
     {

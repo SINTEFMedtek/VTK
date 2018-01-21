@@ -41,7 +41,7 @@ class VTKRENDERINGVOLUME_EXPORT vtkVolumeRayCastSpaceLeapingImageFilter : public
 {
 public:
   vtkTypeMacro(vtkVolumeRayCastSpaceLeapingImageFilter,vtkThreadedImageAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   static vtkVolumeRayCastSpaceLeapingImageFilter *New();
 
@@ -195,7 +195,7 @@ public:
 
 protected:
   vtkVolumeRayCastSpaceLeapingImageFilter();
-  ~vtkVolumeRayCastSpaceLeapingImageFilter();
+  ~vtkVolumeRayCastSpaceLeapingImageFilter() override;
 
   int               IndependentComponents;
   vtkTimeStamp      LastMinMaxBuildTime;
@@ -221,21 +221,21 @@ protected:
   /**
    * See superclass for details
    */
-  virtual int RequestUpdateExtent(vtkInformation *,
+  int RequestUpdateExtent(vtkInformation *,
                                   vtkInformationVector **,
-                                  vtkInformationVector *);
+                                  vtkInformationVector *) override;
   void ThreadedRequestData(       vtkInformation *request,
                                   vtkInformationVector **inputVector,
                                   vtkInformationVector *outputVector,
                                   vtkImageData ***inData,
                                   vtkImageData **outData,
-                                  int outExt[6], int id);
-  virtual int RequestData(        vtkInformation* request,
+                                  int outExt[6], int id) override;
+  int RequestData(        vtkInformation* request,
                                   vtkInformationVector** inputVector,
-                                  vtkInformationVector* outputVector);
-  virtual int RequestInformation( vtkInformation *,
+                                  vtkInformationVector* outputVector) override;
+  int RequestInformation( vtkInformation *,
                                   vtkInformationVector**,
-                                  vtkInformationVector *);
+                                  vtkInformationVector *) override;
   //@}
 
   /**
@@ -266,16 +266,16 @@ protected:
    * the output we are going to generate, re-use the cache as we may not be
    * updating all data in the min-max structure.
    */
-  virtual void AllocateOutputData(vtkImageData *out,
+  void AllocateOutputData(vtkImageData *out,
                                   vtkInformation* outInfo,
-                                  int *uExtent);
-  virtual vtkImageData *AllocateOutputData(vtkDataObject *out,
-                                           vtkInformation *outInfo);
+                                  int *uExtent) override;
+  vtkImageData *AllocateOutputData(vtkDataObject *out,
+                                           vtkInformation *outInfo) override;
   //@}
 
 private:
-  vtkVolumeRayCastSpaceLeapingImageFilter(const vtkVolumeRayCastSpaceLeapingImageFilter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkVolumeRayCastSpaceLeapingImageFilter&) VTK_DELETE_FUNCTION;
+  vtkVolumeRayCastSpaceLeapingImageFilter(const vtkVolumeRayCastSpaceLeapingImageFilter&) = delete;
+  void operator=(const vtkVolumeRayCastSpaceLeapingImageFilter&) = delete;
 };
 
 #endif

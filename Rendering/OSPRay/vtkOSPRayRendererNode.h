@@ -26,9 +26,15 @@
 #include "vtkRendererNode.h"
 #include <vector> // for ivars
 
-class vtkRenderer;
+class vtkInformationDoubleVectorKey;
 class vtkInformationIntegerKey;
+class vtkInformationObjectBaseKey;
 class vtkInformationStringKey;
+class vtkMatrix4x4;
+class vtkOSPRayRendererNodeInternals;
+class vtkOSPRayMaterialLibrary;
+class vtkRenderer;
+
 // ospray forward decs so that someone does not need to include ospray.h
 namespace osp {
 struct Model;
@@ -50,22 +56,22 @@ class VTKRENDERINGOSPRAY_EXPORT vtkOSPRayRendererNode :
 public:
   static vtkOSPRayRendererNode* New();
   vtkTypeMacro(vtkOSPRayRendererNode, vtkRendererNode);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Builds myself.
    */
-  virtual void Build(bool prepass);
+  virtual void Build(bool prepass) override;
 
   /**
-   * Traverse graph in ospray's prefered order and render
+   * Traverse graph in ospray's preferred order and render
    */
-  virtual void Render(bool prepass);
+  virtual void Render(bool prepass) override;
 
   /**
    * Invalidates cached rendering data.
    */
-  virtual void Invalidate(bool prepass);
+  virtual void Invalidate(bool prepass) override;
 
   /**
    * Put my results into the correct place in the provided pixel buffer.
@@ -95,7 +101,6 @@ public:
    * When present on renderer, controls the number of ospray render calls
    * for each refresh.
    * default is 1
-   * TODO: NOT CURRENTLY USED
    */
   static vtkInformationIntegerKey* MAX_FRAMES();
   static void SetMaxFrames(int, vtkRenderer *renderer);
@@ -140,6 +145,43 @@ public:
   //@}
 
   /**
+   * World space direction of north pole for gradient and texture background.
+   */
+  static vtkInformationDoubleVectorKey* NORTH_POLE();
+  //@{
+  /**
+   * Convenience method to set/get NORTH_POLE on a vtkRenderer.
+   */
+  static void SetNorthPole(double *, vtkRenderer *renderer);
+  static double * GetNorthPole(vtkRenderer *renderer);
+  //@}
+
+  /**
+   * World space direction of east pole for texture background.
+   */
+  static vtkInformationDoubleVectorKey* EAST_POLE();
+  //@{
+  /**
+   * Convenience method to set/get EAST_POLE on a vtkRenderer.
+   */
+  static void SetEastPole(double *, vtkRenderer *renderer);
+  static double * GetEastPole(vtkRenderer *renderer);
+  //@}
+
+  /**
+   * Material Library attached to the renderer.
+   */
+  static vtkInformationObjectBaseKey* MATERIAL_LIBRARY();
+
+  //@{
+  /**
+   * Convenience method to set/get Material library on a renderer.
+   */
+  static void SetMaterialLibrary(vtkOSPRayMaterialLibrary *, vtkRenderer *renderer);
+  static vtkOSPRayMaterialLibrary* GetMaterialLibrary(vtkRenderer *renderer);
+  //@}
+
+  /**
    * Methods for other nodes to access
    */
   OSPModel GetOModel() { return this->OModel; }
@@ -161,7 +203,12 @@ public:
 
   // if you want to traverse your children in a specific order
   // or way override this method
-  virtual void Traverse(int operation);
+  virtual void Traverse(int operation) override;
+
+  /**
+   * Convenience method to get and downcast renderable.
+   */
+  vtkRenderer *GetRenderer();
 
 protected:
   vtkOSPRayRendererNode();
@@ -181,10 +228,14 @@ protected:
   bool Accumulate;
   bool CompositeOnGL;
   float* ODepthBuffer;
+  int AccumulateCount;
+  vtkMTimeType AccumulateTime;
+  vtkMatrix4x4 *AccumulateMatrix;
+  vtkOSPRayRendererNodeInternals *Internal;
 
 private:
-  vtkOSPRayRendererNode(const vtkOSPRayRendererNode&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkOSPRayRendererNode&) VTK_DELETE_FUNCTION;
+  vtkOSPRayRendererNode(const vtkOSPRayRendererNode&) = delete;
+  void operator=(const vtkOSPRayRendererNode&) = delete;
 };
 
 #endif

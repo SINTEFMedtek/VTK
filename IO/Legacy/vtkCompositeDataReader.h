@@ -40,7 +40,7 @@ class VTKIOLEGACY_EXPORT vtkCompositeDataReader : public vtkDataReader
 public:
   static vtkCompositeDataReader* New();
   vtkTypeMacro(vtkCompositeDataReader, vtkDataReader);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -53,26 +53,26 @@ public:
 
 protected:
   vtkCompositeDataReader();
-  ~vtkCompositeDataReader();
+  ~vtkCompositeDataReader() override;
 
-  virtual int RequestData(vtkInformation *, vtkInformationVector **,
-                          vtkInformationVector *);
+  int RequestData(vtkInformation *, vtkInformationVector **,
+                          vtkInformationVector *) override;
 
   // Override ProcessRequest to handle request data object event
-  virtual int ProcessRequest(vtkInformation *, vtkInformationVector **,
-                             vtkInformationVector *);
+  int ProcessRequest(vtkInformation *, vtkInformationVector **,
+                             vtkInformationVector *) override;
 
   // Since the Outputs[0] has the same UpdateExtent format
   // as the generic DataObject we can copy the UpdateExtent
   // as a default behavior.
-  virtual int RequestUpdateExtent(vtkInformation *, vtkInformationVector **,
-                                  vtkInformationVector *);
+  int RequestUpdateExtent(vtkInformation *, vtkInformationVector **,
+                                  vtkInformationVector *) override;
 
   // Create output (a directed or undirected graph).
   virtual int RequestDataObject(vtkInformation *, vtkInformationVector **,
                                 vtkInformationVector *);
 
-  virtual int FillOutputPortInformation(int, vtkInformation*);
+  int FillOutputPortInformation(int, vtkInformation*) override;
 
   /**
    * Read the output type information.
@@ -87,8 +87,8 @@ protected:
   vtkDataObject* ReadChild();
 
 private:
-  vtkCompositeDataReader(const vtkCompositeDataReader&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkCompositeDataReader&) VTK_DELETE_FUNCTION;
+  vtkCompositeDataReader(const vtkCompositeDataReader&) = delete;
+  void operator=(const vtkCompositeDataReader&) = delete;
 
 };
 

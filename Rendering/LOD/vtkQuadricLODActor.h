@@ -71,7 +71,7 @@ public:
    * Standard class methods.
    */
   vtkTypeMacro(vtkQuadricLODActor, vtkActor);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   //@{
@@ -208,29 +208,29 @@ public:
    * it will use either a full resolution render or an interactive render (i.e.,
    * it will use the decimated geometry).
    */
-  virtual void Render(vtkRenderer *, vtkMapper *);
+  void Render(vtkRenderer *, vtkMapper *) override;
 
   /**
-   * This method is used internally by the rendering process. We overide
+   * This method is used internally by the rendering process. We override
    * the superclass method to properly set the estimated render time.
    */
-  int RenderOpaqueGeometry(vtkViewport *viewport);
+  int RenderOpaqueGeometry(vtkViewport *viewport) override;
 
   /**
    * Release any graphics resources that are being consumed by this actor.
    * The parameter window could be used to determine which graphic
    * resources to release.
    */
-  void ReleaseGraphicsResources(vtkWindow *);
+  void ReleaseGraphicsResources(vtkWindow *) override;
 
   /**
    * Shallow copy of an LOD actor. Overloads the virtual vtkProp method.
    */
-  void ShallowCopy(vtkProp *prop);
+  void ShallowCopy(vtkProp *prop) override;
 
 protected:
   vtkQuadricLODActor();
-  ~vtkQuadricLODActor();
+  ~vtkQuadricLODActor() override;
 
   // Renders the LOD
   vtkActor *LODActor;
@@ -267,8 +267,8 @@ protected:
   vtkIdType GetDisplayListSize(vtkPolyData *pd);
 
 private:
-  vtkQuadricLODActor(const vtkQuadricLODActor&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkQuadricLODActor&) VTK_DELETE_FUNCTION;
+  vtkQuadricLODActor(const vtkQuadricLODActor&) = delete;
+  void operator=(const vtkQuadricLODActor&) = delete;
 };
 
 #endif

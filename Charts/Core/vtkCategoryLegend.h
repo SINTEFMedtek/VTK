@@ -55,13 +55,13 @@ public:
   /**
    * Paint the legend into a rectangle defined by the bounds.
    */
-  virtual bool Paint(vtkContext2D *painter);
+  bool Paint(vtkContext2D *painter) override;
 
   /**
    * Compute and return the lower left corner of this legend, along
    * with its width and height.
    */
-  virtual vtkRectf GetBoundingRect(vtkContext2D* painter);
+  vtkRectf GetBoundingRect(vtkContext2D* painter) override;
 
   //@{
   /**
@@ -102,7 +102,7 @@ public:
 
 protected:
   vtkCategoryLegend();
-  virtual ~vtkCategoryLegend();
+  ~vtkCategoryLegend() override;
 
   bool                                HasOutliers;
   float                               TitleWidthOffset;
@@ -113,8 +113,8 @@ protected:
   vtkVariantArray*                    Values;
 
 private:
-  vtkCategoryLegend(const vtkCategoryLegend &) VTK_DELETE_FUNCTION;
-  void operator=(const vtkCategoryLegend &) VTK_DELETE_FUNCTION;
+  vtkCategoryLegend(const vtkCategoryLegend &) = delete;
+  void operator=(const vtkCategoryLegend &) = delete;
 };
 
 #endif

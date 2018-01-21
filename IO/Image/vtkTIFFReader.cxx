@@ -22,7 +22,6 @@
 
 #include "vtksys/SystemTools.hxx"
 
-#include <sys/stat.h>
 #include <string>
 #include <algorithm>
 
@@ -191,8 +190,8 @@ static void vtkTIFFReaderInternalErrorHandler(const char* vtkNotUsed(module),
 bool vtkTIFFReader::vtkTIFFReaderInternal::Open(const char *filename)
 {
   this->Clean();
-  struct stat fs;
-  if (stat(filename, &fs))
+  vtksys::SystemTools::Stat_t fs;
+  if (vtksys::SystemTools::Stat(filename, &fs))
   {
     return false;
   }
@@ -218,7 +217,7 @@ void vtkTIFFReader::vtkTIFFReaderInternal::Clean()
   if (this->Image)
   {
     TIFFClose(this->Image);
-    this->Image = NULL;
+    this->Image = nullptr;
   }
   this->Width = 0;
   this->Height = 0;
@@ -247,7 +246,7 @@ void vtkTIFFReader::vtkTIFFReaderInternal::Clean()
 //-------------------------------------------------------------------------
 vtkTIFFReader::vtkTIFFReaderInternal::vtkTIFFReaderInternal()
 {
-  this->Image           = NULL;
+  this->Image           = nullptr;
   // Note that this suppresses all error/warning output from libtiff!
   TIFFSetErrorHandler(&vtkTIFFReaderInternalErrorHandler);
   TIFFSetWarningHandler(&vtkTIFFReaderInternalErrorHandler);
@@ -285,7 +284,7 @@ bool vtkTIFFReader::vtkTIFFReaderInternal::Initialize()
           // look for the number of images
           std::string desc = description[0];
           std::string::size_type pos = desc.find("images=");
-          std::string::size_type pos2 = desc.find("\n");
+          std::string::size_type pos2 = desc.find('\n');
           if ( (pos != std::string::npos) && (pos2 != std::string::npos) )
           {
             this->NumberOfPages = atoi(desc.substr(pos+7,pos2-pos-7).c_str());
@@ -436,7 +435,7 @@ void vtkTIFFReader::ExecuteInformation()
 {
   this->Initialize();
   this->ComputeInternalFileName(this->DataExtent[4]);
-  if (this->InternalFileName == NULL)
+  if (this->InternalFileName == nullptr)
   {
     vtkErrorMacro("Need to specify a filename");
     this->SetErrorCode(vtkErrorCode::NoFileNameError);
@@ -488,6 +487,9 @@ void vtkTIFFReader::ExecuteInformation()
         this->DataSpacing[0] = 10.0 / this->InternalImage->XResolution;
         this->DataSpacing[1] = 10.0 / this->InternalImage->YResolution;
       }
+    // Somewhat arbitrary choice of using the X spacing as also the
+    // Z spacing. Used only with image stacks.
+    this->DataSpacing[2] = this->DataSpacing[0];
     }
   }
 
@@ -495,6 +497,7 @@ void vtkTIFFReader::ExecuteInformation()
   {
     this->DataOrigin[0] = 0.0;
     this->DataOrigin[1] = 0.0;
+    this->DataOrigin[2] = 0.0;
   }
 
   // Pull out the width/height, etc.
@@ -525,11 +528,11 @@ void vtkTIFFReader::ExecuteInformation()
   }
 
   // Figure out the appropriate scalar type for the data.
-  int scalarType = VTK_CHAR;
+  int scalarType = VTK_SIGNED_CHAR;
   short sampleFormat = this->InternalImage->SampleFormat;
   if (this->InternalImage->BitsPerSample <= 8)
   {
-    scalarType = sampleFormat == 2 ? VTK_CHAR : VTK_UNSIGNED_CHAR;
+    scalarType = sampleFormat == 2 ? VTK_SIGNED_CHAR : VTK_UNSIGNED_CHAR;
   }
   else if (this->InternalImage->BitsPerSample <= 16)
   {
@@ -570,15 +573,6 @@ void vtkTIFFReader::ExecuteInformation()
     {
       this->DataExtent[4] = 0;
       this->DataExtent[5] = this->InternalImage->NumberOfPages - 1;
-    }
-
-    if (!SpacingSpecifiedFlag)
-    {
-      this->DataSpacing[2] = this->DataSpacing[0];
-    }
-    if (!OriginSpecifiedFlag)
-    {
-      this->DataOrigin[2]  = 0.0;
     }
   }
 
@@ -711,7 +705,7 @@ void vtkTIFFReader::Process(OT *outPtr, int outExtent[6], vtkIdType outIncr[3])
 void vtkTIFFReader::ExecuteDataWithInformation(vtkDataObject *output,
                                                 vtkInformation *outInfo)
 {
-  if (this->InternalFileName == NULL)
+  if (this->InternalFileName == nullptr)
   {
     vtkErrorMacro("Either a FileName or FilePrefix must be specified.");
     return;
@@ -850,9 +844,9 @@ void vtkTIFFReader::GetColor(int index, unsigned short *red,
 //-------------------------------------------------------------------------
 void vtkTIFFReader::Initialize()
 {
-  this->ColorRed    = 0;
-  this->ColorGreen  = 0;
-  this->ColorBlue   = 0;
+  this->ColorRed    = nullptr;
+  this->ColorGreen  = nullptr;
+  this->ColorBlue   = nullptr;
   this->TotalColors = -1;
   this->ImageFormat = vtkTIFFReader::NOFORMAT;
 }
@@ -930,7 +924,7 @@ void vtkTIFFReader::ReadVolume(T* buffer)
         }
       }
       delete [] tempImage;
-      tempImage = 0;
+      tempImage = nullptr;
     }
     else
     {

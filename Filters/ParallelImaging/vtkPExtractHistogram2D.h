@@ -50,27 +50,27 @@ class VTKFILTERSPARALLELIMAGING_EXPORT vtkPExtractHistogram2D : public vtkExtrac
 public:
   static vtkPExtractHistogram2D* New();
   vtkTypeMacro(vtkPExtractHistogram2D, vtkExtractHistogram2D);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   virtual void SetController(vtkMultiProcessController*);
   vtkGetObjectMacro(Controller,vtkMultiProcessController);
 
 protected:
   vtkPExtractHistogram2D();
-  ~vtkPExtractHistogram2D();
+  ~vtkPExtractHistogram2D() override;
 
   vtkMultiProcessController* Controller;
 
-  virtual int ComputeBinExtents(vtkDataArray* col1, vtkDataArray* col2);
+  int ComputeBinExtents(vtkDataArray* col1, vtkDataArray* col2) override;
 
   // Execute the calculations required by the Learn option.
-  virtual void Learn( vtkTable* inData,
+  void Learn( vtkTable* inData,
                       vtkTable* inParameters,
-                      vtkMultiBlockDataSet* outMeta );
+                      vtkMultiBlockDataSet* outMeta ) override;
 
 private:
-  vtkPExtractHistogram2D(const vtkPExtractHistogram2D&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPExtractHistogram2D&) VTK_DELETE_FUNCTION;
+  vtkPExtractHistogram2D(const vtkPExtractHistogram2D&) = delete;
+  void operator=(const vtkPExtractHistogram2D&) = delete;
 };
 
 #endif

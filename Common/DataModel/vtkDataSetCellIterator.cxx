@@ -118,7 +118,7 @@ namespace
 void vtkDataSetCellIterator::PrintSelf(ostream &os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
-  os << indent << "DataSet: " << this->DataSet.GetPointer() << endl;
+  os << indent << "DataSet: " << this->DataSet << endl;
 
 }
 
@@ -127,7 +127,7 @@ void vtkDataSetCellIterator::SetDataSet(vtkDataSet *ds)
 {
   this->DataSet = ds;
   this->CellId = 0;
-  cerr << "setting data set\n";
+
   if (vtkRectilinearGrid* rg = vtkRectilinearGrid::SafeDownCast(ds))
   {
     SetArrayType(rg, this->Points);
@@ -147,7 +147,7 @@ void vtkDataSetCellIterator::SetDataSet(vtkDataSet *ds)
 //------------------------------------------------------------------------------
 bool vtkDataSetCellIterator::IsDoneWithTraversal()
 {
-  return this->DataSet.GetPointer() == NULL
+  return this->DataSet == nullptr
       || this->CellId >= this->DataSet->GetNumberOfCells();
 }
 
@@ -166,7 +166,7 @@ void vtkDataSetCellIterator::IncrementToNextCell()
 //------------------------------------------------------------------------------
 vtkDataSetCellIterator::vtkDataSetCellIterator()
   : vtkCellIterator(),
-    DataSet(NULL),
+    DataSet(nullptr),
     CellId(0)
 {
 }

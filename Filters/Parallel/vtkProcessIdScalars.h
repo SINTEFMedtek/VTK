@@ -41,7 +41,7 @@ public:
   static vtkProcessIdScalars *New();
 
   vtkTypeMacro(vtkProcessIdScalars,vtkDataSetAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Option to centerate cell scalars of points scalars.  Default is point
@@ -61,7 +61,7 @@ public:
 
   //@{
   /**
-   * By defualt this filter uses the global controller,
+   * By default this filter uses the global controller,
    * but this method can be used to set another instead.
    */
   virtual void SetController(vtkMultiProcessController*);
@@ -71,11 +71,11 @@ public:
 
 protected:
   vtkProcessIdScalars();
-  ~vtkProcessIdScalars();
+  ~vtkProcessIdScalars() override;
 
   // Append the pieces.
   int RequestData(
-    vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+    vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
 
   vtkIntArray *MakeProcessIdScalars(int piece, vtkIdType numScalars);
   vtkFloatArray *MakeRandomScalars(int piece, vtkIdType numScalars);
@@ -87,8 +87,8 @@ protected:
   vtkMultiProcessController* Controller;
 
 private:
-  vtkProcessIdScalars(const vtkProcessIdScalars&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkProcessIdScalars&) VTK_DELETE_FUNCTION;
+  vtkProcessIdScalars(const vtkProcessIdScalars&) = delete;
+  void operator=(const vtkProcessIdScalars&) = delete;
 };
 
 #endif

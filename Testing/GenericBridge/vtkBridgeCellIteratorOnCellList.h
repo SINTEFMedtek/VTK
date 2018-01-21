@@ -36,17 +36,17 @@ public:
   static vtkBridgeCellIteratorOnCellList *New();
   vtkTypeMacro(vtkBridgeCellIteratorOnCellList,
                        vtkBridgeCellIteratorStrategy);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Move iterator to first position if any (loop initialization).
    */
-  void Begin();
+  void Begin() override;
 
   /**
    * Is there no cell at iterator position? (exit condition).
    */
-  int IsAtEnd();
+  int IsAtEnd() override;
 
   /**
    * Cell at current position
@@ -54,7 +54,7 @@ public:
    * \pre c_exists: c!=0
    * THREAD SAFE
    */
-  void GetCell(vtkGenericAdaptorCell *c);
+  void GetCell(vtkGenericAdaptorCell *c) override;
 
   /**
    * Cell at current position.
@@ -62,13 +62,13 @@ public:
    * \pre not_at_end: !IsAtEnd()
    * \post result_exits: result!=0
    */
-  vtkGenericAdaptorCell *GetCell();
+  vtkGenericAdaptorCell *GetCell() override;
 
   /**
    * Move iterator to next position. (loop progression).
    * \pre not_at_end: !IsAtEnd()
    */
-  void Next();
+  void Next() override;
 
   /**
    * Used internally by vtkBridgeCell.
@@ -81,7 +81,7 @@ public:
 
 protected:
   vtkBridgeCellIteratorOnCellList();
-  virtual ~vtkBridgeCellIteratorOnCellList();
+  ~vtkBridgeCellIteratorOnCellList() override;
 
   vtkIdList *Cells; // cells traversed by the iterator.
   vtkBridgeDataSet *DataSet;
@@ -89,8 +89,8 @@ protected:
   vtkBridgeCell *Cell; // cell at current position.
 
 private:
-  vtkBridgeCellIteratorOnCellList(const vtkBridgeCellIteratorOnCellList&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkBridgeCellIteratorOnCellList&) VTK_DELETE_FUNCTION;
+  vtkBridgeCellIteratorOnCellList(const vtkBridgeCellIteratorOnCellList&) = delete;
+  void operator=(const vtkBridgeCellIteratorOnCellList&) = delete;
 };
 
 #endif

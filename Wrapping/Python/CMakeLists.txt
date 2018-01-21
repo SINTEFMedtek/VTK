@@ -240,6 +240,11 @@ if(VTK_USE_FFMPEG_ENCODER)
   list(APPEND VTKPYTHON_LINK_LIBS ${FFMPEG_BASIC_LIBRARIES})
 endif()
 
+# Add the libPython.dylib file and link explicitly against it.
+# This is needed because this is a new python executable, which needs it's libraries.
+find_package(PythonLibs REQUIRED)
+list(APPEND VTKPYTHON_LINK_LIBS ${vtkPython_LIBRARIES})
+
 target_link_libraries(vtkpython ${VTKPYTHON_LINK_LIBS})
 
 unset(PVTKPYTHON_EXECUTABLE)
@@ -414,9 +419,11 @@ if(PYTHON_EXECUTABLE)
   # this should also depend on the vtkpython executable.
   add_custom_target(vtkpython_pyc ALL
     DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/vtk_compile_complete")
-  add_dependencies(vtkpython_pyc
-    vtkpython
-    )
+  if(TARGET vtkpython)
+    add_dependencies(vtkpython_pyc
+      vtkpython
+      )
+  endif()
 
   # If no runtime is to be installed then do not install python modules.
   if(NOT VTK_INSTALL_NO_RUNTIME)

@@ -84,7 +84,7 @@ class VTKRENDERINGCORE_EXPORT vtkPickingManager : public vtkObject
 public:
   static vtkPickingManager *New();
   vtkTypeMacro(vtkPickingManager,vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -126,16 +126,16 @@ public:
    * Note that a picker can be registered multiple times with different objects.
    * \sa RemovePicker(), RemoveObject().
    */
-  void AddPicker(vtkAbstractPicker* picker, vtkObject* object = 0);
+  void AddPicker(vtkAbstractPicker* picker, vtkObject* object = nullptr);
 
   /**
    * Unregister the \a picker from the picking manager.
    * If \a object is non null, only the pair (\a picker, \a object) is removed.
    */
-  void RemovePicker(vtkAbstractPicker* picker, vtkObject* object = 0);
+  void RemovePicker(vtkAbstractPicker* picker, vtkObject* object = nullptr);
 
   /**
-   * Remove all occurences of the \a object from the registered list.
+   * Remove all occurrence of the \a object from the registered list.
    * If a picker associated with the \a object is not also associated with
    * any other object, it is removed from the list as well.
    */
@@ -190,7 +190,7 @@ public:
 
 protected:
   vtkPickingManager();
-  ~vtkPickingManager();
+  ~vtkPickingManager() override;
 
   // Used to associate the manager with the interactor
   vtkRenderWindowInteractor* Interactor;
@@ -198,8 +198,8 @@ protected:
   bool OptimizeOnInteractorEvents;
 
 private:
-  vtkPickingManager(const vtkPickingManager&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPickingManager&) VTK_DELETE_FUNCTION;
+  vtkPickingManager(const vtkPickingManager&) = delete;
+  void operator=(const vtkPickingManager&) = delete;
 
   class vtkInternal;
   vtkInternal* Internal;

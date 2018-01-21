@@ -1,5 +1,12 @@
-find_package(PythonLibs REQUIRED)
+if (VTK_UNDEFINED_SYMBOLS_ALLOWED)
+  set(_QUIET_LIBRARY "QUIET")
+else()
+  set(_QUIET_LIBRARY "REQUIRED")
+endif()
+find_package(PythonLibs ${_QUIET_LIBRARY})
 include(vtkWrapPython)
+include(vtkTargetLinkLibrariesWithDynamicLookup)
+
 if(PYTHONINTERP_FOUND AND PYTHONLIBS_FOUND)
   set(_interp_version "${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
   set(_libs_version "${PYTHON_MAJOR_VERSION}.${PYTHON_MINOR_VERSION}")
@@ -83,28 +90,40 @@ function(vtk_add_python_wrapping_library module srcs)
     ${PYTHON_INCLUDE_DIRS})
   set(XY ${PYTHON_MAJOR_VERSION}${PYTHON_MINOR_VERSION})
 
-  if(NOT CMAKE_HAS_TARGET_INCLUDES)
-    include_directories(${_python_include_dirs})
-  endif()
-
   # Figure out the dependent PythonXYD libraries for the module
   set(extra_links)
-  foreach(dep IN LISTS ${module}_DEPENDS)
-    if(NOT "${module}" STREQUAL "${dep}" AND TARGET ${dep}PythonD)
+  string(REPLACE "Kit" "" kit_basename "${module}")
+  if (_${kit_basename}_is_kit)
+    set(${module}_WRAP_DEPENDS)
+    foreach (kit_module IN LISTS _${kit_basename}_modules)
+      list(APPEND ${module}_WRAP_DEPENDS
+        ${${kit_module}_WRAP_DEPENDS})
+    endforeach ()
+  endif ()
+  foreach(dep IN LISTS ${module}_WRAP_DEPENDS)
+    if (module STREQUAL dep OR kit_basename STREQUAL dep)
+      continue ()
+    endif ()
+
+    if (VTK_ENABLE_KITS AND ${dep}_KIT)
+      if (NOT ${dep}_KIT STREQUAL kit_basename)
+        list(APPEND extra_links ${${dep}_KIT}KitPythonD)
+      endif ()
+    elseif (TARGET ${dep}PythonD)
       list(APPEND extra_links ${dep}PythonD)
-    endif()
+    endif ()
   endforeach()
 
   vtk_add_library(${module}PythonD ${${srcs}})
   get_property(output_name TARGET ${module}PythonD PROPERTY OUTPUT_NAME)
   string(REPLACE "PythonD" "Python${XY}D" output_name "${output_name}")
   set_property(TARGET ${module}PythonD PROPERTY OUTPUT_NAME ${output_name})
-  if(CMAKE_HAS_TARGET_INCLUDES)
-    set_property(TARGET ${module}PythonD APPEND
-      PROPERTY INCLUDE_DIRECTORIES ${_python_include_dirs})
-  endif()
+  set_property(TARGET ${module}PythonD APPEND
+    PROPERTY INCLUDE_DIRECTORIES ${_python_include_dirs})
   target_link_libraries(${module}PythonD LINK_PUBLIC
-    vtkWrappingPythonCore ${extra_links} ${VTK_PYTHON_LIBRARIES})
+    vtkWrappingPythonCore ${extra_links})
+  vtk_target_link_libraries_with_dynamic_lookup(
+    ${module}PythonD LINK_PUBLIC ${VTK_PYTHON_LIBRARIES})
 
   if (MSVC)
     set_target_properties(${module}PythonD
@@ -125,10 +144,8 @@ function(vtk_add_python_wrapping_library module srcs)
   endif()
   _vtk_add_python_module(${module}Python ${prefix}PythonInit.cxx)
   target_link_libraries(${module}Python ${module}PythonD)
-  if(CMAKE_HAS_TARGET_INCLUDES)
-    set_property(TARGET ${module}Python APPEND
-      PROPERTY INCLUDE_DIRECTORIES ${_python_include_dirs})
-  endif()
+  set_property(TARGET ${module}Python APPEND
+    PROPERTY INCLUDE_DIRECTORIES ${_python_include_dirs})
 endfunction()
 
 #------------------------------------------------------------------------------
@@ -174,12 +191,22 @@ function(vtk_write_python_modules_header filename)
 
   if (NOT BUILD_SHARED_LIBS)
     # fill in the init functions only when BUILD_SHARED_LIBS is OFF.
+    set(EXTERN_DEFINES "${EXTERN_DEFINES}\n#if PY_VERSION_HEX < 0x03000000")
+    set(INIT_CALLS "${INIT_CALLS}\n#if PY_VERSION_HEX < 0x03000000")
     foreach (module ${ARGN})
       set (EXTERN_DEFINES "${EXTERN_DEFINES}\n  extern void init${module}Python();")
       set (INIT_CALLS "${INIT_CALLS}\n
   static char name${module}[] = \"${module}Python\";
   PyImport_AppendInittab(name${module}, init${module}Python);")
     endforeach()
+    set(EXTERN_DEFINES "${EXTERN_DEFINES}\n#else /* PY3K */")
+    set(INIT_CALLS "${INIT_CALLS}\n#else /* PY3K */")
+    foreach (module ${ARGN})
+      set (EXTERN_DEFINES "${EXTERN_DEFINES}\n  extern PyObject *PyInit_${module}Python();")
+      set (INIT_CALLS "${INIT_CALLS}\n  PyImport_AppendInittab(\"${module}Python\", PyInit_${module}Python);")
+    endforeach()
+    set(EXTERN_DEFINES "${EXTERN_DEFINES}\n#endif /* PY3K */\n")
+    set(INIT_CALLS "${INIT_CALLS}\n#endif /* PY3K */\n")
   endif()
 
   configure_file(${VTK_CMAKE_DIR}/pythonmodules.h.in

@@ -54,7 +54,7 @@ class VTKIOLEGACY_EXPORT vtkGenericDataObjectReader : public vtkDataReader
 public:
   static vtkGenericDataObjectReader *New();
   vtkTypeMacro(vtkGenericDataObjectReader,vtkDataReader);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -68,7 +68,7 @@ public:
   /**
    * Get the output as various concrete types. This method is typically used
    * when you know exactly what type of data is being read.  Otherwise, use
-   * the general GetOutput() method. If the wrong type is used NULL is
+   * the general GetOutput() method. If the wrong type is used nullptr is
    * returned.  (You must also set the filename of the object prior to
    * getting the output.)
    */
@@ -92,24 +92,24 @@ public:
   /**
    * See vtkAlgorithm for information.
    */
-  virtual int ProcessRequest(vtkInformation *, vtkInformationVector **,
-                             vtkInformationVector *);
+  int ProcessRequest(vtkInformation *, vtkInformationVector **,
+                             vtkInformationVector *) override;
 
 protected:
   vtkGenericDataObjectReader();
-  ~vtkGenericDataObjectReader();
+  ~vtkGenericDataObjectReader() override;
 
-  virtual int RequestData(vtkInformation *, vtkInformationVector **,
-                          vtkInformationVector *);
+  int RequestData(vtkInformation *, vtkInformationVector **,
+                          vtkInformationVector *) override;
   virtual int RequestDataObject(vtkInformation *, vtkInformationVector **,
                                 vtkInformationVector *);
-  virtual int FillOutputPortInformation(int, vtkInformation *);
-  virtual int RequestInformation(vtkInformation *, vtkInformationVector **,
-                                 vtkInformationVector *);
+  int FillOutputPortInformation(int, vtkInformation *) override;
+  int RequestInformation(vtkInformation *, vtkInformationVector **,
+                                 vtkInformationVector *) override;
 
 private:
-  vtkGenericDataObjectReader(const vtkGenericDataObjectReader&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkGenericDataObjectReader&) VTK_DELETE_FUNCTION;
+  vtkGenericDataObjectReader(const vtkGenericDataObjectReader&) = delete;
+  void operator=(const vtkGenericDataObjectReader&) = delete;
 
   template<typename ReaderT, typename DataT>
     void ReadData(const char* dataClass, vtkDataObject* output);

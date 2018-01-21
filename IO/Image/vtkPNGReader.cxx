@@ -19,6 +19,7 @@
 #include "vtkObjectFactory.h"
 #include "vtkPointData.h"
 #include "vtk_png.h"
+#include <vtksys/SystemTools.hxx>
 
 #include <algorithm>
 #include <vector>
@@ -92,6 +93,7 @@ public:
 vtkPNGReader::vtkPNGReader()
 {
   this->Internals = new vtkInternals();
+  this->ReadSpacingFromFile = false;
 }
 
 //----------------------------------------------------------------------------
@@ -105,12 +107,12 @@ void vtkPNGReader::ExecuteInformation()
 {
   vtkInternals* impl = this->Internals;
   this->ComputeInternalFileName(this->DataExtent[4]);
-  if (this->InternalFileName == NULL)
+  if (this->InternalFileName == nullptr)
   {
     return;
   }
 
-  FILE *fp = fopen(this->InternalFileName, "rb");
+  FILE *fp = vtksys::SystemTools::Fopen(this->InternalFileName, "rb");
   if (!fp)
   {
     vtkErrorMacro("Unable to open file " << this->InternalFileName);
@@ -133,8 +135,8 @@ void vtkPNGReader::ExecuteInformation()
   }
 
   png_structp png_ptr = png_create_read_struct
-    (PNG_LIBPNG_VER_STRING, (png_voidp)NULL,
-     NULL, NULL);
+    (PNG_LIBPNG_VER_STRING, (png_voidp)nullptr,
+     nullptr, nullptr);
   if (!png_ptr)
   {
     vtkErrorMacro(<< "Out of memory." );
@@ -146,7 +148,7 @@ void vtkPNGReader::ExecuteInformation()
   if (!info_ptr)
   {
     png_destroy_read_struct(&png_ptr,
-                            (png_infopp)NULL, (png_infopp)NULL);
+                            (png_infopp)nullptr, (png_infopp)nullptr);
     vtkErrorMacro(<< "Out of memory.");
     fclose(fp);
     return;
@@ -156,7 +158,7 @@ void vtkPNGReader::ExecuteInformation()
   if (!end_info)
   {
     png_destroy_read_struct(&png_ptr, &info_ptr,
-                            (png_infopp)NULL);
+                            (png_infopp)nullptr);
     vtkErrorMacro(<<"Unable to read PNG file!");
     fclose(fp);
     return;
@@ -165,7 +167,7 @@ void vtkPNGReader::ExecuteInformation()
   // Set error handling
   if (setjmp (png_jmpbuf(png_ptr)))
   {
-    png_destroy_read_struct (&png_ptr, &info_ptr, (png_infopp)NULL);
+    png_destroy_read_struct (&png_ptr, &info_ptr, (png_infopp)nullptr);
     fclose(fp);
     return;
   }
@@ -217,13 +219,16 @@ void vtkPNGReader::ExecuteInformation()
   this->DataExtent[2] = 0;
   this->DataExtent[3] = height - 1;
 
-  png_uint_32 x_pixels_per_meter, y_pixels_per_meter;
-  x_pixels_per_meter = png_get_x_pixels_per_meter(png_ptr, info_ptr);
-  y_pixels_per_meter = png_get_y_pixels_per_meter(png_ptr, info_ptr);
-  if(x_pixels_per_meter > 0 && y_pixels_per_meter > 0)
-	{
-	this->SetDataSpacing(1000.0/x_pixels_per_meter, 1000.0/y_pixels_per_meter, 1);
-	}
+  if(ReadSpacingFromFile)
+  {
+    png_uint_32 x_pixels_per_meter, y_pixels_per_meter;
+    x_pixels_per_meter = png_get_x_pixels_per_meter(png_ptr, info_ptr);
+    y_pixels_per_meter = png_get_y_pixels_per_meter(png_ptr, info_ptr);
+    if (x_pixels_per_meter > 0 && y_pixels_per_meter > 0)
+    {
+      this->SetDataSpacing(1000.0/x_pixels_per_meter, 1000.0/y_pixels_per_meter, 1);
+    }
+  }
 
   if (bit_depth <= 8)
   {
@@ -250,7 +255,7 @@ void vtkPNGReader::vtkPNGReaderUpdate2(
   vtkPNGReader::vtkInternals* impl = this->Internals;
   unsigned int ui;
   int i;
-  FILE *fp = fopen(this->GetInternalFileName(), "rb");
+  FILE *fp = vtksys::SystemTools::Fopen(this->GetInternalFileName(), "rb");
   if (!fp)
   {
     return;
@@ -271,7 +276,7 @@ void vtkPNGReader::vtkPNGReaderUpdate2(
   }
 
   png_structp png_ptr = png_create_read_struct
-    (PNG_LIBPNG_VER_STRING, (png_voidp)NULL, NULL, NULL);
+    (PNG_LIBPNG_VER_STRING, (png_voidp)nullptr, nullptr, nullptr);
   if (!png_ptr)
   {
     fclose(fp);
@@ -282,7 +287,7 @@ void vtkPNGReader::vtkPNGReaderUpdate2(
   if (!info_ptr)
   {
     png_destroy_read_struct(&png_ptr,
-                            (png_infopp)NULL, (png_infopp)NULL);
+                            (png_infopp)nullptr, (png_infopp)nullptr);
     fclose(fp);
     return;
   }
@@ -291,7 +296,7 @@ void vtkPNGReader::vtkPNGReaderUpdate2(
   if (!end_info)
   {
     png_destroy_read_struct(&png_ptr, &info_ptr,
-                            (png_infopp)NULL);
+                            (png_infopp)nullptr);
     fclose(fp);
     return;
   }
@@ -299,7 +304,7 @@ void vtkPNGReader::vtkPNGReaderUpdate2(
   // Set error handling
   if (setjmp (png_jmpbuf(png_ptr)))
   {
-    png_destroy_read_struct (&png_ptr, &info_ptr, (png_infopp)NULL);
+    png_destroy_read_struct (&png_ptr, &info_ptr, (png_infopp)nullptr);
     fclose(fp);
     return;
   }
@@ -376,7 +381,7 @@ void vtkPNGReader::vtkPNGReaderUpdate2(
   delete [] row_pointers;
 
   // close the file
-  png_read_end(png_ptr, NULL);
+  png_read_end(png_ptr, nullptr);
   png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
   fclose(fp);
 }
@@ -418,7 +423,7 @@ void vtkPNGReader::ExecuteDataWithInformation(vtkDataObject *output,
 {
   vtkImageData *data = this->AllocateOutputData(output, outInfo);
 
-  if (this->InternalFileName == NULL)
+  if (this->InternalFileName == nullptr)
   {
     vtkErrorMacro(<< "Either a FileName or FilePrefix must be specified.");
     return;
@@ -445,7 +450,7 @@ void vtkPNGReader::ExecuteDataWithInformation(vtkDataObject *output,
 //----------------------------------------------------------------------------
 int vtkPNGReader::CanReadFile(const char* fname)
 {
-  FILE* fp = fopen(fname, "rb");
+  FILE* fp = vtksys::SystemTools::Fopen(fname, "rb");
   if(!fp)
   {
     return 0;
@@ -463,8 +468,8 @@ int vtkPNGReader::CanReadFile(const char* fname)
     return 0;
   }
   png_structp png_ptr = png_create_read_struct
-    (PNG_LIBPNG_VER_STRING, (png_voidp)NULL,
-     NULL, NULL);
+    (PNG_LIBPNG_VER_STRING, (png_voidp)nullptr,
+     nullptr, nullptr);
   if (!png_ptr)
   {
     fclose(fp);
@@ -475,7 +480,7 @@ int vtkPNGReader::CanReadFile(const char* fname)
   if (!info_ptr)
   {
     png_destroy_read_struct(&png_ptr,
-                            (png_infopp)NULL, (png_infopp)NULL);
+                            (png_infopp)nullptr, (png_infopp)nullptr);
     fclose(fp);
     return 0;
   }
@@ -484,7 +489,7 @@ int vtkPNGReader::CanReadFile(const char* fname)
   if (!end_info)
   {
     png_destroy_read_struct(&png_ptr, &info_ptr,
-                            (png_infopp)NULL);
+                            (png_infopp)nullptr);
     fclose(fp);
     return 0;
   }
@@ -502,6 +507,9 @@ int vtkPNGReader::CanReadFile(const char* fname)
 void vtkPNGReader::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
+
+  os << indent << "Read Spacing From File: " <<
+    (this->ReadSpacingFromFile ? "On\n" : "Off\n");
 }
 
 //----------------------------------------------------------------------------

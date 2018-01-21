@@ -43,7 +43,7 @@ macro(VTK_WRAP_PYTHON3 TARGET SRC_LIST_NAME SOURCES)
     set(_common_args "${_common_args}--types \"${file}\"\n")
   endforeach()
 
-  if(NOT CMAKE_VERSION VERSION_LESS 3.1 AND NOT VTK_ENABLE_KITS)
+  if(NOT VTK_ENABLE_KITS)
     # write wrapper-tool arguments to a file
     set(_args_file ${CMAKE_CURRENT_BINARY_DIR}/${TARGET}.$<CONFIGURATION>.args)
     file(GENERATE OUTPUT ${_args_file} CONTENT "${_common_args}
@@ -125,6 +125,7 @@ $<$<BOOL:$<TARGET_PROPERTY:${TARGET},INCLUDE_DIRECTORIES>>:
                 ${TMP_INPUT}
                 ${_args_file}
                 ${KIT_HIERARCHY_FILE}
+        IMPLICIT_DEPENDS CXX ${TMP_INPUT}
         COMMAND ${VTK_WRAP_PYTHON_EXE}
                 @${_args_file}
                 -o ${CMAKE_CURRENT_BINARY_DIR}/${TMP_FILENAME}Python.cxx
@@ -179,7 +180,12 @@ endmacro()
 
 if(VTK_WRAP_PYTHON_FIND_LIBS)
   get_filename_component(_CURRENT_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
-  find_package(PythonLibs)
+  if (VTK_UNDEFINED_SYMBOLS_ALLOWED)
+    set(_QUIET_LIBRARY "QUIET")
+  else()
+    set(_QUIET_LIBRARY "REQUIRED")
+  endif()
+  find_package(PythonLibs ${_QUIET_LIBRARY})
 
   # Use separate debug/optimized libraries if they are different.
   if(PYTHON_DEBUG_LIBRARY)

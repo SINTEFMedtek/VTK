@@ -56,15 +56,15 @@ public:
    * Standard methods for instances of this class.
    */
   vtkTypeMacro(vtkAbstractPolygonalHandleRepresentation3D,vtkHandleRepresentation);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   //@{
   /**
    * Set the position of the point in world and display coordinates.
    */
-  virtual void SetWorldPosition(double p[3]);
-  virtual void SetDisplayPosition(double p[3]);
+  void SetWorldPosition(double p[3]) override;
+  void SetDisplayPosition(double p[3]) override;
   //@}
 
   //@{
@@ -95,24 +95,24 @@ public:
   /**
    * Methods to make this class properly act like a vtkWidgetRepresentation.
    */
-  virtual void BuildRepresentation();
-  virtual void StartWidgetInteraction(double eventPos[2]);
-  virtual void WidgetInteraction(double eventPos[2]);
-  virtual int ComputeInteractionState(int X, int Y, int modify=0);
+  void BuildRepresentation() override;
+  void StartWidgetInteraction(double eventPos[2]) override;
+  void WidgetInteraction(double eventPos[2]) override;
+  int ComputeInteractionState(int X, int Y, int modify=0) override;
   //@}
 
   //@{
   /**
    * Methods to make this class behave as a vtkProp.
    */
-  virtual void ShallowCopy(vtkProp *prop);
-  virtual void DeepCopy(vtkProp *prop);
-  virtual void GetActors(vtkPropCollection *);
-  virtual void ReleaseGraphicsResources(vtkWindow *);
-  virtual int RenderOpaqueGeometry(vtkViewport *viewport);
-  virtual int RenderTranslucentPolygonalGeometry(vtkViewport *viewport);
-  virtual int HasTranslucentPolygonalGeometry();
-  virtual double *GetBounds();
+  void ShallowCopy(vtkProp *prop) override;
+  void DeepCopy(vtkProp *prop) override;
+  void GetActors(vtkPropCollection *) override;
+  void ReleaseGraphicsResources(vtkWindow *) override;
+  int RenderOpaqueGeometry(vtkViewport *viewport) override;
+  int RenderTranslucentPolygonalGeometry(vtkViewport *viewport) override;
+  int HasTranslucentPolygonalGeometry() override;
+  double *GetBounds() override;
   //@}
 
   //@{
@@ -163,7 +163,7 @@ public:
   vtkBooleanMacro( HandleVisibility, int );
   //@}
 
-  void Highlight(int highlight);
+  void Highlight(int highlight) override;
 
   //@{
   /**
@@ -184,7 +184,7 @@ public:
 
 protected:
   vtkAbstractPolygonalHandleRepresentation3D();
-  ~vtkAbstractPolygonalHandleRepresentation3D();
+  ~vtkAbstractPolygonalHandleRepresentation3D() override;
 
   vtkActor                   * Actor;
   vtkPolyDataMapper          * Mapper;
@@ -202,7 +202,7 @@ protected:
   int                          HandleVisibility;
 
   // Register internal Pickers within PickingManager
-  virtual void RegisterPickers();
+  void RegisterPickers() override;
 
   // Methods to manipulate the cursor
   virtual void Translate(double *p1, double *p2);
@@ -250,8 +250,8 @@ protected:
   int                SmoothMotion;
 
 private:
-  vtkAbstractPolygonalHandleRepresentation3D(const vtkAbstractPolygonalHandleRepresentation3D&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkAbstractPolygonalHandleRepresentation3D&) VTK_DELETE_FUNCTION;
+  vtkAbstractPolygonalHandleRepresentation3D(const vtkAbstractPolygonalHandleRepresentation3D&) = delete;
+  void operator=(const vtkAbstractPolygonalHandleRepresentation3D&) = delete;
 };
 
 #endif

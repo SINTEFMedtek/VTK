@@ -105,7 +105,7 @@ int TestOSPRayImplicits(int argc, char* argv[])
 
   //measure it for placements
   shrinker->Update();
-  double *bds = vtkDataSet::SafeDownCast(shrinker->GetOutputDataObject(0))->GetBounds();
+  const double *bds = vtkDataSet::SafeDownCast(shrinker->GetOutputDataObject(0))->GetBounds();
   double x0 = bds[0];
   double y0 = bds[2];
   double z0 = bds[4];
@@ -152,7 +152,6 @@ int TestOSPRayImplicits(int argc, char* argv[])
   renderer->AddActor(actor);
   actor->SetPosition(x0+dx*2, y0+dy*0, z0+dz*0);
   vtkInformation *mapInfo = mapper->GetInformation();
-  mapInfo = mapper->GetInformation();
   mapInfo->Set(vtkOSPRayActorNode::ENABLE_SCALING(), 1);
   mapInfo->Set(vtkOSPRayActorNode::SCALE_ARRAY_NAME(),"testarray1");
   vtkOSPRayTestInteractor::AddName("Points SCALE_ARRAY");
@@ -255,7 +254,7 @@ int TestOSPRayImplicits(int argc, char* argv[])
   vtkSmartPointer<vtkOSPRayTestInteractor> style =
     vtkSmartPointer<vtkOSPRayTestInteractor>::New();
   style->
-    SetPipelineControlPoints((vtkOpenGLRenderer*)renderer.Get(), ospray, NULL);
+    SetPipelineControlPoints(renderer, ospray, nullptr);
   iren->SetInteractorStyle(style);
   style->SetCurrentRenderer(renderer);
 

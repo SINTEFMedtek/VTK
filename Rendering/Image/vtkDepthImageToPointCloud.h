@@ -47,7 +47,7 @@
  * associated color scalar image). This class performs point by point
  * transformation. The view matrix is used to transform each pixel. IMPORTANT
  * NOTE: The transformation occurs by normalizing the image pixels into the
- * (-1,1) view space (depth values are passed thru). The process follows the
+ * (-1,1) view space (depth values are passed through). The process follows the
  * vtkCoordinate class which is the standard for VTK rendering
  * transformations. Subtle differences in whether the lower left pixel origin
  * are at the center of the pixel versus the lower-left corner of the pixel
@@ -83,13 +83,13 @@ public:
    */
   static vtkDepthImageToPointCloud *New();
   vtkTypeMacro(vtkDepthImageToPointCloud, vtkPolyDataAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   /**
    * Return the MTime also considering the camera.
    */
-  vtkMTimeType GetMTime();
+  vtkMTimeType GetMTime() override;
 
   /**
    * Indicates what camera was used to generate the depth image. The camera
@@ -163,7 +163,7 @@ public:
 
 protected:
   vtkDepthImageToPointCloud();
-  ~vtkDepthImageToPointCloud();
+  ~vtkDepthImageToPointCloud() override;
 
   vtkCamera *Camera;
   bool CullNearPoints;
@@ -172,24 +172,24 @@ protected:
   bool ProduceVertexCellArray;
   int OutputPointsPrecision;
 
-  virtual int RequestInformation(vtkInformation*,
+  int RequestInformation(vtkInformation*,
                                  vtkInformationVector**,
-                                 vtkInformationVector*);
+                                 vtkInformationVector*) override;
 
-  virtual int RequestUpdateExtent(vtkInformation *request,
+  int RequestUpdateExtent(vtkInformation *request,
                                   vtkInformationVector **inInfo,
-                                  vtkInformationVector *outInfo);
+                                  vtkInformationVector *outInfo) override;
 
-  virtual int RequestData(vtkInformation* request,
+  int RequestData(vtkInformation* request,
                           vtkInformationVector** inputVector,
-                          vtkInformationVector* outputVector);
+                          vtkInformationVector* outputVector) override;
 
-  virtual int FillInputPortInformation(int port, vtkInformation *info);
-  virtual int FillOutputPortInformation(int port, vtkInformation *info);
+  int FillInputPortInformation(int port, vtkInformation *info) override;
+  int FillOutputPortInformation(int port, vtkInformation *info) override;
 
 private:
-  vtkDepthImageToPointCloud(const vtkDepthImageToPointCloud&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkDepthImageToPointCloud&) VTK_DELETE_FUNCTION;
+  vtkDepthImageToPointCloud(const vtkDepthImageToPointCloud&) = delete;
+  void operator=(const vtkDepthImageToPointCloud&) = delete;
 
 };
 

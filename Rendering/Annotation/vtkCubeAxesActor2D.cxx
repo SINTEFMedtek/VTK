@@ -50,7 +50,7 @@ vtkCubeAxesActor2D::vtkCubeAxesActor2D()
 {
   this->ConnectionHolder = vtkCubeAxesActor2DConnection::New();
 
-  this->ViewProp = NULL;
+  this->ViewProp = nullptr;
   this->Bounds[0] = -1.0; this->Bounds[1] = 1.0;
   this->Bounds[2] = -1.0; this->Bounds[3] = 1.0;
   this->Bounds[4] = -1.0; this->Bounds[5] = 1.0;
@@ -60,7 +60,7 @@ vtkCubeAxesActor2D::vtkCubeAxesActor2D()
   this->Ranges[2] = 0; this->Ranges[3] = 0;
   this->Ranges[4] = 0; this->Ranges[5] = 0;
 
-  this->Camera = NULL;
+  this->Camera = nullptr;
   this->FlyMode = VTK_FLY_CLOSEST_TRIAD;
   this->Scaling = 1;
 
@@ -91,7 +91,7 @@ vtkCubeAxesActor2D::vtkCubeAxesActor2D()
   this->AxisTitleTextProperty->ShallowCopy(this->AxisLabelTextProperty);
 
   this->LabelFormat = new char[8];
-  sprintf(this->LabelFormat,"%s","%-#6.3g");
+  snprintf(this->LabelFormat,8,"%s","%-#6.3g");
   this->FontFactor = 1.0;
   this->CornerOffset = 0.05;
   this->Inertia = 1;
@@ -103,11 +103,11 @@ vtkCubeAxesActor2D::vtkCubeAxesActor2D()
   this->ZAxisVisibility = 1;
 
   this->XLabel = new char[2];
-  sprintf(this->XLabel,"%s","X");
+  snprintf(this->XLabel,2,"%s","X");
   this->YLabel = new char[2];
-  sprintf(this->YLabel,"%s","Y");
+  snprintf(this->YLabel,2,"%s","Y");
   this->ZLabel = new char[2];
-  sprintf(this->ZLabel,"%s","Z");
+  snprintf(this->ZLabel,2,"%s","Z");
 
   // Allow the user to specify an origin for the axes. The axes will then run
   // from this origin to the bounds and will cross over at this origin.
@@ -157,14 +157,14 @@ vtkCubeAxesActor2D::~vtkCubeAxesActor2D()
   this->ZAxis->Delete();
 
   delete [] this->LabelFormat;
-  this->LabelFormat = NULL;
+  this->LabelFormat = nullptr;
 
   delete [] this->XLabel;
   delete [] this->YLabel;
   delete [] this->ZLabel;
 
-  this->SetAxisLabelTextProperty(NULL);
-  this->SetAxisTitleTextProperty(NULL);
+  this->SetAxisLabelTextProperty(nullptr);
+  this->SetAxisTitleTextProperty(nullptr);
 }
 
 //----------------------------------------------------------------------------
@@ -702,7 +702,7 @@ double *vtkCubeAxesActor2D::GetRanges()
 // Compute the bounds
 void vtkCubeAxesActor2D::GetBounds(double bounds[6])
 {
-  double *propBounds;
+  const double *propBounds;
   int i;
 
   if ( this->GetInput() )
@@ -715,7 +715,7 @@ void vtkCubeAxesActor2D::GetBounds(double bounds[6])
     }
   }
   else if ( this->ViewProp &&
-            ((propBounds = this->ViewProp->GetBounds()) && propBounds != NULL) )
+            ((propBounds = this->ViewProp->GetBounds()) && propBounds != nullptr) )
   {
     for (i=0; i< 6; i++)
     {

@@ -29,20 +29,15 @@
 
 #include "vtkCommonCoreModule.h"
 
-#ifndef __VTK_SYSTEM_INCLUDES__INSIDE
-Do_not_include_vtkOStreamWrapper_directly__vtkSystemIncludes_includes_it;
+#ifndef VTK_SYSTEM_INCLUDES_INSIDE
+Do_not_include_vtkOStreamWrapper_directly_vtkSystemIncludes_includes_it;
 #endif
 
 class vtkIndent;
 class vtkObjectBase;
 class vtkLargeInteger;
 class vtkSmartPointerBase;
-// workaround clang bug, needs export on forward declaration
-#ifdef __clang__
-class VTKCOMMONCORE_EXPORT vtkStdString;
-#else
 class vtkStdString;
-#endif
 
 class VTKCOMMONCORE_EXPORT vtkOStreamWrapper
 {
@@ -155,7 +150,7 @@ protected:
   // Reference to the real ostream.
   ostream& ostr;
 private:
-  vtkOStreamWrapper& operator=(const vtkOStreamWrapper& r) VTK_DELETE_FUNCTION;
+  vtkOStreamWrapper& operator=(const vtkOStreamWrapper& r) = delete;
   vtkOStreamWrapper& operator << (std_string const&);
 };
   //@}

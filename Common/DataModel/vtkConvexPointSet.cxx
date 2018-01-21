@@ -41,7 +41,7 @@ vtkConvexPointSet::vtkConvexPointSet()
   this->Triangulator = vtkOrderedTriangulator::New();
   this->Triangulator->PreSortedOff();
   this->Triangulator->UseTemplatesOff();
-  this->ParametricCoords = NULL;
+  this->ParametricCoords = nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -82,7 +82,7 @@ int vtkConvexPointSet::GetNumberOfFaces()
 vtkCell *vtkConvexPointSet::GetFace(int faceId)
 {
   int numCells = this->BoundaryTris->GetNumberOfCells();
-  if ( faceId < 0 || faceId >=numCells ) {return NULL;}
+  if ( faceId < 0 || faceId >=numCells ) {return nullptr;}
 
   vtkIdType *cells = this->BoundaryTris->GetPointer();
 
@@ -372,7 +372,8 @@ double *vtkConvexPointSet::GetParametricCoords()
 
   this->ParametricCoords->SetNumberOfComponents(3);
   this->ParametricCoords->SetNumberOfTuples(numPts);
-  double p[3], x[3], *bounds = this->GetBounds();
+  double p[3], x[3];
+  const double *bounds = this->GetBounds();
   int i, j;
   for (i=0; i < numPts; i++)
   {

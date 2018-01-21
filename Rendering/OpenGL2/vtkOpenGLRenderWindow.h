@@ -25,16 +25,18 @@
 #ifndef vtkOpenGLRenderWindow_h
 #define vtkOpenGLRenderWindow_h
 
-#include "vtkRenderingOpenGL2Module.h" // For export macro
+#include "vtkRect.h" // for vtkRecti
 #include "vtkRenderWindow.h"
-#include <string> // for ivar
-#include <map> // for ivar
-#include <set> // for ivar
-#include "vtkType.h" // for ivar
+#include "vtkRenderingOpenGL2Module.h" // For export macro
+#include "vtkType.h"                   // for ivar
+#include <map>                         // for ivar
+#include <set>                         // for ivar
+#include <string>                      // for ivar
 
 class vtkIdList;
 class vtkOpenGLHardwareSupport;
 class vtkOpenGLShaderCache;
+class vtkOpenGLVertexBufferObjectCache;
 class vtkOpenGLVertexArrayObject;
 class vtkShaderProgram;
 class vtkStdString;
@@ -47,18 +49,12 @@ class VTKRENDERINGOPENGL2_EXPORT vtkOpenGLRenderWindow : public vtkRenderWindow
 {
 public:
   vtkTypeMacro(vtkOpenGLRenderWindow, vtkRenderWindow);
-  void PrintSelf(ostream& os, vtkIndent indent);
-
-  /**
-   * Overridden to release resources that would interfere with an external
-   * application's rendering.
-   */
-  void Render();
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * What rendering backend has the user requested
    */
-  virtual const char *GetRenderingBackend();
+  const char *GetRenderingBackend() override;
 
   //@{
   /**
@@ -68,59 +64,58 @@ public:
   static int  GetGlobalMaximumNumberOfMultiSamples();
   //@}
 
-  /**
-   * Update system if needed due to stereo rendering.
-   */
-  virtual void StereoUpdate();
-
   //@{
   /**
    * Set/Get the pixel data of an image, transmitted as RGBRGB...
    */
-  virtual unsigned char *GetPixelData(int x,int y,int x2,int y2,int front);
-  virtual int GetPixelData(int x,int y,int x2,int y2, int front,
-                           vtkUnsignedCharArray *data);
-  virtual int SetPixelData(int x,int y,int x2,int y2,unsigned char *data,
-                           int front);
-  virtual int SetPixelData(int x,int y,int x2,int y2,
-                           vtkUnsignedCharArray *data, int front);
+  unsigned char *GetPixelData(int x,int y,int x2,int y2,int front,int right)
+                             override;
+  int GetPixelData(int x,int y,int x2,int y2, int front,
+                   vtkUnsignedCharArray *data, int right) override;
+  int SetPixelData(int x,int y,int x2,int y2,unsigned char *data,
+                   int front, int right) override;
+  int SetPixelData(int x,int y,int x2,int y2,
+                   vtkUnsignedCharArray *data, int front, int right)
+                   override;
   //@}
 
   //@{
   /**
    * Set/Get the pixel data of an image, transmitted as RGBARGBA...
    */
-  virtual float *GetRGBAPixelData(int x,int y,int x2,int y2,int front);
-  virtual int GetRGBAPixelData(int x,int y,int x2,int y2, int front,
-                               vtkFloatArray* data);
-  virtual int SetRGBAPixelData(int x,int y,int x2,int y2, float *data,
-                               int front, int blend=0);
-  virtual int SetRGBAPixelData(int x,int y,int x2,int y2, vtkFloatArray *data,
-                               int front, int blend=0);
-  virtual void ReleaseRGBAPixelData(float *data);
-  virtual unsigned char *GetRGBACharPixelData(int x,int y,int x2,int y2,
-                                              int front);
-  virtual int GetRGBACharPixelData(int x,int y,int x2,int y2, int front,
-                                   vtkUnsignedCharArray *data);
-  virtual int SetRGBACharPixelData(int x, int y, int x2, int y2,
-                                   unsigned char *data, int front,
-                                   int blend=0);
-  virtual int SetRGBACharPixelData(int x,int y,int x2,int y2,
-                                   vtkUnsignedCharArray *data, int front,
-                                   int blend=0);
+  float *GetRGBAPixelData(int x,int y,int x2,int y2,int front,int right=0)
+                         override;
+  int GetRGBAPixelData(int x,int y,int x2,int y2, int front,
+                       vtkFloatArray* data, int right=0) override;
+  int SetRGBAPixelData(int x,int y,int x2,int y2, float *data,
+                       int front, int blend=0, int right=0) override;
+  int SetRGBAPixelData(int x,int y,int x2,int y2, vtkFloatArray *data,
+                       int front, int blend=0, int right=0) override;
+  void ReleaseRGBAPixelData(float *data) override;
+  unsigned char *GetRGBACharPixelData(int x,int y,int x2,int y2,
+                                      int front, int right=0) override;
+  int GetRGBACharPixelData(int x,int y,int x2,int y2, int front,
+                           vtkUnsignedCharArray *data, int right=0)
+                          override;
+  int SetRGBACharPixelData(int x, int y, int x2, int y2,
+                           unsigned char *data, int front,
+                           int blend=0, int right=0) override;
+  int SetRGBACharPixelData(int x,int y,int x2,int y2,
+                           vtkUnsignedCharArray *data, int front,
+                           int blend=0,int right=0) override;
   //@}
 
   //@{
   /**
    * Set/Get the zbuffer data from an image
    */
-  virtual float *GetZbufferData( int x1, int y1, int x2, int y2 );
-  virtual int GetZbufferData( int x1, int y1, int x2, int y2, float* z );
-  virtual int GetZbufferData( int x1, int y1, int x2, int y2,
-                              vtkFloatArray* z );
-  virtual int SetZbufferData( int x1, int y1, int x2, int y2, float *buffer );
-  virtual int SetZbufferData( int x1, int y1, int x2, int y2,
-                              vtkFloatArray *buffer );
+  float *GetZbufferData( int x1, int y1, int x2, int y2 ) override;
+  int GetZbufferData( int x1, int y1, int x2, int y2, float* z ) override;
+  int GetZbufferData( int x1, int y1, int x2, int y2,
+                              vtkFloatArray* z ) override;
+  int SetZbufferData( int x1, int y1, int x2, int y2, float *buffer ) override;
+  int SetZbufferData( int x1, int y1, int x2, int y2,
+                              vtkFloatArray *buffer ) override;
   //@}
 
 
@@ -142,20 +137,25 @@ public:
   /**
    * Get the size of the depth buffer.
    */
-  int GetDepthBufferSize();
+  int GetDepthBufferSize() override;
+
+  /**
+   * Is this window/fo in sRGB colorspace
+   */
+  bool GetUsingSRGBColorSpace();
 
   /**
    * Get the size of the color buffer.
    * Returns 0 if not able to determine otherwise sets R G B and A into buffer.
    */
-  int GetColorBufferSizes(int *rgba);
+  int GetColorBufferSizes(int *rgba) override;
 
   //@{
   /**
    * Set the size of the window in screen coordinates in pixels.
    */
-  virtual void SetSize(int a[2]);
-  virtual void SetSize(int,int);
+  void SetSize(int a[2]) override;
+  void SetSize(int,int) override;
   //@}
 
   /**
@@ -252,6 +252,13 @@ public:
 
   //@{
   /**
+   * Returns an Shader Cache object
+   */
+  vtkGetObjectMacro(VBOCache,vtkOpenGLVertexBufferObjectCache);
+  //@}
+
+  //@{
+  /**
    * Returns the current default FBO (0 when OffScreenRendering is inactive).
    */
   vtkGetMacro(FrameBufferObject, unsigned int);
@@ -267,7 +274,7 @@ public:
    * Block the thread until the actual rendering is finished().
    * Useful for measurement only.
    */
-  virtual void WaitForCompletion();
+  void WaitForCompletion() override;
 
   /**
    * Replacement for the old glDrawPixels function
@@ -315,7 +322,7 @@ public:
    */
   int GetDefaultTextureInternalFormat(
     int vtktype, int numComponents,
-    bool needInteger, bool needFloat);
+    bool needInteger, bool needFloat, bool needSRGB);
 
   /**
    * Return a message profiding additional details about the
@@ -333,13 +340,18 @@ public:
   // Return if the creation was successful (1) or not (0).
   // Note: This function requires that the device supports OpenGL framebuffer extension.
   // The function has no effect if OffScreenRendering is ON.
-  virtual int SetUseOffScreenBuffers(bool offScreen);
-  virtual bool GetUseOffScreenBuffers();
+  int SetUseOffScreenBuffers(bool offScreen) override;
+  bool GetUseOffScreenBuffers() override;
 
   /**
    * Does this render window support OpenGL? 0-false, 1-true
    */
-  virtual int SupportsOpenGL();
+  int SupportsOpenGL() override;
+
+  /**
+   * Get report of capabilities for the render window
+   */
+  const char *ReportCapabilities() override;
 
   /**
    * Initialize the rendering window.  This will setup all system-specific
@@ -381,11 +393,38 @@ public:
   virtual void PushContext() { this->MakeCurrent(); }
   virtual void PopContext() {}
 
+  /**
+   * Initialize the render window from the information associated
+   * with the currently activated OpenGL context.
+   */
+  bool InitializeFromCurrentContext() override;
+
+  /**
+   * Returns the id for the frame buffer object, if any, used by the render window
+   * in which the window does all its rendering. This may be 0, in which case
+   * the render window is rendering to the default OpenGL render buffers.
+   *
+   * @returns the name (or id) of the frame buffer object to render to.
+   */
+  vtkGetMacro(DefaultFrameBufferId, unsigned int);
+
+  /**
+   * Set the number of vertical syncs required between frames.
+   * A value of 0 means swap buffers as quickly as possible
+   * regardless of the vertical refresh. A value of 1 means swap
+   * buffers in sync with the vertical refresh to elimiate tearing.
+   * A value of -1 means use a value of 1 unless we missed a frame
+   * in which case swap immediately. Returns true if the call
+   * succeeded.
+   */
+  virtual bool SetSwapControl(int ) { return false; }
+
 protected:
   vtkOpenGLRenderWindow();
-  ~vtkOpenGLRenderWindow();
+  ~vtkOpenGLRenderWindow() override;
 
   vtkOpenGLShaderCache *ShaderCache;
+  vtkOpenGLVertexBufferObjectCache *VBOCache;
 
   // used in testing for opengl support
   // in the SupportsOpenGL() method
@@ -398,10 +437,7 @@ protected:
 
   std::map<const vtkTextureObject *, int> TextureResourceIds;
 
-  virtual int GetPixelData(int x, int y, int x2, int y2, int front, unsigned char* data);
-  int GetRGBAPixelData(int x, int y, int x2, int y2, int front, float* data);
-  int GetRGBACharPixelData(int x, int y, int x2, int y2, int front,
-                           unsigned char* data);
+  virtual int ReadPixels(const vtkRecti& rect, int front, int glFormat, int glType, void* data, int right=0);
 
   /**
    * Create an offScreen window based on OpenGL framebuffer extension.
@@ -484,6 +520,7 @@ protected:
   unsigned int FrontRightBuffer;
   unsigned int FrontBuffer;
   unsigned int BackBuffer;
+  unsigned int DefaultFrameBufferId;
 
   #ifndef VTK_LEGACY_REMOVE
   /**
@@ -505,12 +542,15 @@ protected:
   vtkTextureObject *DrawPixelsTextureObject;
 
   bool Initialized; // ensure glewinit has been called
+  bool GlewInitValid; // Did glewInit initialize with a valid state?
 
   float MaximumHardwareLineWidth;
 
+  char *Capabilities;
+
 private:
-  vtkOpenGLRenderWindow(const vtkOpenGLRenderWindow&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkOpenGLRenderWindow&) VTK_DELETE_FUNCTION;
+  vtkOpenGLRenderWindow(const vtkOpenGLRenderWindow&) = delete;
+  void operator=(const vtkOpenGLRenderWindow&) = delete;
 };
 
 #endif

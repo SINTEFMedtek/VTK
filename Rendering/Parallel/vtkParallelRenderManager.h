@@ -60,7 +60,7 @@ class VTKRENDERINGPARALLEL_EXPORT vtkParallelRenderManager : public vtkObject
 {
 public:
   vtkTypeMacro(vtkParallelRenderManager, vtkObject);
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
   /**
    * Builds a vtkRenderWindow compatible with this render manager.  The
@@ -322,20 +322,20 @@ public:
                             const int fullImageSize[2],
                             vtkUnsignedCharArray *reducedImage,
                             const int reducedImageSize[2],
-                            const int fullImageViewport[4] = NULL,
-                            const int reducedImageViewport[4] = NULL);
+                            const int fullImageViewport[4] = nullptr,
+                            const int reducedImageViewport[4] = nullptr);
   static void MagnifyImageNearest(vtkUnsignedCharArray *fullImage,
                                   const int fullImageSize[2],
                                   vtkUnsignedCharArray *reducedImage,
                                   const int reducedImageSize[2],
-                                  const int fullImageViewport[4] = NULL,
-                                  const int reducedImageViewport[4] = NULL);
+                                  const int fullImageViewport[4] = nullptr,
+                                  const int reducedImageViewport[4] = nullptr);
   static void MagnifyImageLinear(vtkUnsignedCharArray *fullImage,
                                  const int fullImageSize[2],
                                  vtkUnsignedCharArray *reducedImage,
                                  const int reducedImageSize[2],
-                                 const int fullImageViewport[4] = NULL,
-                                 const int reducedImageViewport[4] = NULL);
+                                 const int fullImageViewport[4] = nullptr,
+                                 const int reducedImageViewport[4] = nullptr);
   //@}
 
   //@{
@@ -458,7 +458,7 @@ public:
 
 protected:
   vtkParallelRenderManager();
-  ~vtkParallelRenderManager();
+  ~vtkParallelRenderManager() override;
 
 
   //@{
@@ -636,6 +636,9 @@ protected:
     double DesiredUpdateRate;
     double TileViewport[4];
 
+    // Initialize members
+    RenderWindowInfo() {}
+
     // Save/restore the struct to/from a stream.
     void Save(vtkMultiProcessStream& stream);
     bool Restore(vtkMultiProcessStream& stream);
@@ -658,6 +661,9 @@ protected:
 
     double ParallelScale;
 
+    // Initialize members
+    RendererInfo() {}
+
     // Save/restore the struct to/from a stream.
     void Save(vtkMultiProcessStream& stream);
     bool Restore(vtkMultiProcessStream& stream);
@@ -668,6 +674,10 @@ protected:
     double Position[3];
     double FocalPoint[3];
     double Type;
+
+    // Initialize members
+    LightInfo() {}
+
     // Save/restore the struct to/from a stream.
     void Save(vtkMultiProcessStream& stream);
     bool Restore(vtkMultiProcessStream& stream);
@@ -681,8 +691,8 @@ protected:
   static bool DefaultRenderEventPropagation;
 
 private:
-  vtkParallelRenderManager(const vtkParallelRenderManager &) VTK_DELETE_FUNCTION;
-  void operator=(const vtkParallelRenderManager &) VTK_DELETE_FUNCTION;
+  vtkParallelRenderManager(const vtkParallelRenderManager &) = delete;
+  void operator=(const vtkParallelRenderManager &) = delete;
 
 };
 

@@ -84,7 +84,7 @@ public:
    */
   static vtkAdaptiveSubdivisionFilter *New();
   vtkTypeMacro(vtkAdaptiveSubdivisionFilter,vtkPolyDataAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   //@{
@@ -160,11 +160,11 @@ public:
   /**
    * Modified GetMTime because of the dependence on the locator.
    */
-  vtkMTimeType GetMTime();
+  vtkMTimeType GetMTime() override;
 
 protected:
   vtkAdaptiveSubdivisionFilter();
-  ~vtkAdaptiveSubdivisionFilter();
+  ~vtkAdaptiveSubdivisionFilter() override;
 
   double MaximumEdgeLength;
   double MaximumTriangleArea;
@@ -173,11 +173,11 @@ protected:
   vtkIncrementalPointLocator *Locator;
   int OutputPointsPrecision;
 
-  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
 
 private:
-  vtkAdaptiveSubdivisionFilter(const vtkAdaptiveSubdivisionFilter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkAdaptiveSubdivisionFilter&) VTK_DELETE_FUNCTION;
+  vtkAdaptiveSubdivisionFilter(const vtkAdaptiveSubdivisionFilter&) = delete;
+  void operator=(const vtkAdaptiveSubdivisionFilter&) = delete;
 };
 
 #endif

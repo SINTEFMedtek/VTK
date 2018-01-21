@@ -27,13 +27,14 @@
 #include "vtkWeakPointer.h" // for render context
 
 class vtkRenderWindow;
+class vtkWindow;
 
 class VTKRENDERINGOPENGL2_EXPORT vtkRenderbuffer : public vtkObject
 {
 public:
   static vtkRenderbuffer* New();
   vtkTypeMacro(vtkRenderbuffer, vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Returns if the context supports the required extensions.
@@ -84,10 +85,30 @@ public:
         unsigned int format,
         unsigned int width,
         unsigned int height);
+  int Create(
+        unsigned int format,
+        unsigned int width,
+        unsigned int height,
+        unsigned int samples);
+
+  void ReleaseGraphicsResources(vtkWindow *win);
+
+  // resizes an existing renderbuffer
+  void Resize(unsigned int width, unsigned int height);
+
+  //@{
+  /**
+   * Get the buffer dimensions.
+   * These are the properties of the OpenGL renderbuffer this instance represents.
+   */
+  vtkGetMacro(Width, unsigned int);
+  vtkGetMacro(Height, unsigned int);
+  vtkGetMacro(Samples, unsigned int);
+  //@}
 
 protected:
   vtkRenderbuffer();
-  ~vtkRenderbuffer();
+  ~vtkRenderbuffer() override;
 
   bool LoadRequiredExtensions(vtkRenderWindow *renWin);
   void Alloc();
@@ -95,13 +116,18 @@ protected:
 
   int DepthBufferFloat;
 
+  unsigned int Width;
+  unsigned int Height;
+  unsigned int Format;
+  unsigned int Samples;
+
 private:
   unsigned int Handle;
   vtkWeakPointer<vtkRenderWindow> Context;
 
 private:
-  vtkRenderbuffer(const vtkRenderbuffer&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkRenderbuffer&) VTK_DELETE_FUNCTION;
+  vtkRenderbuffer(const vtkRenderbuffer&) = delete;
+  void operator=(const vtkRenderbuffer&) = delete;
 };
 
 #endif

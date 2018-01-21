@@ -60,7 +60,7 @@ void vtkParallelAMRUtilities::DistributeProcessInformation(vtkOverlappingAMR* am
     myBlocks.push_back(iter->GetCurrentFlatIndex());
   }
 
-  vtkIdType myNumBlocks = myBlocks.size();
+  vtkIdType myNumBlocks = static_cast<vtkIdType>(myBlocks.size());
   std::vector<vtkIdType> numBlocks(numProcs,0);
   numBlocks[myRank] = myNumBlocks;
 
@@ -116,7 +116,7 @@ void vtkParallelAMRUtilities::StripGhostLayers(
 {
   vtkAMRUtilities::StripGhostLayers(ghostedAMRData, strippedAMRData);
 
-  if( controller != NULL )
+  if( controller != nullptr )
   {
     controller->Barrier();
   }

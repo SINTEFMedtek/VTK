@@ -22,7 +22,7 @@
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkDataTransferHelper.h"
-#include "vtkFrameBufferObject.h"
+#include "vtkOpenGLFramebufferObject.h"
 #include "vtkLineIntegralConvolution2D.h"
 #include "vtkStructuredExtent.h"
 #include "vtkTextureObject.h"
@@ -50,7 +50,7 @@ vtkStandardNewMacro(vtkStructuredGridLIC2D);
 //----------------------------------------------------------------------------
 vtkStructuredGridLIC2D::vtkStructuredGridLIC2D()
 {
-  this->Context = 0;
+  this->Context = nullptr;
   this->Steps = 1;
   this->StepSize = 1.0;
   this->Magnification = 1;
@@ -65,14 +65,14 @@ vtkStructuredGridLIC2D::vtkStructuredGridLIC2D()
   this->NoiseSource->SetMinimum(0.0);
   this->NoiseSource->SetMaximum(1.0);
 
-  this->LICProgram = 0;
+  this->LICProgram = nullptr;
 }
 
 //----------------------------------------------------------------------------
 vtkStructuredGridLIC2D::~vtkStructuredGridLIC2D()
 {
   this->NoiseSource->Delete();
-  this->SetContext( NULL );
+  this->SetContext( nullptr );
 }
 
 //----------------------------------------------------------------------------
@@ -87,7 +87,7 @@ int vtkStructuredGridLIC2D::SetContext( vtkRenderWindow * context )
   if ( this->Context && this->OwnWindow )
   {
     this->Context->Delete();
-    this->Context = NULL;
+    this->Context = nullptr;
   }
   this->OwnWindow = false;
 
@@ -238,7 +238,7 @@ int vtkStructuredGridLIC2D::RequestUpdateExtent (
                  << PRINTEXTENT( ext ) << endl );
 
 
-  if(inputVector[1]!=0 && inputVector[1]->GetInformationObject(0) != NULL) // optional input
+  if(inputVector[1]!=nullptr && inputVector[1]->GetInformationObject(0) != nullptr) // optional input
   {
     inInfo = inputVector[1]->GetInformationObject(0);
     // always request the whole extent
@@ -373,22 +373,22 @@ int vtkStructuredGridLIC2D::RequestData(
     )
   {
     vtkErrorMacro( << "input is not a 2D image." << endl );
-    input  = NULL;
-    inInfo = NULL;
+    input  = nullptr;
+    inInfo = nullptr;
     return 0;
   }
-  if( input->GetPointData() == 0 )
+  if( input->GetPointData() == nullptr )
   {
     vtkErrorMacro( << "input does not have point data." );
-    input  = NULL;
-    inInfo = NULL;
+    input  = nullptr;
+    inInfo = nullptr;
     return 0;
   }
-  if( input->GetPointData()->GetVectors() == 0 )
+  if( input->GetPointData()->GetVectors() == nullptr )
   {
     vtkErrorMacro( << "input does not vectors on point data." );
-    input  = NULL;
-    inInfo = NULL;
+    input  = nullptr;
+    inInfo = nullptr;
     return 0;
   }
 
@@ -399,13 +399,13 @@ int vtkStructuredGridLIC2D::RequestData(
     {
       vtkErrorMacro("Invalid render window");
       renWin->Delete();
-      renWin = NULL;
-      input  = NULL;
-      inInfo = NULL;
+      renWin = nullptr;
+      input  = nullptr;
+      inInfo = nullptr;
       return 0;
     }
 
-    renWin = NULL; // to be released via this->context
+    renWin = nullptr; // to be released via this->context
     this->OwnWindow = true;
   }
 
@@ -422,8 +422,8 @@ int vtkStructuredGridLIC2D::RequestData(
 
   // Noise.
   vtkInformation *noiseInfo = inputVector[1]->GetInformationObject(0);
-  vtkImageData *noise = 0;
-  if (noiseInfo == 0)
+  vtkImageData *noise = nullptr;
+  if (noiseInfo == nullptr)
   {
     this->NoiseSource->Update();
     noise = this->NoiseSource->GetOutput();
@@ -433,12 +433,12 @@ int vtkStructuredGridLIC2D::RequestData(
     noise = vtkImageData::SafeDownCast(
       noiseInfo->Get(vtkDataObject::DATA_OBJECT()));
 
-    if(noise->GetPointData()==0)
+    if(noise->GetPointData()==nullptr)
     {
       vtkErrorMacro(<<"provided noise does not have point data.");
       return 0;
     }
-    if(noise->GetPointData()->GetScalars()==0)
+    if(noise->GetPointData()->GetScalars()==nullptr)
     {
       vtkErrorMacro(<<"provided noise does not have scalars on point data.");
       return 0;
@@ -509,36 +509,37 @@ int vtkStructuredGridLIC2D::RequestData(
   vtkDebugMacro( << "Vector field in image space (target) textureId = "
                  << vector2->GetHandle() << endl );
 
-  vtkFrameBufferObject *fbo = vtkFrameBufferObject::New();
+  vtkOpenGLFramebufferObject *fbo = vtkOpenGLFramebufferObject::New();
   fbo->SetContext(renWin);
-  fbo->SetColorBuffer(0,vector2);
-  fbo->SetNumberOfRenderTargets(1);
-  fbo->SetActiveBuffer(0);
+  fbo->Bind();
+  fbo->AddColorAttachment(fbo->GetBothMode(), 0,vector2);
+  fbo->ActivateDrawBuffer(0);
+  fbo->ActivateReadBuffer(0);
 
   // TODO --
   // step size is incorrect here
   // guard pixels are needed for parallel operations
 
-  if (  !fbo->Start( magWidth, magHeight, false )  )
+  if (  !fbo->Start( magWidth, magHeight )  )
   {
     fbo->Delete();
     vector2->Delete();
     pointBus->Delete();
     vectorFieldBus->Delete();
 
-    fbo = NULL;
-    vector2  = NULL;
-    pointBus = NULL;
-    vectorFieldBus   = NULL;
+    fbo = nullptr;
+    vector2  = nullptr;
+    pointBus = nullptr;
+    vectorFieldBus   = nullptr;
 
-    noise   = NULL;
-    input   = NULL;
-    inInfo  = NULL;
-    output  = NULL;
-    outInfo = NULL;
-    noiseInfo = NULL;
-    outputTexture  = NULL;
-    outInfoTexture = NULL;
+    noise   = nullptr;
+    input   = nullptr;
+    inInfo  = nullptr;
+    output  = nullptr;
+    outInfo = nullptr;
+    noiseInfo = nullptr;
+    outputTexture  = nullptr;
+    outInfoTexture = nullptr;
 
     this->FBOSuccess = 0;
     return 0;
@@ -564,13 +565,13 @@ int vtkStructuredGridLIC2D::RequestData(
   pgm->SetUniform3f("uDimensions",fvalues);
   pgm->SetUniformi("uSlice",slice);
 
-  pointBus->Upload(0,0);
+  pointBus->Upload(0,nullptr);
   vtkTextureObject *points = pointBus->GetTexture();
   points->SetWrapS(vtkTextureObject::ClampToEdge);
   points->SetWrapT(vtkTextureObject::ClampToEdge);
   points->SetWrapR(vtkTextureObject::ClampToEdge);
 
-  vectorFieldBus->Upload(0,0);
+  vectorFieldBus->Upload(0,nullptr);
   vtkTextureObject *vectorField = vectorFieldBus->GetTexture();
   vectorField->SetWrapS(vtkTextureObject::ClampToEdge);
   vectorField->SetWrapT(vtkTextureObject::ClampToEdge);
@@ -596,7 +597,7 @@ int vtkStructuredGridLIC2D::RequestData(
   {
     this->LICProgram->ReleaseGraphicsResources(renWin);
     delete this->LICProgram;
-    this->LICProgram = 0;
+    this->LICProgram = nullptr;
 
     fbo->Delete();
     vector2->Delete();
@@ -604,22 +605,22 @@ int vtkStructuredGridLIC2D::RequestData(
     pointBus->Delete();
     vectorFieldBus->Delete();
 
-    fbo = NULL;
-    vector2  = NULL;
-    internal = NULL;
-    pointBus = NULL;
-    vectorFieldBus = NULL;
+    fbo = nullptr;
+    vector2  = nullptr;
+    internal = nullptr;
+    pointBus = nullptr;
+    vectorFieldBus = nullptr;
 
-    noise   = NULL;
-    input   = NULL;
-    inInfo  = NULL;
-    points  = NULL;
-    output  = NULL;
-    outInfo = NULL;
-    noiseInfo   = NULL;
-    vectorField = NULL;
-    outputTexture  = NULL;
-    outInfoTexture = NULL;
+    noise   = nullptr;
+    input   = nullptr;
+    inInfo  = nullptr;
+    points  = nullptr;
+    output  = nullptr;
+    outInfo = nullptr;
+    noiseInfo   = nullptr;
+    vectorField = nullptr;
+    outputTexture  = nullptr;
+    outInfoTexture = nullptr;
 
     this->LICSuccess = 0;
     return 0;
@@ -636,14 +637,14 @@ int vtkStructuredGridLIC2D::RequestData(
   noiseBus->SetGPUExtent(noise->GetExtent());
   //  noiseBus->SetTextureExtent(noise->GetExtent());
   noiseBus->SetArray(noise->GetPointData()->GetScalars());
-  noiseBus->Upload(0,0);
+  noiseBus->Upload(0,nullptr);
 
   vtkTextureObject *licTex = internal->Execute(vector2, noiseBus->GetTexture());
-  if (licTex == NULL)
+  if (licTex == nullptr)
   {
     this->LICProgram->ReleaseGraphicsResources(renWin);
     delete this->LICProgram;
-    this->LICProgram = 0;
+    this->LICProgram = nullptr;
 
     fbo->Delete();
     vector2->Delete();
@@ -652,23 +653,23 @@ int vtkStructuredGridLIC2D::RequestData(
     noiseBus->Delete();
     vectorFieldBus->Delete();
 
-    fbo = NULL;
-    vector2 = NULL;
-    internal = NULL;
-    pointBus = NULL;
-    noiseBus = NULL;
-    vectorFieldBus = NULL;
+    fbo = nullptr;
+    vector2 = nullptr;
+    internal = nullptr;
+    pointBus = nullptr;
+    noiseBus = nullptr;
+    vectorFieldBus = nullptr;
 
-    noise = NULL;
-    input = NULL;
-    inInfo = NULL;
-    points = NULL;
-    output = NULL;
-    outInfo = NULL;
-    noiseInfo = NULL;
-    vectorField = NULL;
-    outputTexture = NULL;
-    outInfoTexture = NULL;
+    noise = nullptr;
+    input = nullptr;
+    inInfo = nullptr;
+    points = nullptr;
+    output = nullptr;
+    outInfo = nullptr;
+    noiseInfo = nullptr;
+    vectorField = nullptr;
+    outputTexture = nullptr;
+    outInfoTexture = nullptr;
 
     this->LICSuccess = 0;
     return 0;
@@ -760,7 +761,7 @@ int vtkStructuredGridLIC2D::RequestData(
 
   this->LICProgram->ReleaseGraphicsResources(renWin);
   delete this->LICProgram;
-  this->LICProgram = 0;
+  this->LICProgram = nullptr;
 
   vtkOpenGLCheckErrorMacro("failed after RequestData");
 

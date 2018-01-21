@@ -14,7 +14,7 @@
 #include "vtkSurfaceLICInterface.h"
 
 #include "vtkFloatArray.h"
-#include "vtkFrameBufferObject2.h"
+#include "vtkOpenGLFramebufferObject.h"
 #include "vtkImageData.h"
 #include "vtkLineIntegralConvolution2D.h"
 #include "vtkObjectFactory.h"
@@ -172,7 +172,7 @@ void vtkSurfaceLICInterface::UpdateCommunicator(
   {
     // create a communicator that contains only ranks
     // that have visible data. In parallel this is a
-    // collective operation accross all ranks. In
+    // collective operation across all ranks. In
     // serial this is a no-op.
     this->CreateCommunicator(renderer,actor, input);
   }
@@ -189,7 +189,7 @@ void vtkSurfaceLICInterface::PrepareForGeometry()
 
   // ------------------------------------------- render geometry, project vectors onto screen, etc
   // setup our fbo
-  vtkFrameBufferObject2 *fbo = this->Internals->FBO;
+  vtkOpenGLFramebufferObject *fbo = this->Internals->FBO;
   fbo->SaveCurrentBindings();
   fbo->Bind(GL_FRAMEBUFFER);
   fbo->AddDepthAttachment(GL_DRAW_FRAMEBUFFER, this->Internals->DepthImage);
@@ -211,7 +211,7 @@ void vtkSurfaceLICInterface::PrepareForGeometry()
 
 void vtkSurfaceLICInterface::CompletedGeometry()
 {
-  vtkFrameBufferObject2 *fbo = this->Internals->FBO;
+  vtkOpenGLFramebufferObject *fbo = this->Internals->FBO;
   fbo->RemoveRenDepthAttachment(GL_DRAW_FRAMEBUFFER);
   fbo->RemoveTexColorAttachment(GL_DRAW_FRAMEBUFFER, 0U);
   fbo->RemoveTexColorAttachment(GL_DRAW_FRAMEBUFFER, 1U);
@@ -463,7 +463,7 @@ void vtkSurfaceLICInterface::ApplyLIC()
 
     vtkPixelBufferObject *licPBO = this->Internals->LICImage->Download();
     void *pLicPBO = licPBO->MapPackedBuffer();
-    vtkTextureObject *newLicImage = NULL;
+    vtkTextureObject *newLicImage = nullptr;
     int iErr = this->Internals->Compositor->Scatter(pLicPBO, VTK_FLOAT, 4, newLicImage);
     if (iErr)
     {
@@ -471,7 +471,7 @@ void vtkSurfaceLICInterface::ApplyLIC()
     }
     licPBO->UnmapPackedBuffer();
     licPBO->Delete();
-    this->Internals->LICImage = NULL;
+    this->Internals->LICImage = nullptr;
     this->Internals->LICImage = newLicImage;
     newLicImage->Delete();
 
@@ -500,7 +500,7 @@ void vtkSurfaceLICInterface::CombineColorsAndLIC()
         this->Internals->Viewsize[0],
         this->Internals->Viewsize[1]);
 
-  vtkFrameBufferObject2 *fbo = this->Internals->FBO;
+  vtkOpenGLFramebufferObject *fbo = this->Internals->FBO;
   fbo->SaveCurrentBindings();
   fbo->Bind(GL_FRAMEBUFFER);
   fbo->InitializeViewport(this->Internals->Viewsize[0], this->Internals->Viewsize[1]);
@@ -672,7 +672,7 @@ void vtkSurfaceLICInterface::CopyToScreen()
 
   glBindFramebuffer(GL_FRAMEBUFFER, this->PrevFbo);
   glDrawBuffer(this->PrevDrawBuf);
-  vtkFrameBufferObject2::InitializeViewport(
+  vtkOpenGLFramebufferObject::InitializeViewport(
         this->Internals->Viewsize[0],
         this->Internals->Viewsize[1]);
   glEnable(GL_DEPTH_TEST);
@@ -714,7 +714,7 @@ void vtkSurfaceLICInterface::CopyToScreen()
 void vtkSurfaceLICInterface::ReleaseGraphicsResources(vtkWindow* win)
 {
   this->Internals->ReleaseGraphicsResources(win);
-  this->Internals->Context = NULL;
+  this->Internals->Context = nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -733,70 +733,70 @@ void vtkSurfaceLICInterface::Set##_name (_type val)           \
 vtkSetMonitoredParameterMacro(
       GenerateNoiseTexture,
       int,
-      this->Internals->Noise = NULL;
-      this->Internals->NoiseImage = NULL;)
+      this->Internals->Noise = nullptr;
+      this->Internals->NoiseImage = nullptr;)
 
 vtkSetMonitoredParameterMacro(
       NoiseType,
       int,
-      this->Internals->Noise = NULL;
-      this->Internals->NoiseImage = NULL;)
+      this->Internals->Noise = nullptr;
+      this->Internals->NoiseImage = nullptr;)
 
 vtkSetMonitoredParameterMacro(
       NoiseTextureSize,
       int,
-      this->Internals->Noise = NULL;
-      this->Internals->NoiseImage = NULL;)
+      this->Internals->Noise = nullptr;
+      this->Internals->NoiseImage = nullptr;)
 
 vtkSetMonitoredParameterMacro(
       NoiseGrainSize,
       int,
-      this->Internals->Noise = NULL;
-      this->Internals->NoiseImage = NULL;)
+      this->Internals->Noise = nullptr;
+      this->Internals->NoiseImage = nullptr;)
 
 vtkSetMonitoredParameterMacro(
       MinNoiseValue,
       double,
       val = val < 0.0 ? 0.0 : val;
       val = val > 1.0 ? 1.0 : val;
-      this->Internals->Noise = NULL;
-      this->Internals->NoiseImage = NULL;)
+      this->Internals->Noise = nullptr;
+      this->Internals->NoiseImage = nullptr;)
 
 vtkSetMonitoredParameterMacro(
       MaxNoiseValue,
       double,
       val = val < 0.0 ? 0.0 : val;
       val = val > 1.0 ? 1.0 : val;
-      this->Internals->Noise = NULL;
-      this->Internals->NoiseImage = NULL;)
+      this->Internals->Noise = nullptr;
+      this->Internals->NoiseImage = nullptr;)
 
 vtkSetMonitoredParameterMacro(
       NumberOfNoiseLevels,
       int,
-      this->Internals->Noise = NULL;
-      this->Internals->NoiseImage = NULL;)
+      this->Internals->Noise = nullptr;
+      this->Internals->NoiseImage = nullptr;)
 
 vtkSetMonitoredParameterMacro(
       ImpulseNoiseProbability,
       double,
       val = val < 0.0 ? 0.0 : val;
       val = val > 1.0 ? 1.0 : val;
-      this->Internals->Noise = NULL;
-      this->Internals->NoiseImage = NULL;)
+      this->Internals->Noise = nullptr;
+      this->Internals->NoiseImage = nullptr;)
 
 vtkSetMonitoredParameterMacro(
       ImpulseNoiseBackgroundValue,
       double,
       val = val < 0.0 ? 0.0 : val;
       val = val > 1.0 ? 1.0 : val;
-      this->Internals->Noise = NULL;
-      this->Internals->NoiseImage = NULL;)
+      this->Internals->Noise = nullptr;
+      this->Internals->NoiseImage = nullptr;)
 
 vtkSetMonitoredParameterMacro(
       NoiseGeneratorSeed,
       int,
-      this->Internals->Noise = NULL;
-      this->Internals->NoiseImage = NULL;)
+      this->Internals->Noise = nullptr;
+      this->Internals->NoiseImage = nullptr;)
 
 // compositor
 vtkSetMonitoredParameterMacro(
@@ -931,16 +931,16 @@ void vtkSurfaceLICInterface::SetNoiseDataSet(vtkImageData *data)
     return;
   }
   this->Internals->Noise = data;
-  this->Internals->NoiseImage = NULL;
+  this->Internals->NoiseImage = nullptr;
   this->Modified();
 }
 
 //----------------------------------------------------------------------------
 vtkImageData *vtkSurfaceLICInterface::GetNoiseDataSet()
 {
-  if (this->Internals->Noise == NULL)
+  if (this->Internals->Noise == nullptr)
   {
-    vtkImageData *noise = NULL;
+    vtkImageData *noise = nullptr;
     if ( this->GenerateNoiseTexture )
     {
       // report potential issues
@@ -977,7 +977,7 @@ vtkImageData *vtkSurfaceLICInterface::GetNoiseDataSet()
             this->ImpulseNoiseProbability,
             static_cast<float>(this->ImpulseNoiseBackgroundValue),
             this->NoiseGeneratorSeed);
-      if ( noiseValues == NULL )
+      if ( noiseValues == nullptr )
       {
         vtkErrorMacro("Failed to generate noise.");
       }
@@ -1003,9 +1003,9 @@ vtkImageData *vtkSurfaceLICInterface::GetNoiseDataSet()
     }
 
     this->Internals->Noise = noise;
-    this->Internals->NoiseImage = NULL;
+    this->Internals->NoiseImage = nullptr;
     noise->Delete();
-    noise = NULL;
+    noise = nullptr;
   }
 
   return this->Internals->Noise;
@@ -1095,7 +1095,7 @@ namespace {
     vtkOpenGLHelper **cbor, const char * vert,
     const char *frag)
   {
-  if (*cbor == NULL)
+  if (*cbor == nullptr)
   {
     *cbor = new vtkOpenGLHelper;
   }
@@ -1152,7 +1152,7 @@ void vtkSurfaceLICInterface::InitializeResources()
   {
     initialized = false;
 
-    vtkFrameBufferObject2 * fbo = vtkFrameBufferObject2::New();
+    vtkOpenGLFramebufferObject * fbo = vtkOpenGLFramebufferObject::New();
     fbo->SetContext(this->Internals->Context);
     this->Internals->FBO = fbo;
     fbo->Delete();
@@ -1193,7 +1193,7 @@ void vtkSurfaceLICInterface::InitializeResources()
 //----------------------------------------------------------------------------
 bool vtkSurfaceLICInterface::NeedToUpdateCommunicator()
 {
-  // no comm or externally modfied paramters
+  // no comm or externally modfied parameters
   if ( this->Internals->CommunicatorNeedsUpdate
     || this->Internals->ContextNeedsUpdate
     || !this->Internals->Communicator

@@ -274,7 +274,7 @@ int TestOSPRayRenderMesh(int argc, char* argv[])
   {
     renderer->SetPass(ospray);
   }
-  //Now, vary of most of the many parameters that rendering can vary by.
+  //Now, vary most of the many parameters that rendering can vary by.
 
   //representations points, wireframe, surface
   renderable *ren = MakeSphereAt(5,0,-5, 10, type, rep, "points");
@@ -461,7 +461,7 @@ int TestOSPRayRenderMesh(int argc, char* argv[])
   vtkSmartPointer<vtkOSPRayTestInteractor> style =
     vtkSmartPointer<vtkOSPRayTestInteractor>::New();
   style->
-    SetPipelineControlPoints((vtkOpenGLRenderer*)renderer.Get(), ospray, NULL);
+    SetPipelineControlPoints(renderer, ospray, nullptr);
   iren->SetInteractorStyle(style);
   style->SetCurrentRenderer(renderer);
 

@@ -32,7 +32,7 @@ class VTKFILTERSPARALLEL_EXPORT vtkPLinearExtrusionFilter : public vtkLinearExtr
 {
 public:
   vtkTypeMacro(vtkPLinearExtrusionFilter,vtkLinearExtrusionFilter);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Create an object with PieceInvariant off.
@@ -51,15 +51,15 @@ public:
 
 protected:
   vtkPLinearExtrusionFilter();
-  ~vtkPLinearExtrusionFilter() {}
+  ~vtkPLinearExtrusionFilter() override {}
 
-  virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-  virtual int RequestUpdateExtent(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
+  int RequestUpdateExtent(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
 
   int PieceInvariant;
 private:
-  vtkPLinearExtrusionFilter(const vtkPLinearExtrusionFilter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPLinearExtrusionFilter&) VTK_DELETE_FUNCTION;
+  vtkPLinearExtrusionFilter(const vtkPLinearExtrusionFilter&) = delete;
+  void operator=(const vtkPLinearExtrusionFilter&) = delete;
 };
 
 #endif

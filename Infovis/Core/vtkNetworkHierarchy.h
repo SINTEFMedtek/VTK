@@ -50,28 +50,28 @@ public:
   vtkSetStringMacro(IPArrayName);
   //@}
 
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
 protected:
   vtkNetworkHierarchy();
-  ~vtkNetworkHierarchy();
+  ~vtkNetworkHierarchy() override;
 
   int RequestData(
     vtkInformation*,
     vtkInformationVector**,
-    vtkInformationVector*);
+    vtkInformationVector*) override;
 
   int FillOutputPortInformation(
-    int vtkNotUsed(port), vtkInformation* info);
+    int vtkNotUsed(port), vtkInformation* info) override;
   int FillInputPortInformation(
-    int vtkNotUsed(port), vtkInformation* info);
+    int vtkNotUsed(port), vtkInformation* info) override;
 
 private:
-  vtkNetworkHierarchy(const vtkNetworkHierarchy&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkNetworkHierarchy&) VTK_DELETE_FUNCTION;
+  vtkNetworkHierarchy(const vtkNetworkHierarchy&) = delete;
+  void operator=(const vtkNetworkHierarchy&) = delete;
 
   // Internal helper functions
-  unsigned int ITON(vtkStdString ip);
+  unsigned int ITON(const vtkStdString& ip);
   void GetSubnets(unsigned int packedIP, int *subnets);
 
   char *IPArrayName;

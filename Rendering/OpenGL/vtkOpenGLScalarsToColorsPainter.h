@@ -36,25 +36,25 @@ public:
   static vtkOpenGLScalarsToColorsPainter* New();
   vtkTypeMacro(vtkOpenGLScalarsToColorsPainter,
     vtkScalarsToColorsPainter);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Release any graphics resources that are being consumed by this mapper.
    * The parameter window could be used to determine which graphic
    * resources to release.
    */
-  virtual void ReleaseGraphicsResources(vtkWindow *);
+  void ReleaseGraphicsResources(vtkWindow *) override;
 
-  virtual int GetPremultiplyColorsWithAlpha(vtkActor* actor);
+  int GetPremultiplyColorsWithAlpha(vtkActor* actor) override;
 
   /**
    * Return the texture size limit, i.e. GL_MAX_TEXTURE_SIZE.
    */
-  virtual vtkIdType GetTextureSizeLimit();
+  vtkIdType GetTextureSizeLimit() override;
 
 protected:
   vtkOpenGLScalarsToColorsPainter();
-  ~vtkOpenGLScalarsToColorsPainter();
+  ~vtkOpenGLScalarsToColorsPainter() override;
 
   vtkOpenGLTexture* InternalColorTexture;
   int AlphaBitPlanes;
@@ -67,12 +67,12 @@ protected:
    * Subclasses may override this method. Default implementation propagates
    * the call to Deletegate Painter, in any.
    */
-  virtual void RenderInternal(vtkRenderer* renderer, vtkActor* actor,
-                              unsigned long typeflags, bool forceCompileOnly);
+  void RenderInternal(vtkRenderer* renderer, vtkActor* actor,
+                              unsigned long typeflags, bool forceCompileOnly) override;
 
 private:
-  vtkOpenGLScalarsToColorsPainter(const vtkOpenGLScalarsToColorsPainter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkOpenGLScalarsToColorsPainter&) VTK_DELETE_FUNCTION;
+  vtkOpenGLScalarsToColorsPainter(const vtkOpenGLScalarsToColorsPainter&) = delete;
+  void operator=(const vtkOpenGLScalarsToColorsPainter&) = delete;
 };
 
 #endif

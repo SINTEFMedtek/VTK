@@ -29,7 +29,7 @@ mark_as_advanced(OSPRAY_INSTALL_DIR)
 set(OSPRAY_BUILD_DIR "" CACHE PATH "build location of ospray")
 mark_as_advanced(OSPRAY_BUILD_DIR)
 if (OSPRAY_INSTALL_DIR AND OSPRAY_BUILD_DIR)
-   message("Ignoring the ospray build location in favor of the intall location.")
+   message("Ignoring the ospray build location in favor of the install location.")
 endif()
 
 if (OSPRAY_INSTALL_DIR)
@@ -42,6 +42,7 @@ else()
     #find corresponding source directory
     load_cache(${OSPRAY_BUILD_DIR} READ_WITH_PREFIX OSP_
       CMAKE_HOME_DIRECTORY
+      embree_DIR
       )
     set(OSPRAY_SOURCE_DIR ${OSP_CMAKE_HOME_DIRECTORY})
 
@@ -50,11 +51,12 @@ else()
       ${OSPRAY_BUILD_DIR}/include
       ${OSPRAY_SOURCE_DIR}
       ${OSPRAY_SOURCE_DIR}/ospray/include
+      ${OSPRAY_SOURCE_DIR}/components
       )
 
     set(LIB_OSPRAY_EMBREE LIB_OSPRAY_EMBREE-NOTFOUND)
     find_library(LIB_OSPRAY_EMBREE NAMES ospray_embree embree
-      PATHS ${OSPRAY_BUILD_DIR} NO_DEFAULT_PATH)
+      PATHS ${OSPRAY_BUILD_DIR} ${OSP_embree_DIR} NO_DEFAULT_PATH)
     mark_as_advanced(LIB_OSPRAY_EMBREE)
 
     set(LIB_OSPRAY_COMMON LIB_OSPRAY_COMMON-NOTFOUND)

@@ -37,7 +37,7 @@ class VTKWRAPPINGPYTHONCORE_EXPORT PyVTKClass
 {
 public:
   PyVTKClass() :
-    py_type(0), py_methods(0), vtk_name(0), vtk_new(0) {}
+    py_type(nullptr), py_methods(nullptr), vtk_name(nullptr), vtk_new(nullptr) {}
 
   PyVTKClass(
     PyTypeObject *typeobj, PyMethodDef *methods,
@@ -70,7 +70,7 @@ extern "C"
 VTKWRAPPINGPYTHONCORE_EXPORT
 PyVTKClass *PyVTKClass_Add(
   PyTypeObject *pytype, PyMethodDef *methods, const char *classname,
-  const char *docstring[], vtknewfunc constructor);
+  vtknewfunc constructor);
 
 VTKWRAPPINGPYTHONCORE_EXPORT
 int PyVTKObject_Check(PyObject *obj);

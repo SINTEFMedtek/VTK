@@ -2,7 +2,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 
   include(CheckCXXCompilerFlag)
 
-  # Addtional warnings for GCC
+  # Additional warnings for GCC
   set(CMAKE_CXX_FLAGS_WARN "-Wnon-virtual-dtor -Wno-long-long -ansi -Wcast-align -Wchar-subscripts -Wall -Wextra -Wpointer-arith -Wformat-security -Woverloaded-virtual -Wshadow -Wunused-parameter -fno-check-new -fno-common")
 
   # This flag is useful as not returning from a non-void function is an error
@@ -20,11 +20,11 @@ if(CMAKE_COMPILER_IS_GNUCXX)
       set(VTK_EXTRA_SHARED_LINKER_FLAGS "-Wl,--fatal-warnings")
     endif()
     set(CMAKE_SHARED_LINKER_FLAGS
-      "${VTK_EXTRA_SHARED_LINKER_FLAGS} -Wl,--no-undefined -lc ${CMAKE_SHARED_LINKER_FLAGS}")
+      "${VTK_EXTRA_SHARED_LINKER_FLAGS} -Wl,-lc ${CMAKE_SHARED_LINKER_FLAGS}")
     set(CMAKE_MODULE_LINKER_FLAGS
-      "${VTK_EXTRA_SHARED_LINKER_FLAGS} -Wl,--no-undefined -lc ${CMAKE_SHARED_LINKER_FLAGS}")
+      "${VTK_EXTRA_SHARED_LINKER_FLAGS} -Wl,-lc ${CMAKE_SHARED_LINKER_FLAGS}")
     set (CMAKE_EXE_LINKER_FLAGS
-      "${VTK_EXTRA_SHARED_LINKER_FLAGS} -Wl,--no-undefined -lc ${CMAKE_SHARED_LINKER_FLAGS}")
+      "${VTK_EXTRA_SHARED_LINKER_FLAGS} -Wl,-lc ${CMAKE_SHARED_LINKER_FLAGS}")
   endif()
 
   # Set up the debug CXX_FLAGS for extra warnings

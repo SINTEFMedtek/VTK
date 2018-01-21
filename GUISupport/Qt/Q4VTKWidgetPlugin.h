@@ -26,10 +26,8 @@
 #define QVTK_WIDGET_PLUGIN
 
 // Disable warnings that Qt headers give.
-#if defined(__GNUC__) && (__GNUC__>4) || (__GNUC__==4 && __GNUC_MINOR__>=6)
-#pragma GCC diagnostic push
-#endif
 #if defined(__GNUC__)
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 
@@ -39,23 +37,22 @@
 #include <QtPlugin>
 #include <QWidget>
 
-
 // implement Designer Custom Widget interface
 class QVTKWidgetPlugin : public QDesignerCustomWidgetInterface
 {
   public:
     QVTKWidgetPlugin();
-    ~QVTKWidgetPlugin();
+    ~QVTKWidgetPlugin() override;
 
-    QString name() const;
-    QString domXml() const;
-    QWidget* createWidget(QWidget* parent = 0);
-    QString group() const;
-    QIcon icon() const;
-    QString includeFile() const;
-    QString toolTip() const;
-    QString whatsThis() const;
-    bool isContainer() const;
+    QString name() const override;
+    QString domXml() const override;
+    QWidget* createWidget(QWidget* parent = 0) override;
+    QString group() const override;
+    QIcon icon() const override;
+    QString includeFile() const override;
+    QString toolTip() const override;
+    QString whatsThis() const override;
+    bool isContainer() const override;
 };
 
 // implement designer widget collection interface
@@ -68,9 +65,9 @@ class QVTKPlugin : public QObject, public QDesignerCustomWidgetCollectionInterfa
   Q_INTERFACES(QDesignerCustomWidgetCollectionInterface)
   public:
   QVTKPlugin();
-  virtual ~QVTKPlugin();
+  ~QVTKPlugin() override;
 
-  virtual QList<QDesignerCustomWidgetInterface*> customWidgets() const;
+  QList<QDesignerCustomWidgetInterface*> customWidgets() const override;
   private:
     QVTKWidgetPlugin* mQVTKWidgetPlugin;
 };
@@ -84,7 +81,7 @@ public:
 };
 
 // Undo disabling of warning.
-#if defined(__GNUC__) && (__GNUC__>4) || (__GNUC__==4 && __GNUC_MINOR__>=6)
+#if defined(__GNUC__)
 #pragma GCC diagnostic pop
 #endif
 

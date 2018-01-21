@@ -67,7 +67,7 @@ public:
    */
   static vtkPCACurvatureEstimation *New();
   vtkTypeMacro(vtkPCACurvatureEstimation,vtkPolyDataAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   //@{
@@ -93,19 +93,19 @@ public:
 
 protected:
   vtkPCACurvatureEstimation();
-  ~vtkPCACurvatureEstimation();
+  ~vtkPCACurvatureEstimation() override;
 
   // IVars
   int SampleSize;
   vtkAbstractPointLocator *Locator;
 
-  virtual int RequestData(vtkInformation *, vtkInformationVector **,
-    vtkInformationVector *);
-  virtual int FillInputPortInformation(int port, vtkInformation *info);
+  int RequestData(vtkInformation *, vtkInformationVector **,
+    vtkInformationVector *) override;
+  int FillInputPortInformation(int port, vtkInformation *info) override;
 
 private:
-  vtkPCACurvatureEstimation(const vtkPCACurvatureEstimation&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPCACurvatureEstimation&) VTK_DELETE_FUNCTION;
+  vtkPCACurvatureEstimation(const vtkPCACurvatureEstimation&) = delete;
+  void operator=(const vtkPCACurvatureEstimation&) = delete;
 
 };
 

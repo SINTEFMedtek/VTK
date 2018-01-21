@@ -210,7 +210,7 @@ void vtkShaderProgram2::SetContext(vtkRenderWindow *renWin)
   {
     return;
   }
-  // free ressources
+  // free resources
   this->ReleaseGraphicsResources();
   this->Context = NULL;
   this->Modified();
@@ -229,7 +229,7 @@ void vtkShaderProgram2::SetContext(vtkRenderWindow *renWin)
     vtkErrorMacro("The context does not support the required extensions.");
     return;
   }
-  // intialize
+  // initialize
   this->Context = renWin;
   this->Context->MakeCurrent();
 }

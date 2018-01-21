@@ -1,3 +1,15 @@
+# The targets exported by HDF5 in its config mode do not work with the module
+# system as-is.
+set(HDF5_NO_FIND_PACKAGE_CONFIG_FILE ON)
+
+if (VTK_USE_SYSTEM_HDF5)
+  option(VTK_EXTERNAL_HDF5_IS_SHARED "Whether the HDF5 in use is shared or not" OFF)
+  mark_as_advanced(VTK_EXTERNAL_HDF5_IS_SHARED)
+  if (VTK_EXTERNAL_HDF5_IS_SHARED)
+    set(H5_BUILT_AS_DYNAMIC_LIB 1)
+  endif ()
+endif ()
+
 vtk_module_third_party(HDF5
   LIBRARIES vtkhdf5_hl vtkhdf5
   INCLUDE_DIRS

@@ -64,7 +64,7 @@ class VTKFILTERSHYBRID_EXPORT vtkTemporalInterpolator : public vtkMultiTimeStepA
 public:
   static vtkTemporalInterpolator *New();
   vtkTypeMacro(vtkTemporalInterpolator, vtkMultiTimeStepAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -105,30 +105,30 @@ public:
 
 protected:
   vtkTemporalInterpolator();
-  ~vtkTemporalInterpolator();
+  ~vtkTemporalInterpolator() override;
 
 
   double DiscreteTimeStepInterval;
   int    ResampleFactor;
 
-  virtual int FillInputPortInformation(int port, vtkInformation* info);
-  virtual int FillOutputPortInformation(int vtkNotUsed(port), vtkInformation* info);
+  int FillInputPortInformation(int port, vtkInformation* info) override;
+  int FillOutputPortInformation(int vtkNotUsed(port), vtkInformation* info) override;
 
 
-  virtual int RequestDataObject(vtkInformation *,
+  int RequestDataObject(vtkInformation *,
                                 vtkInformationVector **,
-                                vtkInformationVector *);
+                                vtkInformationVector *) override;
 
-  virtual int RequestUpdateExtent(vtkInformation *,
+  int RequestUpdateExtent(vtkInformation *,
                                   vtkInformationVector **,
-                                  vtkInformationVector *);
-  virtual int RequestInformation(vtkInformation *,
+                                  vtkInformationVector *) override;
+  int RequestInformation(vtkInformation *,
                                  vtkInformationVector **,
-                                 vtkInformationVector *);
+                                 vtkInformationVector *) override;
 
-  virtual int RequestData(vtkInformation *,
+  int RequestData(vtkInformation *,
                           vtkInformationVector **,
-                          vtkInformationVector *);
+                          vtkInformationVector *) override;
 
   /**
    * General interpolation routine for any type on input data. This is
@@ -170,8 +170,8 @@ protected:
   double Tfrac;
 
 private:
-  vtkTemporalInterpolator(const vtkTemporalInterpolator&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkTemporalInterpolator&) VTK_DELETE_FUNCTION;
+  vtkTemporalInterpolator(const vtkTemporalInterpolator&) = delete;
+  void operator=(const vtkTemporalInterpolator&) = delete;
 };
 
 

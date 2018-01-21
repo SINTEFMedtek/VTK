@@ -57,8 +57,8 @@ vtkProjectedTerrainPath::vtkProjectedTerrainPath()
   this->HeightOffset = 10.0;
   this->HeightTolerance = 10.0;
   this->MaximumNumberOfLines = VTK_ID_MAX;
-  this->PositiveLineError = NULL;
-  this->NegativeLineError = NULL;
+  this->PositiveLineError = nullptr;
+  this->NegativeLineError = nullptr;
 }
 
 //-----------------------------------------------------------------------------
@@ -83,7 +83,7 @@ vtkImageData *vtkProjectedTerrainPath::GetSource()
 {
   if (this->GetNumberOfInputConnections(1) < 1)
   {
-    return NULL;
+    return nullptr;
   }
   return vtkImageData::SafeDownCast(this->GetExecutive()->GetInputData(1, 0));
 }
@@ -194,7 +194,7 @@ int vtkProjectedTerrainPath::RequestData(vtkInformation *,
   // in the list (i,i+1) form an edge; the next two (i+1,i+2) form the
   // next edge, and so on. The list contains point ids referring to
   // the this->Points array.
-  vtkIdType j, npts=0, *pts=NULL;
+  vtkIdType j, npts=0, *pts=nullptr;
   this->EdgeList = new EdgeListType;
   this->PositiveLineError = vtkPriorityQueue::New();
   this->NegativeLineError = vtkPriorityQueue::New();
@@ -204,7 +204,7 @@ int vtkProjectedTerrainPath::RequestData(vtkInformation *,
     for (j=0; j<(npts-1); j++)
     {
       this->EdgeList->push_back(vtkEdge(pts[j],pts[j+1]));
-      this->ComputeError(this->EdgeList->size()-1); //puts edges in queues
+      this->ComputeError(static_cast<vtkIdType>(this->EdgeList->size()-1)); //puts edges in queues
       this->NumLines++;
     }
   }
@@ -220,7 +220,7 @@ int vtkProjectedTerrainPath::RequestData(vtkInformation *,
 
   //Okay now dump out the edges from the edge list into the output polydata
   vtkCellArray *outLines = vtkCellArray::New();
-  outLines->Allocate(outLines->EstimateSize(this->EdgeList->size(),2));
+  outLines->Allocate(outLines->EstimateSize(static_cast<vtkIdType>(this->EdgeList->size()),2));
   for (EdgeListIterator iter=this->EdgeList->begin();
        iter != this->EdgeList->end();
        ++iter)
@@ -342,7 +342,7 @@ void vtkProjectedTerrainPath::SplitEdge(vtkIdType eId, double t)
   vtkIdType v2 = e.V2;
   e.V2 = pId;
   this->EdgeList->push_back(vtkEdge(pId,v2));
-  vtkIdType eNew = this->EdgeList->size() - 1;
+  vtkIdType eNew = static_cast<vtkIdType>(this->EdgeList->size() - 1);
 
   // Recompute the errors along the edges
   this->ComputeError(eId);

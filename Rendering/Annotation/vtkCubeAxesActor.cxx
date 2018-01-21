@@ -68,7 +68,7 @@ vtkCubeAxesActor::vtkCubeAxesActor() : vtkActor()
 
   this->RebuildAxes = true;
 
-  this->Camera = NULL;
+  this->Camera = nullptr;
 
   this->FlyMode = VTK_FLY_CLOSEST_TRIAD;
   this->GridLineLocation = VTK_GRID_LINES_ALL;
@@ -223,18 +223,18 @@ vtkCubeAxesActor::vtkCubeAxesActor() : vtkActor()
   }
 
   this->XTitle = new char[7];
-  sprintf(this->XTitle, "%s", "X-Axis");
-  this->XUnits = NULL;
+  snprintf(this->XTitle, 7, "%s", "X-Axis");
+  this->XUnits = nullptr;
   this->YTitle = new char[7];
-  sprintf(this->YTitle, "%s", "Y-Axis");
-  this->YUnits = NULL;
+  snprintf(this->YTitle, 7, "%s", "Y-Axis");
+  this->YUnits = nullptr;
   this->ZTitle = new char[7];
-  sprintf(this->ZTitle, "%s", "Z-Axis");
-  this->ZUnits = NULL;
+  snprintf(this->ZTitle, 7, "%s", "Z-Axis");
+  this->ZUnits = nullptr;
 
-  this->ActualXLabel = 0;
-  this->ActualYLabel = 0;
-  this->ActualZLabel = 0;
+  this->ActualXLabel = nullptr;
+  this->ActualYLabel = nullptr;
+  this->ActualZLabel = nullptr;
 
   this->TickLocation = VTK_TICKS_INSIDE;
 
@@ -267,11 +267,11 @@ vtkCubeAxesActor::vtkCubeAxesActor() : vtkActor()
   this->DrawZGridpolys = 0;
 
   this->XLabelFormat = new char[8];
-  sprintf(this->XLabelFormat, "%s", "%-#6.3g");
+  snprintf(this->XLabelFormat, 8, "%s", "%-#6.3g");
   this->YLabelFormat = new char[8];
-  sprintf(this->YLabelFormat, "%s", "%-#6.3g");
+  snprintf(this->YLabelFormat, 8, "%s", "%-#6.3g");
   this->ZLabelFormat = new char[8];
-  sprintf(this->ZLabelFormat, "%s", "%-#6.3g");
+  snprintf(this->ZLabelFormat, 8, "%s", "%-#6.3g");
 
   this->CornerOffset = 0.0;
 
@@ -340,7 +340,7 @@ vtkCubeAxesActor::vtkCubeAxesActor() : vtkActor()
 
   for (int i = 0; i < 3; ++i)
   {
-    this->AxisLabels[i] = NULL;
+    this->AxisLabels[i] = nullptr;
   }
   this->LabelScale = -1.0;
   this->TitleScale = -1.0;
@@ -404,24 +404,24 @@ void vtkCubeAxesActor::SetSaveTitlePosition( int val )
 // ****************************************************************************
 vtkCubeAxesActor::~vtkCubeAxesActor()
 {
-  this->SetCamera(NULL);
+  this->SetCamera(nullptr);
 
   for (int i = 0; i < NUMBER_OF_ALIGNED_AXIS; i++)
   {
     if (this->XAxes[i])
     {
       this->XAxes[i]->Delete();
-      this->XAxes[i] = NULL;
+      this->XAxes[i] = nullptr;
     }
     if (this->YAxes[i])
     {
       this->YAxes[i]->Delete();
-      this->YAxes[i] = NULL;
+      this->YAxes[i] = nullptr;
     }
     if (this->ZAxes[i])
     {
       this->ZAxes[i]->Delete();
-      this->ZAxes[i] = NULL;
+      this->ZAxes[i] = nullptr;
     }
   }
 
@@ -476,54 +476,54 @@ vtkCubeAxesActor::~vtkCubeAxesActor()
 
   for (int i = 0; i < 3; i++)
   {
-    if(this->TitleTextProperty[i] != NULL)
+    if(this->TitleTextProperty[i] != nullptr)
     {
       this->TitleTextProperty[i]->Delete();
     }
-    this->TitleTextProperty[i] = NULL;
+    this->TitleTextProperty[i] = nullptr;
 
-    if(this->LabelTextProperty[i] != NULL)
+    if(this->LabelTextProperty[i] != nullptr)
     {
       this->LabelTextProperty[i]->Delete();
     }
-    this->LabelTextProperty[i] = NULL;
+    this->LabelTextProperty[i] = nullptr;
   }
 
   delete [] this->XLabelFormat;
-  this->XLabelFormat = NULL;
+  this->XLabelFormat = nullptr;
 
   delete [] this->YLabelFormat;
-  this->YLabelFormat = NULL;
+  this->YLabelFormat = nullptr;
 
   delete [] this->ZLabelFormat;
-  this->ZLabelFormat = NULL;
+  this->ZLabelFormat = nullptr;
 
   delete [] this->XTitle;
-  this->XTitle = NULL;
+  this->XTitle = nullptr;
 
   delete [] this->YTitle;
-  this->YTitle = NULL;
+  this->YTitle = nullptr;
 
   delete [] this->ZTitle;
-  this->ZTitle = NULL;
+  this->ZTitle = nullptr;
 
   delete [] this->XUnits;
-  this->XUnits = NULL;
+  this->XUnits = nullptr;
 
   delete [] this->YUnits;
-  this->YUnits = NULL;
+  this->YUnits = nullptr;
 
   delete [] this->ZUnits;
-  this->ZUnits = NULL;
+  this->ZUnits = nullptr;
 
   delete [] this->ActualXLabel;
-  this->ActualXLabel = NULL;
+  this->ActualXLabel = nullptr;
 
   delete [] this->ActualYLabel;
-  this->ActualYLabel = NULL;
+  this->ActualYLabel = nullptr;
 
   delete [] this->ActualZLabel;
-  this->ActualZLabel = NULL;
+  this->ActualZLabel = nullptr;
 }
 
 // *************************************************************************
@@ -1105,7 +1105,7 @@ void vtkCubeAxesActor::AdjustValues(const double xRange[2],
 
   if (AutoLabelScaling)
   {
-    if (this->AxisLabels[0] == NULL)
+    if (this->AxisLabels[0] == nullptr)
     {
       xPow = this->LabelExponent(xRange[0], xRange[1]);
     }
@@ -1113,7 +1113,7 @@ void vtkCubeAxesActor::AdjustValues(const double xRange[2],
     {
       xPow = 0;
     }
-    if (this->AxisLabels[1] == NULL)
+    if (this->AxisLabels[1] == nullptr)
     {
       yPow = this->LabelExponent(yRange[0], yRange[1]);
     }
@@ -1121,7 +1121,7 @@ void vtkCubeAxesActor::AdjustValues(const double xRange[2],
     {
       yPow = 0;
     }
-    if (this->AxisLabels[2] == NULL)
+    if (this->AxisLabels[2] == nullptr)
     {
       zPow = this->LabelExponent(zRange[0], zRange[1]);
     }
@@ -1151,7 +1151,7 @@ void vtkCubeAxesActor::AdjustValues(const double xRange[2],
     this->MustAdjustXValue = true;
 
     std::ostringstream sstream;
-    if (XUnits == NULL || XUnits[0] == '\0')
+    if (XUnits == nullptr || XUnits[0] == '\0')
     {
       sstream << this->XTitle << " (x10^" << xPow << ")";
     }
@@ -1174,7 +1174,7 @@ void vtkCubeAxesActor::AdjustValues(const double xRange[2],
     }
     this->MustAdjustXValue = false;
 
-    if (XUnits == NULL || XUnits[0] == '\0')
+    if (XUnits == nullptr || XUnits[0] == '\0')
     {
       xTitle = this->XTitle;
     }
@@ -1198,7 +1198,7 @@ void vtkCubeAxesActor::AdjustValues(const double xRange[2],
     this->MustAdjustYValue = true;
 
     std::ostringstream sstream;
-    if (YUnits == NULL || YUnits[0] == '\0')
+    if (YUnits == nullptr || YUnits[0] == '\0')
     {
       sstream << this->YTitle << " (x10^" << yPow << ")";
     }
@@ -1220,7 +1220,7 @@ void vtkCubeAxesActor::AdjustValues(const double xRange[2],
       this->ForceYLabelReset = false;
     }
     this->MustAdjustYValue = false;
-    if (YUnits == NULL || YUnits[0] == '\0')
+    if (YUnits == nullptr || YUnits[0] == '\0')
     {
       yTitle = this->YTitle;
     }
@@ -1244,7 +1244,7 @@ void vtkCubeAxesActor::AdjustValues(const double xRange[2],
     this->MustAdjustZValue = true;
 
     std::ostringstream sstream;
-    if (ZUnits == NULL || ZUnits[0] == '\0')
+    if (ZUnits == nullptr || ZUnits[0] == '\0')
     {
       sstream << this->ZTitle << " (x10^" << zPow << ")";
     }
@@ -1267,7 +1267,7 @@ void vtkCubeAxesActor::AdjustValues(const double xRange[2],
     }
     this->MustAdjustZValue = false;
 
-    if (ZUnits == NULL || ZUnits[0] == '\0')
+    if (ZUnits == nullptr || ZUnits[0] == '\0')
     {
       zTitle = this->ZTitle;
     }
@@ -1328,7 +1328,7 @@ void vtkCubeAxesActor::AdjustRange(const double ranges[6])
   if (xAxisDigits != this->LastXAxisDigits)
   {
     char  format[16];
-    sprintf(format, "%%.%df", xAxisDigits);
+    snprintf(format, sizeof(format), "%%.%df", xAxisDigits);
     this->SetXLabelFormat(format);
     this->LastXAxisDigits = xAxisDigits;
   }
@@ -1337,7 +1337,7 @@ void vtkCubeAxesActor::AdjustRange(const double ranges[6])
   if (yAxisDigits != this->LastYAxisDigits)
   {
     char  format[16];
-    sprintf(format, "%%.%df", yAxisDigits);
+    snprintf(format, sizeof(format), "%%.%df", yAxisDigits);
     this->SetYLabelFormat(format);
     this->LastYAxisDigits = yAxisDigits;
   }
@@ -1346,7 +1346,7 @@ void vtkCubeAxesActor::AdjustRange(const double ranges[6])
   if (zAxisDigits != this->LastZAxisDigits)
   {
     char  format[16];
-    sprintf(format, "%%.%df", zAxisDigits);
+    snprintf(format, sizeof(format), "%%.%df", zAxisDigits);
     this->SetZLabelFormat(format);
     this->LastZAxisDigits = zAxisDigits;
   }
@@ -1682,7 +1682,7 @@ void vtkCubeAxesActor::BuildAxes(vtkViewport *viewport)
     // Allow a bit bigger title if we have units, otherwise
     // the title may be too small to read.
     //
-    if (XUnits != NULL && XUnits[0] != '\0')
+    if (XUnits != nullptr && XUnits[0] != '\0')
     {
       this->TitleScale *= 2;
     }
@@ -1728,7 +1728,7 @@ void vtkCubeAxesActor::SetNonDependentAttributes()
   vtkMath::Normalize(this->AxisBaseForY);
   vtkMath::Normalize(this->AxisBaseForZ);
 
-  // Manage custome grid visibility location if FLY and STATIC axis
+  // Manage custom grid visibility location if FLY and STATIC axis
   int gridLocationBasedOnAxis = (this->GridLineLocation == VTK_GRID_LINES_ALL)
       ? VTK_GRID_LINES_ALL : VTK_GRID_LINES_CLOSEST;
 
@@ -1986,7 +1986,7 @@ void vtkCubeAxesActor::AdjustTicksComputeRange(vtkAxisActor *axes[NUMBER_OF_ALIG
   double majorStart, minorStart;
   int numTicks;
   double *inRange = axes[0]->GetRange();
-  vtkStringArray* customizedLabels = NULL;
+  vtkStringArray* customizedLabels = nullptr;
 
   sortedRange[0] = inRange[0] < inRange[1] ? inRange[0] : inRange[1];
   sortedRange[1] = inRange[0] > inRange[1] ? inRange[0] : inRange[1];
@@ -2046,7 +2046,7 @@ void vtkCubeAxesActor::AdjustTicksComputeRange(vtkAxisActor *axes[NUMBER_OF_ALIG
   }
   customizedLabels = this->AxisLabels[axis];
 
-  if (customizedLabels == NULL)
+  if (customizedLabels == nullptr)
   {
     // Figure out the first major tick locations, relative to the
     // start of the axis.
@@ -2204,7 +2204,7 @@ void vtkCubeAxesActor::BuildLabels(vtkAxisActor *axes[NUMBER_OF_ALIGNED_AXIS])
   bool mustAdjustValue = 0;
   int lastPow = 0;
   int axisIndex = 0;
-  vtkStringArray* customizedLabels = NULL;
+  vtkStringArray* customizedLabels = nullptr;
 
   vtkStringArray *labels = vtkStringArray::New();
   const char *format = "%s";
@@ -2244,7 +2244,7 @@ void vtkCubeAxesActor::BuildLabels(vtkAxisActor *axes[NUMBER_OF_ALIGNED_AXIS])
 
   labels->SetNumberOfValues(labelCount);
 
-  if (customizedLabels == NULL)
+  if (customizedLabels == nullptr)
   {
     // Convert deltaMajor from world coord to range scale
     deltaMajor = extents * deltaMajor/axisLength;
@@ -2265,11 +2265,11 @@ void vtkCubeAxesActor::BuildLabels(vtkAxisActor *axes[NUMBER_OF_ALIGNED_AXIS])
       }
       if (mustAdjustValue)
       {
-        sprintf(label, format, val*scaleFactor);
+        snprintf(label, sizeof(label), format, val*scaleFactor);
       }
       else
       {
-        sprintf(label, format, val);
+        snprintf(label, sizeof(label), format, val);
       }
       if (fabs(val) < 0.01)
       {
@@ -2279,27 +2279,27 @@ void vtkCubeAxesActor::BuildLabels(vtkAxisActor *axes[NUMBER_OF_ALIGNED_AXIS])
         //
         if (strcmp(label, "-0") == 0)
         {
-          sprintf(label, "0");
+          snprintf(label, sizeof(label), "0");
         }
         else if (strcmp(label, "-0.0") == 0)
         {
-          sprintf(label, "0.0");
+          snprintf(label, sizeof(label), "0.0");
         }
         else if (strcmp(label, "-0.00") == 0)
         {
-          sprintf(label, "0.00");
+          snprintf(label, sizeof(label), "0.00");
         }
         else if (strcmp(label, "-0.000") == 0)
         {
-          sprintf(label, "0.000");
+          snprintf(label, sizeof(label), "0.000");
         }
         else if (strcmp(label, "-0.0000") == 0)
         {
-          sprintf(label, "0.0000");
+          snprintf(label, sizeof(label), "0.0000");
         }
         else if (strcmp(label, "-0.00000") == 0)
         {
-          sprintf(label, "0.00000");
+          snprintf(label, sizeof(label), "0.00000");
         }
       }
       labels->SetValue(i, label);
@@ -2326,7 +2326,7 @@ void vtkCubeAxesActor::BuildLabels(vtkAxisActor *axes[NUMBER_OF_ALIGNED_AXIS])
 
 vtkStringArray* vtkCubeAxesActor::GetAxisLabels(int axis)
 {
-  return (axis >= 0 && axis < 3) ? this->AxisLabels[axis] : NULL;
+  return (axis >= 0 && axis < 3) ? this->AxisLabels[axis] : nullptr;
 }
 
 void vtkCubeAxesActor::SetAxisLabels(int axis, vtkStringArray* value)
@@ -2334,12 +2334,12 @@ void vtkCubeAxesActor::SetAxisLabels(int axis, vtkStringArray* value)
   if (axis >= 0 && axis < 3 && value != this->AxisLabels[axis])
   {
     vtkStringArray* previous = this->AxisLabels[axis];
-    if (value != NULL)
+    if (value != nullptr)
     {
       value->Register(this);
     }
     this->AxisLabels[axis] = value;
-    if (previous != NULL)
+    if (previous != nullptr)
     {
       previous->UnRegister(this);
     }
@@ -2370,7 +2370,7 @@ void vtkCubeAxesActor::SetLabelScaling(bool autoscale, int upowX, int upowY,
 
 vtkTextProperty* vtkCubeAxesActor::GetTitleTextProperty(int axis)
 {
-  return (axis >= 0 && axis < 3) ? this->TitleTextProperty[axis] : NULL;
+  return (axis >= 0 && axis < 3) ? this->TitleTextProperty[axis] : nullptr;
 }
 
 // ****************************************************************************
@@ -2379,7 +2379,7 @@ vtkTextProperty* vtkCubeAxesActor::GetTitleTextProperty(int axis)
 
 vtkTextProperty* vtkCubeAxesActor::GetLabelTextProperty(int axis)
 {
-  return (axis >= 0 && axis < 3) ? this->LabelTextProperty[axis] : NULL;
+  return (axis >= 0 && axis < 3) ? this->LabelTextProperty[axis] : nullptr;
 }
 
 // ****************************************************************************

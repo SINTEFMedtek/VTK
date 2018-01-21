@@ -32,36 +32,36 @@ class VTKIOXML_EXPORT vtkXMLUniformGridAMRWriter : public vtkXMLCompositeDataWri
 public:
   static vtkXMLUniformGridAMRWriter* New();
   vtkTypeMacro(vtkXMLUniformGridAMRWriter, vtkXMLCompositeDataWriter);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Get the default file extension for files written by this writer.
    */
-  virtual const char* GetDefaultFileExtension()
+  const char* GetDefaultFileExtension() override
     { return "vth"; }
 
 protected:
   vtkXMLUniformGridAMRWriter();
-  ~vtkXMLUniformGridAMRWriter();
+  ~vtkXMLUniformGridAMRWriter() override;
 
   /**
    * Methods to define the file's major and minor version numbers.
    * VTH/VTHB version number 1.1 is used for overlapping/non-overlapping AMR
    * datasets.
    */
-  virtual int GetDataSetMajorVersion() { return 1; }
-  virtual int GetDataSetMinorVersion() { return 1; }
+  int GetDataSetMajorVersion() override { return 1; }
+  int GetDataSetMinorVersion() override { return 1; }
 
-  virtual int FillInputPortInformation(int port, vtkInformation* info);
+  int FillInputPortInformation(int port, vtkInformation* info) override;
 
   // Internal method called recursively to create the xml tree for the children
   // of compositeData.
-  virtual int WriteComposite(vtkCompositeDataSet* compositeData,
-    vtkXMLDataElement* parent, int &writerIdx);
+  int WriteComposite(vtkCompositeDataSet* compositeData,
+    vtkXMLDataElement* parent, int &writerIdx) override;
 
 private:
-  vtkXMLUniformGridAMRWriter(const vtkXMLUniformGridAMRWriter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkXMLUniformGridAMRWriter&) VTK_DELETE_FUNCTION;
+  vtkXMLUniformGridAMRWriter(const vtkXMLUniformGridAMRWriter&) = delete;
+  void operator=(const vtkXMLUniformGridAMRWriter&) = delete;
 
 };
 

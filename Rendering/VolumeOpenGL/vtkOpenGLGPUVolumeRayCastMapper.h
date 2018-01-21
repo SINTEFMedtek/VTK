@@ -64,7 +64,7 @@ class VTKRENDERINGVOLUMEOPENGL_EXPORT vtkOpenGLGPUVolumeRayCastMapper
 public:
   static vtkOpenGLGPUVolumeRayCastMapper *New();
   vtkTypeMacro(vtkOpenGLGPUVolumeRayCastMapper,vtkGPUVolumeRayCastMapper);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Based on hardware and properties, we may or may not be able to
@@ -72,14 +72,14 @@ public:
    * mapping is supported by the hardware, and if the other extensions
    * necessary to support the specific properties are available.
    */
-  virtual int IsRenderSupported(vtkRenderWindow *window,
-                                vtkVolumeProperty *property);
+  int IsRenderSupported(vtkRenderWindow *window,
+                                vtkVolumeProperty *property) override;
 
   /**
    * Delete OpenGL objects.
    * \post done: this->OpenGLObjectsCreated==0
    */
-  virtual void ReleaseGraphicsResources(vtkWindow *window);
+  void ReleaseGraphicsResources(vtkWindow *window) override;
 
   /**
    * Return a string matching the OpenGL errorCode.
@@ -96,27 +96,27 @@ public:
 
 protected:
   vtkOpenGLGPUVolumeRayCastMapper();
-  ~vtkOpenGLGPUVolumeRayCastMapper();
+  ~vtkOpenGLGPUVolumeRayCastMapper() override;
 
   // The render method called by the superclass
-  virtual void GPURender(vtkRenderer *ren,
-                         vtkVolume *vol);
+  void GPURender(vtkRenderer *ren,
+                         vtkVolume *vol) override;
 
   // Methods called by the AMR Volume Mapper.
-  virtual void PreRender(vtkRenderer *ren,
+  void PreRender(vtkRenderer *ren,
                          vtkVolume *vol,
                          double datasetBounds[6],
                          double scalarRange[2],
                          int numberOfScalarComponents,
-                         unsigned int numberOfLevels);
+                         unsigned int numberOfLevels) override;
 
   // \pre input is up-to-date
-  virtual void RenderBlock(vtkRenderer *ren,
+  void RenderBlock(vtkRenderer *ren,
                            vtkVolume *vol,
-                           unsigned int level);
+                           unsigned int level) override;
 
-  virtual void PostRender(vtkRenderer *ren,
-                          int numberOfScalarComponents);
+  void PostRender(vtkRenderer *ren,
+                          int numberOfScalarComponents) override;
 
   /**
    * Return if the required OpenGL extension `extensionName' is supported.
@@ -376,7 +376,7 @@ protected:
    * \post valid_j_ratio: ratio[1]>0 && ratio[1]<=1.0
    * \post valid_k_ratio: ratio[2]>0 && ratio[2]<=1.0
    */
-  virtual void GetReductionRatio(double ratio[3]);
+  void GetReductionRatio(double ratio[3]) override;
 
   int NumberOfCroppingRegions;
 
@@ -504,8 +504,8 @@ protected:
   vtkShaderProgram2 *ScaleBiasProgram;
 
 private:
-  vtkOpenGLGPUVolumeRayCastMapper(const vtkOpenGLGPUVolumeRayCastMapper&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkOpenGLGPUVolumeRayCastMapper&) VTK_DELETE_FUNCTION;
+  vtkOpenGLGPUVolumeRayCastMapper(const vtkOpenGLGPUVolumeRayCastMapper&) = delete;
+  void operator=(const vtkOpenGLGPUVolumeRayCastMapper&) = delete;
 };
 
 #endif

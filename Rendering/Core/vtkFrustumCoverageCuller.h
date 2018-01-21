@@ -23,7 +23,7 @@
  * results in a circle on the plane slice through the view frustum. This
  * circle is enclosed in a squared, and the fraction of the plane slice that
  * this square covers is the coverage. This is a number between 0 and 1.
- * If the number is less than the MinumumCoverage, the allocated render time
+ * If the number is less than the MinimumCoverage, the allocated render time
  * for that prop is set to zero. If it is greater than the MaximumCoverage,
  * the allocated render time is set to 1.0. In between, a linear ramp is used
  * to convert coverage into allocated render time.
@@ -50,7 +50,7 @@ class VTKRENDERINGCORE_EXPORT vtkFrustumCoverageCuller : public vtkCuller
 public:
   static vtkFrustumCoverageCuller *New();
   vtkTypeMacro(vtkFrustumCoverageCuller,vtkCuller);
-  void PrintSelf(ostream& os,vtkIndent indent);
+  void PrintSelf(ostream& os,vtkIndent indent) override;
 
   //@{
   /**
@@ -95,18 +95,18 @@ public:
    * the render process
    */
   double Cull( vtkRenderer *ren, vtkProp **propList,
-              int& listLength, int& initialized );
+              int& listLength, int& initialized ) override;
 
 protected:
   vtkFrustumCoverageCuller();
-  ~vtkFrustumCoverageCuller() {}
+  ~vtkFrustumCoverageCuller() override {}
 
   double       MinimumCoverage;
   double       MaximumCoverage;
   int          SortingStyle;
 private:
-  vtkFrustumCoverageCuller(const vtkFrustumCoverageCuller&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkFrustumCoverageCuller&) VTK_DELETE_FUNCTION;
+  vtkFrustumCoverageCuller(const vtkFrustumCoverageCuller&) = delete;
+  void operator=(const vtkFrustumCoverageCuller&) = delete;
 };
 
 

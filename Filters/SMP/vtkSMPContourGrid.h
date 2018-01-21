@@ -30,7 +30,7 @@ class VTKFILTERSSMP_EXPORT vtkSMPContourGrid : public vtkContourGrid
 {
 public:
   vtkTypeMacro(vtkSMPContourGrid,vtkContourGrid);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Constructor.
@@ -55,24 +55,24 @@ public:
   /**
    * Please see vtkAlgorithm for details.
    */
-  virtual int ProcessRequest(vtkInformation*,
+  int ProcessRequest(vtkInformation*,
                              vtkInformationVector**,
-                             vtkInformationVector*);
+                             vtkInformationVector*) override;
 
 protected:
   vtkSMPContourGrid();
-  ~vtkSMPContourGrid();
+  ~vtkSMPContourGrid() override;
 
   virtual int RequestDataObject(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-  virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
 
-  virtual int FillOutputPortInformation(int port, vtkInformation* info);
+  int FillOutputPortInformation(int port, vtkInformation* info) override;
 
   bool MergePieces;
 
 private:
-  vtkSMPContourGrid(const vtkSMPContourGrid&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkSMPContourGrid&) VTK_DELETE_FUNCTION;
+  vtkSMPContourGrid(const vtkSMPContourGrid&) = delete;
+  void operator=(const vtkSMPContourGrid&) = delete;
 };
 
 #endif

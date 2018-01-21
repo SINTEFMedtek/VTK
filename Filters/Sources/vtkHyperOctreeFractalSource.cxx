@@ -32,6 +32,8 @@ vtkStandardNewMacro(vtkHyperOctreeFractalSource);
 //----------------------------------------------------------------------------
 vtkHyperOctreeFractalSource::vtkHyperOctreeFractalSource()
 {
+  VTK_LEGACY_BODY(vtkHyperOctreeFractalSource, "VTK 8.1");
+
   this->SetNumberOfInputPorts(0);
 
   this->SizeCX[0] = 2.5;
@@ -208,7 +210,7 @@ int vtkHyperOctreeFractalSource::RequestData(
   vtkFloatArray *scalars=vtkFloatArray::New();
   scalars->SetNumberOfComponents(1);
 
-  vtkIdType fact=(1<<(this->MaximumLevel-1));
+  vtkIdType fact=static_cast<vtkIdType>(1)<<(this->MaximumLevel-1);
   vtkIdType maxNumberOfCells=fact*fact*fact;
 
   scalars->Allocate(maxNumberOfCells/fact);

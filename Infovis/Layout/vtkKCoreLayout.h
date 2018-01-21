@@ -61,15 +61,15 @@ class VTKINFOVISLAYOUT_EXPORT vtkKCoreLayout : public vtkGraphAlgorithm
 public:
   static vtkKCoreLayout* New();
   vtkTypeMacro(vtkKCoreLayout,vtkGraphAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /// Convenience function provided for setting the graph input.
   void SetGraphConnection(vtkAlgorithmOutput*);
 
   vtkKCoreLayout();
-  ~vtkKCoreLayout();
+  ~vtkKCoreLayout() override;
 
-  int FillInputPortInformation(int port, vtkInformation* info);
+  int FillInputPortInformation(int port, vtkInformation* info) override;
 
   //@{
   /**
@@ -160,7 +160,7 @@ public:
   //@}
 
 
-  int RequestData(vtkInformation*, vtkInformationVector**, vtkInformationVector*);
+  int RequestData(vtkInformation*, vtkInformationVector**, vtkInformationVector*) override;
 
 protected:
   char * KCoreLabelArrayName;
@@ -178,8 +178,8 @@ protected:
   float UnitRadius;
 
 private:
-  vtkKCoreLayout(const vtkKCoreLayout&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkKCoreLayout&) VTK_DELETE_FUNCTION;
+  vtkKCoreLayout(const vtkKCoreLayout&) = delete;
+  void operator=(const vtkKCoreLayout&) = delete;
 };
 
 #endif

@@ -50,7 +50,7 @@ class vtkOpenGLRenderWindow;
 class vtkInformationIntegerKey;
 class vtkCamera;
 class vtkLight;
-class vtkFrameBufferObject;
+class vtkOpenGLFramebufferObject;
 class vtkTextureObject;
 
 class VTKRENDERINGOPENGL2_EXPORT vtkShadowMapBakerPass : public vtkRenderPass
@@ -58,20 +58,20 @@ class VTKRENDERINGOPENGL2_EXPORT vtkShadowMapBakerPass : public vtkRenderPass
 public:
   static vtkShadowMapBakerPass *New();
   vtkTypeMacro(vtkShadowMapBakerPass,vtkRenderPass);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Perform rendering according to a render state \p s.
    * \pre s_exists: s!=0
    */
-  virtual void Render(const vtkRenderState *s);
+  void Render(const vtkRenderState *s) override;
 
   /**
    * Release graphics resources and ask components to release their own
    * resources.
    * \pre w_exists: w!=0
    */
-  void ReleaseGraphicsResources(vtkWindow *w);
+  void ReleaseGraphicsResources(vtkWindow *w) override;
 
   //@{
   /**
@@ -167,7 +167,7 @@ public:
   /**
    * Destructor.
    */
-  virtual ~vtkShadowMapBakerPass();
+  ~vtkShadowMapBakerPass() override;
 
   /**
    * Helper method to compute the mNearest point in a given direction.
@@ -221,7 +221,7 @@ public:
   /**
    * Graphics resources.
    */
-  vtkFrameBufferObject *FrameBufferObject;
+  vtkOpenGLFramebufferObject *FrameBufferObject;
 
   std::vector<vtkSmartPointer<vtkTextureObject> > *ShadowMaps;
   std::vector<vtkSmartPointer<vtkCamera> > *LightCameras;
@@ -231,8 +231,8 @@ public:
   bool NeedUpdate;
 
 private:
-  vtkShadowMapBakerPass(const vtkShadowMapBakerPass&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkShadowMapBakerPass&) VTK_DELETE_FUNCTION;
+  vtkShadowMapBakerPass(const vtkShadowMapBakerPass&) = delete;
+  void operator=(const vtkShadowMapBakerPass&) = delete;
 };
 
 #endif

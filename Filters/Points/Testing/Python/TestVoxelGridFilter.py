@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import vtk
-from vtk.test import Testing
 from vtk.util.misc import vtkGetDataRoot
 VTK_DATA_ROOT = vtkGetDataRoot()
 
@@ -22,7 +21,8 @@ points.Update()
 # Subsample
 subsample = vtk.vtkVoxelGrid()
 subsample.SetInputConnection(points.GetOutputPort())
-subsample.SetConfigurationStyleToAutomatic()
+subsample.SetConfigurationStyleToManual()
+subsample.SetDivisions(47,47,47)
 
 # Time execution
 timer = vtk.vtkTimerLog()
@@ -31,6 +31,7 @@ subsample.Update()
 timer.StopTimer()
 time = timer.GetElapsedTime()
 print("Time to subsample: {0}".format(time))
+print("   Number of divisions: {}".format(subsample.GetDivisions()))
 print("   Original number of points: {0}".format(NPts))
 print("   Final number of points: {0}".format(subsample.GetOutput().GetNumberOfPoints()))
 
@@ -109,4 +110,4 @@ iren.Initialize()
 #
 renWin.Render()
 
-#iren.Start()
+iren.Start()

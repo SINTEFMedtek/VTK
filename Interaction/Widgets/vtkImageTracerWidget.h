@@ -86,18 +86,18 @@ public:
   static vtkImageTracerWidget *New();
 
   vtkTypeMacro(vtkImageTracerWidget,vtk3DWidget);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
    * Methods that satisfy the superclass' API.
    */
-  virtual void SetEnabled(int);
-  virtual void PlaceWidget(double bounds[6]);
-  void PlaceWidget()
+  void SetEnabled(int) override;
+  void PlaceWidget(double bounds[6]) override;
+  void PlaceWidget() override
     {this->Superclass::PlaceWidget();}
   void PlaceWidget(double xmin, double xmax, double ymin, double ymax,
-                   double zmin, double zmax)
+                   double zmin, double zmax) override
     {this->Superclass::PlaceWidget(xmin,xmax,ymin,ymax,zmin,zmax);}
   //@}
 
@@ -284,7 +284,7 @@ public:
 
 protected:
   vtkImageTracerWidget();
-  ~vtkImageTracerWidget();
+  ~vtkImageTracerWidget() override;
 
   // Manage the state of the widget
   int State;
@@ -352,7 +352,7 @@ protected:
   void AdjustHandlePosition(const int& , double*);
   int  HighlightHandle(vtkProp* ); // returns handle index or -1 on fail
   void EraseHandle(const int& );
-  virtual void SizeHandles();
+  void SizeHandles() override;
   void InsertHandleOnLine(double* );
 
   int NumberOfHandles;
@@ -381,7 +381,7 @@ protected:
   vtkAbstractPropPicker* CurrentPicker;
 
   // Register internal Pickers within PickingManager
-  virtual void RegisterPickers();
+  void RegisterPickers() override;
 
   // Properties used to control the appearance of selected objects and
   // the manipulator in general.
@@ -397,8 +397,8 @@ protected:
   int HandleRightMouseButton;
 
 private:
-  vtkImageTracerWidget(const vtkImageTracerWidget&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkImageTracerWidget&) VTK_DELETE_FUNCTION;
+  vtkImageTracerWidget(const vtkImageTracerWidget&) = delete;
+  void operator=(const vtkImageTracerWidget&) = delete;
 };
 
 #endif

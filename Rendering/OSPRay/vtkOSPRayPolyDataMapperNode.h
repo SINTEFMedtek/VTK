@@ -34,17 +34,17 @@ class VTKRENDERINGOSPRAY_EXPORT vtkOSPRayPolyDataMapperNode :
 public:
   static vtkOSPRayPolyDataMapperNode* New();
   vtkTypeMacro(vtkOSPRayPolyDataMapperNode, vtkPolyDataMapperNode);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Make ospray calls to render me.
    */
-  virtual void Render(bool prepass);
+  virtual void Render(bool prepass) override;
 
   /**
    * Invalidates cached rendering data.
    */
-  virtual void Invalidate(bool prepass);
+  virtual void Invalidate(bool prepass) override;
 
 protected:
   vtkOSPRayPolyDataMapperNode();
@@ -54,14 +54,15 @@ protected:
                    vtkOSPRayActorNode *aNode, vtkPolyData * poly,
                    double *ambientColor,
                    double *diffuseColor,
-                   double opacity);
+                   double opacity,
+                   std::string material);
 
   void *OSPMeshes;
   void CreateNewMeshes();
   void AddMeshesToModel(void *arg);
 
 private:
-  vtkOSPRayPolyDataMapperNode(const vtkOSPRayPolyDataMapperNode&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkOSPRayPolyDataMapperNode&) VTK_DELETE_FUNCTION;
+  vtkOSPRayPolyDataMapperNode(const vtkOSPRayPolyDataMapperNode&) = delete;
+  void operator=(const vtkOSPRayPolyDataMapperNode&) = delete;
 };
 #endif

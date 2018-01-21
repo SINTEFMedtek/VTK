@@ -66,7 +66,7 @@ class VTKIOEXPORT_EXPORT vtkRIBExporter : public vtkExporter
 public:
   static vtkRIBExporter *New();
   vtkTypeMacro(vtkRIBExporter,vtkExporter);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -138,7 +138,7 @@ public:
 
 protected:
   vtkRIBExporter();
-  ~vtkRIBExporter();
+  ~vtkRIBExporter() override;
 
   int Background;
   int Size[2];
@@ -167,7 +167,7 @@ protected:
                     vtkProperty *aProperty);
   //@}
 
-  void WriteData();
+  void WriteData() override;
   void WriteActor(vtkActor *anActor);
 
   /**
@@ -184,8 +184,8 @@ protected:
   FILE *FilePtr;
   char *TexturePrefix;
 private:
-  vtkRIBExporter(const vtkRIBExporter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkRIBExporter&) VTK_DELETE_FUNCTION;
+  vtkRIBExporter(const vtkRIBExporter&) = delete;
+  void operator=(const vtkRIBExporter&) = delete;
 };
 
 #endif

@@ -66,7 +66,7 @@ class VTKFILTERSGENERAL_EXPORT vtkBoxClipDataSet : public vtkUnstructuredGridAlg
 {
 public:
   vtkTypeMacro(vtkBoxClipDataSet,vtkUnstructuredGridAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Constructor of the clipping box. The initial box is (0,1,0,1,0,1).
@@ -148,7 +148,7 @@ public:
   /**
    * Return the mtime also considering the locator.
    */
-  vtkMTimeType GetMTime() VTK_OVERRIDE;
+  vtkMTimeType GetMTime() override;
 
   //@{
   /**
@@ -185,11 +185,11 @@ public:
                       vtkCellData *inCD, vtkIdType cellId, vtkCellData *outCD);
   void ClipBoxInOut(vtkPoints *newPoints, vtkGenericCell *cell,
                     vtkIncrementalPointLocator *locator, vtkCellArray **tets,
-                    vtkPointData *inPD, vtkPointData *outPD,
+                    vtkPointData *inPD, vtkPointData **outPD,
                     vtkCellData *inCD, vtkIdType cellId, vtkCellData **outCD);
   void ClipHexahedronInOut(vtkPoints *newPoints,vtkGenericCell *cell,
                            vtkIncrementalPointLocator *locator, vtkCellArray **tets,
-                           vtkPointData *inPD, vtkPointData *outPD,
+                           vtkPointData *inPD, vtkPointData **outPD,
                            vtkCellData *inCD, vtkIdType cellId,
                            vtkCellData **outCD);
 
@@ -199,7 +199,7 @@ public:
                  vtkIdType cellId, vtkCellData *outCD);
   void ClipBoxInOut2D(vtkPoints *newPoints,vtkGenericCell *cell,
                       vtkIncrementalPointLocator *locator, vtkCellArray **tets,
-                      vtkPointData *inPD, vtkPointData *outPD,
+                      vtkPointData *inPD, vtkPointData **outPD,
                       vtkCellData *inCD, vtkIdType cellId, vtkCellData **outCD);
   void ClipHexahedron2D(vtkPoints *newPoints,vtkGenericCell *cell,
                         vtkIncrementalPointLocator *locator, vtkCellArray *tets,
@@ -208,7 +208,7 @@ public:
                         vtkCellData *outCD);
   void ClipHexahedronInOut2D(vtkPoints *newPoints, vtkGenericCell *cell,
                              vtkIncrementalPointLocator *locator, vtkCellArray **tets,
-                             vtkPointData *inPD, vtkPointData *outPD,
+                             vtkPointData *inPD, vtkPointData **outPD,
                              vtkCellData *inCD,vtkIdType cellId,
                              vtkCellData **outCD);
 
@@ -218,7 +218,7 @@ public:
                  vtkIdType cellId, vtkCellData *outCD);
   void ClipBoxInOut1D(vtkPoints *newPoints, vtkGenericCell *cell,
                       vtkIncrementalPointLocator *locator, vtkCellArray **lines,
-                      vtkPointData *inPD, vtkPointData *outPD,
+                      vtkPointData *inPD, vtkPointData **outPD,
                       vtkCellData *inCD, vtkIdType cellId, vtkCellData **outCD);
   void ClipHexahedron1D(vtkPoints *newPoints, vtkGenericCell *cell,
                         vtkIncrementalPointLocator *locator, vtkCellArray *lines,
@@ -227,7 +227,7 @@ public:
                         vtkCellData *outCD);
   void ClipHexahedronInOut1D(vtkPoints *newPoints, vtkGenericCell *cell,
                              vtkIncrementalPointLocator *locator, vtkCellArray **lines,
-                             vtkPointData *inPD, vtkPointData *outPD,
+                             vtkPointData *inPD, vtkPointData **outPD,
                              vtkCellData *inCD, vtkIdType cellId,
                              vtkCellData **outCD);
 
@@ -237,7 +237,7 @@ public:
                  vtkIdType cellId, vtkCellData *outCD);
   void ClipBoxInOut0D(vtkGenericCell *cell,
                       vtkIncrementalPointLocator *locator, vtkCellArray **verts,
-                      vtkPointData *inPD, vtkPointData *outPD,
+                      vtkPointData *inPD, vtkPointData **outPD,
                       vtkCellData *inCD,
                       vtkIdType cellId, vtkCellData **outCD);
   void ClipHexahedron0D(vtkGenericCell *cell,
@@ -247,15 +247,15 @@ public:
                         vtkIdType cellId, vtkCellData *outCD);
   void ClipHexahedronInOut0D(vtkGenericCell *cell,
                              vtkIncrementalPointLocator *locator, vtkCellArray **verts,
-                             vtkPointData *inPD, vtkPointData *outPD,
+                             vtkPointData *inPD, vtkPointData **outPD,
                              vtkCellData *inCD,
                              vtkIdType cellId, vtkCellData **outCD);
 protected:
   vtkBoxClipDataSet();
-  ~vtkBoxClipDataSet() VTK_OVERRIDE;
+  ~vtkBoxClipDataSet() override;
 
-  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) VTK_OVERRIDE;
-  int FillInputPortInformation(int port, vtkInformation *info) VTK_OVERRIDE;
+  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
+  int FillInputPortInformation(int port, vtkInformation *info) override;
 
   vtkIncrementalPointLocator *Locator;
   int GenerateClipScalars;
@@ -270,8 +270,8 @@ protected:
   double PlanePoint[6][3]; //point on the plane
 
 private:
-  vtkBoxClipDataSet(const vtkBoxClipDataSet&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkBoxClipDataSet&) VTK_DELETE_FUNCTION;
+  vtkBoxClipDataSet(const vtkBoxClipDataSet&) = delete;
+  void operator=(const vtkBoxClipDataSet&) = delete;
 };
 
 #endif

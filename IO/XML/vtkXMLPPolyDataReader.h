@@ -38,7 +38,7 @@ class VTKIOXML_EXPORT vtkXMLPPolyDataReader : public vtkXMLPUnstructuredDataRead
 {
 public:
   vtkTypeMacro(vtkXMLPPolyDataReader,vtkXMLPUnstructuredDataReader);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   static vtkXMLPPolyDataReader *New();
 
   //@{
@@ -51,24 +51,24 @@ public:
 
 protected:
   vtkXMLPPolyDataReader();
-  ~vtkXMLPPolyDataReader();
+  ~vtkXMLPPolyDataReader() override;
 
-  const char* GetDataSetName();
-  void GetOutputUpdateExtent(int& piece, int& numberOfPieces, int& ghostLevel);
-  vtkIdType GetNumberOfCellsInPiece(int piece);
+  const char* GetDataSetName() override;
+  void GetOutputUpdateExtent(int& piece, int& numberOfPieces, int& ghostLevel) override;
+  vtkIdType GetNumberOfCellsInPiece(int piece) override;
   vtkIdType GetNumberOfVertsInPiece(int piece);
   vtkIdType GetNumberOfLinesInPiece(int piece);
   vtkIdType GetNumberOfStripsInPiece(int piece);
   vtkIdType GetNumberOfPolysInPiece(int piece);
-  void SetupOutputTotals();
+  void SetupOutputTotals() override;
 
-  void SetupOutputData();
-  void SetupNextPiece();
-  int ReadPieceData();
+  void SetupOutputData() override;
+  void SetupNextPiece() override;
+  int ReadPieceData() override;
 
-  void CopyArrayForCells(vtkDataArray* inArray, vtkDataArray* outArray);
-  vtkXMLDataReader* CreatePieceReader();
-  virtual int FillOutputPortInformation(int, vtkInformation*);
+  void CopyArrayForCells(vtkDataArray* inArray, vtkDataArray* outArray) override;
+  vtkXMLDataReader* CreatePieceReader() override;
+  int FillOutputPortInformation(int, vtkInformation*) override;
 
   // The size of the UpdatePiece.
   vtkIdType TotalNumberOfVerts;
@@ -81,8 +81,8 @@ protected:
   vtkIdType StartPoly;
 
 private:
-  vtkXMLPPolyDataReader(const vtkXMLPPolyDataReader&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkXMLPPolyDataReader&) VTK_DELETE_FUNCTION;
+  vtkXMLPPolyDataReader(const vtkXMLPPolyDataReader&) = delete;
+  void operator=(const vtkXMLPPolyDataReader&) = delete;
 };
 
 #endif

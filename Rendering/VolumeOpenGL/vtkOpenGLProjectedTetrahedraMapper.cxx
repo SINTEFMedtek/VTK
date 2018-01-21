@@ -289,7 +289,7 @@ bool vtkOpenGLProjectedTetrahedraMapper::AllocateFBOResources(vtkRenderer *r)
     vtkOpenGLCheckErrorMacro("failed at glRenderBufferStorage depth");
 
    // best way to make it complete: bind the fbo for both draw+read
-   // durring setup
+   // during setup
    vtkgl::BindFramebuffer(
          vtkgl::FRAMEBUFFER,
          this->Internals->FrameBufferObjectId);
@@ -780,7 +780,7 @@ void vtkOpenGLProjectedTetrahedraMapper::ProjectTetrahedra(vtkRenderer *renderer
     for (vtkIdType i = 0; i < num_cell_ids; i++)
     {
       vtkIdType cell = cell_ids[i];
-      input->GetCellPoints(cell, cellPointIds.GetPointer());
+      input->GetCellPoints(cell, cellPointIds);
       int j;
 
       // Get the data for the tetrahedra.
@@ -906,7 +906,7 @@ void vtkOpenGLProjectedTetrahedraMapper::ProjectTetrahedra(vtkRenderer *renderer
       // where C = P3 - P1.
       VEC3SUB(C, P3, P1);
       // When we project the lines to the xy plane (which we do by throwing
-      // away the z value), we have two equations and two unkowns.  The
+      // away the z value), we have two equations and two unknowns.  The
       // following are the solutions for alpha and beta.
       float denominator = (A[0]*B[1]-A[1]*B[0]);
       if (denominator == 0) continue;   // Must be degenerated tetrahedra.

@@ -20,9 +20,6 @@
  * vtkVolumeMapper is the abstract definition of a volume mapper for regular
  * rectilinear data (vtkImageData).  Several  basic types of volume mappers
  * are supported.
- *
- * @sa
- * vtkVolumeRayCastMapper vtkVolumeTextureMapper2D
 */
 
 #ifndef vtkVolumeMapper_h
@@ -47,7 +44,7 @@ class VTKRENDERINGVOLUME_EXPORT vtkVolumeMapper : public vtkAbstractVolumeMapper
 {
 public:
   vtkTypeMacro(vtkVolumeMapper,vtkAbstractVolumeMapper);
-  void PrintSelf( ostream& os, vtkIndent indent );
+  void PrintSelf( ostream& os, vtkIndent indent ) override;
 
   //@{
   /**
@@ -182,7 +179,7 @@ public:
    * DO NOT USE THIS METHOD OUTSIDE OF THE RENDERING PROCESS
    * Render the volume
    */
-  virtual void Render(vtkRenderer *ren, vtkVolume *vol)=0;
+  void Render(vtkRenderer *ren, vtkVolume *vol) override =0;
 
   /**
    * WARNING: INTERNAL METHOD - NOT INTENDED FOR GENERAL USE
@@ -190,7 +187,7 @@ public:
    * The parameter window could be used to determine which graphic
    * resources to release.
    */
-  virtual void ReleaseGraphicsResources(vtkWindow *) {}
+  void ReleaseGraphicsResources(vtkWindow *) override {}
 
   /**
    * Blend modes.
@@ -236,7 +233,7 @@ public:
 
 protected:
   vtkVolumeMapper();
-  ~vtkVolumeMapper();
+  ~vtkVolumeMapper() override;
 
   /**
    * Compute a sample distance from the data spacing. When the number of
@@ -265,11 +262,11 @@ protected:
   void ConvertCroppingRegionPlanesToVoxels();
   //@}
 
-  virtual int FillInputPortInformation(int, vtkInformation*);
+  int FillInputPortInformation(int, vtkInformation*) override;
 
 private:
-  vtkVolumeMapper(const vtkVolumeMapper&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkVolumeMapper&) VTK_DELETE_FUNCTION;
+  vtkVolumeMapper(const vtkVolumeMapper&) = delete;
+  void operator=(const vtkVolumeMapper&) = delete;
 };
 
 

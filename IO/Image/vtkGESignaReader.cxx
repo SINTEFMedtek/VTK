@@ -55,7 +55,7 @@ int vtkGESignaReader::CanReadFile(const char* fname)
 void vtkGESignaReader::ExecuteInformation()
 {
   this->ComputeInternalFileName(this->DataExtent[4]);
-  if (this->InternalFileName == NULL)
+  if (this->InternalFileName == nullptr)
   {
     return;
   }
@@ -189,7 +189,7 @@ void vtkGESignaReader::ExecuteInformation()
     return;
   }
   vtkByteSwap::Swap2BE(&examnumber);
-  sprintf(tmpStr,"%d",examnumber);
+  snprintf(tmpStr,sizeof(tmpStr),"%d",examnumber);
   //this->SetStudyNumber(tmpStr);
   // Patient ID
   fseek(fp, examHdrOffset + 84, SEEK_SET);
@@ -223,7 +223,7 @@ void vtkGESignaReader::ExecuteInformation()
     return;
   }
   vtkByteSwap::Swap2BE(&patientage);
-  sprintf(tmpStr,"%d",patientage);
+  snprintf(tmpStr,sizeof(tmpStr),"%d",patientage);
   this->GetMedicalImageProperties()->SetPatientAge( tmpStr );
   // Patient Sex
   fseek(fp, examHdrOffset + 126, SEEK_SET);
@@ -236,7 +236,7 @@ void vtkGESignaReader::ExecuteInformation()
     return;
   }
   vtkByteSwap::Swap2BE(&patientsex);
-  sprintf(tmpStr,"%d",patientsex);
+  snprintf(tmpStr,sizeof(tmpStr),"%d",patientsex);
   this->GetMedicalImageProperties()->SetPatientSex( tmpStr );
   // Modality
   fseek(fp, examHdrOffset + 305, SEEK_SET);
@@ -262,7 +262,7 @@ void vtkGESignaReader::ExecuteInformation()
     return;
   }
   vtkByteSwap::Swap2BE(&series);
-  sprintf(tmpStr,"%d",series);
+  snprintf(tmpStr,sizeof(tmpStr),"%d",series);
   this->SetSeries(tmpStr);
   // scan protocol name
   fseek(fp, seriesHdrOffset + 92, SEEK_SET);
@@ -622,8 +622,8 @@ static void vtkGESignaReaderUpdate2(vtkGESignaReader *self, unsigned short *outP
   }
   vtkByteSwap::Swap4BE(&compression);
 
-  short *leftMap = 0;
-  short *widthMap = 0;
+  short *leftMap = nullptr;
+  short *widthMap = nullptr;
 
   if (compression == 2 || compression == 4)
   { // packed/compacked
@@ -728,7 +728,7 @@ void vtkGESignaReader::ExecuteDataWithInformation(vtkDataObject *output,
 {
   vtkImageData *data = this->AllocateOutputData(output, outInfo);
 
-  if (this->InternalFileName == NULL)
+  if (this->InternalFileName == nullptr)
   {
     vtkErrorMacro(<< "Either a FileName or FilePrefix must be specified.");
     return;

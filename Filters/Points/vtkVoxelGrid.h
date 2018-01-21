@@ -20,7 +20,7 @@
  * vtkVoxelGrid is a filter that subsamples a point cloud based on a regular
  * binning of space. Basically the algorithm operates by dividing space into
  * a volume of M x N x O bins, and then for each bin averaging all of the
- * points positions into a single representive point. Several strategies for
+ * points positions into a single representative point. Several strategies for
  * computing the binning can be used: 1) manual configuration of a requiring
  * specifying bin dimensions (the bounds are calculated from the data); 2) by
  * explicit specification of the bin size in world coordinates (x-y-z
@@ -64,7 +64,7 @@ public:
    */
   static vtkVoxelGrid *New();
   vtkTypeMacro(vtkVoxelGrid,vtkPolyDataAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   /**
@@ -100,7 +100,8 @@ public:
   /**
    * Set the number of divisions in x-y-z directions (the binning volume
    * dimensions). This data member is used when the configuration style is
-   * set to MANUAL.
+   * set to MANUAL. Note that these values may be adjusted if <1 or too
+   * large.
    */
   vtkSetVector3Macro(Divisions,int);
   vtkGetVectorMacro(Divisions,int,3);
@@ -140,7 +141,7 @@ public:
 
 protected:
   vtkVoxelGrid();
-  ~vtkVoxelGrid();
+  ~vtkVoxelGrid() override;
 
   vtkStaticPointLocator *Locator;
   int ConfigurationStyle;
@@ -150,13 +151,13 @@ protected:
   int NumberOfPointsPerBin;
   vtkInterpolationKernel *Kernel;
 
-  virtual int RequestData(vtkInformation *, vtkInformationVector **,
-                          vtkInformationVector *);
-  virtual int FillInputPortInformation(int port, vtkInformation *info);
+  int RequestData(vtkInformation *, vtkInformationVector **,
+                          vtkInformationVector *) override;
+  int FillInputPortInformation(int port, vtkInformation *info) override;
 
 private:
-  vtkVoxelGrid(const vtkVoxelGrid&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkVoxelGrid&) VTK_DELETE_FUNCTION;
+  vtkVoxelGrid(const vtkVoxelGrid&) = delete;
+  void operator=(const vtkVoxelGrid&) = delete;
 
 };
 

@@ -218,6 +218,7 @@ int vtkTetra::CellBoundary(int vtkNotUsed(subId), double pcoords[3],
 //----------------------------------------------------------------------------
 // Marching tetrahedron
 //
+namespace { //required so we don't violate ODR
 static int edges[6][2] = { {0,1}, {1,2}, {2,0},
                            {0,3}, {1,3}, {2,3} };
 static int faces[4][4] = { {0,1,3,-1}, {1,2,3,-1}, {2,0,3,-1}, {0,2,1,-1} };
@@ -245,6 +246,7 @@ static TRIANGLE_CASES triCases[] = {
   {{ 2, 0, 3, -1, -1, -1, -1}},
   {{-1, -1, -1, -1, -1, -1, -1}}
 };
+}
 
 //----------------------------------------------------------------------------
 void vtkTetra::Contour(double value, vtkDataArray *cellScalars,
@@ -320,7 +322,10 @@ void vtkTetra::Contour(double value, vtkDataArray *cellScalars,
     if ( pts[0] != pts[1] && pts[0] != pts[2] && pts[1] != pts[2] )
     {
       newCellId = offset + polys->InsertNextCell(3,pts);
-      outCd->CopyData(inCd,cellId,newCellId);
+      if (outCd)
+      {
+        outCd->CopyData(inCd, cellId, newCellId);
+      }
     }
   }
 }
@@ -732,7 +737,7 @@ int vtkTetra::JacobianInverse(double **inverse, double derivs[12])
   double x[3];
 
   // compute interpolation function derivatives
-  this->InterpolationDerivs(NULL, derivs);
+  this->InterpolationDerivs(nullptr, derivs);
 
   // create Jacobian matrix
   m[0] = m0; m[1] = m1; m[2] = m2;
@@ -914,11 +919,19 @@ void vtkTetra::Clip(double value, vtkDataArray *cellScalars,
   int allDifferent, numUnique=1;
   for (i=0; i<(edge[0]-1); i++)
   {
-    for (allDifferent=1, j=i+1; j<edge[0] && allDifferent; j++)
+    assert(i < 6 && "The point index is out-of-range.");
+    for (allDifferent=1, j=i+1; j<edge[0] && allDifferent && j<6; j++)
     {
-      if (pts[i] == pts[j]) allDifferent = 0;
+      assert(j < 6 && "The point index is out-of-range.");
+      if (pts[i] == pts[j])
+      {
+        allDifferent = 0;
+      }
     }
-    if (allDifferent) numUnique++;
+    if (allDifferent)
+    {
+      numUnique++;
+    }
   }
 
   if ( edge[0] == 4 && numUnique == 4 ) // check for degenerate tetra

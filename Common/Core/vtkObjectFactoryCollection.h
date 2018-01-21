@@ -16,8 +16,8 @@
  * @class   vtkObjectFactoryCollection
  * @brief   maintain a list of object factories
  *
- * vtkObjectFactoryCollection is an object that creates and manipulates lists
- * of object of type vtkObjectFactory.
+ * vtkObjectFactoryCollection is an object that creates and manipulates
+ * ordered lists of objects of type vtkObjectFactory.
  *
  * @sa
  * vtkCollection vtkObjectFactory
@@ -38,7 +38,7 @@ public:
   static vtkObjectFactoryCollection *New();
 
   /**
-   * Add an ObjectFactory from the list.
+   * Add an ObjectFactory the bottom of the list.
    */
   void AddItem(vtkObjectFactory *t)
   {
@@ -46,7 +46,7 @@ public:
   }
 
   /**
-   * Get the next ObjectFactory in the list. Return NULL when the end of the
+   * Get the next ObjectFactory in the list. Return nullptr when the end of the
    * list is reached.
    */
   vtkObjectFactory *GetNextItem()
@@ -62,7 +62,7 @@ public:
 
 protected:
   vtkObjectFactoryCollection() {}
-  ~vtkObjectFactoryCollection() VTK_OVERRIDE {}
+  ~vtkObjectFactoryCollection() override {}
 
 
 private:
@@ -70,8 +70,8 @@ private:
   void AddItem(vtkObject *o) { this->vtkCollection::AddItem(o); };
 
 private:
-  vtkObjectFactoryCollection(const vtkObjectFactoryCollection&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkObjectFactoryCollection&) VTK_DELETE_FUNCTION;
+  vtkObjectFactoryCollection(const vtkObjectFactoryCollection&) = delete;
+  void operator=(const vtkObjectFactoryCollection&) = delete;
 };
 
 

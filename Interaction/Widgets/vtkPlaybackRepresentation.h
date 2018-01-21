@@ -52,7 +52,7 @@ public:
    * Standard VTK class methods.
    */
   vtkTypeMacro(vtkPlaybackRepresentation,vtkBorderRepresentation);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   //@{
@@ -76,8 +76,8 @@ public:
   /**
    * Satisfy the superclasses' API.
    */
-  virtual void BuildRepresentation();
-  virtual void GetSize(double size[2])
+  void BuildRepresentation() override;
+  void GetSize(double size[2]) override
     {size[0]=12.0; size[1]=2.0;}
 
   //@{
@@ -85,17 +85,17 @@ public:
    * These methods are necessary to make this representation behave as
    * a vtkProp.
    */
-  virtual void GetActors2D(vtkPropCollection*);
-  virtual void ReleaseGraphicsResources(vtkWindow*);
-  virtual int RenderOverlay(vtkViewport*);
-  virtual int RenderOpaqueGeometry(vtkViewport*);
-  virtual int RenderTranslucentPolygonalGeometry(vtkViewport*);
-  virtual int HasTranslucentPolygonalGeometry();
+  void GetActors2D(vtkPropCollection*) override;
+  void ReleaseGraphicsResources(vtkWindow*) override;
+  int RenderOverlay(vtkViewport*) override;
+  int RenderOpaqueGeometry(vtkViewport*) override;
+  int RenderTranslucentPolygonalGeometry(vtkViewport*) override;
+  int HasTranslucentPolygonalGeometry() override;
   //@}
 
 protected:
   vtkPlaybackRepresentation();
-  ~vtkPlaybackRepresentation();
+  ~vtkPlaybackRepresentation() override;
 
   // representation geometry
   vtkPoints                  *Points;
@@ -106,8 +106,8 @@ protected:
   vtkActor2D                 *Actor;
 
 private:
-  vtkPlaybackRepresentation(const vtkPlaybackRepresentation&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPlaybackRepresentation&) VTK_DELETE_FUNCTION;
+  vtkPlaybackRepresentation(const vtkPlaybackRepresentation&) = delete;
+  void operator=(const vtkPlaybackRepresentation&) = delete;
 };
 
 #endif

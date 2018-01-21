@@ -39,7 +39,7 @@ class VTKIOAMR_EXPORT vtkAMRBaseParticlesReader :
 {
 public:
   vtkTypeMacro( vtkAMRBaseParticlesReader, vtkMultiBlockDataSetAlgorithm );
-  void PrintSelf(ostream &os, vtkIndent indent );
+  void PrintSelf(ostream &os, vtkIndent indent ) override;
 
   //@{
   /**
@@ -131,7 +131,7 @@ public:
 
 protected:
   vtkAMRBaseParticlesReader();
-  virtual ~vtkAMRBaseParticlesReader();
+  ~vtkAMRBaseParticlesReader() override;
 
   /**
    * Reads the metadata, e.g., the number of blocks in the file.
@@ -191,7 +191,7 @@ protected:
 
   /**
    * Initializes the ParticleDataArraySelection object. This method
-   * only executes for an intial request in which case all arrays are
+   * only executes for an initial request in which case all arrays are
    * deselected.
    */
   void InitializeParticleDataSelections();
@@ -213,10 +213,10 @@ protected:
   /**
    * Standard pipeline operations
    */
-  virtual int RequestData( vtkInformation *request,
+  int RequestData( vtkInformation *request,
       vtkInformationVector **inputVector,
-      vtkInformationVector *outputVector );
-  virtual int FillOutputPortInformation( int port, vtkInformation *info );
+      vtkInformationVector *outputVector ) override;
+  int FillOutputPortInformation( int port, vtkInformation *info ) override;
   //@}
 
   int NumberOfBlocks;
@@ -233,8 +233,8 @@ protected:
   char *FileName;
 
 private:
-  vtkAMRBaseParticlesReader( const vtkAMRBaseParticlesReader& ) VTK_DELETE_FUNCTION;
-  void operator=(const vtkAMRBaseParticlesReader& ) VTK_DELETE_FUNCTION;
+  vtkAMRBaseParticlesReader( const vtkAMRBaseParticlesReader& ) = delete;
+  void operator=(const vtkAMRBaseParticlesReader& ) = delete;
 };
 
 #endif /* vtkAMRBaseParticlesReader_h */

@@ -47,7 +47,7 @@ class VTKCHARTSCORE_EXPORT vtkPlot : public vtkContextItem
 {
 public:
   vtkTypeMacro(vtkPlot, vtkContextItem);
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
   //@{
   /**
@@ -380,7 +380,7 @@ public:
 
 protected:
   vtkPlot();
-  ~vtkPlot();
+  ~vtkPlot() override;
 
   /**
    * Get the properly formatted number for the supplied position and axis.
@@ -479,8 +479,8 @@ protected:
   bool LegendVisibility;
 
 private:
-  vtkPlot(const vtkPlot &) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPlot &) VTK_DELETE_FUNCTION;
+  vtkPlot(const vtkPlot &) = delete;
+  void operator=(const vtkPlot &) = delete;
 
 };
 

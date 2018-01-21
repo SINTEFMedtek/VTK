@@ -74,7 +74,7 @@ public:
    * Standard methods for instances of the class.
    */
   vtkTypeMacro(vtkTexturedButtonRepresentation,vtkButtonRepresentation);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   //@{
@@ -144,28 +144,28 @@ public:
   /**
    * Provide the necessary methods to satisfy the vtkWidgetRepresentation API.
    */
-  virtual int ComputeInteractionState(int X, int Y, int modify=0);
-  virtual void PlaceWidget(double bounds[6]);
-  virtual void BuildRepresentation();
-  virtual void Highlight(int state);
+  int ComputeInteractionState(int X, int Y, int modify=0) override;
+  void PlaceWidget(double bounds[6]) override;
+  void BuildRepresentation() override;
+  void Highlight(int state) override;
   //@}
 
   //@{
   /**
    * Provide the necessary methods to satisfy the rendering API.
    */
-  virtual void ShallowCopy(vtkProp *prop);
-  virtual double *GetBounds();
-  virtual void GetActors(vtkPropCollection *pc);
-  virtual void ReleaseGraphicsResources(vtkWindow*);
-  virtual int RenderOpaqueGeometry(vtkViewport*);
-  virtual int RenderTranslucentPolygonalGeometry(vtkViewport*);
-  virtual int HasTranslucentPolygonalGeometry();
+  void ShallowCopy(vtkProp *prop) override;
+  double *GetBounds() override;
+  void GetActors(vtkPropCollection *pc) override;
+  void ReleaseGraphicsResources(vtkWindow*) override;
+  int RenderOpaqueGeometry(vtkViewport*) override;
+  int RenderTranslucentPolygonalGeometry(vtkViewport*) override;
+  int HasTranslucentPolygonalGeometry() override;
   //@}
 
 protected:
   vtkTexturedButtonRepresentation();
-  ~vtkTexturedButtonRepresentation();
+  ~vtkTexturedButtonRepresentation() override;
 
   // Representing the button
   vtkActor          *Actor;
@@ -190,11 +190,11 @@ protected:
   vtkCellPicker *Picker;
 
   // Register internal Pickers within PickingManager
-  virtual void RegisterPickers();
+  void RegisterPickers() override;
 
 private:
-  vtkTexturedButtonRepresentation(const vtkTexturedButtonRepresentation&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkTexturedButtonRepresentation&) VTK_DELETE_FUNCTION;
+  vtkTexturedButtonRepresentation(const vtkTexturedButtonRepresentation&) = delete;
+  void operator=(const vtkTexturedButtonRepresentation&) = delete;
 };
 
 #endif

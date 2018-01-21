@@ -359,7 +359,7 @@ int vtkFastSplatter::RequestData(vtkInformation *vtkNotUsed(request),
 
   // Get the input and output objects.
   vtkInformation *inInfo = inputVector[0]->GetInformationObject(0);
-  vtkPoints* points = 0;
+  vtkPoints* points = nullptr;
   if(vtkPointSet* const input =
     vtkPointSet::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT())))
   {
@@ -380,7 +380,7 @@ int vtkFastSplatter::RequestData(vtkInformation *vtkNotUsed(request),
     = vtkImageData::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT()));
 
   // Figure out the real bounds to use.
-  double *bounds;
+  const double *bounds;
   if (   (   (this->ModelBounds[0] < this->ModelBounds[1])
           || (this->OutputDimensions[0] == 1) )
       && (   (this->ModelBounds[2] < this->ModelBounds[3])

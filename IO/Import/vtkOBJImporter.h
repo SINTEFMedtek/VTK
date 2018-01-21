@@ -24,7 +24,8 @@
 #define vtkOBJImporter_h
 
 #include "vtkIOImportModule.h" // For export macro
-#include "vtkSmartPointer.h"
+#include <string> // for string
+#include "vtkSmartPointer.h" // for ivars
 #include "vtkImporter.h"
 
 class vtkRenderWindow;
@@ -61,7 +62,7 @@ public:
   static vtkOBJImporter *New();
 
   vtkTypeMacro(vtkOBJImporter,vtkImporter);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -75,19 +76,24 @@ public:
   const char* GetTexturePath() const;
   //@}
 
+  /**
+   * Get a string describing an output
+   */
+  std::string GetOutputDescription(int idx);
+
 protected:
   vtkOBJImporter();
-  ~vtkOBJImporter();
+  ~vtkOBJImporter() override;
 
-  virtual int  ImportBegin() /*override*/;
-  virtual void ImportEnd () /*override*/;
-  virtual void ReadData() /* override */;
+  int  ImportBegin() override /*override*/;
+  void ImportEnd () override /*override*/;
+  void ReadData() override /* override */;
 
   vtkSmartPointer<vtkOBJPolyDataProcessor>   Impl;
 
 private:
-  vtkOBJImporter(const vtkOBJImporter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkOBJImporter&) VTK_DELETE_FUNCTION;
+  vtkOBJImporter(const vtkOBJImporter&) = delete;
+  void operator=(const vtkOBJImporter&) = delete;
 };
 
 

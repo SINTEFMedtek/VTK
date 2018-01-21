@@ -24,7 +24,7 @@ class VTKFILTERSHYBRID_EXPORT vtkForceTime : public vtkPassInputTypeAlgorithm
 public :
   static vtkForceTime* New();
   vtkTypeMacro(vtkForceTime, vtkPassInputTypeAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   // Description:
   // Replace the pipeline time by this one.
@@ -39,22 +39,22 @@ public :
 
 protected:
   vtkForceTime();
-  virtual ~vtkForceTime();
+  ~vtkForceTime() override;
 
-  virtual int RequestUpdateExtent(vtkInformation*,
+  int RequestUpdateExtent(vtkInformation*,
                                   vtkInformationVector**,
-                                  vtkInformationVector*);
-  virtual int RequestInformation(vtkInformation*,
+                                  vtkInformationVector*) override;
+  int RequestInformation(vtkInformation*,
                                  vtkInformationVector**,
-                                 vtkInformationVector*);
+                                 vtkInformationVector*) override;
 
-  virtual int RequestData(vtkInformation*,
+  int RequestData(vtkInformation*,
                           vtkInformationVector**,
-                          vtkInformationVector*);
+                          vtkInformationVector*) override;
 
 private:
-  vtkForceTime(const vtkForceTime&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkForceTime&) VTK_DELETE_FUNCTION;
+  vtkForceTime(const vtkForceTime&) = delete;
+  void operator=(const vtkForceTime&) = delete;
 
   double ForcedTime;
   bool IgnorePipelineTime;

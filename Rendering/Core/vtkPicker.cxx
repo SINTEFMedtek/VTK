@@ -19,6 +19,8 @@
 #include "vtkAssemblyPath.h"
 #include "vtkCamera.h"
 #include "vtkCommand.h"
+#include "vtkCompositeDataSet.h"
+#include "vtkCompositeDataIterator.h"
 #include "vtkImageData.h"
 #include "vtkLODProp3D.h"
 #include "vtkMapper.h"
@@ -50,8 +52,10 @@ vtkPicker::vtkPicker()
   this->MapperPosition[1] = 0.0;
   this->MapperPosition[2] = 0.0;
 
-  this->Mapper = NULL;
-  this->DataSet = NULL;
+  this->Mapper = nullptr;
+  this->DataSet = nullptr;
+  this->CompositeDataSet = nullptr;
+  this->FlatBlockIndex = -1;
   this->GlobalTMin = VTK_DOUBLE_MAX;
   this->Actors = vtkActorCollection::New();
   this->Prop3Ds = vtkProp3DCollection::New();
@@ -75,42 +79,238 @@ void vtkPicker::MarkPicked(vtkAssemblyPath *path,
                            vtkAbstractMapper3D *m,
                            double tMin, double mapperPos[3])
 {
-  int i;
   vtkMapper *mapper;
   vtkAbstractVolumeMapper *volumeMapper;
   vtkImageMapper3D *imageMapper;
 
-  this->SetPath(path);
-  this->GlobalTMin = tMin;
-
-  for (i=0; i < 3; i++)
+  if ( (mapper=vtkMapper::SafeDownCast(m)) != nullptr)
   {
-    this->MapperPosition[i] = mapperPos[i];
+    this->MarkPickedData(path, tMin, mapperPos, mapper, mapper->GetInput());
   }
-  if ( (mapper=vtkMapper::SafeDownCast(m)) != NULL )
+  else if ( (volumeMapper=vtkAbstractVolumeMapper::SafeDownCast(m)) != nullptr )
   {
-    this->DataSet = mapper->GetInput();
-    this->Mapper = mapper;
+    this->MarkPickedData(path, tMin, mapperPos,
+                         volumeMapper, volumeMapper->GetDataSetInput());
   }
-  else if ( (volumeMapper=vtkAbstractVolumeMapper::SafeDownCast(m)) != NULL )
+  else if ( (imageMapper=vtkImageMapper3D::SafeDownCast(m)) != nullptr )
   {
-    this->DataSet = volumeMapper->GetDataSetInput();
-    this->Mapper = volumeMapper;
-  }
-  else if ( (imageMapper=vtkImageMapper3D::SafeDownCast(m)) != NULL )
-  {
-    this->DataSet = imageMapper->GetInput();
-    this->Mapper = imageMapper;
+    this->MarkPickedData(path, tMin, mapperPos,
+                         imageMapper, imageMapper->GetInput());
   }
   else
   {
-    this->DataSet = NULL;
+    this->MarkPickedData(path, tMin, mapperPos, nullptr, nullptr);
   }
+}
 
+void vtkPicker::MarkPickedData(vtkAssemblyPath* path,
+                               double tMin, double mapperPos[3],
+                               vtkAbstractMapper3D* mapper,
+                               vtkDataSet* input, vtkIdType flatIndex)
+{
+  this->SetPath(path);
+  this->GlobalTMin = tMin;
+
+  for (int i=0; i < 3; i++)
+  {
+    this->MapperPosition[i] = mapperPos[i];
+  }
   // The point has to be transformed back into world coordinates.
   // Note: it is assumed that the transform is in the correct state.
-  this->Transform->TransformPoint(mapperPos,this->PickPosition);
+  this->Transform->TransformPoint(mapperPos, this->PickPosition);
+
+  this->Mapper = mapper;
+  this->DataSet = input;
+  this->CompositeDataSet =
+      vtkCompositeDataSet::SafeDownCast(mapper->GetInputDataObject(0,0));
+  this->FlatBlockIndex = flatIndex;
 }
+
+int vtkPicker::Pick3DPoint(
+  double pos[3],
+  vtkRenderer *renderer)
+{
+  int i;
+  vtkProp *prop;
+  vtkAbstractMapper3D *mapper = nullptr;
+  int winSize[2] = {1, 1};
+  double x, y;
+  double *viewport;
+  int pickable;
+  int LODId;
+  double windowLowerLeft[4], windowUpperRight[4];
+  double bounds[6], tol;
+  vtkActor *actor;
+  vtkLODProp3D *prop3D;
+  vtkVolume *volume;
+  vtkImageSlice *imageSlice = 0;
+  vtkAssemblyPath *path;
+  vtkProperty *tempProperty;
+  vtkCollectionSimpleIterator pit;
+
+  //  Initialize picking process
+  this->Initialize();
+  this->Renderer = renderer;
+
+  // Invoke start pick method if defined
+  this->InvokeEvent(vtkCommand::StartPickEvent,nullptr);
+
+  bounds[0] = bounds[1] = bounds[2] = bounds[3] = bounds[4] = bounds[5] = 0;
+
+  // Compute the tolerance in world coordinates.  Do this by
+  // determining the world coordinates of the diagonal points of the
+  // window, computing the width of the window in world coordinates, and
+  // multiplying by the tolerance.
+  //
+  viewport = renderer->GetViewport();
+  if (renderer->GetRenderWindow())
+  {
+    int *winSizePtr = renderer->GetRenderWindow()->GetSize();
+    if (winSizePtr)
+    {
+      winSize[0] = winSizePtr[0];
+      winSize[1] = winSizePtr[1];
+    }
+  }
+  x = winSize[0] * viewport[0];
+  y = winSize[1] * viewport[1];
+  renderer->SetDisplayPoint(x, y, 0.0);
+  renderer->DisplayToWorld();
+  renderer->GetWorldPoint(windowLowerLeft);
+
+  x = winSize[0] * viewport[2];
+  y = winSize[1] * viewport[3];
+  renderer->SetDisplayPoint(x, y, 0.0);
+  renderer->DisplayToWorld();
+  renderer->GetWorldPoint(windowUpperRight);
+
+  for (tol=0.0,i=0; i<3; i++)
+  {
+    tol += (windowUpperRight[i] - windowLowerLeft[i]) *
+      (windowUpperRight[i] - windowLowerLeft[i]);
+  }
+
+  tol = sqrt (tol) * this->Tolerance;
+
+  //  Loop over all props.  Transform ray (defined from position of
+  //  camera to selection point) into coordinates of mapper (not
+  //  transformed to actors coordinates!  Reduces overall computation!!!).
+  //  Note that only vtkProp3D's can be picked by vtkPicker.
+  //
+  vtkPropCollection *props;
+  vtkProp *propCandidate;
+  if ( this->PickFromList )
+  {
+    props = this->GetPickList();
+  }
+  else
+  {
+    props = renderer->GetViewProps();
+  }
+
+  for ( props->InitTraversal(pit); (prop=props->GetNextProp(pit)); )
+  {
+    for ( prop->InitPathTraversal(); (path=prop->GetNextPath()); )
+    {
+      pickable = 0;
+      actor = nullptr;
+      propCandidate = path->GetLastNode()->GetViewProp();
+      if ( propCandidate->GetPickable() && propCandidate->GetVisibility() )
+      {
+        pickable = 1;
+        if ( (actor=vtkActor::SafeDownCast(propCandidate)) != nullptr )
+        {
+          mapper = actor->GetMapper();
+          if ( actor->GetProperty()->GetOpacity() <= 0.0 )
+          {
+            pickable = 0;
+          }
+        }
+        else if ( (prop3D=vtkLODProp3D::SafeDownCast(propCandidate)) != nullptr )
+        {
+          LODId = prop3D->GetPickLODID();
+          mapper = prop3D->GetLODMapper(LODId);
+
+          // if the mapper is a vtkMapper (as opposed to a vtkVolumeMapper),
+          // then check the transparency to see if the object is pickable
+          if ( vtkMapper::SafeDownCast(mapper) != nullptr)
+          {
+            prop3D->GetLODProperty(LODId, &tempProperty);
+            if ( tempProperty->GetOpacity() <= 0.0 )
+            {
+              pickable = 0;
+            }
+          }
+        }
+        else if ( (volume=vtkVolume::SafeDownCast(propCandidate)) != nullptr )
+        {
+          mapper = volume->GetMapper();
+        }
+        else if ( (imageSlice=vtkImageSlice::SafeDownCast(propCandidate)) )
+        {
+          mapper = imageSlice->GetMapper();
+        }
+        else
+        {
+          pickable = 0; //only vtkProp3D's (actors and volumes) can be picked
+        }
+      }
+
+      //  If actor can be picked, get its composite matrix, invert it, and
+      //  use the inverted matrix to transform the points into mapper
+      //  coordinates.
+      if ( pickable )
+      {
+        const double *bnds = propCandidate->GetBounds();
+        if (bnds)
+        {
+          bounds[0] = bnds[0] - tol; bounds[1] = bnds[1] + tol;
+          bounds[2] = bnds[2] - tol; bounds[3] = bnds[3] + tol;
+          bounds[4] = bnds[4] - tol; bounds[5] = bnds[5] + tol;
+          if (pos[0] >= bounds[0] && pos[0] <= bounds[1] &&
+              pos[1] >= bounds[2] && pos[1] <= bounds[3] &&
+              pos[2] >= bounds[4] && pos[2] <= bounds[5])
+          {
+            this->MarkPicked(path, static_cast<vtkProp3D *>(propCandidate),
+              mapper, 0.0, pos);
+
+            // The IsItemPresent method returns "index+1"
+            int prevIndex = this->Prop3Ds->IsItemPresent(prop)-1;
+
+            if (prevIndex < 0)
+            {
+              this->Prop3Ds->AddItem(static_cast<vtkProp3D *>(prop));
+
+              this->PickedPositions->InsertNextPoint(pos);
+
+              // backwards compatibility: also add to this->Actors
+              if (actor)
+              {
+                this->Actors->AddItem(actor);
+              }
+            }
+          }
+        }
+      }//if visible and pickable and not transparent
+    }//for all parts
+  }//for all actors
+
+  int picked = 0;
+
+  if (this->Path)
+  {
+    // Invoke pick method if one defined - prop goes first
+    this->Path->GetFirstNode()->GetViewProp()->Pick();
+    this->InvokeEvent(vtkCommand::PickEvent,nullptr);
+    picked = 1;
+  }
+
+  // Invoke end pick method if defined
+  this->InvokeEvent(vtkCommand::EndPickEvent,nullptr);
+
+  return picked;
+}
+
 
 //----------------------------------------------------------------------
 // Perform pick operation with selection point provided. Normally the
@@ -120,26 +320,14 @@ int vtkPicker::Pick(double selectionX, double selectionY, double selectionZ,
                     vtkRenderer *renderer)
 {
   int i;
-  vtkProp *prop;
   vtkCamera *camera;
-  vtkAbstractMapper3D *mapper = NULL;
-  double p1World[4], p2World[4], p1Mapper[4], p2Mapper[4];
-  int winSize[2] = {1, 1};
-  double x, y, t;
-  double *viewport;
   double cameraPos[4], cameraFP[4];
   double *displayCoords, *worldCoords;
-  double *clipRange;
   double ray[3], rayLength;
-  int pickable;
-  int LODId;
-  double windowLowerLeft[4], windowUpperRight[4];
-  double bounds[6], tol;
   double tF, tB;
-  double hitPosition[3];
   double cameraDOP[3];
-
-  bounds[0] = bounds[1] = bounds[2] = bounds[3] = bounds[4] = bounds[5] = 0;
+  double p1World[4], p2World[4];
+  double *clipRange;
 
   //  Initialize picking process
   this->Initialize();
@@ -149,9 +337,9 @@ int vtkPicker::Pick(double selectionX, double selectionY, double selectionZ,
   this->SelectionPoint[2] = selectionZ;
 
   // Invoke start pick method if defined
-  this->InvokeEvent(vtkCommand::StartPickEvent,NULL);
+  this->InvokeEvent(vtkCommand::StartPickEvent,nullptr);
 
-  if ( renderer == NULL )
+  if ( renderer == nullptr )
   {
     vtkErrorMacro(<<"Must specify renderer!");
     return 0;
@@ -231,11 +419,94 @@ int vtkPicker::Pick(double selectionX, double selectionY, double selectionZ,
   }
   p1World[3] = p2World[3] = 1.0;
 
+
+
+  int result = this->Pick3DInternal(renderer, p1World, p2World);
+
+  // Invoke end pick method if defined
+  this->InvokeEvent(vtkCommand::EndPickEvent,nullptr);
+
+  return result;
+}
+
+int vtkPicker::Pick3DRay(
+  double pos[3],
+  double wori[4],
+  vtkRenderer *renderer)
+{
+  //  Initialize picking process
+  this->Initialize();
+  this->Renderer = renderer;
+
+  double wp1[4], wp2[4];
+
+  double dist = renderer->GetActiveCamera()->GetClippingRange()[1];
+
+  vtkNew<vtkTransform> trans;
+  trans->RotateWXYZ(wori[0], wori[1], wori[2], wori[3]);
+  double* rayDirection = trans->TransformDoubleVector(0.0, 0.0, -1.0);
+
+  for (int i=0; i < 3; i++)
+  {
+    this->PickPosition[i] = pos[i];
+    wp1[i] = pos[i];
+    wp2[i] = pos[i] + dist * rayDirection[i];
+  }
+
+  // Invoke start pick method if defined
+  this->InvokeEvent(vtkCommand::StartPickEvent,nullptr);
+
+  wp1[3] = 1.0;
+  wp2[3] = 1.0;
+
+  int result = this->Pick3DInternal(renderer, wp1, wp2);
+
+  // Invoke end pick method if defined
+  this->InvokeEvent(vtkCommand::EndPickEvent,nullptr);
+
+  return result;
+}
+
+
+int vtkPicker::Pick3DInternal(vtkRenderer *renderer, double p1World[4], double p2World[4])
+{
+  int i;
+  vtkProp *prop;
+  vtkAbstractMapper3D *mapper = nullptr;
+  double p1Mapper[4], p2Mapper[4];
+  int winSize[2] = {1, 1};
+  double x, y, t;
+  double *viewport;
+  double ray[3];
+  int pickable;
+  int LODId;
+  double windowLowerLeft[4], windowUpperRight[4];
+  double bounds[6], tol;
+  double hitPosition[3];
+
+  bounds[0] = bounds[1] = bounds[2] = bounds[3] = bounds[4] = bounds[5] = 0;
+
+
+  if ( renderer == nullptr )
+  {
+    vtkErrorMacro(<<"Must specify renderer!");
+    return 0;
+  }
+
   // Compute the tolerance in world coordinates.  Do this by
   // determining the world coordinates of the diagonal points of the
   // window, computing the width of the window in world coordinates, and
   // multiplying by the tolerance.
   //
+  renderer->SetWorldPoint(
+    0.5*(p1World[0] + p2World[0]),
+    0.5*(p1World[1] + p2World[1]),
+    0.5*(p1World[2] + p2World[2]),
+    1.0);
+  renderer->WorldToDisplay();
+  double *displayCoords = renderer->GetDisplayPoint();
+  double tolZ = displayCoords[2];
+
   viewport = renderer->GetViewport();
   if (renderer->GetRenderWindow())
   {
@@ -248,13 +519,13 @@ int vtkPicker::Pick(double selectionX, double selectionY, double selectionZ,
   }
   x = winSize[0] * viewport[0];
   y = winSize[1] * viewport[1];
-  renderer->SetDisplayPoint(x, y, selectionZ);
+  renderer->SetDisplayPoint(x, y, tolZ);
   renderer->DisplayToWorld();
   renderer->GetWorldPoint(windowLowerLeft);
 
   x = winSize[0] * viewport[2];
   y = winSize[1] * viewport[3];
-  renderer->SetDisplayPoint(x, y, selectionZ);
+  renderer->SetDisplayPoint(x, y, tolZ);
   renderer->DisplayToWorld();
   renderer->GetWorldPoint(windowUpperRight);
 
@@ -285,7 +556,7 @@ int vtkPicker::Pick(double selectionX, double selectionY, double selectionZ,
   vtkActor *actor;
   vtkLODProp3D *prop3D;
   vtkVolume *volume;
-  vtkImageSlice *imageSlice = 0;
+  vtkImageSlice *imageSlice = nullptr;
   vtkAssemblyPath *path;
   vtkProperty *tempProperty;
   this->Transform->PostMultiply();
@@ -296,12 +567,12 @@ int vtkPicker::Pick(double selectionX, double selectionY, double selectionZ,
     for ( prop->InitPathTraversal(); (path=prop->GetNextPath()); )
     {
       pickable = 0;
-      actor = NULL;
+      actor = nullptr;
       propCandidate = path->GetLastNode()->GetViewProp();
       if ( propCandidate->GetPickable() && propCandidate->GetVisibility() )
       {
         pickable = 1;
-        if ( (actor=vtkActor::SafeDownCast(propCandidate)) != NULL )
+        if ( (actor=vtkActor::SafeDownCast(propCandidate)) != nullptr )
         {
           mapper = actor->GetMapper();
           if ( actor->GetProperty()->GetOpacity() <= 0.0 )
@@ -309,14 +580,14 @@ int vtkPicker::Pick(double selectionX, double selectionY, double selectionZ,
             pickable = 0;
           }
         }
-        else if ( (prop3D=vtkLODProp3D::SafeDownCast(propCandidate)) != NULL )
+        else if ( (prop3D=vtkLODProp3D::SafeDownCast(propCandidate)) != nullptr )
         {
           LODId = prop3D->GetPickLODID();
           mapper = prop3D->GetLODMapper(LODId);
 
           // if the mapper is a vtkMapper (as opposed to a vtkVolumeMapper),
           // then check the transparency to see if the object is pickable
-          if ( vtkMapper::SafeDownCast(mapper) != NULL)
+          if ( vtkMapper::SafeDownCast(mapper) != nullptr)
           {
             prop3D->GetLODProperty(LODId, &tempProperty);
             if ( tempProperty->GetOpacity() <= 0.0 )
@@ -325,7 +596,7 @@ int vtkPicker::Pick(double selectionX, double selectionY, double selectionZ,
             }
           }
         }
-        else if ( (volume=vtkVolume::SafeDownCast(propCandidate)) != NULL )
+        else if ( (volume=vtkVolume::SafeDownCast(propCandidate)) != nullptr )
         {
           mapper = volume->GetMapper();
         }
@@ -345,7 +616,7 @@ int vtkPicker::Pick(double selectionX, double selectionY, double selectionZ,
       if ( pickable )
       {
         vtkMatrix4x4 *lastMatrix = path->GetLastNode()->GetMatrix();
-        if (lastMatrix == NULL)
+        if (lastMatrix == nullptr)
         {
           vtkErrorMacro (<< "Pick: Null matrix.");
           return 0;
@@ -371,7 +642,7 @@ int vtkPicker::Pick(double selectionX, double selectionY, double selectionZ,
         //  Get the bounding box of the modeller.  Note that the tolerance is
         //  added to the bounding box to make sure things on the edge of the
         //  bounding box are picked correctly.
-        if ( mapper != NULL )
+        if ( mapper != nullptr )
         {
           mapper->GetBounds(bounds);
         }
@@ -431,12 +702,9 @@ int vtkPicker::Pick(double selectionX, double selectionY, double selectionZ,
   {
     // Invoke pick method if one defined - prop goes first
     this->Path->GetFirstNode()->GetViewProp()->Pick();
-    this->InvokeEvent(vtkCommand::PickEvent,NULL);
+    this->InvokeEvent(vtkCommand::PickEvent,nullptr);
     picked = 1;
   }
-
-  // Invoke end pick method if defined
-  this->InvokeEvent(vtkCommand::EndPickEvent,NULL);
 
   return picked;
 }
@@ -444,16 +712,15 @@ int vtkPicker::Pick(double selectionX, double selectionY, double selectionZ,
 //----------------------------------------------------------------------
 // Intersect data with specified ray.
 double vtkPicker::IntersectWithLine(double p1[3], double p2[3],
-                                   double vtkNotUsed(tol),
+                                   double tol,
                                    vtkAssemblyPath *path,
                                    vtkProp3D *prop3D,
                                    vtkAbstractMapper3D *mapper)
 {
-  int i;
   double center[3], t, ray[3], rayFactor;
 
   // Get the data from the modeler
-  if ( mapper != NULL )
+  if ( mapper != nullptr )
   {
     mapper->GetCenter(center);
   }
@@ -462,25 +729,96 @@ double vtkPicker::IntersectWithLine(double p1[3], double p2[3],
     return VTK_DOUBLE_MAX;
   }
 
-  for (i=0; i<3; i++)
+  if ( !vtkPicker::CalculateRay(p1, p2, ray, rayFactor) )
   {
-    ray[i] = p2[i] - p1[i];
-  }
-  if (( rayFactor = vtkMath::Dot(ray,ray)) == 0.0 )
-  {
+    vtkDebugMacro("Zero length ray");
     return 2.0;
   }
 
   // Project the center point onto the ray and determine its parametric value
   //
-  t = (ray[0]*(center[0]-p1[0]) + ray[1]*(center[1]-p1[1])
-       + ray[2]*(center[2]-p1[2])) / rayFactor;
+  t = (ray[0]*(center[0]-p1[0]) +
+       ray[1]*(center[1]-p1[1]) +
+       ray[2]*(center[2]-p1[2])) / rayFactor;
 
   if ( t >= 0.0 && t <= 1.0 && t < this->GlobalTMin )
   {
-    this->MarkPicked(path, prop3D, mapper, t, center);
+    // If this is a composite dataset, find the nearest picked dataset
+    vtkCompositeDataSet* composite =
+        vtkCompositeDataSet::SafeDownCast(mapper->GetInputDataObject(0,0));
+    if ( composite )
+    {
+      double tMinDS = VTK_DOUBLE_MAX;
+      double centerMinDS[3];
+      vtkDataSet* minDS = nullptr;
+      vtkIdType minDSIndex =-1;
+      vtkSmartPointer<vtkCompositeDataIterator> iter;
+      iter.TakeReference( composite->NewIterator() );
+      for (iter->InitTraversal();
+           !iter->IsDoneWithTraversal();
+           iter->GoToNextItem())
+      {
+        vtkDataSet* ds =
+            vtkDataSet::SafeDownCast(iter->GetCurrentDataObject());
+        if ( !ds )
+        {
+          continue;
+        }
+
+        // First check if the bounding box of the data set is hit.
+        double bounds[6];
+        ds->GetBounds(bounds);
+        bounds[0] -= tol; bounds[1] += tol;
+        bounds[2] -= tol; bounds[3] += tol;
+        bounds[4] -= tol; bounds[5] += tol;
+        double tDummy;
+        double xyzDummy[3];
+        if ( !vtkBox::IntersectBox(bounds, p1, ray, xyzDummy, tDummy) )
+        {
+          // box not hit: no need to intersect...
+          continue;
+        }
+
+        double centerDS[3];
+        ds->GetCenter( centerDS );
+
+        // Project the center point onto the ray and
+        // determine its parametric value
+        double tDS = (ray[0]*(centerDS[0]-p1[0]) +
+                      ray[1]*(centerDS[1]-p1[1]) +
+                      ray[2]*(centerDS[2]-p1[2])) / rayFactor;
+
+        if ( tDS >= 0.0 && tDS <= 1.0 && tDS < tMinDS )
+        {
+          tMinDS = tDS;
+          centerMinDS[0] = centerDS[0];
+          centerMinDS[1] = centerDS[1];
+          centerMinDS[2] = centerDS[2];
+          minDS = ds;
+          minDSIndex = iter->GetCurrentFlatIndex();
+        }
+      }
+      // Note that the mapper position is not the center of the entire
+      // composite data set but the center of the nearest data set
+      this->MarkPickedData(path,tMinDS,centerMinDS,mapper,minDS,minDSIndex);
+    }
+    else
+    {
+      this->MarkPicked(path, prop3D, mapper, t, center);
+    }
   }
   return t;
+}
+
+bool vtkPicker::CalculateRay(double p1[3], double p2[3],
+                             double ray[3], double &rayFactor)
+{
+  ray[0] = p2[0] - p1[0];
+  ray[1] = p2[1] - p1[1];
+  ray[2] = p2[2] - p1[2];
+
+  rayFactor = vtkMath::Dot(ray,ray);
+  return ( rayFactor > 0.0 );
 }
 
 //----------------------------------------------------------------------
@@ -497,8 +835,10 @@ void vtkPicker::Initialize()
   this->MapperPosition[1] = 0.0;
   this->MapperPosition[2] = 0.0;
 
-  this->Mapper = NULL;
-  this->DataSet = NULL;
+  this->Mapper = nullptr;
+  this->DataSet = nullptr;
+  this->CompositeDataSet = nullptr;
+  this->FlatBlockIndex = -1;
   this->GlobalTMin = VTK_DOUBLE_MAX;
 }
 
@@ -528,12 +868,28 @@ void vtkPicker::PrintSelf(ostream& os, vtkIndent indent)
   {
     os << indent << "DataSet: (none)";
   }
+  if ( this->CompositeDataSet )
+  {
+    os << indent << "CompositeDataSet: "<<this->CompositeDataSet<<"\n";
+  }
+  else
+  {
+    os << indent << "CompositeDataSet: (none)\n";
+  }
+  if ( this->FlatBlockIndex > -1 )
+  {
+    os << indent << "FlatBlockIndex: "<<this->FlatBlockIndex<<"\n";
+  }
+  else
+  {
+    os << indent << "FlatBlockIndex: (none)\n";
+  }
 
   os << indent << "Mapper: " << this->Mapper << "\n";
 
   os << indent << "Tolerance: " << this->Tolerance << "\n";
 
-  os << indent << "Mapper Position: (" <<  this->MapperPosition[0] << ","
+  os << indent << "MapperPosition: (" <<  this->MapperPosition[0] << ","
      << this->MapperPosition[1] << ","
      << this->MapperPosition[2] << ")\n";
 }

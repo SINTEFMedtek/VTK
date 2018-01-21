@@ -47,7 +47,7 @@ class VTKVIEWSINFOVIS_EXPORT vtkTreeRingView : public vtkTreeAreaView
 public:
   static vtkTreeRingView *New();
   vtkTypeMacro(vtkTreeRingView, vtkTreeAreaView);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Set the root angles for laying out the hierarchy.
@@ -91,11 +91,11 @@ public:
 
 protected:
   vtkTreeRingView();
-  ~vtkTreeRingView();
+  ~vtkTreeRingView() override;
 
 private:
-  vtkTreeRingView(const vtkTreeRingView&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkTreeRingView&) VTK_DELETE_FUNCTION;
+  vtkTreeRingView(const vtkTreeRingView&) = delete;
+  void operator=(const vtkTreeRingView&) = delete;
 };
 
 #endif

@@ -66,7 +66,7 @@ public:
    */
   vtkTypeMacro(vtkCompassRepresentation,
                        vtkContinuousValueWidgetRepresentation);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   /**
@@ -118,24 +118,24 @@ public:
    * assumes that the parameter bounds[6] specifies the location in display
    * space where the widget should be placed.
    */
-  virtual void PlaceWidget(double bounds[6]);
-  virtual void BuildRepresentation();
-  virtual void StartWidgetInteraction(double eventPos[2]);
-  virtual void WidgetInteraction(double eventPos[2]);
+  void PlaceWidget(double bounds[6]) override;
+  void BuildRepresentation() override;
+  void StartWidgetInteraction(double eventPos[2]) override;
+  void WidgetInteraction(double eventPos[2]) override;
   virtual void TiltWidgetInteraction(double eventPos[2]);
   virtual void DistanceWidgetInteraction(double eventPos[2]);
-  virtual int ComputeInteractionState(int X, int Y, int modify=0);
-  virtual void Highlight(int);
+  int ComputeInteractionState(int X, int Y, int modify=0) override;
+  void Highlight(int) override;
   //@}
 
   //@{
   /**
    * Methods supporting the rendering process.
    */
-  virtual void GetActors(vtkPropCollection*);
-  virtual void ReleaseGraphicsResources(vtkWindow*);
-  virtual int RenderOverlay(vtkViewport*);
-  virtual int RenderOpaqueGeometry(vtkViewport*);
+  void GetActors(vtkPropCollection*) override;
+  void ReleaseGraphicsResources(vtkWindow*) override;
+  int RenderOverlay(vtkViewport*) override;
+  int RenderOpaqueGeometry(vtkViewport*) override;
   //@}
 
   virtual void SetHeading(double value);
@@ -148,7 +148,7 @@ public:
   virtual double GetDistance();
   virtual void UpdateDistance(double time);
   virtual void EndDistance();
-  virtual void SetRenderer(vtkRenderer *ren);
+  void SetRenderer(vtkRenderer *ren) override;
 
   // Enums are used to describe what is selected
   enum _InteractionState
@@ -166,7 +166,7 @@ public:
 
 protected:
   vtkCompassRepresentation();
-  ~vtkCompassRepresentation();
+  ~vtkCompassRepresentation() override;
 
   // Positioning the widget
   vtkCoordinate *Point1Coordinate;
@@ -216,8 +216,8 @@ protected:
   double Distance;
 
 private:
-  vtkCompassRepresentation(const vtkCompassRepresentation&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkCompassRepresentation&) VTK_DELETE_FUNCTION;
+  vtkCompassRepresentation(const vtkCompassRepresentation&) = delete;
+  void operator=(const vtkCompassRepresentation&) = delete;
 };
 
 #endif

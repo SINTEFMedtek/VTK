@@ -19,10 +19,11 @@
 #include "vtkObjectFactory.h"
 #include "vtkPointData.h"
 #include "vtkToolkits.h"
+#include <vtksys/SystemTools.hxx>
 
 extern "C" {
 #include "vtk_jpeg.h"
-#include <setjmp.h>
+#include <csetjmp>
 }
 
 
@@ -119,17 +120,17 @@ void vtkJPEGReader::ExecuteInformation()
   // certain variables must be stored here for longjmp
   struct vtk_jpeg_error_mgr jerr;
   jerr.JPEGReader = this;
-  jerr.fp = NULL;
+  jerr.fp = nullptr;
 
   this->ComputeInternalFileName(this->DataExtent[4]);
-  if (this->InternalFileName == NULL && this->MemoryBuffer == NULL)
+  if (this->InternalFileName == nullptr && this->MemoryBuffer == nullptr)
   {
     return;
   }
 
   if (!this->MemoryBuffer)
   {
-    jerr.fp = fopen(this->InternalFileName, "rb");
+    jerr.fp = vtksys::SystemTools::Fopen(this->InternalFileName, "rb");
     if (!jerr.fp)
     {
       vtkErrorWithObjectMacro(this,
@@ -226,11 +227,11 @@ int vtkJPEGReaderUpdate2(vtkJPEGReader *self, OT *outPtr,
   // certain variables must be stored here for longjmp
   struct vtk_jpeg_error_mgr jerr;
   jerr.JPEGReader = self;
-  jerr.fp = NULL;
+  jerr.fp = nullptr;
 
   if (!self->GetMemoryBuffer())
   {
-    jerr.fp = fopen(self->GetInternalFileName(), "rb");
+    jerr.fp = vtksys::SystemTools::Fopen(self->GetInternalFileName(), "rb");
     if (!jerr.fp)
     {
       return 1;
@@ -367,7 +368,7 @@ void vtkJPEGReader::ExecuteDataWithInformation(vtkDataObject *output,
 {
   vtkImageData *data = this->AllocateOutputData(output, outInfo);
 
-  if (this->InternalFileName == NULL)
+  if (this->InternalFileName == nullptr)
   {
     vtkErrorMacro(<< "Either a FileName or FilePrefix must be specified.");
     return;
@@ -397,10 +398,10 @@ int vtkJPEGReader::CanReadFile(const char* fname)
   // certain variables must be stored here for longjmp
   struct vtk_jpeg_error_mgr jerr;
   jerr.JPEGReader = this;
-  jerr.fp = NULL;
+  jerr.fp = nullptr;
 
   // open the file
-  jerr.fp = fopen(fname, "rb");
+  jerr.fp = vtksys::SystemTools::Fopen(fname, "rb");
   if (!jerr.fp)
   {
     return 0;

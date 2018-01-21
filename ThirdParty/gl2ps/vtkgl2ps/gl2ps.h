@@ -203,6 +203,12 @@ GL2PSDLL_API GLint gl2psTextOpt(const char *str, const char *fontname,
 GL2PSDLL_API GLint gl2psTextOptColor(const char *str, const char *fontname,
                                      GLshort fontsize, GLint align, GLfloat angle,
                                      GL2PSrgba color);
+GL2PSDLL_API GLint gl2psTextOptColorBL(
+  const char *str, const char *fontname,
+  GLshort fontsize, GLint alignment, GLfloat angle,
+  GL2PSrgba color, GLfloat blx, GLfloat bly);
+
+GL2PSDLL_API GLint gl2psSpecialColor(GLint format, const char *str, GL2PSrgba rgba);
 GL2PSDLL_API GLint gl2psSpecial(GLint format, const char *str);
 GL2PSDLL_API GLint gl2psDrawPixels(GLsizei width, GLsizei height,
                                    GLint xorig, GLint yorig,
@@ -224,7 +230,8 @@ GL2PSDLL_API void gl2psAddPolyPrimitive(GLshort type, GLshort numverts,
                                         GL2PSvertex *verts, GLint offset,
                                         GLfloat ofactor, GLfloat ounits,
                                         GLushort pattern, GLint factor,
-                                        GLfloat width, char boundary);
+                                        GLfloat width, GLint linecap,
+                                        GLint linejoin, char boundary);
 
 #if defined(__cplusplus)
 }

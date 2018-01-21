@@ -44,10 +44,10 @@ public:
 
   //@{
   /**
-   * Standar VTK class methods.
+   * Standard VTK class methods.
    */
   vtkTypeMacro(vtkPlaybackWidget,vtkBorderWidget);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   /**
@@ -61,21 +61,21 @@ public:
   /**
    * Create the default widget representation if one is not set.
    */
-  void CreateDefaultRepresentation();
+  void CreateDefaultRepresentation() override;
 
 protected:
   vtkPlaybackWidget();
-  ~vtkPlaybackWidget();
+  ~vtkPlaybackWidget() override;
 
   /**
    * When selecting the interior of this widget, special operations occur
    * (i.e., operating the playback controls).
    */
-  virtual void SelectRegion(double eventPos[2]);
+  void SelectRegion(double eventPos[2]) override;
 
 private:
-  vtkPlaybackWidget(const vtkPlaybackWidget&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPlaybackWidget&) VTK_DELETE_FUNCTION;
+  vtkPlaybackWidget(const vtkPlaybackWidget&) = delete;
+  void operator=(const vtkPlaybackWidget&) = delete;
 };
 
 #endif

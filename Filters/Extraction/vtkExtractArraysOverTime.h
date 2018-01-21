@@ -50,7 +50,7 @@ class VTKFILTERSEXTRACTION_EXPORT vtkExtractArraysOverTime : public vtkMultiBloc
 public:
   static vtkExtractArraysOverTime *New();
   vtkTypeMacro(vtkExtractArraysOverTime, vtkMultiBlockDataSetAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -101,17 +101,17 @@ public:
 
 protected:
   vtkExtractArraysOverTime();
-  ~vtkExtractArraysOverTime();
+  ~vtkExtractArraysOverTime() override;
 
-  virtual int RequestInformation(vtkInformation* request,
+  int RequestInformation(vtkInformation* request,
                                  vtkInformationVector** inputVector,
-                                 vtkInformationVector* outputVector);
-  virtual int RequestUpdateExtent(vtkInformation* request,
+                                 vtkInformationVector* outputVector) override;
+  int RequestUpdateExtent(vtkInformation* request,
                                   vtkInformationVector** inputVector,
-                                  vtkInformationVector* outputVector);
-  virtual int RequestData(vtkInformation* request,
+                                  vtkInformationVector* outputVector) override;
+  int RequestData(vtkInformation* request,
                           vtkInformationVector** inputVector,
-                          vtkInformationVector* outputVector);
+                          vtkInformationVector* outputVector) override;
 
   virtual void PostExecute(vtkInformation* request,
                            vtkInformationVector** inputVector,
@@ -128,7 +128,7 @@ protected:
    */
   int DetermineSelectionType(vtkSelection*);
 
-  virtual int FillInputPortInformation(int port, vtkInformation* info);
+  int FillInputPortInformation(int port, vtkInformation* info) override;
 
   void ExecuteAtTimeStep(vtkInformationVector** inputV,
     vtkInformation* outInfo);
@@ -154,8 +154,8 @@ protected:
   vtkExtractSelection* SelectionExtractor;
 
 private:
-  vtkExtractArraysOverTime(const vtkExtractArraysOverTime&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkExtractArraysOverTime&) VTK_DELETE_FUNCTION;
+  vtkExtractArraysOverTime(const vtkExtractArraysOverTime&) = delete;
+  void operator=(const vtkExtractArraysOverTime&) = delete;
 
   class vtkInternal;
   vtkInternal *Internal;

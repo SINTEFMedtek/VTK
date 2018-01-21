@@ -41,7 +41,7 @@ Ph.D. thesis of Christian BOUCHENY.
 #include <cassert>
 #include "vtkRenderState.h"
 #include "vtkRenderer.h"
-#include "vtkFrameBufferObject.h"
+#include "vtkOpenGLFramebufferObject.h"
 #include "vtkTextureObject.h"
 #include "vtkOpenGLRenderWindow.h"
 
@@ -49,12 +49,9 @@ Ph.D. thesis of Christian BOUCHENY.
 #include "vtkCamera.h"
 #include "vtkMath.h"
 
-vtkCxxSetObjectMacro(vtkDepthImageProcessingPass,DelegatePass,vtkRenderPass);
-
 // ----------------------------------------------------------------------------
 vtkDepthImageProcessingPass::vtkDepthImageProcessingPass()
 {
-  this->DelegatePass = 0;
   this->Width = 0;
   this->Height = 0;
   this->W = 0;
@@ -65,28 +62,14 @@ vtkDepthImageProcessingPass::vtkDepthImageProcessingPass()
 // ----------------------------------------------------------------------------
 vtkDepthImageProcessingPass::~vtkDepthImageProcessingPass()
 {
-  if(this->DelegatePass!=0)
-  {
-    this->DelegatePass->Delete();
-    this->DelegatePass=0;
-  }
 }
 
 // ----------------------------------------------------------------------------
 void vtkDepthImageProcessingPass::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
-
-  os << indent << "DelegatePass:";
-  if(this->DelegatePass!=0)
-  {
-    this->DelegatePass->PrintSelf(os,indent);
-  }
-  else
-  {
-    os << "(none)" <<endl;
-  }
 }
+
 // ----------------------------------------------------------------------------
 // Description:
 // Render delegate with a image of different dimensions than the
@@ -101,17 +84,17 @@ void vtkDepthImageProcessingPass::RenderDelegate(const vtkRenderState *s,
                                             int height,
                                             int newWidth,
                                             int newHeight,
-                                            vtkFrameBufferObject *fbo,
+                                            vtkOpenGLFramebufferObject *fbo,
                                             vtkTextureObject *colortarget,
                                             vtkTextureObject *depthtarget)
 {
-  assert("pre: s_exists" && s!=0);
-  assert("pre: fbo_exists" && fbo!=0);
-  assert("pre: fbo_has_context" && fbo->GetContext()!=0);
-  assert("pre: colortarget_exists" && colortarget!=0);
-  assert("pre: colortarget_has_context" && colortarget->GetContext()!=0);
-  assert("pre: depthtarget_exists" && depthtarget!=0);
-  assert("pre: depthtarget_has_context" && depthtarget->GetContext()!=0);
+  assert("pre: s_exists" && s!=nullptr);
+  assert("pre: fbo_exists" && fbo!=nullptr);
+  assert("pre: fbo_has_context" && fbo->GetContext()!=nullptr);
+  assert("pre: colortarget_exists" && colortarget!=nullptr);
+  assert("pre: colortarget_has_context" && colortarget->GetContext()!=nullptr);
+  assert("pre: depthtarget_exists" && depthtarget!=nullptr);
+  assert("pre: depthtarget_has_context" && depthtarget->GetContext()!=nullptr);
 
   vtkRenderer *r=s->GetRenderer();
   vtkRenderState s2(r);
@@ -153,16 +136,16 @@ void vtkDepthImageProcessingPass::RenderDelegate(const vtkRenderState *s,
 
   s2.SetFrameBuffer(fbo);
 
-  fbo->SetNumberOfRenderTargets(1);
-  fbo->SetColorBuffer(0,colortarget);
+  fbo->AddColorAttachment(
+    fbo->GetDrawMode(), 0,colortarget);
 
   // because the same FBO can be used in another pass but with several color
   // buffers, force this pass to use 1, to avoid side effects from the
   // render of the previous frame.
-  fbo->SetActiveBuffer(0);
+  fbo->ActivateDrawBuffer(0);
 
-  fbo->SetDepthBuffer(depthtarget);
-  fbo->StartNonOrtho(newWidth,newHeight,false);
+  fbo->AddDepthAttachment(fbo->GetDrawMode(), depthtarget);
+  fbo->StartNonOrtho(newWidth, newHeight);
 
   // 2. Delegate render in FBO
   //glEnable(GL_DEPTH_TEST);
@@ -182,12 +165,12 @@ void vtkDepthImageProcessingPass::RenderDelegate(const vtkRenderState *s,
 //
 void vtkDepthImageProcessingPass::ReadWindowSize(const vtkRenderState* s)
 {
-    assert("pre: s_exists" && s!=0);
+    assert("pre: s_exists" && s!=nullptr);
 
-    vtkFrameBufferObject *fbo=vtkFrameBufferObject::SafeDownCast
+    vtkOpenGLFramebufferObject *fbo=vtkOpenGLFramebufferObject::SafeDownCast
       (s->GetFrameBuffer());
     vtkRenderer *r = s->GetRenderer();
-    if(fbo==0)
+    if(fbo==nullptr)
     {
       r->GetTiledSize(&this->Width,&this->Height);
     }
@@ -198,18 +181,4 @@ void vtkDepthImageProcessingPass::ReadWindowSize(const vtkRenderState* s)
       this->Width=size[0];
       this->Height=size[1];
     }
-}
-
-// ----------------------------------------------------------------------------
-// Description:
-// Release graphics resources and ask components to release their own
-// resources.
-// \pre w_exists: w!=0
-void vtkDepthImageProcessingPass::ReleaseGraphicsResources(vtkWindow *w)
-{
-  assert("pre: w_exists" && w!=0);
-  if(this->DelegatePass!=0)
-  {
-    this->DelegatePass->ReleaseGraphicsResources(w);
-  }
 }

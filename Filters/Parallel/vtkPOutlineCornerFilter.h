@@ -36,7 +36,7 @@ class VTKFILTERSPARALLEL_EXPORT vtkPOutlineCornerFilter : public vtkPolyDataAlgo
 {
 public:
   vtkTypeMacro(vtkPOutlineCornerFilter,vtkPolyDataAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Construct outline corner filter with default corner factor = 0.2
@@ -66,17 +66,17 @@ public:
 
 protected:
   vtkPOutlineCornerFilter();
-  ~vtkPOutlineCornerFilter();
+  ~vtkPOutlineCornerFilter() override;
 
   vtkMultiProcessController* Controller;
   vtkOutlineCornerSource *OutlineCornerSource;
-  virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-  virtual int FillInputPortInformation(int port, vtkInformation *info);
+  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *) override;
+  int FillInputPortInformation(int port, vtkInformation *info) override;
 
   double CornerFactor;
 private:
-  vtkPOutlineCornerFilter(const vtkPOutlineCornerFilter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPOutlineCornerFilter&) VTK_DELETE_FUNCTION;
+  vtkPOutlineCornerFilter(const vtkPOutlineCornerFilter&) = delete;
+  void operator=(const vtkPOutlineCornerFilter&) = delete;
 
   vtkPOutlineFilterInternals* Internals;
 };

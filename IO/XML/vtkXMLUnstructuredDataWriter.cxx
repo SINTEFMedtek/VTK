@@ -21,6 +21,7 @@
 #include "vtkDataCompressor.h"
 #include "vtkDataSetAttributes.h"
 #include "vtkErrorCode.h"
+#include "vtkGenericCell.h"
 #include "vtkIdTypeArray.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
@@ -28,6 +29,7 @@
 #include "vtkPointData.h"
 #include "vtkPointSet.h"
 #include "vtkPoints.h"
+#include "vtkPolyhedron.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtkUnsignedCharArray.h"
 #define vtkXMLOffsetsManager_DoNotInclude
@@ -155,9 +157,9 @@ int vtkXMLUnstructuredDataWriter::ProcessRequest(vtkInformation* request,
         return 0;
       }
 
-      if (this->GetInputAsDataSet() != NULL &&
-          (this->GetInputAsDataSet()->GetPointGhostArray() != NULL &&
-           this->GetInputAsDataSet()->GetCellGhostArray() != NULL))
+      if (this->GetInputAsDataSet() != nullptr &&
+          (this->GetInputAsDataSet()->GetPointGhostArray() != nullptr &&
+           this->GetInputAsDataSet()->GetCellGhostArray() != nullptr))
       {
         // use the current version for the file.
         this->UsePreviousVersion = false;
@@ -253,7 +255,7 @@ void vtkXMLUnstructuredDataWriter::AllocatePositionArrays()
 void vtkXMLUnstructuredDataWriter::DeletePositionArrays()
 {
   delete [] this->NumberOfPointsPositions;
-  this->NumberOfPointsPositions = 0;
+  this->NumberOfPointsPositions = nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -348,6 +350,54 @@ int vtkXMLUnstructuredDataWriter::WriteHeader()
 
   return 1;
 }
+
+void CreateFaceStream(vtkCellIterator* cellIter, vtkIdTypeArray* faceStream, vtkIdTypeArray* faceOffsets)
+{
+  vtkNew<vtkGenericCell> cell;
+
+  faceStream->Reset();
+  faceOffsets->Reset();
+
+  vtkIdType offset(0);
+  for (cellIter->InitTraversal(); !cellIter->IsDoneWithTraversal();
+       cellIter->GoToNextCell())
+  {
+    vtkIdType ct = cellIter->GetCellType();
+    if (ct != VTK_POLYHEDRON)
+    {
+      faceOffsets->InsertNextValue(-1);
+      continue;
+    }
+    cellIter->GetCell(cell.GetPointer());
+    vtkCell* theCell = cell->GetRepresentativeCell();
+    vtkPolyhedron* poly = vtkPolyhedron::SafeDownCast(theCell);
+    if (!poly || !poly->GetNumberOfFaces())
+    {
+      continue;
+    }
+
+    vtkIdType n(0);
+    vtkIdType* faces = poly->GetFaces();
+    vtkIdType nFaces = faces[n++];
+
+    // create offset in vtkUnstructuredGrid fashion, this will later be converted using ConvertFaces
+    faceOffsets->InsertNextValue(offset);
+
+    faceStream->InsertNextValue(nFaces);
+    for(vtkIdType i = 0; i < nFaces; ++i)
+    {
+      vtkIdType nFaceVerts = faces[n++];
+      faceStream->InsertNextValue(nFaceVerts);
+      for (vtkIdType j = 0; j < nFaceVerts; ++j)
+      {
+        vtkIdType vi = faces[n++];
+        faceStream->InsertNextValue(vi);
+      }
+    }
+    offset += n;
+  }
+}
+
 
 //----------------------------------------------------------------------------
 int vtkXMLUnstructuredDataWriter::WriteAPiece()
@@ -564,16 +614,30 @@ void vtkXMLUnstructuredDataWriter::WriteCellsInline(
 {
   this->ConvertCells(cellIter, numCells, cellSizeEstimate);
 
-  // Faces are not supported via this method.
-  this->Faces->SetNumberOfTuples(0);
-  this->FaceOffsets->SetNumberOfTuples(0);
-
   vtkNew<vtkUnsignedCharArray> types;
   types->Allocate(numCells);
+  vtkIdType nPolyhedra(0);
   for (cellIter->InitTraversal(); !cellIter->IsDoneWithTraversal();
        cellIter->GoToNextCell())
   {
-    types->InsertNextValue(static_cast<unsigned char>(cellIter->GetCellType()));
+    vtkIdType ct = cellIter->GetCellType();
+    if (ct == VTK_POLYHEDRON)
+    {
+      ++nPolyhedra;
+    }
+    types->InsertNextValue(static_cast<unsigned char>(ct));
+  }
+
+  if (nPolyhedra > 0)
+  {
+    vtkNew<vtkIdTypeArray> faces, offsets;
+    CreateFaceStream(cellIter, faces.GetPointer(), offsets.GetPointer());
+    this->ConvertFaces(faces.GetPointer(), offsets.GetPointer());
+  }
+  else
+  {
+    this->Faces->SetNumberOfTuples(0);
+    this->FaceOffsets->SetNumberOfTuples(0);
   }
 
   this->WriteCellsInlineWorker(name, types.GetPointer(), indent);
@@ -585,7 +649,7 @@ void vtkXMLUnstructuredDataWriter::WriteCellsInline(const char* name,
                                                     vtkDataArray* types,
                                                     vtkIndent indent)
 {
-  this->WriteCellsInline(name, cells, types, NULL, NULL, indent);
+  this->WriteCellsInline(name, cells, types, nullptr, nullptr, indent);
 }
 
 
@@ -690,7 +754,7 @@ void vtkXMLUnstructuredDataWriter::WriteCellsAppended(const char* name,
                                                       vtkIndent indent,
                                                       OffsetsManagerGroup *cellsManager)
 {
-  this->WriteCellsAppended(name, types, 0, 0, indent, cellsManager);
+  this->WriteCellsAppended(name, types, nullptr, nullptr, indent, cellsManager);
 }
 
 //----------------------------------------------------------------------------
@@ -710,9 +774,9 @@ void vtkXMLUnstructuredDataWriter::WriteCellsAppended(const char* name,
   allcells[0] = this->CellPoints;
   allcells[1] = this->CellOffsets;
   allcells[2] = types;
-  allcells[3] = this->Faces->GetNumberOfTuples() ? this->Faces : 0;
-  allcells[4] = this->FaceOffsets->GetNumberOfTuples() ? this->FaceOffsets : 0;
-  const char *names[] = {NULL, NULL, "types", NULL, NULL};
+  allcells[3] = this->Faces->GetNumberOfTuples() ? this->Faces : nullptr;
+  allcells[4] = this->FaceOffsets->GetNumberOfTuples() ? this->FaceOffsets : nullptr;
+  const char *names[] = {nullptr, nullptr, "types", nullptr, nullptr};
 
   for(int t=0; t<this->NumberOfTimeSteps; t++)
   {
@@ -746,13 +810,27 @@ void vtkXMLUnstructuredDataWriter::WriteCellsAppended(
 {
   vtkNew<vtkUnsignedCharArray> types;
   types->Allocate(numCells);
+  vtkIdType nPolyhedra(0);
   for (cellIter->InitTraversal(); !cellIter->IsDoneWithTraversal();
        cellIter->GoToNextCell())
   {
-    types->InsertNextValue(static_cast<unsigned char>(cellIter->GetCellType()));
+    vtkIdType ct = cellIter->GetCellType();
+    if (ct == VTK_POLYHEDRON)
+    {
+      ++nPolyhedra;
+    }
+    types->InsertNextValue(static_cast<unsigned char>(ct));
   }
-
-  this->WriteCellsAppended(name, types.GetPointer(), 0, 0, indent, cellsManager);
+  if (nPolyhedra > 0)
+  {
+    vtkNew<vtkIdTypeArray> faces, offsets;
+    CreateFaceStream(cellIter, faces.GetPointer(), offsets.GetPointer());
+    this->WriteCellsAppended(name, types.GetPointer(), faces.GetPointer(), offsets.GetPointer(), indent, cellsManager);
+  }
+  else
+  {
+    this->WriteCellsAppended(name, types.GetPointer(), nullptr, nullptr, indent, cellsManager);
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -762,7 +840,7 @@ vtkXMLUnstructuredDataWriter::WriteCellsAppendedData(vtkCellArray* cells,
                                                      int timestep,
                                                      OffsetsManagerGroup *cellsManager)
 {
-  this->WriteCellsAppendedData(cells, types, NULL, NULL, timestep, cellsManager);
+  this->WriteCellsAppendedData(cells, types, nullptr, nullptr, timestep, cellsManager);
 }
 
 //----------------------------------------------------------------------------
@@ -772,17 +850,32 @@ void vtkXMLUnstructuredDataWriter::WriteCellsAppendedData(
 {
   this->ConvertCells(cellIter, numCells, cellSizeEstimate);
 
-  // Faces are not supported by this method:
-  this->Faces->SetNumberOfTuples(0);
-  this->FaceOffsets->SetNumberOfTuples(0);
-
   vtkNew<vtkUnsignedCharArray> types;
   types->Allocate(this->CellOffsets->GetNumberOfTuples() + 1);
-
+  int nPolyhedra(0);
   for(cellIter->InitTraversal(); !cellIter->IsDoneWithTraversal();
       cellIter->GoToNextCell())
   {
-    types->InsertNextValue(static_cast<unsigned char>(cellIter->GetCellType()));
+    vtkIdType ct = cellIter->GetCellType();
+    if (ct == VTK_POLYHEDRON)
+    {
+      ++nPolyhedra;
+    }
+    types->InsertNextValue(static_cast<unsigned char>(ct));
+  }
+
+  if (nPolyhedra > 0)
+  {
+    // even though it looks like we do this for the second time
+    // the test points out that it is needed here.
+    vtkNew<vtkIdTypeArray> faces, offsets;
+    CreateFaceStream(cellIter, faces.GetPointer(), offsets.GetPointer());
+    this->ConvertFaces(faces.GetPointer(), offsets.GetPointer());
+  }
+  else
+  {
+    this->Faces->SetNumberOfTuples(0);
+    this->FaceOffsets->SetNumberOfTuples(0);
   }
 
   this->WriteCellsAppendedDataWorker(types.GetPointer(), timestep,
@@ -822,8 +915,8 @@ void vtkXMLUnstructuredDataWriter::WriteCellsAppendedDataWorker(
   allcells[0] = this->CellPoints;
   allcells[1] = this->CellOffsets;
   allcells[2] = types;
-  allcells[3] = this->Faces->GetNumberOfTuples() ? this->Faces : 0;
-  allcells[4] = this->FaceOffsets->GetNumberOfTuples() ? this->FaceOffsets : 0;
+  allcells[3] = this->Faces->GetNumberOfTuples() ? this->Faces : nullptr;
+  allcells[4] = this->FaceOffsets->GetNumberOfTuples() ? this->FaceOffsets : nullptr;
 
   for(int i=0; i<5; i++)
   {
@@ -971,8 +1064,6 @@ void vtkXMLUnstructuredDataWriter::ConvertFaces(vtkIdTypeArray* faces,
     this->Faces->SetNumberOfTuples(0);
     this->FaceOffsets->SetNumberOfTuples(0);
   }
-
-  return;
 }
 
 //----------------------------------------------------------------------------

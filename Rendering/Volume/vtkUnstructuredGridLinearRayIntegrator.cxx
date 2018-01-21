@@ -78,14 +78,14 @@ public:
   acolor *Colors;
 
 private:
-  vtkLinearRayIntegratorTransferFunction(const vtkLinearRayIntegratorTransferFunction&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkLinearRayIntegratorTransferFunction &) VTK_DELETE_FUNCTION;
+  vtkLinearRayIntegratorTransferFunction(const vtkLinearRayIntegratorTransferFunction&) = delete;
+  void operator=(const vtkLinearRayIntegratorTransferFunction &) = delete;
 };
 
 vtkLinearRayIntegratorTransferFunction::vtkLinearRayIntegratorTransferFunction()
 {
-  this->ControlPoints = NULL;
-  this->Colors = NULL;
+  this->ControlPoints = nullptr;
+  this->Colors = nullptr;
 
   this->NumControlPoints = 0;
 }
@@ -129,7 +129,7 @@ void vtkLinearRayIntegratorTransferFunction::GetTransferFunction(
     color->GetColor(x1, rgb);
     vtkMath::RGBToHSV(rgb, hsv);
     hue1 = hsv[0];
-    for (i++; i != cpset.end(); i++)
+    for (++i; i != cpset.end(); ++i)
     {
       x2 = *i;
       color->GetColor(x2, rgb);
@@ -315,8 +315,8 @@ vtkStandardNewMacro(vtkUnstructuredGridLinearRayIntegrator);
 
 vtkUnstructuredGridLinearRayIntegrator::vtkUnstructuredGridLinearRayIntegrator()
 {
-  this->Property = NULL;
-  this->TransferFunctions = NULL;
+  this->Property = nullptr;
+  this->TransferFunctions = nullptr;
   this->NumIndependentComponents = 0;
 }
 
@@ -446,7 +446,7 @@ void vtkUnstructuredGridLinearRayIntegrator::Integrate(
       // integrate each piece.
       std::set<double>::iterator segi = segments.begin();
       double nearInterpolant = *segi;
-      for (segi++; segi != segments.end(); segi++)
+      for (++segi; segi != segments.end(); ++segi)
       {
         double farInterpolant = *segi;
         double nearcolor[4] = {0.0, 0.0, 0.0, 0.0};

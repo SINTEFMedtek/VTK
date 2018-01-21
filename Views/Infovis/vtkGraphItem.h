@@ -46,7 +46,7 @@ class VTKVIEWSINFOVIS_EXPORT vtkGraphItem : public vtkContextItem
 public:
   static vtkGraphItem *New();
   vtkTypeMacro(vtkGraphItem, vtkContextItem);
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
   //@{
   /**
@@ -76,13 +76,13 @@ public:
 
 protected:
   vtkGraphItem();
-  ~vtkGraphItem();
+  ~vtkGraphItem() override;
 
   /**
    * Paints the graph. This method will call RebuildBuffers()
    * if the graph is dirty, then call PaintBuffers().
    */
-  virtual bool Paint(vtkContext2D *painter);
+  bool Paint(vtkContext2D *painter) override;
 
   /**
    * Builds a cache of data from the graph by calling the virtual functions
@@ -122,7 +122,7 @@ protected:
   /**
    * Returns the number of edge control points for a particular edge. The
    * implementation returns GetNumberOfEdgePoints(edge) + 2 for the specified edge
-   * to incorporate the source and target vertex positions as intial
+   * to incorporate the source and target vertex positions as initial
    * and final edge points.
    */
   virtual vtkIdType NumberOfEdgePoints(vtkIdType edge);
@@ -197,18 +197,18 @@ protected:
   /**
    * Handle mouse events.
    */
-  virtual bool MouseMoveEvent(const vtkContextMouseEvent &event);
-  virtual bool MouseLeaveEvent(const vtkContextMouseEvent &event);
-  virtual bool MouseEnterEvent(const vtkContextMouseEvent &event);
-  virtual bool MouseButtonPressEvent(const vtkContextMouseEvent &event);
-  virtual bool MouseButtonReleaseEvent(const vtkContextMouseEvent &event);
-  virtual bool MouseWheelEvent(const vtkContextMouseEvent &event, int delta);
+  bool MouseMoveEvent(const vtkContextMouseEvent &event) override;
+  bool MouseLeaveEvent(const vtkContextMouseEvent &event) override;
+  bool MouseEnterEvent(const vtkContextMouseEvent &event) override;
+  bool MouseButtonPressEvent(const vtkContextMouseEvent &event) override;
+  bool MouseButtonReleaseEvent(const vtkContextMouseEvent &event) override;
+  bool MouseWheelEvent(const vtkContextMouseEvent &event, int delta) override;
   //@}
 
   /**
    * Whether this graph item is hit.
    */
-  virtual bool Hit(const vtkContextMouseEvent &event);
+  bool Hit(const vtkContextMouseEvent &event) override;
 
   /**
    * Change the position of the tooltip based on the vertex hovered.
@@ -216,8 +216,8 @@ protected:
   virtual void PlaceTooltip(vtkIdType v);
 
 private:
-  vtkGraphItem(const vtkGraphItem&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkGraphItem&) VTK_DELETE_FUNCTION;
+  vtkGraphItem(const vtkGraphItem&) = delete;
+  void operator=(const vtkGraphItem&) = delete;
 
   struct Internals;
   Internals *Internal;

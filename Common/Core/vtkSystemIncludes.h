@@ -25,9 +25,9 @@
 #define vtkSystemIncludes_h
 
 /* first include the local configuration for this machine */
-#define __VTK_SYSTEM_INCLUDES__INSIDE
+#define VTK_SYSTEM_INCLUDES_INSIDE
 #include "vtkWin32Header.h"
-#undef __VTK_SYSTEM_INCLUDES__INSIDE
+#undef VTK_SYSTEM_INCLUDES_INSIDE
 
 // The language wrapper files do not need the real streams.  They
 // define VTK_STREAMS_FWD_ONLY so that the streams are only
@@ -48,10 +48,10 @@
 // this should be removed at some point
 #define VTK_USE_EXECUTIVES
 
-#define __VTK_SYSTEM_INCLUDES__INSIDE
+#define VTK_SYSTEM_INCLUDES_INSIDE
 #include "vtkOStreamWrapper.h"    // Include the ostream wrapper.
 #include "vtkOStrStreamWrapper.h" // Include the ostrstream wrapper.
-#undef __VTK_SYSTEM_INCLUDES__INSIDE
+#undef VTK_SYSTEM_INCLUDES_INSIDE
 
 // Include generic stuff.
 #include <stdio.h>
@@ -67,7 +67,7 @@
 // include blockers are put in place that prevent including the
 // C-style versions from ever including the sub-headers.  Therefore we
 // have to include the sub-headers here to get the using declarations.
-#if defined(__BORLANDC__)
+#if defined(__BORLANDC__) && (__BORLANDC__ < 0x660)
 # include <mem.h>    /* mem... functions from string.h */
 # include <search.h> /* search functions from stdlib.h */
 #endif
@@ -118,11 +118,10 @@
 #define VTK_MAX_VRCOMP                  4
 
 // If VTK_USE_PTHREADS is defined, then the multithreaded
-// function is of type void *, and returns NULL
+// function is of type void *, and returns nullptr
 // Otherwise the type is void which is correct for WIN32
-// and SPROC
 #ifdef VTK_USE_PTHREADS
-#define VTK_THREAD_RETURN_VALUE  NULL
+#define VTK_THREAD_RETURN_VALUE  nullptr
 #define VTK_THREAD_RETURN_TYPE   void *
 #endif
 

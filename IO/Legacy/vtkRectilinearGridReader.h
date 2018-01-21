@@ -41,7 +41,7 @@ class VTKIOLEGACY_EXPORT vtkRectilinearGridReader : public vtkDataReader
 public:
   static vtkRectilinearGridReader *New();
   vtkTypeMacro(vtkRectilinearGridReader,vtkDataReader);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -56,21 +56,21 @@ public:
    * Read the meta information from the file.  This needs to be public to it
    * can be accessed by vtkDataSetReader.
    */
-  virtual int ReadMetaData(vtkInformation *outInfo);
+  int ReadMetaData(vtkInformation *outInfo) override;
 
 protected:
   vtkRectilinearGridReader();
-  ~vtkRectilinearGridReader();
+  ~vtkRectilinearGridReader() override;
 
-  virtual int RequestData(vtkInformation *, vtkInformationVector **,
-                          vtkInformationVector *);
-  virtual int RequestInformation(vtkInformation *, vtkInformationVector **,
-                                 vtkInformationVector *);
+  int RequestData(vtkInformation *, vtkInformationVector **,
+                          vtkInformationVector *) override;
+  int RequestInformation(vtkInformation *, vtkInformationVector **,
+                                 vtkInformationVector *) override;
 
-  virtual int FillOutputPortInformation(int, vtkInformation*);
+  int FillOutputPortInformation(int, vtkInformation*) override;
 private:
-  vtkRectilinearGridReader(const vtkRectilinearGridReader&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkRectilinearGridReader&) VTK_DELETE_FUNCTION;
+  vtkRectilinearGridReader(const vtkRectilinearGridReader&) = delete;
+  void operator=(const vtkRectilinearGridReader&) = delete;
 };
 
 #endif

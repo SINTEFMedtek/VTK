@@ -42,7 +42,7 @@ class VTKCHARTSCORE_EXPORT vtkPlotStacked : public vtkPlot
 {
 public:
   vtkTypeMacro(vtkPlotStacked, vtkPlot);
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
   /**
    * Creates a Stacked Plot Object
@@ -53,10 +53,10 @@ public:
   /**
    * Set the plot color
    */
-  virtual void SetColor(unsigned char r, unsigned char g, unsigned char b,
-                        unsigned char a);
-  virtual void SetColor(double r,  double g, double b);
-  virtual void GetColor(double rgb[3]);
+  void SetColor(unsigned char r, unsigned char g, unsigned char b,
+                        unsigned char a) override;
+  void SetColor(double r,  double g, double b) override;
+  void GetColor(double rgb[3]) override;
   //@}
 
   /**
@@ -64,12 +64,12 @@ public:
    * The scene should take care of calling this on all items before their
    * Paint function is invoked.
    */
-  virtual void Update();
+  void Update() override;
 
   /**
    * Paint event for the Stacked plot, called whenever the chart needs to be drawn
    */
-  virtual bool Paint(vtkContext2D *painter);
+  bool Paint(vtkContext2D *painter) override;
 
   /**
    * Paint legend event for the Stacked plot, called whenever the legend needs the
@@ -77,24 +77,24 @@ public:
    * corner of the rect (elements 0 and 1) and with width x height (elements 2
    * and 3). The plot can choose how to fill the space supplied.
    */
-  virtual bool PaintLegend(vtkContext2D *painter, const vtkRectf& rect,
-                           int legendIndex);
+  bool PaintLegend(vtkContext2D *painter, const vtkRectf& rect,
+                           int legendIndex) override;
 
   /**
    * Get the bounds for this mapper as (Xmin,Xmax,Ymin,Ymax).
    */
-  virtual void GetBounds(double bounds[4]);
+  void GetBounds(double bounds[4]) override;
 
   /**
    * Get the unscaled input bounds for this mapper as (Xmin,Xmax,Ymin,Ymax).
    * See vtkPlot for more information.
    */
-  virtual void GetUnscaledInputBounds(double bounds[4]);
+  void GetUnscaledInputBounds(double bounds[4]) override;
 
   /**
    * When used to set additional arrays, stacked bars are created.
    */
-  virtual void SetInputArray(int index, const vtkStdString &name);
+  void SetInputArray(int index, const vtkStdString &name) override;
 
   /**
    * Set the color series to use if this becomes a stacked bar plot.
@@ -109,25 +109,25 @@ public:
   /**
    * Get the plot labels.
    */
-  virtual vtkStringArray *GetLabels();
+  vtkStringArray *GetLabels() override;
 
   /**
    * Function to query a plot for the nearest point to the specified coordinate.
    * Returns the index of the data series with which the point is associated or
    * -1.
    */
-  virtual vtkIdType GetNearestPoint(const vtkVector2f& point,
+  vtkIdType GetNearestPoint(const vtkVector2f& point,
                                     const vtkVector2f& tolerance,
-                                    vtkVector2f* location);
+                                    vtkVector2f* location) override;
 
   /**
    * Select all points in the specified rectangle.
    */
-  virtual bool SelectPoints(const vtkVector2f& min, const vtkVector2f& max);
+  bool SelectPoints(const vtkVector2f& min, const vtkVector2f& max) override;
 
 protected:
   vtkPlotStacked();
-  ~vtkPlotStacked();
+  ~vtkPlotStacked() override;
 
   /**
    * Update the table cache.
@@ -170,8 +170,8 @@ protected:
   vtkSmartPointer<vtkColorSeries> ColorSeries;
 
 private:
-  vtkPlotStacked(const vtkPlotStacked &) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPlotStacked &) VTK_DELETE_FUNCTION;
+  vtkPlotStacked(const vtkPlotStacked &) = delete;
+  void operator=(const vtkPlotStacked &) = delete;
 
   vtkPlotStackedPrivate *Private;
 

@@ -54,7 +54,8 @@
 #include "vtkRenderingCoreModule.h" // For export macro
 #include "vtkInteractorStyle.h"
 
-class vtkPropPicker3D;
+class vtkCamera;
+class vtkPropPicker;
 class vtkProp3D;
 class vtkMatrix3x3;
 class vtkMatrix4x4;
@@ -65,41 +66,50 @@ class VTKRENDERINGCORE_EXPORT vtkInteractorStyle3D : public vtkInteractorStyle
 public:
   static vtkInteractorStyle3D *New();
   vtkTypeMacro(vtkInteractorStyle3D,vtkInteractorStyle);
-  void PrintSelf(ostream& os, vtkIndent indent);
-
-  //@{
-  /**
-   * Event bindings controlling the effects of pressing mouse buttons
-   * or moving the mouse.
-   */
-  virtual void OnMouseMove();
-  virtual void OnLeftButtonDown();
-  virtual void OnLeftButtonUp();
-  virtual void OnRightButtonDown();
-  virtual void OnRightButtonUp();
-  //@}
-
-  //@{
-  /**
-   * Event bindings for gestures
-   */
-  virtual void OnPinch();
-  virtual void OnPan();
-  //@}
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   // This method handles updating the prop based on changes in the devices
   // pose. We use rotate as the state to mean adjusting-the-actor-pose
-  virtual void Rotate();
+  virtual void PositionProp(vtkEventData *);
 
   // This method handles updating the camera based on changes in the devices
   // pose. We use Dolly as the state to mean moving the camera forward
-  virtual void Dolly();
+  virtual void Dolly3D(vtkEventData *);
+
+  //@{
+  /**
+   * Set/Get the dolly motion factor used when flying in 3D.
+   * Defaults to 2.0 to simulate 2 meters per second
+   * of movement in physical space. The dolly speed is
+   * adjusted by the touchpad position as well. The maximum
+   * rate is twice this setting.
+   */
+  vtkSetMacro(DollyMotionFactor, double);
+  vtkGetMacro(DollyMotionFactor, double);
+  //@}
+
+  /**
+   * Set the distance for the camera. The distance
+   * in VR represents the scaling from world
+   * to physical space. So when we set it to a new
+   * value we also adjust the HMD position to maintain
+   * the same relative position.
+   */
+  void SetScale(vtkCamera *cam, double distance);
+
+  /**
+  * Get the interaction picker
+  */
+  vtkPropPicker* GetInteractionPicker()
+  {
+    return this->InteractionPicker;
+  };
 
 protected:
   vtkInteractorStyle3D();
-  ~vtkInteractorStyle3D();
+  ~vtkInteractorStyle3D() override;
 
-  void FindPickedActor(double x, double y, double z);
+  void FindPickedActor(double pos[3], double orient[4]);
 
   void Prop3DTransform(vtkProp3D *prop3D,
                        double *boxCenter,
@@ -107,16 +117,18 @@ protected:
                        double **rotate,
                        double *scale);
 
-  vtkPropPicker3D *InteractionPicker;
+  vtkPropPicker *InteractionPicker;
   vtkProp3D *InteractionProp;
   vtkMatrix3x3 *TempMatrix3;
   vtkMatrix4x4 *TempMatrix4;
   vtkTransform *TempTransform;
   double AppliedTranslation[3];
 
+  double DollyMotionFactor;
+
 private:
-  vtkInteractorStyle3D(const vtkInteractorStyle3D&) VTK_DELETE_FUNCTION;  // Not implemented.
-  void operator=(const vtkInteractorStyle3D&) VTK_DELETE_FUNCTION;  // Not implemented.
+  vtkInteractorStyle3D(const vtkInteractorStyle3D&) = delete;  // Not implemented.
+  void operator=(const vtkInteractorStyle3D&) = delete;  // Not implemented.
 };
 
 #endif

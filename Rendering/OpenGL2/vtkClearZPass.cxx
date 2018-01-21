@@ -47,12 +47,12 @@ void vtkClearZPass::PrintSelf(ostream& os, vtkIndent indent)
 // \pre s_exists: s!=0
 void vtkClearZPass::Render(const vtkRenderState *s)
 {
-  assert("pre: s_exists" && s!=0);
+  assert("pre: s_exists" && s!=nullptr);
   (void)s;
   this->NumberOfRenderedProps=0;
 
   glDepthMask(GL_TRUE);
-#if GL_ES_VERSION_2_0 != 1
+#if GL_ES_VERSION_3_0 != 1
   glClearDepth(this->Depth);
 #else
   glClearDepthf(static_cast<GLclampf>(this->Depth));

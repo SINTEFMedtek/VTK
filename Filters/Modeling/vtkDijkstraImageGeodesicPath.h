@@ -70,7 +70,7 @@ public:
    * Standard methids for printing and determining type information.
    */
   vtkTypeMacro( vtkDijkstraImageGeodesicPath, vtkDijkstraGraphGeodesicPath );
-  void PrintSelf( ostream& os, vtkIndent indent );
+  void PrintSelf( ostream& os, vtkIndent indent ) override;
   //@}
 
   //@{
@@ -107,21 +107,21 @@ public:
 
 protected:
   vtkDijkstraImageGeodesicPath();
-  ~vtkDijkstraImageGeodesicPath();
+  ~vtkDijkstraImageGeodesicPath() override;
 
-  virtual int FillInputPortInformation(int port, vtkInformation *info);
-  virtual int RequestData(vtkInformation *, vtkInformationVector **,
-                          vtkInformationVector *);
+  int FillInputPortInformation(int port, vtkInformation *info) override;
+  int RequestData(vtkInformation *, vtkInformationVector **,
+                          vtkInformationVector *) override;
 
   // Build a graph description of the image
-  virtual void BuildAdjacency( vtkDataSet *inData );
+  void BuildAdjacency( vtkDataSet *inData ) override;
 
   // Update static costs without rebuilding adjacencyh when static weights change
   void UpdateStaticCosts( vtkImageData *image );
 
   // Override parent class methods.
-  virtual double CalculateStaticEdgeCost( vtkDataSet *inData , vtkIdType u, vtkIdType v);
-  virtual double CalculateDynamicEdgeCost( vtkDataSet *inData , vtkIdType u, vtkIdType v);
+  double CalculateStaticEdgeCost( vtkDataSet *inData , vtkIdType u, vtkIdType v) override;
+  double CalculateDynamicEdgeCost( vtkDataSet *inData , vtkIdType u, vtkIdType v) override;
 
   double PixelSize;
   double ImageWeight;
@@ -130,8 +130,8 @@ protected:
   bool RebuildStaticCosts;
 
 private:
-  vtkDijkstraImageGeodesicPath(const vtkDijkstraImageGeodesicPath&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkDijkstraImageGeodesicPath&) VTK_DELETE_FUNCTION;
+  vtkDijkstraImageGeodesicPath(const vtkDijkstraImageGeodesicPath&) = delete;
+  void operator=(const vtkDijkstraImageGeodesicPath&) = delete;
 
 };
 

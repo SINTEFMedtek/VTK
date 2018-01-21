@@ -125,9 +125,9 @@ vtkOpenGLContextDevice3D::vtkOpenGLContextDevice3D() : Storage(new Private)
 vtkOpenGLContextDevice3D::~vtkOpenGLContextDevice3D()
 {
   delete this->VBO;
-  this->VBO = 0;
+  this->VBO = nullptr;
   delete this->VCBO;
-  this->VCBO = 0;
+  this->VCBO = nullptr;
 
   this->ModelMatrix->Delete();
   delete Storage;
@@ -207,7 +207,7 @@ void vtkOpenGLContextDevice3D::BuildVBO(
 
   std::vector<float> va;
   va.resize(nv*stride);
-  vtkucfloat c;
+  vtkFourByteUnion c;
   for (int i = 0; i < nv; i++)
   {
     va[i*stride] = f[i*3];
@@ -377,7 +377,7 @@ bool vtkOpenGLContextDevice3D::HaveWideLines()
 void vtkOpenGLContextDevice3D::DrawPoly(const float *verts, int n,
                                         const unsigned char *colors, int nc)
 {
-  assert("verts must be non-null" && verts != NULL);
+  assert("verts must be non-null" && verts != nullptr);
   assert("n must be greater than 0" && n > 0);
 
   if (this->Pen->GetLineType() == vtkPen::NO_PEN)
@@ -391,16 +391,24 @@ void vtkOpenGLContextDevice3D::DrawPoly(const float *verts, int n,
 
   this->Storage->SetLineType(this->Pen->GetLineType());
 
-  vtkOpenGLHelper *cbo = 0;
+  vtkOpenGLHelper *cbo = nullptr;
   if (colors)
   {
     this->ReadyVCBOProgram();
     cbo = this->VCBO;
+    if (!cbo->Program)
+    {
+      return;
+    }
   }
   else
   {
     this->ReadyVBOProgram();
     cbo = this->VBO;
+    if (!cbo->Program)
+    {
+      return;
+    }
     if (this->HaveWideLines())
     {
       vtkWarningMacro(<< "a line width has been requested that is larger than your system supports");
@@ -413,7 +421,7 @@ void vtkOpenGLContextDevice3D::DrawPoly(const float *verts, int n,
       this->Pen->GetColor());
   }
 
-  this->BuildVBO(cbo, verts, n, colors, nc, NULL);
+  this->BuildVBO(cbo, verts, n, colors, nc, nullptr);
   this->SetMatrices(cbo->Program);
 
   glDrawArrays(GL_LINE_STRIP, 0, n);
@@ -432,7 +440,7 @@ void vtkOpenGLContextDevice3D::DrawPoly(const float *verts, int n,
 void vtkOpenGLContextDevice3D::DrawLines(const float *verts, int n,
                                          const unsigned char *colors, int nc)
 {
-  assert("verts must be non-null" && verts != NULL);
+  assert("verts must be non-null" && verts != nullptr);
   assert("n must be greater than 0" && n > 0);
 
   if (this->Pen->GetLineType() == vtkPen::NO_PEN)
@@ -452,21 +460,29 @@ void vtkOpenGLContextDevice3D::DrawLines(const float *verts, int n,
   }
   glLineWidth(this->Pen->GetWidth());
 
-  vtkOpenGLHelper *cbo = 0;
+  vtkOpenGLHelper *cbo = nullptr;
   if (colors)
   {
     this->ReadyVCBOProgram();
     cbo = this->VCBO;
+    if (!cbo->Program)
+    {
+      return;
+    }
   }
   else
   {
     this->ReadyVBOProgram();
     cbo = this->VBO;
+    if (!cbo->Program)
+    {
+      return;
+    }
     cbo->Program->SetUniform4uc("vertexColor",
       this->Pen->GetColor());
   }
 
-  this->BuildVBO(cbo, verts, n, colors, nc, NULL);
+  this->BuildVBO(cbo, verts, n, colors, nc, nullptr);
   this->SetMatrices(cbo->Program);
 
   glDrawArrays(GL_LINE, 0, n);
@@ -483,7 +499,7 @@ void vtkOpenGLContextDevice3D::DrawLines(const float *verts, int n,
 void vtkOpenGLContextDevice3D::DrawPoints(const float *verts, int n,
                                           const unsigned char *colors, int nc)
 {
-  assert("verts must be non-null" && verts != NULL);
+  assert("verts must be non-null" && verts != nullptr);
   assert("n must be greater than 0" && n > 0);
 
   vtkOpenGLClearErrorMacro();
@@ -492,21 +508,29 @@ void vtkOpenGLContextDevice3D::DrawPoints(const float *verts, int n,
 
   glPointSize(this->Pen->GetWidth());
 
-  vtkOpenGLHelper *cbo = 0;
+  vtkOpenGLHelper *cbo = nullptr;
   if (colors)
   {
     this->ReadyVCBOProgram();
     cbo = this->VCBO;
+    if (!cbo->Program)
+    {
+      return;
+    }
   }
   else
   {
     this->ReadyVBOProgram();
     cbo = this->VBO;
+    if (!cbo->Program)
+    {
+      return;
+    }
     cbo->Program->SetUniform4uc("vertexColor",
       this->Pen->GetColor());
   }
 
-  this->BuildVBO(cbo, verts, n, colors, nc, NULL);
+  this->BuildVBO(cbo, verts, n, colors, nc, nullptr);
   this->SetMatrices(cbo->Program);
 
   glDrawArrays(GL_POINTS, 0, n);
@@ -523,28 +547,36 @@ void vtkOpenGLContextDevice3D::DrawTriangleMesh(const float *mesh, int n,
                                                 const unsigned char *colors,
                                                 int nc)
 {
-  assert("mesh must be non-null" && mesh != NULL);
+  assert("mesh must be non-null" && mesh != nullptr);
   assert("n must be greater than 0" && n > 0);
 
   vtkOpenGLClearErrorMacro();
 
   this->EnableDepthBuffer();
 
-  vtkOpenGLHelper *cbo = 0;
+  vtkOpenGLHelper *cbo = nullptr;
   if (colors)
   {
     this->ReadyVCBOProgram();
     cbo = this->VCBO;
+    if (!cbo->Program)
+    {
+      return;
+    }
   }
   else
   {
     this->ReadyVBOProgram();
     cbo = this->VBO;
+    if (!cbo->Program)
+    {
+      return;
+    }
     cbo->Program->SetUniform4uc("vertexColor",
       this->Pen->GetColor());
   }
 
-  this->BuildVBO(cbo, mesh, n, colors, nc, NULL);
+  this->BuildVBO(cbo, mesh, n, colors, nc, nullptr);
   this->SetMatrices(cbo->Program);
 
   glDrawArrays(GL_TRIANGLES, 0, n);

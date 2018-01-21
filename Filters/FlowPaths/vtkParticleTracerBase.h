@@ -105,7 +105,7 @@ public:
   };
 
   vtkTypeMacro(vtkParticleTracerBase,vtkPolyDataAlgorithm)
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   void PrintParticleHistories();
 
   //@{
@@ -280,41 +280,41 @@ public:
   //@}
 
   vtkParticleTracerBase();
-  virtual ~vtkParticleTracerBase();
+  ~vtkParticleTracerBase() override;
 
   //
   // Make sure the pipeline knows what type we expect as input
   //
-  virtual int FillInputPortInformation(int port, vtkInformation* info);
+  int FillInputPortInformation(int port, vtkInformation* info) override;
 
   //
   // The usual suspects
   //
-  virtual int ProcessRequest(vtkInformation* request,
-                             vtkInformationVector** inputVector,
-                             vtkInformationVector* outputVector);
+  int ProcessRequest(vtkInformation* request,
+                     vtkInformationVector** inputVector,
+                     vtkInformationVector* outputVector) override;
 
   //
   // Store any information we need in the output and fetch what we can
   // from the input
   //
-  virtual int RequestInformation(vtkInformation* request,
-                                 vtkInformationVector** inputVector,
-                                 vtkInformationVector* outputVector);
+  int RequestInformation(vtkInformation* request,
+                         vtkInformationVector** inputVector,
+                         vtkInformationVector* outputVector) override;
 
   //
   // Compute input time steps given the output step
   //
-  virtual int RequestUpdateExtent(vtkInformation* request,
-                                  vtkInformationVector** inputVector,
-                                  vtkInformationVector* outputVector);
+  int RequestUpdateExtent(vtkInformation* request,
+                          vtkInformationVector** inputVector,
+                          vtkInformationVector* outputVector) override;
 
   //
   // what the pipeline calls for each time step
   //
-  virtual int RequestData(vtkInformation* request,
-                          vtkInformationVector** inputVector,
-                          vtkInformationVector* outputVector);
+  int RequestData(vtkInformation* request,
+                  vtkInformationVector** inputVector,
+                  vtkInformationVector* outputVector) override;
 
   //
   // these routines are internally called to actually generate the output
@@ -558,7 +558,7 @@ public:
   vtkSmartPointer<vtkCharArray>     ParticleSourceIds;
   vtkSmartPointer<vtkIntArray>      InjectedPointIds;
   vtkSmartPointer<vtkIntArray>      InjectedStepIds;
-  vtkSmartPointer<vtkIntArray>      ErrorCode;
+  vtkSmartPointer<vtkIntArray>      ErrorCodeArray;
   vtkSmartPointer<vtkFloatArray>    ParticleVorticity;
   vtkSmartPointer<vtkFloatArray>    ParticleRotation;
   vtkSmartPointer<vtkFloatArray>    ParticleAngularVel;
@@ -567,8 +567,8 @@ public:
   vtkSmartPointer<vtkDataSet>       DataReferenceT[2];
   vtkSmartPointer<vtkCellArray>     ParticleCells;
 
-  vtkParticleTracerBase(const vtkParticleTracerBase&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkParticleTracerBase&) VTK_DELETE_FUNCTION;
+  vtkParticleTracerBase(const vtkParticleTracerBase&) = delete;
+  void operator=(const vtkParticleTracerBase&) = delete;
   vtkTimeStamp ExecuteTime;
 
   unsigned int NumberOfParticles();

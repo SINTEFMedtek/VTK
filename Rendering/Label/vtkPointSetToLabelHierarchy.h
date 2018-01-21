@@ -43,7 +43,7 @@ class VTKRENDERINGLABEL_EXPORT vtkPointSetToLabelHierarchy : public vtkLabelHier
 public:
   static vtkPointSetToLabelHierarchy* New();
   vtkTypeMacro(vtkPointSetToLabelHierarchy,vtkLabelHierarchyAlgorithm);
-  virtual void PrintSelf( ostream& os, vtkIndent indent );
+  void PrintSelf( ostream& os, vtkIndent indent ) override;
 
   //@{
   /**
@@ -128,14 +128,14 @@ public:
 
 protected:
   vtkPointSetToLabelHierarchy();
-  virtual ~vtkPointSetToLabelHierarchy();
+  ~vtkPointSetToLabelHierarchy() override;
 
-  virtual int FillInputPortInformation( int port, vtkInformation* info );
+  int FillInputPortInformation( int port, vtkInformation* info ) override;
 
-  virtual int RequestData(
+  int RequestData(
     vtkInformation* request,
     vtkInformationVector** inputVector,
-    vtkInformationVector* outputVector );
+    vtkInformationVector* outputVector ) override;
 
   int TargetLabelCount;
   int MaximumDepth;
@@ -143,8 +143,8 @@ protected:
   vtkTextProperty* TextProperty;
 
 private:
-  vtkPointSetToLabelHierarchy( const vtkPointSetToLabelHierarchy& ) VTK_DELETE_FUNCTION;
-  void operator = ( const vtkPointSetToLabelHierarchy& ) VTK_DELETE_FUNCTION;
+  vtkPointSetToLabelHierarchy( const vtkPointSetToLabelHierarchy& ) = delete;
+  void operator = ( const vtkPointSetToLabelHierarchy& ) = delete;
 };
 
 #endif // vtkPointSetToLabelHierarchy_h

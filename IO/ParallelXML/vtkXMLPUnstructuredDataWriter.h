@@ -34,19 +34,19 @@ class VTKIOPARALLELXML_EXPORT vtkXMLPUnstructuredDataWriter : public vtkXMLPData
 {
 public:
   vtkTypeMacro(vtkXMLPUnstructuredDataWriter,vtkXMLPDataWriter);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
 protected:
   vtkXMLPUnstructuredDataWriter();
-  ~vtkXMLPUnstructuredDataWriter();
+  ~vtkXMLPUnstructuredDataWriter() override;
 
   vtkPointSet* GetInputAsPointSet();
   virtual vtkXMLUnstructuredDataWriter* CreateUnstructuredPieceWriter()=0;
-  vtkXMLWriter* CreatePieceWriter(int index);
-  void WritePData(vtkIndent indent);
+  vtkXMLWriter* CreatePieceWriter(int index) override;
+  void WritePData(vtkIndent indent) override;
 private:
-  vtkXMLPUnstructuredDataWriter(const vtkXMLPUnstructuredDataWriter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkXMLPUnstructuredDataWriter&) VTK_DELETE_FUNCTION;
+  vtkXMLPUnstructuredDataWriter(const vtkXMLPUnstructuredDataWriter&) = delete;
+  void operator=(const vtkXMLPUnstructuredDataWriter&) = delete;
 };
 
 #endif

@@ -33,7 +33,7 @@
 class VTKFILTERSFLOWPATHS_EXPORT StreaklineFilterInternal
 {
 public:
-  StreaklineFilterInternal():Filter(NULL){}
+  StreaklineFilterInternal():Filter(nullptr){}
   void Initialize(vtkParticleTracerBase* filter);
   virtual ~StreaklineFilterInternal(){}
   virtual int OutputParticles(vtkPolyData* poly);
@@ -49,17 +49,17 @@ class VTKFILTERSFLOWPATHS_EXPORT vtkStreaklineFilter: public vtkParticleTracerBa
 {
  public:
   vtkTypeMacro(vtkStreaklineFilter,vtkParticleTracerBase)
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   static vtkStreaklineFilter *New();
 
  protected:
   vtkStreaklineFilter();
-  ~vtkStreaklineFilter(){}
-  vtkStreaklineFilter(const vtkStreaklineFilter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkStreaklineFilter&) VTK_DELETE_FUNCTION;
-  virtual int OutputParticles(vtkPolyData* poly);
-  virtual void Finalize();
+  ~vtkStreaklineFilter() override{}
+  vtkStreaklineFilter(const vtkStreaklineFilter&) = delete;
+  void operator=(const vtkStreaklineFilter&) = delete;
+  int OutputParticles(vtkPolyData* poly) override;
+  void Finalize() override;
 
   StreaklineFilterInternal It;
 };

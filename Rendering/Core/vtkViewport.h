@@ -45,7 +45,7 @@ class VTKRENDERINGCORE_EXPORT vtkViewport : public vtkObject
 {
 public:
   vtkTypeMacro(vtkViewport,vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Add a prop to the list of props. Does nothing if the prop is
@@ -102,6 +102,16 @@ public:
    */
   vtkSetVector3Macro(Background2,double);
   vtkGetVector3Macro(Background2,double);
+  //@}
+  //
+
+  //@{
+  /**
+   * Set/Get the alpha value used to fill the background with.
+   * By default, this is set to 0.0.
+   */
+  vtkSetClampMacro(BackgroundAlpha, double, 0.0, 1.0);
+  vtkGetMacro(BackgroundAlpha, double);
   //@}
 
   //@{
@@ -321,7 +331,7 @@ protected:
   // two-sided lighting turned on, a viewport of (0,0,1,1), and back face
   // culling turned off.
   vtkViewport();
-  ~vtkViewport();
+  ~vtkViewport() override;
 
   // Picking functions to be implemented by sub-classes
   // Perform the main picking loop
@@ -359,6 +369,7 @@ protected:
   vtkWindow *VTKWindow;
   double Background[3];
   double Background2[3];
+  double BackgroundAlpha;
   double Viewport[4];
   double Aspect[2];
   double PixelAspect[2];
@@ -373,8 +384,8 @@ protected:
 
 
 private:
-  vtkViewport(const vtkViewport&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkViewport&) VTK_DELETE_FUNCTION;
+  vtkViewport(const vtkViewport&) = delete;
+  void operator=(const vtkViewport&) = delete;
 };
 
 

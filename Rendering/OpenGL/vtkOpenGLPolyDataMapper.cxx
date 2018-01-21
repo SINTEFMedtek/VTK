@@ -1865,29 +1865,10 @@ int vtkOpenGLPolyDataMapper::Draw(vtkRenderer *aren, vtkActor *act)
   glDisable( GL_COLOR_MATERIAL );
   if (c)
   {
-    GLenum lmcolorMode;
-    if (this->ScalarMaterialMode == VTK_MATERIALMODE_DEFAULT)
-    {
-      if (prop->GetAmbient() > prop->GetDiffuse())
-      {
-        lmcolorMode = GL_AMBIENT;
-      }
-      else
-      {
-        lmcolorMode = GL_DIFFUSE;
-      }
-    }
-    else if (this->ScalarMaterialMode == VTK_MATERIALMODE_AMBIENT_AND_DIFFUSE)
-    {
-      lmcolorMode = GL_AMBIENT_AND_DIFFUSE;
-    }
-    else if (this->ScalarMaterialMode == VTK_MATERIALMODE_AMBIENT)
+    GLenum lmcolorMode = GL_DIFFUSE;
+    if (prop->GetAmbient() > prop->GetDiffuse())
     {
       lmcolorMode = GL_AMBIENT;
-    }
-    else // if (this->ScalarMaterialMode == VTK_MATERIALMODE_DIFFUSE)
-    {
-      lmcolorMode = GL_DIFFUSE;
     }
     glColorMaterial( GL_FRONT_AND_BACK, lmcolorMode);
     glEnable( GL_COLOR_MATERIAL );
@@ -1903,7 +1884,7 @@ int vtkOpenGLPolyDataMapper::Draw(vtkRenderer *aren, vtkActor *act)
     idx |= VTK_PDM_COLORS;
     if (c->GetName())
     { // In the future, I will look at the number of components.
-      // All paths will have to handle 3 componet colors.
+      // All paths will have to handle 3 component colors.
       idx |= VTK_PDM_OPAQUE_COLORS;
     }
   }

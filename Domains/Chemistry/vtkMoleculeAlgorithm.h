@@ -44,7 +44,7 @@ class VTKDOMAINSCHEMISTRY_EXPORT vtkMoleculeAlgorithm : public vtkAlgorithm
 public:
   static vtkMoleculeAlgorithm *New();
   vtkTypeMacro(vtkMoleculeAlgorithm,vtkAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -58,9 +58,9 @@ public:
   /**
    * see vtkAlgorithm for details
    */
-  virtual int ProcessRequest(vtkInformation*,
+  int ProcessRequest(vtkInformation*,
                              vtkInformationVector**,
-                             vtkInformationVector*);
+                             vtkInformationVector*) override;
 
   // this method is not recommended for use, but lots of old style filters
   // use it
@@ -95,7 +95,7 @@ public:
 
 protected:
   vtkMoleculeAlgorithm();
-  ~vtkMoleculeAlgorithm();
+  ~vtkMoleculeAlgorithm() override;
 
   // convenience method
   virtual int RequestInformation(vtkInformation* request,
@@ -119,12 +119,12 @@ protected:
                                   vtkInformationVector*);
 
   // see algorithm for more info
-  virtual int FillOutputPortInformation(int port, vtkInformation* info);
-  virtual int FillInputPortInformation(int port, vtkInformation* info);
+  int FillOutputPortInformation(int port, vtkInformation* info) override;
+  int FillInputPortInformation(int port, vtkInformation* info) override;
 
 private:
-  vtkMoleculeAlgorithm(const vtkMoleculeAlgorithm&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkMoleculeAlgorithm&) VTK_DELETE_FUNCTION;
+  vtkMoleculeAlgorithm(const vtkMoleculeAlgorithm&) = delete;
+  void operator=(const vtkMoleculeAlgorithm&) = delete;
 };
 
 #endif

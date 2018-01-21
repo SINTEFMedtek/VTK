@@ -64,7 +64,7 @@ namespace {
   // This class performs point by point transformation. The view matrix is
   // used to transform each pixel. IMPORTANT NOTE: The transformation occurs
   // by normalizing the image pixels into the (-1,1) view space (depth values
-  // are passed thru). The process follows the vtkCoordinate class which is
+  // are passed through). The process follows the vtkCoordinate class which is
   // the standard for VTK rendering transformations. Subtle differences in
   // whether the lower left pixel origin are at the center of the pixel
   // versus the lower-left corner of the pixel will make slight differences
@@ -147,7 +147,7 @@ namespace {
     vtkDataArray *OutColors;
 
     MapScalars(vtkIdType num, vtkDataArray *colors, vtkIdType *ptMap) :
-      NumColors(num), InColors(colors), PtMap(ptMap), OutColors(NULL)
+      NumColors(num), InColors(colors), PtMap(ptMap), OutColors(nullptr)
     {
         vtkStdString outName = "DepthColors";
         this->OutColors = Colors.AddArrayPair(this->NumColors, this->InColors,
@@ -174,7 +174,7 @@ namespace {
 //----------------------------------------------------------------------------
 vtkDepthImageToPointCloud::vtkDepthImageToPointCloud()
 {
-  this->Camera = NULL;
+  this->Camera = nullptr;
   this->CullNearPoints = false;
   this->CullFarPoints = true;
   this->ProduceColorScalars = true;
@@ -191,7 +191,7 @@ vtkDepthImageToPointCloud::~vtkDepthImageToPointCloud()
   if (this->Camera)
   {
     this->Camera->UnRegister(this);
-    this->Camera = NULL;
+    this->Camera = nullptr;
   }
 }
 
@@ -286,7 +286,7 @@ RequestData(vtkInformation*,
   vtkInformation* info = inputVector[0]->GetInformationObject(0);
   vtkImageData *inData = vtkImageData::SafeDownCast(
     info->Get(vtkDataObject::DATA_OBJECT()));
-  if ( inData == NULL )
+  if ( inData == nullptr )
   {
     vtkErrorMacro("At least one input image is required");
     return 0;
@@ -294,19 +294,19 @@ RequestData(vtkInformation*,
   ++numInputs;
 
   vtkInformation* info2 = inputVector[1]->GetInformationObject(0);
-  vtkImageData *inData2=NULL;
+  vtkImageData *inData2=nullptr;
   if ( info2 )
   {
     inData2 = vtkImageData::SafeDownCast(
       info2->Get(vtkDataObject::DATA_OBJECT()));
-    if ( inData2 != NULL )
+    if ( inData2 != nullptr )
     {
       ++numInputs;
     }
   }
 
   vtkCamera *cam = this->Camera;
-  if ( cam == NULL )
+  if ( cam == nullptr )
   {
     vtkErrorMacro("Input camera required");
     return 0;
@@ -316,8 +316,8 @@ RequestData(vtkInformation*,
   // assume we either have 1) depth values or 2) color scalars + depth values
   // (if depth values are in an array called "ZBuffer".) If two inputs, then the
   // depth values are in input0 and the color scalars are in input1.
-  vtkDataArray *depths=NULL;
-  vtkDataArray *colors=NULL;
+  vtkDataArray *depths=nullptr;
+  vtkDataArray *colors=nullptr;
   if ( numInputs == 2 )
   {
     depths = inData->GetPointData()->GetScalars();
@@ -325,7 +325,7 @@ RequestData(vtkInformation*,
   }
   else if (numInputs == 1)
   {
-    if ( (depths = inData->GetPointData()->GetArray("ZBuffer")) != NULL )
+    if ( (depths = inData->GetPointData()->GetArray("ZBuffer")) != nullptr )
     {
       colors = inData->GetPointData()->GetScalars();
     }

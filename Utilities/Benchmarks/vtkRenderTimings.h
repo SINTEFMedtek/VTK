@@ -87,7 +87,7 @@ public:
   {
     ost << test->GetName();
     std::map<std::string, double>::iterator rItr;
-    for (rItr = this->Results.begin(); rItr != this->Results.end(); rItr++)
+    for (rItr = this->Results.begin(); rItr != this->Results.end(); ++rItr)
       {
       ost << ", " << rItr->first << ", " << rItr->second;
       }
@@ -171,7 +171,7 @@ protected:
   void ReportResults();
 
 private:
-  std::string Regex; // regualr expression for tests
+  std::string Regex; // regular expression for tests
   double TargetTime;
   std::string SystemName;
   vtksys::CommandLineArguments Arguments;

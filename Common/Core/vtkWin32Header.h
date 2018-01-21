@@ -23,8 +23,8 @@
 #ifndef vtkWin32Header_h
 #define vtkWin32Header_h
 
-#ifndef __VTK_SYSTEM_INCLUDES__INSIDE
-Do_not_include_vtkWin32Header_directly__vtkSystemIncludes_includes_it;
+#ifndef VTK_SYSTEM_INCLUDES_INSIDE
+Do_not_include_vtkWin32Header_directly_vtkSystemIncludes_includes_it;
 #endif
 
 #include "vtkConfigure.h"
@@ -93,7 +93,8 @@ Do_not_include_vtkWin32Header_directly__vtkSystemIncludes_includes_it;
 #if defined(_MSC_VER) // Visual studio
 #pragma warning ( disable : 4311 )
 #pragma warning ( disable : 4312 )
-#endif //
+#endif
+
 #define vtkGetWindowLong GetWindowLongPtr
 #define vtkSetWindowLong SetWindowLongPtr
 #define vtkLONG LONG_PTR
@@ -122,7 +123,7 @@ Do_not_include_vtkWin32Header_directly__vtkSystemIncludes_includes_it;
 # endif
 #endif
 
-#if defined(__BORLANDC__)
+#if defined(__BORLANDC__) && (__BORLANDC__ < 0x660)
   // Disable Borland compiler warning messages that often occur in valid code.
 # if !defined(VTK_DISPLAY_WIN32_WARNINGS)
 #  pragma warn -8004 /* assigned a value that is never used */

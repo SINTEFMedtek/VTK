@@ -1,8 +1,9 @@
 # Make testing data from the legacy VTKData repository available.
 # DO NOT ADD NEW DATA HERE!!
 # TODO: Reference testing data from each module only as needed.
-set(data "DATA{${VTK_TEST_INPUT_DIR}/,REGEX:.*}")
+set(data "DATA{${VTK_TEST_INPUT_DIR}/,REGEX:[^.].*}")
 foreach(d
+    FiberSurface
     Infovis
     Infovis/SQLite
     Infovis/XML
@@ -31,6 +32,8 @@ foreach(d
     Viewpoint
     EnSight
     Delaunay
+    headmr3blocks
+    headmr3blocks/headmr3blocks
     )
   list(APPEND data "DATA{${VTK_TEST_INPUT_DIR}/${d}/,REGEX:.*}")
 endforeach()

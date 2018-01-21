@@ -30,7 +30,7 @@ class VTKRENDERINGOPENGL2_EXPORT vtkOpenGLSphereMapper : public vtkOpenGLPolyDat
 public:
   static vtkOpenGLSphereMapper* New();
   vtkTypeMacro(vtkOpenGLSphereMapper, vtkOpenGLPolyDataMapper)
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -50,57 +50,63 @@ public:
   /**
    * This calls RenderPiece (twice when transparent)
    */
-  virtual void Render(vtkRenderer *ren, vtkActor *act);
+  void Render(vtkRenderer *ren, vtkActor *act) override;
 
 protected:
   vtkOpenGLSphereMapper();
-  ~vtkOpenGLSphereMapper();
+  ~vtkOpenGLSphereMapper() override;
 
   /**
    * Create the basic shaders before replacement
    */
-  virtual void GetShaderTemplate(
+  void GetShaderTemplate(
     std::map<vtkShader::Type, vtkShader *> shaders,
-    vtkRenderer *ren, vtkActor *act);
+    vtkRenderer *ren, vtkActor *act) override;
 
   /**
    * Perform string replacments on the shader templates
    */
-  virtual void ReplaceShaderValues(
+  void ReplaceShaderValues(
     std::map<vtkShader::Type, vtkShader *> shaders,
-    vtkRenderer *ren, vtkActor *act);
+    vtkRenderer *ren, vtkActor *act) override;
 
   /**
    * Set the shader parameters related to the Camera
    */
-  virtual void SetCameraShaderParameters(vtkOpenGLHelper &cellBO, vtkRenderer *ren, vtkActor *act);
+  void SetCameraShaderParameters(vtkOpenGLHelper &cellBO, vtkRenderer *ren, vtkActor *act) override;
 
   /**
    * Set the shader parameters related to the actor/mapper
    */
-  virtual void SetMapperShaderParameters(vtkOpenGLHelper &cellBO, vtkRenderer *ren, vtkActor *act);
+  void SetMapperShaderParameters(vtkOpenGLHelper &cellBO, vtkRenderer *ren, vtkActor *act) override;
 
   const char *ScaleArray;
 
   /**
    * Does the VBO/IBO need to be rebuilt
    */
-  virtual bool GetNeedToRebuildBufferObjects(vtkRenderer *ren, vtkActor *act);
+  bool GetNeedToRebuildBufferObjects(vtkRenderer *ren, vtkActor *act) override;
 
   /**
    * Update the VBO to contain point based values
    */
-  virtual void BuildBufferObjects(vtkRenderer *ren, vtkActor *act);
+  void BuildBufferObjects(vtkRenderer *ren, vtkActor *act) override;
 
-  virtual void RenderPieceDraw(vtkRenderer *ren, vtkActor *act);
+  void RenderPieceDraw(vtkRenderer *ren, vtkActor *act) override;
+
+  virtual void CreateVBO(
+    float * points, vtkIdType numPts,
+    unsigned char *colors, int colorComponents,
+    vtkIdType nc,
+    float *sizes, vtkIdType ns, vtkRenderer *ren);
 
   // used for transparency
   bool Invert;
   float Radius;
 
 private:
-  vtkOpenGLSphereMapper(const vtkOpenGLSphereMapper&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkOpenGLSphereMapper&) VTK_DELETE_FUNCTION;
+  vtkOpenGLSphereMapper(const vtkOpenGLSphereMapper&) = delete;
+  void operator=(const vtkOpenGLSphereMapper&) = delete;
 };
 
 #endif

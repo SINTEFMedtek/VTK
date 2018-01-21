@@ -32,7 +32,7 @@ class VTKRENDERINGOPENGL_EXPORT vtkClipPlanesPainter : public vtkPainter
 public:
   static vtkClipPlanesPainter* New();
   vtkTypeMacro(vtkClipPlanesPainter, vtkPainter);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Get/Set the vtkPlaneCollection which specifies the clipping planes.
@@ -41,19 +41,19 @@ public:
 
 protected:
   vtkClipPlanesPainter();
-  ~vtkClipPlanesPainter();
+  ~vtkClipPlanesPainter() override;
 
   /**
    * Called before RenderInternal() if the Information has been changed
    * since the last time this method was called.
    */
-  virtual void ProcessInformation(vtkInformation*);
+  void ProcessInformation(vtkInformation*) override;
 
   void SetClippingPlanes(vtkPlaneCollection*);
   vtkPlaneCollection* ClippingPlanes;
 private:
-  vtkClipPlanesPainter(const vtkClipPlanesPainter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkClipPlanesPainter&) VTK_DELETE_FUNCTION;
+  vtkClipPlanesPainter(const vtkClipPlanesPainter&) = delete;
+  void operator=(const vtkClipPlanesPainter&) = delete;
 
 };
 

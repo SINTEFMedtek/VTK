@@ -36,13 +36,13 @@ class VTKRENDERINGOPENGL_EXPORT vtkXGPUInfoList : public vtkGPUInfoList
 public:
   static vtkXGPUInfoList* New();
   vtkTypeMacro(vtkXGPUInfoList, vtkGPUInfoList);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Build the list of vtkInfoGPU if not done yet.
    * \post probed: IsProbed()
    */
-  virtual void Probe();
+  void Probe() override;
 
 protected:
   //@{
@@ -50,12 +50,12 @@ protected:
    * Default constructor.
    */
   vtkXGPUInfoList();
-  virtual ~vtkXGPUInfoList();
+  ~vtkXGPUInfoList() override;
   //@}
 
 private:
-  vtkXGPUInfoList(const vtkXGPUInfoList&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkXGPUInfoList&) VTK_DELETE_FUNCTION;
+  vtkXGPUInfoList(const vtkXGPUInfoList&) = delete;
+  void operator=(const vtkXGPUInfoList&) = delete;
 };
 
 #endif

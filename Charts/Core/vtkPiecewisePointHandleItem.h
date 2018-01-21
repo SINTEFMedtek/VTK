@@ -40,7 +40,7 @@ class VTKCHARTSCORE_EXPORT vtkPiecewisePointHandleItem : public vtkContextItem
 {
 public:
   vtkTypeMacro(vtkPiecewisePointHandleItem, vtkContextItem);
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
   static vtkPiecewisePointHandleItem *New();
   static void CallRedraw(vtkObject* sender, unsigned long event, void* receiver, void* params);
@@ -48,12 +48,12 @@ public:
   /**
    * Set the parent item, which should be a vtkControlPointItem
    */
-  virtual void SetParent(vtkAbstractContextItem *parent);
+  void SetParent(vtkAbstractContextItem *parent) override;
 
   /**
    * Paint event for the item.
    */
-  virtual bool Paint(vtkContext2D *painter);
+  bool Paint(vtkContext2D *painter) override;
 
   //@{
   /**
@@ -80,26 +80,26 @@ public:
   /**
    * Returns true if the supplied x, y coordinate is inside the item.
    */
-  virtual bool Hit(const vtkContextMouseEvent &mouse);
+  bool Hit(const vtkContextMouseEvent &mouse) override;
 
   /**
    * Mouse move event.
    */
-  virtual bool MouseMoveEvent(const vtkContextMouseEvent &mouse);
+  bool MouseMoveEvent(const vtkContextMouseEvent &mouse) override;
 
   /**
    * Mouse button down event.
    */
-  virtual bool MouseButtonPressEvent(const vtkContextMouseEvent &mouse);
+  bool MouseButtonPressEvent(const vtkContextMouseEvent &mouse) override;
 
   /**
    * Mouse button release event.
    */
-  virtual bool MouseButtonReleaseEvent(const vtkContextMouseEvent &mouse);
+  bool MouseButtonReleaseEvent(const vtkContextMouseEvent &mouse) override;
 
 protected:
   vtkPiecewisePointHandleItem();
-  ~vtkPiecewisePointHandleItem();
+  ~vtkPiecewisePointHandleItem() override;
 
   /**
    * Redraw all the handles
@@ -114,8 +114,8 @@ protected:
   vtkCallbackCommand* Callback;
 
 private:
-  vtkPiecewisePointHandleItem(const vtkPiecewisePointHandleItem &) VTK_DELETE_FUNCTION;
-  void operator=(const vtkPiecewisePointHandleItem &) VTK_DELETE_FUNCTION;
+  vtkPiecewisePointHandleItem(const vtkPiecewisePointHandleItem &) = delete;
+  void operator=(const vtkPiecewisePointHandleItem &) = delete;
 
   class InternalPiecewisePointHandleInfo;
   InternalPiecewisePointHandleInfo* Internal;

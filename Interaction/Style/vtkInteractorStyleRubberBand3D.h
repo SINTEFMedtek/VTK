@@ -48,17 +48,17 @@ class VTKINTERACTIONSTYLE_EXPORT vtkInteractorStyleRubberBand3D : public vtkInte
 public:
   static vtkInteractorStyleRubberBand3D *New();
   vtkTypeMacro(vtkInteractorStyleRubberBand3D, vtkInteractorStyleTrackballCamera);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
-  virtual void OnLeftButtonDown();
-  virtual void OnLeftButtonUp();
-  virtual void OnMiddleButtonDown();
-  virtual void OnMiddleButtonUp();
-  virtual void OnRightButtonDown();
-  virtual void OnRightButtonUp();
-  virtual void OnMouseMove();
-  virtual void OnMouseWheelForward();
-  virtual void OnMouseWheelBackward();
+  void OnLeftButtonDown() override;
+  void OnLeftButtonUp() override;
+  void OnMiddleButtonDown() override;
+  void OnMiddleButtonUp() override;
+  void OnRightButtonDown() override;
+  void OnRightButtonUp() override;
+  void OnMouseMove() override;
+  void OnMouseWheelForward() override;
+  void OnMouseWheelBackward() override;
 
   //@{
   /**
@@ -106,7 +106,7 @@ public:
 
 protected:
   vtkInteractorStyleRubberBand3D();
-  ~vtkInteractorStyleRubberBand3D();
+  ~vtkInteractorStyleRubberBand3D() override;
 
   // The interaction mode
   int Interaction;
@@ -127,8 +127,8 @@ protected:
   bool RenderOnMouseMove;
 
 private:
-  vtkInteractorStyleRubberBand3D(const vtkInteractorStyleRubberBand3D&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkInteractorStyleRubberBand3D&) VTK_DELETE_FUNCTION;
+  vtkInteractorStyleRubberBand3D(const vtkInteractorStyleRubberBand3D&) = delete;
+  void operator=(const vtkInteractorStyleRubberBand3D&) = delete;
 };
 
 #endif

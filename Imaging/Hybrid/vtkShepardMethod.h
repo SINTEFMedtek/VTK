@@ -88,7 +88,7 @@ public:
    * Standard type and print methods.
    */
   vtkTypeMacro(vtkShepardMethod,vtkImageAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   /**
@@ -164,19 +164,19 @@ public:
 
 protected:
   vtkShepardMethod();
-  ~vtkShepardMethod() {}
+  ~vtkShepardMethod() override {}
 
-  virtual int RequestInformation (vtkInformation *,
+  int RequestInformation (vtkInformation *,
                                   vtkInformationVector **,
-                                  vtkInformationVector *);
+                                  vtkInformationVector *) override;
 
   // see vtkAlgorithm for details
-  virtual int RequestData(vtkInformation *request,
+  int RequestData(vtkInformation *request,
                           vtkInformationVector** inputVector,
-                          vtkInformationVector* outputVector);
+                          vtkInformationVector* outputVector) override;
 
   // see algorithm for more info
-  virtual int FillInputPortInformation(int port, vtkInformation* info);
+  int FillInputPortInformation(int port, vtkInformation* info) override;
 
   int SampleDimensions[3];
   double MaximumDistance;
@@ -185,8 +185,8 @@ protected:
   double PowerParameter;
 
 private:
-  vtkShepardMethod(const vtkShepardMethod&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkShepardMethod&) VTK_DELETE_FUNCTION;
+  vtkShepardMethod(const vtkShepardMethod&) = delete;
+  void operator=(const vtkShepardMethod&) = delete;
 };
 
 #endif

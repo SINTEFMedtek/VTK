@@ -28,6 +28,7 @@
 #include "vtkTransform.h" // ivars
 
 class vtkOpenVRRenderer;
+class vtkOpenVRRenderWindow;
 class vtkMatrix3x3;
 class vtkMatrix4x4;
 
@@ -36,6 +37,7 @@ class VTKRENDERINGOPENVR_EXPORT vtkOpenVRCamera : public vtkOpenGLCamera
 public:
   static vtkOpenVRCamera *New();
   vtkTypeMacro(vtkOpenVRCamera, vtkOpenGLCamera);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Implement base class method.
@@ -51,14 +53,14 @@ public:
    */
   virtual void GetTrackingToDCMatrix(vtkMatrix4x4 *&TCDCMatrix);
 
-  //@{
-  /**
-   * Set/Get the translation to map world coordinates into the
-   * OpenVR physical space (meters, 0,0,0).
-   */
-  vtkSetVector3Macro(Translation,double);
-  vtkGetVector3Macro(Translation,double);
-  //@}
+  // apply the left or right eye pose to the camera
+  // position and focal point.  Factor is typically
+  // 1.0 to add or -1.0 to subtract
+  void ApplyEyePose(vtkOpenVRRenderWindow *, bool left, double factor);
+
+  // Get the OpenVR Physical Space to World coordinate matrix
+  vtkTransform *GetPhysicalToWorldTransform() {
+    return this->PoseTransform.Get(); }
 
 protected:
   vtkOpenVRCamera();
@@ -69,26 +71,21 @@ protected:
   void GetHMDEyePoses(vtkRenderer *);
   void GetHMDEyeProjections(vtkRenderer *);
 
-  vtkMatrix4x4 *LeftEyePose;
-  vtkMatrix4x4 *RightEyePose;
+  double LeftEyePose[3];
+  double RightEyePose[3];
   vtkMatrix4x4 *LeftEyeProjection;
   vtkMatrix4x4 *RightEyeProjection;
-
-  vtkMatrix4x4 *RightWCDCMatrix;
-  vtkMatrix4x4 *RightWCVCMatrix;
-  vtkMatrix4x4 *RightVCDCMatrix;
 
   vtkMatrix4x4 *LeftEyeTCDCMatrix;
   vtkMatrix4x4 *RightEyeTCDCMatrix;
 
   // used to translate the
   // View to the HMD space
-  double Translation[3];
   vtkNew<vtkTransform> PoseTransform;
 
 private:
-  vtkOpenVRCamera(const vtkOpenVRCamera&);  // Not implemented.
-  void operator=(const vtkOpenVRCamera&);  // Not implemented.
+  vtkOpenVRCamera(const vtkOpenVRCamera&) = delete;
+  void operator=(const vtkOpenVRCamera&) = delete;
 };
 
 #endif

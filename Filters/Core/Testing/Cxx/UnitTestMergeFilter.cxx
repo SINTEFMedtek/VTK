@@ -31,26 +31,6 @@
 static vtkSmartPointer<vtkPointData> MakePointData(unsigned int numberOfPoints);
 static vtkSmartPointer<vtkCellData> MakeCellData(unsigned int numberOfCells);
 
-#define CHECK_WARNING_MSG(warningObserver, msg, status)      \
-  { \
-  std::string expectedMsg(msg); \
-  if (!warningObserver->GetWarning()) \
-  { \
-    std::cout << "Failed to catch any warning.. Expected the warning message to contain \"" << expectedMsg << std::endl; \
-    status++; \
-  } \
-  else \
-  { \
-    std::string gotMsg(warningObserver->GetWarningMessage()); \
-    if (gotMsg.find(expectedMsg) == std::string::npos) \
-    { \
-      std::cout << "Warning message does not contain \"" << expectedMsg << "\" got \n\"" << gotMsg << std::endl; \
-      status++; \
-    } \
-  } \
-  } \
-  warningObserver->Clear()
-
 int UnitTestMergeFilter (int, char*[])
 {
   int status = 0;
@@ -67,50 +47,50 @@ int UnitTestMergeFilter (int, char*[])
 
   // Check for null inputs
   int status0 = 0;
-  if (merge0->GetGeometry() != NULL)
+  if (merge0->GetGeometry() != nullptr)
   {
-    std::cout << std::endl << "  GetGeometry() expected NULL" << std::endl;
+    std::cout << std::endl << "  GetGeometry() expected nullptr" << std::endl;
     status0++;
   }
-  if (merge0->GetGeometry() != NULL)
+  if (merge0->GetGeometry() != nullptr)
   {
     status++;
-    std::cout << std::endl << "  GetGeometry() expected NULL" << std::endl;
+    std::cout << std::endl << "  GetGeometry() expected nullptr" << std::endl;
   }
   status0 = 0;
 
-  if (merge0->GetScalars() != NULL)
+  if (merge0->GetScalars() != nullptr)
   {
     status++;
-    std::cout << std::endl << "  GetScalars() expected NULL" << std::endl;
+    std::cout << std::endl << "  GetScalars() expected nullptr" << std::endl;
   }
   status0 = 0;
 
-  if (merge0->GetVectors() != NULL)
+  if (merge0->GetVectors() != nullptr)
   {
     status++;
-    std::cout << std::endl << "  GetVectors( ) expected NULL" << std::endl;
+    std::cout << std::endl << "  GetVectors( ) expected nullptr" << std::endl;
   }
   status0 = 0;
 
-  if (merge0->GetNormals() != NULL)
+  if (merge0->GetNormals() != nullptr)
   {
     status++;
-    std::cout << std::endl << "  GetNormals() expected NULL" << std::endl;
+    std::cout << std::endl << "  GetNormals() expected nullptr" << std::endl;
   }
   status0 = 0;
 
-  if (merge0->GetTCoords() != NULL)
+  if (merge0->GetTCoords() != nullptr)
   {
     status++;
-    std::cout << std::endl << "  GetTCoords() expected NULL" << std::endl;
+    std::cout << std::endl << "  GetTCoords() expected nullptr" << std::endl;
   }
   status0 = 0;
 
-  if (merge0->GetTensors() != NULL)
+  if (merge0->GetTensors() != nullptr)
   {
     status++;
-    std::cout << std::endl << "  GetTensorsd() expected NULL" << std::endl;
+    std::cout << std::endl << "  GetTensorsd() expected nullptr" << std::endl;
   }
   status0 = 0;
 
@@ -119,7 +99,7 @@ int UnitTestMergeFilter (int, char*[])
     vtkSmartPointer<vtkTest::ErrorObserver>::New();
   merge0->AddObserver(vtkCommand::WarningEvent, warningObserver);
   merge0->Update();
-  CHECK_WARNING_MSG(warningObserver, "Nothing to merge!", status0);
+  status0 += warningObserver->CheckWarningMessage("Nothing to merge!");
   if (status0)
   {
     status++;
@@ -239,7 +219,7 @@ int UnitTestMergeFilter (int, char*[])
   merge1->AddField("", polyData2);
 
   merge1->Update();
-  CHECK_WARNING_MSG(warningObserver, "cannot be merged", status);
+  status += warningObserver->CheckWarningMessage("cannot be merged");
   if (status)
   {
     return EXIT_FAILURE;

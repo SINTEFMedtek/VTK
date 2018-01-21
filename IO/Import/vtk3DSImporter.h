@@ -37,7 +37,7 @@ public:
   static vtk3DSImporter *New();
 
   vtkTypeMacro(vtk3DSImporter,vtkImporter);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -71,14 +71,14 @@ public:
 
 protected:
   vtk3DSImporter();
-  ~vtk3DSImporter();
+  ~vtk3DSImporter() override;
 
-  virtual int ImportBegin ();
-  virtual void ImportEnd ();
-  virtual void ImportActors (vtkRenderer *renderer);
-  virtual void ImportCameras (vtkRenderer *renderer);
-  virtual void ImportLights (vtkRenderer *renderer);
-  virtual void ImportProperties (vtkRenderer *renderer);
+  int ImportBegin () override;
+  void ImportEnd () override;
+  void ImportActors (vtkRenderer *renderer) override;
+  void ImportCameras (vtkRenderer *renderer) override;
+  void ImportLights (vtkRenderer *renderer) override;
+  void ImportProperties (vtkRenderer *renderer) override;
   vtkPolyData *GeneratePolyData (vtk3DSMesh *meshPtr);
   int Read3DS ();
 
@@ -86,8 +86,8 @@ protected:
   FILE *FileFD;
   int ComputeNormals;
 private:
-  vtk3DSImporter(const vtk3DSImporter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtk3DSImporter&) VTK_DELETE_FUNCTION;
+  vtk3DSImporter(const vtk3DSImporter&) = delete;
+  void operator=(const vtk3DSImporter&) = delete;
 };
 
 #endif

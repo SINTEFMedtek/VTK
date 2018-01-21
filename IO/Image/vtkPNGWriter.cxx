@@ -21,6 +21,7 @@
 #include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtkUnsignedCharArray.h"
 #include "vtk_png.h"
+#include <vtksys/SystemTools.hxx>
 
 #include <vector>
 
@@ -52,9 +53,8 @@ vtkPNGWriter::vtkPNGWriter()
   this->FileLowerLeft = 1;
   this->FileDimensionality = 2;
   this->CompressionLevel = 5;
-  this->WriteToMemory = 0;
-  this->Result = 0;
-  this->TempFP = 0;
+  this->Result = nullptr;
+  this->TempFP = nullptr;
   this->Internals = new vtkInternals();
 }
 
@@ -63,7 +63,7 @@ vtkPNGWriter::~vtkPNGWriter()
   if (this->Result)
   {
     this->Result->Delete();
-    this->Result = 0;
+    this->Result = nullptr;
   }
   delete this->Internals;
 }
@@ -75,7 +75,7 @@ void vtkPNGWriter::Write()
   this->SetErrorCode(vtkErrorCode::NoError);
 
   // Error checking
-  if ( this->GetInput() == NULL )
+  if ( this->GetInput() == nullptr )
   {
     vtkErrorMacro(<<"Write:Please specify an input!");
     return;
@@ -151,7 +151,7 @@ void vtkPNGWriter::Write()
                          (wExtent[5] - wExtent[4] + 1.0));
   }
   delete [] this->InternalFileName;
-  this->InternalFileName = NULL;
+  this->InternalFileName = nullptr;
 }
 
 extern "C"
@@ -166,7 +166,8 @@ extern "C"
     {
       vtkUnsignedCharArray *uc = self->GetResult();
       // write to the uc array
-      unsigned char *ptr = uc->WritePointer(uc->GetMaxId()+1,sizeToWrite);
+      unsigned char *ptr = uc->WritePointer(uc->GetMaxId()+1,
+        static_cast<vtkIdType>(sizeToWrite));
       memcpy(ptr, data, sizeToWrite);
     }
   }
@@ -188,7 +189,7 @@ extern "C"
     char *test;
     test = static_cast<char *>(png_get_error_ptr(png_ptr));
 
-    if (test == NULL)
+    if (test == nullptr)
       fprintf(stderr, "%s: libpng warning: %s\n", name, warning_msg);
 
     else
@@ -233,7 +234,7 @@ void vtkPNGWriter::WriteSlice(vtkImageData *data, int* uExtent)
   }
 
   png_structp png_ptr = png_create_write_struct
-    (PNG_LIBPNG_VER_STRING, (png_voidp)NULL, NULL, NULL);
+    (PNG_LIBPNG_VER_STRING, (png_voidp)nullptr, nullptr, nullptr);
   if (!png_ptr)
   {
     vtkErrorMacro(<<"Unable to write PNG file!");
@@ -246,14 +247,14 @@ void vtkPNGWriter::WriteSlice(vtkImageData *data, int* uExtent)
   if (!info_ptr)
   {
     png_destroy_write_struct(&png_ptr,
-                             (png_infopp)NULL);
+                             (png_infopp)nullptr);
     vtkErrorMacro(<<"Unable to write PNG file!");
     return;
   }
 
 
-  this->TempFP = 0;
-  png_byte **row_pointers = 0;
+  this->TempFP = nullptr;
+  png_byte **row_pointers = nullptr;
   if (this->WriteToMemory)
   {
     vtkUnsignedCharArray *uc = this->GetResult();
@@ -270,7 +271,7 @@ void vtkPNGWriter::WriteSlice(vtkImageData *data, int* uExtent)
   }
   else
   {
-      this->TempFP = fopen(this->InternalFileName, "wb");
+      this->TempFP = vtksys::SystemTools::Fopen(this->InternalFileName, "wb");
       if (!this->TempFP)
       {
         vtkErrorMacro("Unable to open file " << this->InternalFileName);
@@ -320,7 +321,7 @@ void vtkPNGWriter::WriteSlice(vtkImageData *data, int* uExtent)
                PNG_FILTER_TYPE_DEFAULT);
 
   // add latin1, uncompressed text chunks to the PNG file
-  if (impl->TextKeyValue.size() > 0)
+  if (!impl->TextKeyValue.empty())
   {
     std::vector<png_text> pngText(impl->TextKeyValue.size());
     for (size_t i = 0; i < pngText.size(); ++i)
@@ -331,8 +332,8 @@ void vtkPNGWriter::WriteSlice(vtkImageData *data, int* uExtent)
       pngText[i].text_length = impl->TextKeyValue[i].second.length();
 #ifdef PNG_iTXt_SUPPORTED
       pngText[i].itxt_length = 0;
-      pngText[i].lang = NULL;
-      pngText[i].lang_key = NULL;
+      pngText[i].lang = nullptr;
+      pngText[i].lang_key = nullptr;
 #endif
     }
     png_set_text(png_ptr, info_ptr, &pngText[0], static_cast<int>(pngText.size()));
@@ -387,7 +388,6 @@ void vtkPNGWriter::PrintSelf(ostream& os, vtkIndent indent)
   this->Superclass::PrintSelf(os,indent);
 
   os << indent << "Result: " << this->Result << "\n";
-  os << indent << "WriteToMemory: " << (this->WriteToMemory ? "On" : "Off") << "\n";
 }
 
 void vtkPNGWriter::AddText(const char* key, const char* value)

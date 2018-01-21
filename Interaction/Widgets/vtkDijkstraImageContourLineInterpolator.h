@@ -54,7 +54,7 @@ public:
    */
   vtkTypeMacro(vtkDijkstraImageContourLineInterpolator,
                               vtkContourLineInterpolator);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   static vtkDijkstraImageContourLineInterpolator *New();
@@ -64,9 +64,9 @@ public:
    * For instance vtkBezierContourLineInterpolator adds nodes between idx1
    * and idx2, that allow the contour to adhere to a bezier curve.
    */
-  virtual int InterpolateLine( vtkRenderer *ren,
+  int InterpolateLine( vtkRenderer *ren,
                                vtkContourRepresentation *rep,
-                               int idx1, int idx2 );
+                               int idx1, int idx2 ) override;
 
   //@{
   /**
@@ -87,16 +87,16 @@ public:
 
 protected:
   vtkDijkstraImageContourLineInterpolator();
-  ~vtkDijkstraImageContourLineInterpolator();
+  ~vtkDijkstraImageContourLineInterpolator() override;
 
   vtkImageData *CostImage;
   vtkDijkstraImageGeodesicPath *DijkstraImageGeodesicPath;
 
 private:
   vtkDijkstraImageContourLineInterpolator(
-    const vtkDijkstraImageContourLineInterpolator&) VTK_DELETE_FUNCTION;
+    const vtkDijkstraImageContourLineInterpolator&) = delete;
   void operator=(const
-    vtkDijkstraImageContourLineInterpolator&) VTK_DELETE_FUNCTION;
+    vtkDijkstraImageContourLineInterpolator&) = delete;
 };
 
 #endif

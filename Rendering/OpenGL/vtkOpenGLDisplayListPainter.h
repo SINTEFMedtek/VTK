@@ -33,31 +33,31 @@ class VTKRENDERINGOPENGL_EXPORT vtkOpenGLDisplayListPainter : public vtkDisplayL
 public:
   static vtkOpenGLDisplayListPainter* New();
   vtkTypeMacro(vtkOpenGLDisplayListPainter, vtkDisplayListPainter);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
    * Release any graphics resources that are being consumed by this mapper.
    * The parameter window could be used to determine which graphic
    * resources to release. In this case, releases the display lists.
    */
-  virtual void ReleaseGraphicsResources(vtkWindow *);
+  void ReleaseGraphicsResources(vtkWindow *) override;
 
 protected:
 
   vtkOpenGLDisplayListPainter();
-  ~vtkOpenGLDisplayListPainter();
+  ~vtkOpenGLDisplayListPainter() override;
 
   /**
    * If not using ImmediateModeRendering, this will build a display list,
    * if outdated and use the display list.
    */
-  virtual void RenderInternal(vtkRenderer* renderer, vtkActor* actor,
+  void RenderInternal(vtkRenderer* renderer, vtkActor* actor,
                               unsigned long typeflags,
-                              bool forceCompileOnly);
+                              bool forceCompileOnly) override;
 
 private:
-  vtkOpenGLDisplayListPainter(const vtkOpenGLDisplayListPainter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkOpenGLDisplayListPainter&) VTK_DELETE_FUNCTION;
+  vtkOpenGLDisplayListPainter(const vtkOpenGLDisplayListPainter&) = delete;
+  void operator=(const vtkOpenGLDisplayListPainter&) = delete;
 
   class vtkInternals;
   vtkInternals* Internals;

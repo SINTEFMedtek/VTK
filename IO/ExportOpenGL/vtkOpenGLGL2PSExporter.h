@@ -103,19 +103,20 @@ class vtkTextActor;
 class vtkTextActor3D;
 class vtkTextMapper;
 class vtkTextProperty;
+class vtkTexturedActor2D;
 
 class VTKIOEXPORTOPENGL_EXPORT vtkOpenGLGL2PSExporter : public vtkGL2PSExporter
 {
 public:
   static vtkOpenGLGL2PSExporter *New();
   vtkTypeMacro(vtkOpenGLGL2PSExporter, vtkGL2PSExporter)
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
 protected:
   vtkOpenGLGL2PSExporter();
-  ~vtkOpenGLGL2PSExporter();
+  ~vtkOpenGLGL2PSExporter() override;
 
-  void WriteData();
+  void WriteData() override;
 
   void SavePropVisibility(vtkRendererCollection *renCol,
                           vtkIntArray *volVis, vtkIntArray *actVis,
@@ -125,6 +126,9 @@ protected:
                              vtkIntArray *act2dVis);
   void Turn3DPropsOff(vtkRendererCollection *renCol);
   void Turn2DPropsOff(vtkRendererCollection *renCol);
+  static void TurnSpecialPropsOff(vtkCollection *specialPropCol,
+                           vtkRendererCollection *renCol);
+
   void GetVisibleContextActors(vtkPropCollection *contextActors,
                                vtkRendererCollection *renCol);
   void SetPropVisibilities(vtkPropCollection *col, int vis);
@@ -146,6 +150,7 @@ protected:
   void DrawLabeledContourMapper(vtkActor *act, vtkLabeledContourMapper *mapper,
                                 vtkRenderer *ren);
   void DrawScalarBarActor(vtkScalarBarActor *bar, vtkRenderer *ren);
+  void DrawTexturedActor2D(vtkTexturedActor2D *act, vtkRenderer *ren);
   void DrawViewportTextOverlay(const char *string, vtkTextProperty *tprop,
                                vtkCoordinate *coord, vtkRenderer *ren);
   //@}
@@ -162,8 +167,8 @@ protected:
   vtkNew<vtkImageData> PixelData;
 
 private:
-  vtkOpenGLGL2PSExporter(const vtkOpenGLGL2PSExporter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkOpenGLGL2PSExporter&) VTK_DELETE_FUNCTION;
+  vtkOpenGLGL2PSExporter(const vtkOpenGLGL2PSExporter&) = delete;
+  void operator=(const vtkOpenGLGL2PSExporter&) = delete;
 };
 
 #endif

@@ -52,7 +52,7 @@ vtkOpenGLLabeledContourMapper::vtkOpenGLLabeledContourMapper()
 vtkOpenGLLabeledContourMapper::~vtkOpenGLLabeledContourMapper()
 {
   delete this->StencilBO;
-  this->StencilBO = 0;
+  this->StencilBO = nullptr;
   this->TempMatrix4->Delete();
 }
 
@@ -88,22 +88,6 @@ void vtkOpenGLLabeledContourMapper::ReleaseGraphicsResources(vtkWindow *win)
 bool vtkOpenGLLabeledContourMapper::ApplyStencil(vtkRenderer *ren,
                                                  vtkActor *act)
 {
-  // Save some state:
-  GLboolean colorMask[4];
-  glGetBooleanv(GL_COLOR_WRITEMASK, colorMask);
-  GLboolean depthMask;
-  glGetBooleanv(GL_DEPTH_WRITEMASK, &depthMask);
-
-  // Enable rendering into the stencil buffer:
-  glEnable(GL_STENCIL_TEST);
-  glStencilMask(0xFF);
-  glClearStencil(0);
-  glClear(GL_STENCIL_BUFFER_BIT);
-  glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-  glDepthMask(GL_FALSE);
-  glStencilFunc(GL_ALWAYS, 1, 0xFF);
-  glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
-
   // Draw stencil quads into stencil buffer:
   // compile and bind it if needed
   vtkOpenGLRenderWindow *renWin =
@@ -130,6 +114,27 @@ bool vtkOpenGLLabeledContourMapper::ApplyStencil(vtkRenderer *ren,
     renWin->GetShaderCache()->ReadyShaderProgram(this->StencilBO->Program);
   }
 
+  if (!this->StencilBO->Program)
+  {
+    return false;
+  }
+
+  // Save some state:
+  GLboolean colorMask[4];
+  glGetBooleanv(GL_COLOR_WRITEMASK, colorMask);
+  GLboolean depthMask;
+  glGetBooleanv(GL_DEPTH_WRITEMASK, &depthMask);
+
+  // Enable rendering into the stencil buffer:
+  glEnable(GL_STENCIL_TEST);
+  glStencilMask(0xFF);
+  glClearStencil(0);
+  glClear(GL_STENCIL_BUFFER_BIT);
+  glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+  glDepthMask(GL_FALSE);
+  glStencilFunc(GL_ALWAYS, 1, 0xFF);
+  glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+
   vtkOpenGLCamera *cam = (vtkOpenGLCamera *)(ren->GetActiveCamera());
   vtkMatrix4x4 *wcdc;
   vtkMatrix4x4 *wcvc;
@@ -154,7 +159,7 @@ bool vtkOpenGLLabeledContourMapper::ApplyStencil(vtkRenderer *ren,
     this->StencilQuadsSize/3,
     this->StencilQuadIndices,
     this->StencilQuadIndicesSize,
-    NULL,
+    nullptr,
     this->StencilBO->Program,
     this->StencilBO->VAO);
 

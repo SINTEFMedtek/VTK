@@ -37,24 +37,24 @@ class VTKINTERACTIONSTYLE_EXPORT vtkInteractorStyleMultiTouchCamera : public vtk
 public:
   static vtkInteractorStyleMultiTouchCamera *New();
   vtkTypeMacro(vtkInteractorStyleMultiTouchCamera,vtkInteractorStyleTrackballCamera);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
    * Event bindings for gestures
    */
-  virtual void OnRotate();
-  virtual void OnPinch();
-  virtual void OnPan();
+  void OnRotate() override;
+  void OnPinch() override;
+  void OnPan() override;
   //@}
 
 protected:
   vtkInteractorStyleMultiTouchCamera();
-  ~vtkInteractorStyleMultiTouchCamera();
+  ~vtkInteractorStyleMultiTouchCamera() override;
 
 private:
-  vtkInteractorStyleMultiTouchCamera(const vtkInteractorStyleMultiTouchCamera&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkInteractorStyleMultiTouchCamera&) VTK_DELETE_FUNCTION;
+  vtkInteractorStyleMultiTouchCamera(const vtkInteractorStyleMultiTouchCamera&) = delete;
+  void operator=(const vtkInteractorStyleMultiTouchCamera&) = delete;
 };
 
 #endif

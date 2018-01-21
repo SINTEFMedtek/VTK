@@ -49,7 +49,7 @@ class VTKFILTERSEXTRACTION_EXPORT vtkExtractSelection : public vtkExtractSelecti
 public:
   static vtkExtractSelection *New();
   vtkTypeMacro(vtkExtractSelection, vtkExtractSelectionBase);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -74,19 +74,19 @@ public:
 
 protected:
   vtkExtractSelection();
-  ~vtkExtractSelection();
+  ~vtkExtractSelection() override;
 
-  virtual int FillInputPortInformation(int port, vtkInformation* info);
+  int FillInputPortInformation(int port, vtkInformation* info) override;
 
   //sets up empty output dataset
-  virtual int RequestDataObject(vtkInformation* request,
+  int RequestDataObject(vtkInformation* request,
                                 vtkInformationVector** inputVector,
-                                vtkInformationVector* outputVector);
+                                vtkInformationVector* outputVector) override;
 
   // runs the algorithm and fills the output with results
-  virtual int RequestData(vtkInformation *,
+  int RequestData(vtkInformation *,
                   vtkInformationVector **,
-                  vtkInformationVector *);
+                  vtkInformationVector *) override;
 
   // used for composite, non-hierarhical input.
   vtkDataObject* RequestDataInternal(
@@ -118,8 +118,8 @@ protected:
   int UseProbeForLocations;
   int ShowBounds;
 private:
-  vtkExtractSelection(const vtkExtractSelection&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkExtractSelection&) VTK_DELETE_FUNCTION;
+  vtkExtractSelection(const vtkExtractSelection&) = delete;
+  void operator=(const vtkExtractSelection&) = delete;
 };
 
 #endif

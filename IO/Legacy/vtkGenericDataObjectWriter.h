@@ -31,18 +31,18 @@ class VTKIOLEGACY_EXPORT vtkGenericDataObjectWriter : public vtkDataWriter
 public:
   static vtkGenericDataObjectWriter *New();
   vtkTypeMacro(vtkGenericDataObjectWriter,vtkDataWriter);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
 protected:
   vtkGenericDataObjectWriter();
-  ~vtkGenericDataObjectWriter();
+  ~vtkGenericDataObjectWriter() override;
 
-  void WriteData();
-  virtual int FillInputPortInformation(int port, vtkInformation *info);
+  void WriteData() override;
+  int FillInputPortInformation(int port, vtkInformation *info) override;
 
 private:
-  vtkGenericDataObjectWriter(const vtkGenericDataObjectWriter&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkGenericDataObjectWriter&) VTK_DELETE_FUNCTION;
+  vtkGenericDataObjectWriter(const vtkGenericDataObjectWriter&) = delete;
+  void operator=(const vtkGenericDataObjectWriter&) = delete;
 };
 
 #endif

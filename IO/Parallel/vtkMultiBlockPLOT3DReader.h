@@ -86,23 +86,62 @@
 #ifndef vtkMultiBlockPLOT3DReader_h
 #define vtkMultiBlockPLOT3DReader_h
 
+#include <vector>  // For holding function-names
 #include "vtkIOParallelModule.h" // For export macro
 #include "vtkMultiBlockDataSetAlgorithm.h"
 
 class vtkDataArray;
-class vtkUnsignedCharArray;
+class vtkDataSetAttributes;
 class vtkIntArray;
-class vtkStructuredGrid;
-class vtkMultiProcessController;
 class vtkMultiBlockPLOT3DReaderRecord;
+class vtkMultiProcessController;
+class vtkStructuredGrid;
+class vtkUnsignedCharArray;
 struct vtkMultiBlockPLOT3DReaderInternals;
+
+namespace Functors
+{
+  class ComputeFunctor;
+  class ComputeTemperatureFunctor;
+  class ComputePressureFunctor;
+  class ComputePressureCoefficientFunctor;
+  class ComputeMachNumberFunctor;
+  class ComputeSoundSpeedFunctor;
+  class ComputeEnthalpyFunctor;
+  class ComputeKinecticEnergyFunctor;
+  class ComputeVelocityMagnitudeFunctor;
+  class ComputeEntropyFunctor;
+  class ComputeSwirlFunctor;
+  class ComputeVelocityFunctor;
+  class ComputeVorticityMagnitudeFunctor;
+  class ComputePressureGradientFunctor;
+  class ComputeVorticityFunctor;
+  class ComputeStrainRateFunctor;
+}
+
 
 class VTKIOPARALLEL_EXPORT vtkMultiBlockPLOT3DReader : public vtkMultiBlockDataSetAlgorithm
 {
+friend class Functors::ComputeFunctor;
+friend class Functors::ComputeTemperatureFunctor;
+friend class Functors::ComputePressureFunctor;
+friend class Functors::ComputePressureCoefficientFunctor;
+friend class Functors::ComputeMachNumberFunctor;
+friend class Functors::ComputeSoundSpeedFunctor;
+friend class Functors::ComputeEnthalpyFunctor;
+friend class Functors::ComputeKinecticEnergyFunctor;
+friend class Functors::ComputeVelocityMagnitudeFunctor;
+friend class Functors::ComputeEntropyFunctor;
+friend class Functors::ComputeSwirlFunctor;
+friend class Functors::ComputeVelocityFunctor;
+friend class Functors::ComputeVorticityMagnitudeFunctor;
+friend class Functors::ComputePressureGradientFunctor;
+friend class Functors::ComputeVorticityFunctor;
+friend class Functors::ComputeStrainRateFunctor;
 public:
   static vtkMultiBlockPLOT3DReader *New();
   vtkTypeMacro(vtkMultiBlockPLOT3DReader,vtkMultiBlockDataSetAlgorithm);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   //@{
   /**
@@ -255,6 +294,19 @@ public:
 
   //@{
   /**
+   * When set to true (default), the reader will preserve intermediate computed
+   * quantities that were not explicitly requested e.g. if `VelocityMagnitude` is
+   * enabled, but not `Velocity`, the reader still needs to compute `Velocity`.
+   * If `PreserveIntermediateFunctions` if false, then the output will not have
+   * `Velocity` array, only the requested `VelocityMagnitude`. This is useful to
+   * avoid using up memory for arrays that are not relevant for the analysis.
+   */
+  vtkSetMacro(PreserveIntermediateFunctions, bool);
+  vtkGetMacro(PreserveIntermediateFunctions, bool);
+  vtkBooleanMacro(PreserveIntermediateFunctions, bool);
+
+  //@{
+  /**
    * Specify the scalar function to extract. If ==(-1), then no scalar
    * function is extracted.
    */
@@ -297,6 +349,8 @@ public:
   vtkGetObjectMacro(Controller, vtkMultiProcessController);
   //@}
 
+  void AddFunctionName(const std::string &name) {FunctionNames.push_back(name);}
+
   enum
   {
     FILE_BIG_ENDIAN=0,
@@ -305,7 +359,7 @@ public:
 
 protected:
   vtkMultiBlockPLOT3DReader();
-  ~vtkMultiBlockPLOT3DReader();
+  ~vtkMultiBlockPLOT3DReader() override;
 
   vtkDataArray* CreateFloatArray();
 
@@ -353,21 +407,28 @@ protected:
   void AssignAttribute(int fNumber, vtkStructuredGrid* output,
                        int attributeType);
   void MapFunction(int fNumber, vtkStructuredGrid* output);
-  void ComputeTemperature(vtkStructuredGrid* output);
-  void ComputePressure(vtkStructuredGrid* output);
-  void ComputeEnthalpy(vtkStructuredGrid* output);
-  void ComputeKineticEnergy(vtkStructuredGrid* output);
-  void ComputeVelocityMagnitude(vtkStructuredGrid* output);
-  void ComputeEntropy(vtkStructuredGrid* output);
-  void ComputeSwirl(vtkStructuredGrid* output);
-  void ComputeVelocity(vtkStructuredGrid* output);
-  void ComputeVorticity(vtkStructuredGrid* output);
-  void ComputePressureGradient(vtkStructuredGrid* output);
-  void ComputePressureCoefficient(vtkStructuredGrid* output);
-  void ComputeMachNumber(vtkStructuredGrid* output);
-  void ComputeSoundSpeed(vtkStructuredGrid* output);
-  void ComputeVorticityMagnitude(vtkStructuredGrid* output);
-  void ComputeStrainRate(vtkStructuredGrid* output);
+
+  //@{
+  /**
+   * Each of these methods compute a derived quantity. On success, the array is
+   * added to the output and a pointer to the same is returned.
+   */
+  vtkDataArray* ComputeTemperature(vtkStructuredGrid* output);
+  vtkDataArray* ComputePressure(vtkStructuredGrid* output);
+  vtkDataArray* ComputeEnthalpy(vtkStructuredGrid* output);
+  vtkDataArray* ComputeKineticEnergy(vtkStructuredGrid* output);
+  vtkDataArray* ComputeVelocityMagnitude(vtkStructuredGrid* output);
+  vtkDataArray* ComputeEntropy(vtkStructuredGrid* output);
+  vtkDataArray* ComputeSwirl(vtkStructuredGrid* output);
+  vtkDataArray* ComputeVelocity(vtkStructuredGrid* output);
+  vtkDataArray* ComputeVorticity(vtkStructuredGrid* output);
+  vtkDataArray* ComputePressureGradient(vtkStructuredGrid* output);
+  vtkDataArray* ComputePressureCoefficient(vtkStructuredGrid* output);
+  vtkDataArray* ComputeMachNumber(vtkStructuredGrid* output);
+  vtkDataArray* ComputeSoundSpeed(vtkStructuredGrid* output);
+  vtkDataArray* ComputeVorticityMagnitude(vtkStructuredGrid* output);
+  vtkDataArray* ComputeStrainRate(vtkStructuredGrid* output);
+  //@}
 
   // Returns a vtkFloatArray or a vtkDoubleArray depending
   // on DoublePrecision setting
@@ -377,6 +438,8 @@ protected:
   // I-blank arrays. The next Update() will (re)read
   // the XYZ file.
   void ClearGeometryCache();
+
+  double GetGamma(vtkIdType idx, vtkDataArray* gamma);
 
   //plot3d FileNames
   char *XYZFileName;
@@ -400,9 +463,12 @@ protected:
   //parameters used in computing derived functions
   double R;
   double Gamma;
-  double Uvinf;
-  double Vvinf;
-  double Wvinf;
+  double GammaInf;
+
+  bool PreserveIntermediateFunctions;
+
+  //named functions from meta data
+  std::vector<std::string> FunctionNames;
 
   //functions to read that are not scalars or vectors
   vtkIntArray *FunctionList;
@@ -410,22 +476,30 @@ protected:
   int ScalarFunctionNumber;
   int VectorFunctionNumber;
 
-  virtual int FillOutputPortInformation(int port, vtkInformation* info);
+  int FillOutputPortInformation(int port, vtkInformation* info) override;
 
-  virtual int RequestData(vtkInformation*,
+  int RequestData(vtkInformation*,
                           vtkInformationVector**,
-                          vtkInformationVector*);
-  virtual int RequestInformation(vtkInformation*,
+                          vtkInformationVector*) override;
+  int RequestInformation(vtkInformation*,
                                  vtkInformationVector**,
-                                 vtkInformationVector*);
+                                 vtkInformationVector*) override;
 
   vtkMultiBlockPLOT3DReaderInternals* Internal;
 
   vtkMultiProcessController *Controller;
 
 private:
-  vtkMultiBlockPLOT3DReader(const vtkMultiBlockPLOT3DReader&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkMultiBlockPLOT3DReader&) VTK_DELETE_FUNCTION;
+  vtkMultiBlockPLOT3DReader(const vtkMultiBlockPLOT3DReader&) = delete;
+  void operator=(const vtkMultiBlockPLOT3DReader&) = delete;
+
+  // Key used to flag intermediate results.
+  static vtkInformationIntegerKey* INTERMEDIATE_RESULT();
+
+  /**
+   * Remove intermediate results
+   */
+  void RemoveIntermediateFunctions(vtkDataSetAttributes* dsa);
 };
 
 #endif

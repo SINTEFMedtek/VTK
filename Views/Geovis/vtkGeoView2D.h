@@ -55,10 +55,10 @@ class VTKVIEWSGEOVIS_EXPORT vtkGeoView2D : public vtkRenderView
 public:
   static vtkGeoView2D *New();
   vtkTypeMacro(vtkGeoView2D,vtkRenderView);
-  virtual void PrintSelf( ostream& os, vtkIndent indent );
+  void PrintSelf( ostream& os, vtkIndent indent ) override;
 
   vtkGeoView2D();
-  ~vtkGeoView2D();
+  ~vtkGeoView2D() override;
 
   vtkGetObjectMacro(Surface, vtkGeoTerrain2D);
   virtual void SetSurface(vtkGeoTerrain2D* surf);
@@ -66,27 +66,27 @@ public:
   /**
    * Returns the transform associated with the surface.
    */
-  virtual vtkAbstractTransform* GetTransform();
+  vtkAbstractTransform* GetTransform() override;
 
   /**
    * Apply the view theme to this view.
    */
-  virtual void ApplyViewTheme(vtkViewTheme* theme);
+  void ApplyViewTheme(vtkViewTheme* theme) override;
 
   /**
    * Update and render the view.
    */
-  virtual void Render();
+  void Render() override;
 
 protected:
   vtkGeoTerrain2D* Surface;
   vtkAssembly* Assembly;
 
-  virtual void PrepareForRendering();
+  void PrepareForRendering() override;
 
 private:
-  vtkGeoView2D(const vtkGeoView2D&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkGeoView2D&) VTK_DELETE_FUNCTION;
+  vtkGeoView2D(const vtkGeoView2D&) = delete;
+  void operator=(const vtkGeoView2D&) = delete;
 };
 
 #endif

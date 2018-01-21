@@ -19,26 +19,41 @@
 
 #include "vtkOSPRayRendererNode.h"
 
+#include "vtkAbstractVolumeMapper.h"
+#include "vtkBoundingBox.h"
 #include "vtkCamera.h"
 #include "vtkCollectionIterator.h"
+#include "vtkImageData.h"
 #include "vtkInformation.h"
+#include "vtkInformationDoubleVectorKey.h"
 #include "vtkInformationIntegerKey.h"
+#include "vtkInformationObjectBaseKey.h"
 #include "vtkInformationStringKey.h"
+#include "vtkLight.h"
+#include "vtkMapper.h"
 #include "vtkMath.h"
+#include "vtkMatrix4x4.h"
 #include "vtkObjectFactory.h"
 #include "vtkOSPRayActorNode.h"
 #include "vtkOSPRayCameraNode.h"
 #include "vtkOSPRayLightNode.h"
 #include "vtkOSPRayVolumeNode.h"
+#include "vtkOSPRayMaterialLibrary.h"
 #include "vtkRenderer.h"
 #include "vtkRenderWindow.h"
+#include "vtkTexture.h"
+#include "vtkTransform.h"
 #include "vtkViewNodeCollection.h"
+#include "vtkVolume.h"
+#include "vtkVolumeCollection.h"
+#include "vtkWeakPointer.h"
 
 #include "ospray/ospray.h"
 #include "ospray/version.h"
 
 #include <algorithm>
 #include <cmath>
+#include <map>
 
 namespace ospray {
   namespace opengl {
@@ -170,6 +185,234 @@ vtkInformationKeyMacro(vtkOSPRayRendererNode, MAX_FRAMES, Integer);
 vtkInformationKeyMacro(vtkOSPRayRendererNode, AMBIENT_SAMPLES, Integer);
 vtkInformationKeyMacro(vtkOSPRayRendererNode, COMPOSITE_ON_GL, Integer);
 vtkInformationKeyMacro(vtkOSPRayRendererNode, RENDERER_TYPE, String);
+vtkInformationKeyMacro(vtkOSPRayRendererNode, NORTH_POLE, DoubleVector);
+vtkInformationKeyMacro(vtkOSPRayRendererNode, EAST_POLE, DoubleVector);
+vtkInformationKeyMacro(vtkOSPRayRendererNode, MATERIAL_LIBRARY, ObjectBase);
+
+
+class vtkOSPRayRendererNodeInternals
+{
+  //todo: move the rest of the internal data here too
+public:
+  vtkOSPRayRendererNodeInternals(vtkOSPRayRendererNode *_owner)
+    : Owner(_owner)
+  {
+    //grumble!
+    //vs2013 error C2536:...: cannot specify explicit initializer for arrays
+    this->lbgcolor1[0] = 0.;
+    this->lbgcolor1[1] = 0.;
+    this->lbgcolor1[2] = 0.;
+    this->lbgcolor2[0] = 0.;
+    this->lbgcolor2[1] = 0.;
+    this->lbgcolor2[2] = 0.;
+    this->lup[0] = 1.;
+    this->lup[1] = 0.;
+    this->lup[2] = 0.;
+    this->least[0] = 0.;
+    this->least[1] = 1.;
+    this->least[2] = 0.;
+    this->LastViewPort[0] = 0.;
+    this->LastViewPort[1] = 0.;
+  };
+
+  ~vtkOSPRayRendererNodeInternals() {};
+
+  bool CanReuseBG()
+  {
+    bool retval = true;
+
+    vtkRenderer *ren = vtkRenderer::SafeDownCast(this->Owner->GetRenderable());
+    double *up = vtkOSPRayRendererNode::GetNorthPole(ren);
+    if (up)
+    {
+      if (this->lup[0] != up[0] ||
+          this->lup[1] != up[1] ||
+          this->lup[2] != up[2])
+      {
+        this->lup[0] = up[0];
+        this->lup[1] = up[1];
+        this->lup[2] = up[2];
+        retval = false;
+      }
+    }
+    double *east = vtkOSPRayRendererNode::GetEastPole(ren);
+    if (east)
+    {
+      if (this->least[0] != east[0] ||
+          this->least[1] != east[1] ||
+          this->least[2] != east[2])
+      {
+        this->least[0] = east[0];
+        this->least[1] = east[1];
+        this->least[2] = east[2];
+        retval = false;
+      }
+    }
+    bool usebgtexture = ren->GetTexturedBackground();
+    if (this->lusebgtexture != usebgtexture)
+    {
+      this->lusebgtexture = usebgtexture;
+      retval = false;
+    }
+    vtkTexture *bgtexture = ren->GetBackgroundTexture();
+    vtkMTimeType bgttime = 0;
+    if (bgtexture)
+    {
+      bgttime = bgtexture->GetMTime();
+    }
+    if (this->lbgtexture != bgtexture || bgttime > this->lbgttime)
+    {
+      this->lbgtexture = bgtexture;
+      this->lbgttime = bgttime;
+      retval = false;
+    }
+    bool usegradient = ren->GetGradientBackground();
+    if (this->lusegradient != usegradient)
+    {
+      this->lusegradient = usegradient;
+      retval = false;
+    }
+    double *nbgcolor1 = ren->GetBackground();
+    double *nbgcolor2 = ren->GetBackground2();
+    if (this->lbgcolor1[0] != nbgcolor1[0] ||
+        this->lbgcolor1[1] != nbgcolor1[1] ||
+        this->lbgcolor1[2] != nbgcolor1[2] ||
+        this->lbgcolor2[0] != nbgcolor2[0] ||
+        this->lbgcolor2[1] != nbgcolor2[1] ||
+        this->lbgcolor2[2] != nbgcolor2[2])
+    {
+      this->lbgcolor1[0] = nbgcolor1[0];
+      this->lbgcolor1[1] = nbgcolor1[1];
+      this->lbgcolor1[2] = nbgcolor1[2];
+      this->lbgcolor2[0] = nbgcolor2[0];
+      this->lbgcolor2[1] = nbgcolor2[1];
+      this->lbgcolor2[2] = nbgcolor2[2];
+      retval = false;
+    }
+    return retval;
+  }
+
+  bool SetupPathTraceBackground(OSPRenderer oRenderer)
+  {
+    vtkRenderer *ren = vtkRenderer::SafeDownCast
+      (this->Owner->GetRenderable());
+    if (this->Owner->GetRendererType(ren) != "pathtracer")
+    {
+      return true;
+    }
+    bool reuseable = this->CanReuseBG();
+    if (!reuseable)
+    {
+      double *bg1 = ren->GetBackground();
+      unsigned char *ochars;
+      int isize = 1;
+      int jsize = 1;
+      vtkTexture *text = ren->GetBackgroundTexture();
+      if (ren->GetTexturedBackground() && text)
+      {
+        vtkImageData *vColorTextureMap = text->GetInput();
+        //todo, fallback to gradient when either of above return nullptr
+        //otherwise can't load texture in PV when in OSP::PT mode
+        //todo: this code is duplicated from vtkOSPRayPolyDataMapperNode
+        jsize = vColorTextureMap->GetExtent()[1];
+        isize = vColorTextureMap->GetExtent()[3];
+        unsigned char *ichars =
+          (unsigned char *)vColorTextureMap->GetScalarPointer();
+        ochars = new unsigned char[(isize+1)*(jsize+1)*3];
+        unsigned char *oc = ochars;
+        int comps = vColorTextureMap->GetNumberOfScalarComponents();
+        for (int i = 0; i < isize+1; i++)
+        {
+          for (int j = 0; j < jsize+1; j++)
+          {
+            oc[0] = ichars[0];
+            oc[1] = ichars[1];
+            oc[2] = ichars[2];
+            oc+=3;
+            ichars+=comps;
+          }
+        }
+        isize++;
+        jsize++;
+      }
+      else if (ren->GetGradientBackground())
+      {
+        double *bg2 = ren->GetBackground2();
+        isize=256; //todo: configurable
+        jsize=2;
+        ochars = new unsigned char[isize*jsize*3];
+        unsigned char *oc = ochars;
+        for (int i = 0; i < isize; i++)
+        {
+          double frac = (double)i/(double)isize;
+          *(oc+0) = (bg1[0]*(1.0-frac) + bg2[0]*frac)*255;
+          *(oc+1) = (bg1[1]*(1.0-frac) + bg2[1]*frac)*255;
+          *(oc+2) = (bg1[2]*(1.0-frac) + bg2[2]*frac)*255;
+          *(oc+3) = (bg1[0]*(1.0-frac) + bg2[0]*frac)*255;
+          *(oc+4) = (bg1[1]*(1.0-frac) + bg2[1]*frac)*255;
+          *(oc+5) = (bg1[2]*(1.0-frac) + bg2[2]*frac)*255;
+          oc+=6;
+        }
+      }
+      else
+      {
+        ochars = new unsigned char[3];
+        ochars[0] = bg1[0]*255;
+        ochars[1] = bg1[1]*255;
+        ochars[2] = bg1[2]*255;
+      }
+      osp::Texture2D *t2d;
+      t2d = (osp::Texture2D*)ospNewTexture2D
+        (
+         osp::vec2i{jsize,isize},
+         OSP_TEXTURE_RGB8,
+         ochars,
+         0);//OSP_TEXTURE_FILTER_NEAREST);
+
+      OSPLight ospLight = ospNewLight(oRenderer, "hdri");
+      ospSetObject(ospLight, "map", ((OSPTexture2D)(t2d)));
+      double *up = vtkOSPRayRendererNode::GetNorthPole(ren);
+      if (up)
+        {
+        ospSet3f(ospLight, "up", (float)up[0],(float)up[1],(float)up[2]);
+        }
+      else
+        {
+        ospSet3f(ospLight, "up",1.0f, 0.0f, 0.0f); //todo: configurable
+        }
+      double *east = vtkOSPRayRendererNode::GetEastPole(ren);
+      if (east)
+        {
+        ospSet3f(ospLight, "dir", (float)east[0],(float)east[1],(float)east[2]);
+        }
+      else
+        {
+        ospSet3f(ospLight, "dir", 0.0f, 1.0f, 0.0f); //todo: configurable
+        }
+      ospCommit(t2d);
+      ospCommit(ospLight); //todo: make sure osp frees its side
+      delete[] ochars;
+      this->BGLight = ospLight;
+    }
+    this->Owner->AddLight(this->BGLight);
+    return reuseable;
+  }
+
+  std::map<vtkProp3D *, vtkAbstractMapper3D *> LastMapperFor;
+  vtkOSPRayRendererNode *Owner;
+
+  bool lusebgtexture = false;
+  vtkWeakPointer<vtkTexture> lbgtexture = nullptr;
+  vtkMTimeType lbgttime = 0;
+  bool lusegradient = false;
+  double lbgcolor1[3]; //not initializing here bc visstudio2013
+  double lbgcolor2[3];
+  double lup[3];
+  double least[3];
+  double LastViewPort[2];
+
+  OSPLight BGLight;
+};
 
 //============================================================================
 vtkStandardNewMacro(vtkOSPRayRendererNode);
@@ -177,16 +420,20 @@ vtkStandardNewMacro(vtkOSPRayRendererNode);
 //----------------------------------------------------------------------------
 vtkOSPRayRendererNode::vtkOSPRayRendererNode()
 {
-  this->Buffer = NULL;
-  this->ZBuffer = NULL;
-  this->OModel = NULL;
-  this->ORenderer = NULL;
+  this->Buffer = nullptr;
+  this->ZBuffer = nullptr;
+  this->OModel = nullptr;
+  this->ORenderer = nullptr;
   this->NumActors = 0;
   this->ComputeDepth = true;
   this->OFrameBuffer = nullptr;
   this->ImageX = this->ImageY = -1;
-  this->Accumulate = false;
   this->CompositeOnGL = false;
+  this->Accumulate = true;
+  this->AccumulateCount = 0;
+  this->AccumulateTime = 0;
+  this->AccumulateMatrix = vtkMatrix4x4::New();
+  this->Internal = new vtkOSPRayRendererNodeInternals(this);
 }
 
 //----------------------------------------------------------------------------
@@ -206,6 +453,8 @@ vtkOSPRayRendererNode::~vtkOSPRayRendererNode()
   {
     ospRelease(this->OFrameBuffer);
   }
+  this->AccumulateMatrix->Delete();
+  delete this->Internal;
 }
 
 //----------------------------------------------------------------------------
@@ -232,6 +481,33 @@ int vtkOSPRayRendererNode::GetSamplesPerPixel(vtkRenderer *renderer)
     return (info->Get(vtkOSPRayRendererNode::SAMPLES_PER_PIXEL()));
   }
   return 1;
+}
+
+//----------------------------------------------------------------------------
+void vtkOSPRayRendererNode::SetMaterialLibrary(vtkOSPRayMaterialLibrary *value, vtkRenderer *renderer)
+{
+  if (!renderer)
+  {
+    return;
+  }
+  vtkInformation *info = renderer->GetInformation();
+  info->Set(vtkOSPRayRendererNode::MATERIAL_LIBRARY(), value);
+}
+
+//----------------------------------------------------------------------------
+vtkOSPRayMaterialLibrary *vtkOSPRayRendererNode::GetMaterialLibrary(vtkRenderer *renderer)
+{
+  if (!renderer)
+  {
+    return nullptr;
+  }
+  vtkInformation *info = renderer->GetInformation();
+  if (info && info->Has(vtkOSPRayRendererNode::MATERIAL_LIBRARY()))
+  {
+    vtkObjectBase *obj = info->Get(vtkOSPRayRendererNode::MATERIAL_LIBRARY());
+    return (vtkOSPRayMaterialLibrary::SafeDownCast(obj));
+  }
+  return nullptr;
 }
 
 //----------------------------------------------------------------------------
@@ -339,11 +615,64 @@ int vtkOSPRayRendererNode::GetCompositeOnGL(vtkRenderer *renderer)
 }
 
 //----------------------------------------------------------------------------
+void vtkOSPRayRendererNode::SetNorthPole(double *value, vtkRenderer *renderer)
+{
+  if (!renderer)
+  {
+    return;
+  }
+  vtkInformation *info = renderer->GetInformation();
+  info->Set(vtkOSPRayRendererNode::NORTH_POLE(), value, 3);
+}
+
+//----------------------------------------------------------------------------
+double * vtkOSPRayRendererNode::GetNorthPole(vtkRenderer *renderer)
+{
+  if (!renderer)
+  {
+    return nullptr;
+  }
+  vtkInformation *info = renderer->GetInformation();
+  if (info && info->Has(vtkOSPRayRendererNode::NORTH_POLE()))
+  {
+    return (info->Get(vtkOSPRayRendererNode::NORTH_POLE()));
+  }
+  return nullptr;
+}
+
+//----------------------------------------------------------------------------
+void vtkOSPRayRendererNode::SetEastPole(double *value, vtkRenderer *renderer)
+{
+  if (!renderer)
+  {
+    return;
+  }
+  vtkInformation *info = renderer->GetInformation();
+  info->Set(vtkOSPRayRendererNode::EAST_POLE(), value, 3);
+}
+
+//----------------------------------------------------------------------------
+double * vtkOSPRayRendererNode::GetEastPole(vtkRenderer *renderer)
+{
+  if (!renderer)
+  {
+    return nullptr;
+  }
+  vtkInformation *info = renderer->GetInformation();
+  if (info && info->Has(vtkOSPRayRendererNode::EAST_POLE()))
+  {
+    return (info->Get(vtkOSPRayRendererNode::EAST_POLE()));
+  }
+  return nullptr;
+}
+
+//----------------------------------------------------------------------------
 void vtkOSPRayRendererNode::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 }
 
+//----------------------------------------------------------------------------
 void vtkOSPRayRendererNode::Traverse(int operation)
 {
   // do not override other passes
@@ -378,6 +707,7 @@ void vtkOSPRayRendererNode::Traverse(int operation)
   //lights
   this->Lights.clear();
   it->InitTraversal();
+  bool hasAmbient = false;
   while (!it->IsDoneWithTraversal())
   {
     vtkOSPRayLightNode *child =
@@ -385,15 +715,38 @@ void vtkOSPRayRendererNode::Traverse(int operation)
     if (child)
     {
       child->Traverse(operation);
+      if (child->GetIsAmbient(vtkLight::SafeDownCast(child->GetRenderable())))
+      {
+        hasAmbient = true;
+      }
     }
     it->GoToNextItem();
   }
+
+#if OSPRAY_VERSION_MAJOR > 1 || \
+    (OSPRAY_VERSION_MAJOR == 1 && OSPRAY_VERSION_MINOR >= 2)
+  if (!hasAmbient &&
+      (this->GetAmbientSamples(static_cast<vtkRenderer*>(this->Renderable)) > 0)
+      )
+  {
+    //hardcode an ambient light for AO since OSP 1.2 stopped doing so.
+    OSPLight ospAmbient = ospNewLight(oRenderer, "AmbientLight");
+    ospSetString(ospAmbient, "name", "default_ambient");
+    ospSet3f(ospAmbient, "color", 1.f, 1.f, 1.f);
+    ospSet1f(ospAmbient, "intensity",
+             0.13f*vtkOSPRayLightNode::GetLightScale()*vtkMath::Pi());
+    ospCommit(ospAmbient);
+    this->Lights.push_back(ospAmbient);
+  }
+#endif
+
+  bool bgreused = this->Internal->SetupPathTraceBackground(oRenderer);
   OSPData lightArray = ospNewData(this->Lights.size(), OSP_OBJECT,
-    (this->Lights.size()?&this->Lights[0]:NULL), 0);
+    (this->Lights.size()?&this->Lights[0]:nullptr), 0);
   ospSetData(oRenderer, "lights", lightArray);
 
   //actors
-  OSPModel oModel=NULL;
+  OSPModel oModel=nullptr;
   it->InitTraversal();
   //since we have to spatially sort everything
   //let's see if we can avoid that in the common case when
@@ -456,9 +809,16 @@ void vtkOSPRayRendererNode::Traverse(int operation)
   else
   {
     oModel = (OSPModel)this->OModel;
+    ospSetObject(oRenderer,"model", oModel);
+    ospCommit(oRenderer);
   }
   it->Delete();
 
+  if (!bgreused)
+    {
+    //hack to ensure progressive rendering resets when background changes
+    this->AccumulateTime = 0;
+    }
   this->Apply(operation,false);
 }
 
@@ -497,7 +857,7 @@ void vtkOSPRayRendererNode::Render(bool prepass)
 
   if (prepass)
   {
-    OSPRenderer oRenderer = NULL;
+    OSPRenderer oRenderer = nullptr;
     static std::string previousType;
     std::string type = this->GetRendererType(static_cast<vtkRenderer*>(this->Renderable));
     if (!this->ORenderer || previousType != type)
@@ -512,12 +872,17 @@ void vtkOSPRayRendererNode::Render(bool prepass)
     {
       oRenderer = (osp::Renderer*)this->ORenderer;
     }
+    ospSet1f(this->ORenderer, "maxContribution", 2.f);
+    ospSet1f(this->ORenderer, "minContribution", 0.01f);
+    ospSet1f(this->ORenderer, "varianceThreshold", 0.3f);
     ospCommit(this->ORenderer);
 
-    vtkRenderer *ren = vtkRenderer::SafeDownCast(this->GetRenderable());
-    int *tmp = ren->GetSize();
-    this->Size[0] = tmp[0];
-    this->Size[1] = tmp[1];
+    int viewportOrigin[2];
+    int viewportSize[2];
+    ren->GetTiledSizeAndOrigin(
+      &viewportSize[0], &viewportSize[1], &viewportOrigin[0], &viewportOrigin[1]);
+    this->Size[0] = viewportSize[0];
+    this->Size[1] = viewportSize[1];
     if (ren->GetUseShadows())
     {
       ospSet1i(oRenderer,"shadowsEnabled",1);
@@ -526,15 +891,44 @@ void vtkOSPRayRendererNode::Render(bool prepass)
     {
       ospSet1i(oRenderer,"shadowsEnabled",0);
     }
+
+    //todo: this can be expensive and should be cached
+    //also the user might want to control
+    vtkBoundingBox bbox(ren->ComputeVisiblePropBounds());
+    if (bbox.IsValid())
+    {
+      float diam = static_cast<float>(bbox.GetDiagonalLength());
+      float logDiam = log(diam);
+      if (logDiam < 0.f)
+        {
+        logDiam = 1.f/(fabs(logDiam));
+        }
+      float epsilon = 1e-5*logDiam;
+      ospSet1f(oRenderer, "epsilon", epsilon);
+      ospSet1f(oRenderer, "aoDistance", diam*0.3);
+    }
+
+    vtkVolumeCollection *vc = ren->GetVolumes();
+    if (vc->GetNumberOfItems())
+    {
+      ospSet1i(oRenderer, "aoTransparencyEnabled", 1);
+    }
+
     ospSet1i(oRenderer,"aoSamples",
              this->GetAmbientSamples(static_cast<vtkRenderer*>(this->Renderable)));
     ospSet1i(oRenderer,"spp",
              this->GetSamplesPerPixel(static_cast<vtkRenderer*>(this->Renderable)));
     this->CompositeOnGL =
-      this->GetCompositeOnGL(static_cast<vtkRenderer*>(this->Renderable));
+      (this->GetCompositeOnGL(static_cast<vtkRenderer*>(this->Renderable))!=0);
 
     double *bg = ren->GetBackground();
+#if OSPRAY_VERSION_MAJOR > 1 || \
+    (OSPRAY_VERSION_MAJOR == 1 && OSPRAY_VERSION_MINOR >= 3)
+   ospSet4f(oRenderer,"bgColor", bg[0], bg[1], bg[2], ren->GetBackgroundAlpha());
+#else
     ospSet3f(oRenderer,"bgColor", bg[0], bg[1], bg[2]);
+#endif
+
   }
   else
   {
@@ -566,9 +960,129 @@ void vtkOSPRayRendererNode::Render(bool prepass)
     }
     else if (this->Accumulate)
     {
+      //check if something has changed
+      //if so we clear and start over, otherwise we continue to accumulate
+      bool canReuse = true;
+
+      //TODO: these all need some work as checks are not necessarily fast
+      //nor sufficient for all cases that matter
+
+      //check for stereo and disable so don't get left in right
+      vtkRenderWindow *rwin =
+      vtkRenderWindow::SafeDownCast(ren->GetVTKWindow());
+      if (rwin && rwin->GetStereoRender())
+      {
+        canReuse = false;
+      }
+
+      //check for tiling, ie typically putting together large images to save high res pictures
+      double *vp = rwin->GetTileViewport();
+      if (this->Internal->LastViewPort[0] != vp[0] ||
+          this->Internal->LastViewPort[1] != vp[1])
+      {
+        canReuse = false;
+        this->Internal->LastViewPort[0] = vp[0];
+        this->Internal->LastViewPort[1] = vp[1];
+      }
+
+      //check actors (and time)
+      vtkMTimeType m = 0;
+      vtkActorCollection *ac = ren->GetActors();
+      int nitems = ac->GetNumberOfItems();
+      if (nitems != this->AccumulateCount)
+      {
+        //TODO: need a hash or something to really check for added/deleted
+        this->AccumulateCount = nitems;
+        canReuse = false;
+      }
+      if (canReuse)
+      {
+        ac->InitTraversal();
+        vtkActor *nac = ac->GetNextActor();
+        while (nac)
+        {
+          if (nac->GetRedrawMTime() > m)
+          {
+            m = nac->GetRedrawMTime();
+          }
+          if (this->Internal->LastMapperFor[nac] != nac->GetMapper())
+          {
+            // a check to ensure vtkPVLODActor restarts on LOD swap
+            this->Internal->LastMapperFor[nac] = nac->GetMapper();
+            canReuse = false;
+          }
+          nac = ac->GetNextActor();
+        }
+        if (this->AccumulateTime < m)
+        {
+          this->AccumulateTime = m;
+          canReuse = false;
+        }
+      }
+
+      if (canReuse)
+      {
+        m = 0;
+        vtkVolumeCollection *vc = ren->GetVolumes();
+        vc->InitTraversal();
+        vtkVolume* nvol = vc->GetNextVolume();
+        while (nvol)
+        {
+          if (nvol->GetRedrawMTime() > m)
+          {
+            m = nvol->GetRedrawMTime();
+          }
+          if (this->Internal->LastMapperFor[nvol] != nvol->GetMapper())
+          {
+            // a check to ensure vtkPVLODActor restarts on LOD swap
+            this->Internal->LastMapperFor[nvol] = nvol->GetMapper();
+            canReuse = false;
+          }
+          nvol = vc->GetNextVolume();
+        };
+        if (this->AccumulateTime < m)
+        {
+          this->AccumulateTime = m;
+          canReuse = false;
+        }
+      }
+
+      if (canReuse)
+      {
+        //check camera
+        //Why not cam->mtime?
+        // cam->mtime is bumped by synch after this in parallel so never reuses
+        //Why not cam->MVTO->mtime?
+        //  cam set's elements directly, so the mtime doesn't bump with motion
+        vtkMatrix4x4 *camnow =
+          ren->GetActiveCamera()->GetModelViewTransformObject()->GetMatrix();
+        for (int i = 0; i < 4; i++)
+        {
+          for (int j = 0; j < 4; j++)
+          {
+            if (this->AccumulateMatrix->GetElement(i,j) !=
+                camnow->GetElement(i,j))
+            {
+              this->AccumulateMatrix->DeepCopy(camnow);
+              canReuse = false;
+              i=4; j=4;
+            }
+          }
+        }
+      }
+      if (!canReuse)
+      {
+        ospFrameBufferClear
+          (this->OFrameBuffer,
+           OSP_FB_COLOR |
+           (this->ComputeDepth ? OSP_FB_DEPTH : 0) | OSP_FB_ACCUM);
+      }
+    }
+    else if (!this->Accumulate)
+    {
       ospFrameBufferClear
         (this->OFrameBuffer,
-         OSP_FB_COLOR | (this->ComputeDepth ? OSP_FB_DEPTH : 0) | (this->Accumulate ? OSP_FB_ACCUM : 0));
+         OSP_FB_COLOR | (this->ComputeDepth ? OSP_FB_DEPTH : 0));
     }
 
     vtkCamera *cam = vtkRenderer::SafeDownCast(this->Renderable)->GetActiveCamera();
@@ -576,13 +1090,7 @@ void vtkOSPRayRendererNode::Render(bool prepass)
     ospSet1i(oRenderer, "backgroundEnabled", ren->GetErase());
     if (this->CompositeOnGL)
     {
-      OSPTexture2D glDepthTex=NULL;
-      /*
-      if (glDepthTex)
-        {
-        ospRelease(glDepthTex);
-        }
-      */
+      OSPTexture2D glDepthTex=nullptr;
       vtkRenderWindow *rwin =
       vtkRenderWindow::SafeDownCast(ren->GetVTKWindow());
       int viewportX, viewportY;
@@ -635,6 +1143,19 @@ void vtkOSPRayRendererNode::Render(bool prepass)
 
     const void* rgba = ospMapFrameBuffer(this->OFrameBuffer, OSP_FB_COLOR);
     memcpy((void*)this->Buffer, rgba, this->Size[0]*this->Size[1]*sizeof(char)*4);
+#if OSPRAY_VERSION_MAJOR > 1 || \
+    (OSPRAY_VERSION_MAJOR == 1 && OSPRAY_VERSION_MINOR >= 3)
+    //nothing, already preset
+#else
+    //with qt5 VTK requires alpha channel, set it here
+    unsigned char *pix = this->Buffer;
+    for (int i = 0; i < this->Size[0]*this->Size[1]; i++)
+    {
+      pix+=3;
+      *pix = 255*ren->GetBackgroundAlpha();
+      pix++;
+    }
+#endif
     ospUnmapFrameBuffer(rgba, this->OFrameBuffer);
 
     if (this->ComputeDepth)
@@ -724,4 +1245,10 @@ void vtkOSPRayRendererNode::WriteLayer(unsigned char *buffer, float *Z,
       }
     }
   }
+}
+
+//------------------------------------------------------------------------------
+vtkRenderer *vtkOSPRayRendererNode::GetRenderer()
+{
+  return vtkRenderer::SafeDownCast(this->GetRenderable());
 }

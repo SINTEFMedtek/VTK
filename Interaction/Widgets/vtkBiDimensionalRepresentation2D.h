@@ -68,7 +68,7 @@ public:
    * Standard VTK methods.
    */
   vtkTypeMacro(vtkBiDimensionalRepresentation2D,vtkBiDimensionalRepresentation);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) override;
   //@}
 
   //@{
@@ -95,44 +95,41 @@ public:
   /**
    * These are methods that satisfy vtkWidgetRepresentation's API.
    */
-  virtual void BuildRepresentation();
-  virtual int ComputeInteractionState(int X, int Y, int modify=0);
-  virtual void StartWidgetDefinition(double e[2]);
-  virtual void Point2WidgetInteraction(double e[2]);
-  virtual void Point3WidgetInteraction(double e[2]);
-  virtual void StartWidgetManipulation(double e[2]);
-  virtual void WidgetInteraction(double e[2]);
-  virtual void Highlight(int highlightOn);
+  void BuildRepresentation() override;
+  int ComputeInteractionState(int X, int Y, int modify=0) override;
+  void StartWidgetDefinition(double e[2]) override;
+  void Point2WidgetInteraction(double e[2]) override;
+  void Point3WidgetInteraction(double e[2]) override;
+  void StartWidgetManipulation(double e[2]) override;
+  void WidgetInteraction(double e[2]) override;
+  void Highlight(int highlightOn) override;
   //@}
 
   //@{
   /**
    * Methods required by vtkProp superclass.
    */
-  virtual void ReleaseGraphicsResources(vtkWindow *w);
-  virtual int RenderOverlay(vtkViewport *viewport);
+  void ReleaseGraphicsResources(vtkWindow *w) override;
+  int RenderOverlay(vtkViewport *viewport) override;
   //@}
 
   /**
    * Get the text shown in the widget's label.
    */
-  char* GetLabelText();
+  char* GetLabelText() override;
 
   //@{
   /**
    * Get the position of the widget's label in display coordinates.
    */
-  double* GetLabelPosition();
-  void GetLabelPosition(double pos[3]);
-  void GetWorldLabelPosition(double pos[3]);
+  double* GetLabelPosition() override;
+  void GetLabelPosition(double pos[3]) override;
+  void GetWorldLabelPosition(double pos[3]) override;
   //@}
 
 protected:
   vtkBiDimensionalRepresentation2D();
-  ~vtkBiDimensionalRepresentation2D();
-
-  // Keep track if modifier is set
-  int Modifier;
+  ~vtkBiDimensionalRepresentation2D() override;
 
   // Geometry of the lines
   vtkCellArray        *LineCells;
@@ -148,25 +145,13 @@ protected:
   vtkTextMapper   *TextMapper;
   vtkActor2D      *TextActor;
 
-  // Internal variables
-  double P1World[3];
-  double P2World[3];
-  double P3World[3];
-  double P4World[3];
-  double P21World[3];
-  double P43World[3];
-  double T21;
-  double T43;
-  double CenterWorld[3];
-  double StartEventPositionWorld[4];
-
   // Helper method
   void ProjectOrthogonalPoint(double x[4], double y[3], double x1[3], double x2[3], double x21[3],
                               double dir, double xP[3]);
 
 private:
-  vtkBiDimensionalRepresentation2D(const vtkBiDimensionalRepresentation2D&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkBiDimensionalRepresentation2D&) VTK_DELETE_FUNCTION;
+  vtkBiDimensionalRepresentation2D(const vtkBiDimensionalRepresentation2D&) = delete;
+  void operator=(const vtkBiDimensionalRepresentation2D&) = delete;
 };
 
 #endif

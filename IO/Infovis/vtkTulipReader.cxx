@@ -45,10 +45,7 @@
 #include <set>
 #include <stack>
 #include <vector>
-
-#if defined (__BORLANDC__)
-#include <cctype> // for isspace, isdigit
-#endif
+#include <cctype>
 
 // I need a safe way to read a line of arbitrary length.  It exists on
 // some platforms but not others so I'm afraid I have to write it
@@ -62,14 +59,14 @@ vtkStandardNewMacro(vtkTulipReader);
 vtkTulipReader::vtkTulipReader()
 {
   // Default values for the origin vertex
-  this->FileName = 0;
+  this->FileName = nullptr;
   this->SetNumberOfInputPorts(0);
   this->SetNumberOfOutputPorts(2);
 }
 
 vtkTulipReader::~vtkTulipReader()
 {
-  this->SetFileName(0);
+  this->SetFileName(nullptr);
 }
 
 void vtkTulipReader::PrintSelf(std::ostream& os, vtkIndent indent)
@@ -101,7 +98,7 @@ struct vtkTulipReaderCluster
 {
   int clusterId;
   int parentId;
-  const static int NO_PARENT = -1;
+  static const int NO_PARENT = -1;
   vtkStdString name;
   vtkSmartPointer<vtkIdTypeArray> nodes;
 };
@@ -202,7 +199,7 @@ int vtkTulipReader::RequestData(
   vtkInformationVector **vtkNotUsed(inputVector),
   vtkInformationVector *outputVector)
 {
-  if (this->FileName == NULL)
+  if (this->FileName == nullptr)
   {
     vtkErrorMacro("File name undefined");
     return 0;
@@ -581,7 +578,7 @@ int vtkTulipReader::RequestData(
 
   // Create annotations.
   std::set<vtkStdString>::iterator labels = uniqueLabels.begin();
-  for (; labels != uniqueLabels.end(); labels++)
+  for (; labels != uniqueLabels.end(); ++labels)
   {
     vtkSmartPointer<vtkAnnotation> annotation = vtkSmartPointer<vtkAnnotation>::New();
     annotation->GetInformation()->Set(vtkAnnotation::COLOR(), 0.0, 0.0, 1.0);

@@ -1,14 +1,15 @@
+#include "vtkAtomicTypes.h"
 #include "vtkConditionVariable.h"
 #include "vtkMultiThreader.h"
 #include "vtksys/SystemTools.hxx"
 
-#include <stdlib.h>
+#include <cstdlib>
 
 
 typedef struct {
   vtkMutexLock* Lock;
   vtkConditionVariable* Condition;
-  int Done;
+  vtkAtomicInt32 Done;
   int NumberOfWorkers;
 } vtkThreadUserData;
 
@@ -22,8 +23,8 @@ VTK_THREAD_RETURN_TYPE vtkTestCondVarThread( void* arg )
   {
     if ( threadId == 0 )
     {
-      td->Done = 0;
       td->Lock->Lock();
+      td->Done = 0;
       cout << "Thread " << ( threadId + 1 ) << " of " << threadCount << " initializing.\n";
       cout.flush();
       td->Lock->Unlock();
@@ -41,17 +42,19 @@ VTK_THREAD_RETURN_TYPE vtkTestCondVarThread( void* arg )
       }
 
       i = 0;
+      int currNumWorkers = 0;
       do
       {
         td->Lock->Lock();
         td->Done = 1;
         cout << "Broadcasting...\n";
         cout.flush();
+        currNumWorkers = td->NumberOfWorkers;
         td->Lock->Unlock();
         td->Condition->Broadcast();
         vtksys::SystemTools::Delay( 200 ); // 0.2 s between broadcasts
       }
-      while ( td->NumberOfWorkers > 0 && ( i ++ < 1000 ) );
+      while ( currNumWorkers > 0 && ( i ++ < 1000 ) );
       if ( i >= 1000 )
       {
         exit( 2 );
@@ -60,10 +63,22 @@ VTK_THREAD_RETURN_TYPE vtkTestCondVarThread( void* arg )
     else
     {
       // Wait for thread 0 to initialize... Ugly but effective
-      while ( td->Done < 0 )
+      bool done = false;
+      do
       {
-        vtksys::SystemTools::Delay( 200 ); // 0.2 s between checking
+        td->Lock->Lock();
+        if (td->Done)
+        {
+          done = true;
+          td->Lock->Unlock();
+        }
+        else
+        {
+          td->Lock->Unlock();
+          vtksys::SystemTools::Delay( 200 ); // 0.2 s between checking
+        }
       }
+      while (!done);
 
       // Wait for the condition and then note we were signaled.
       // This part looks like a Hansen Monitor:

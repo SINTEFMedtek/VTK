@@ -51,7 +51,7 @@ public:
   static vtkAMRInformation* New();
   vtkTypeMacro(vtkAMRInformation, vtkObject);
 
-  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
+  void PrintSelf(ostream& os, vtkIndent indent) override;
 
   bool operator==(const vtkAMRInformation& other);
 
@@ -165,7 +165,7 @@ public:
   void GenerateRefinementRatio();
 
   /**
-   * Returns Wether refinement ratio has been set (either by calling
+   * Returns whether refinement ratio has been set (either by calling
    * GenerateRefinementRatio() or by calling SetRefinementRatio()
    */
   bool HasRefinementRatio();
@@ -194,14 +194,14 @@ public:
   /**
    * Return a pointer to Parents of a block.  The first entry is the number
    * of parents the block has followed by its parent ids in level-1.
-   * If none exits it returns NULL.
+   * If none exits it returns nullptr.
    */
   unsigned int *GetParents(unsigned int level, unsigned int index, unsigned int& numParents);
 
   /**
    * Return a pointer to Children of a block.  The first entry is the number
    * of children the block has followed by its childern ids in level+1.
-   * If none exits it returns NULL.
+   * If none exits it returns nullptr.
    */
   unsigned int *GetChildren(unsigned int level, unsigned int index, unsigned int& numChildren);
 
@@ -251,9 +251,9 @@ public:
 
  private:
   vtkAMRInformation();
-  ~vtkAMRInformation() VTK_OVERRIDE;
-  vtkAMRInformation(const vtkAMRInformation&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkAMRInformation&) VTK_DELETE_FUNCTION;
+  ~vtkAMRInformation() override;
+  vtkAMRInformation(const vtkAMRInformation&) = delete;
+  void operator=(const vtkAMRInformation&) = delete;
 
   bool HasValidOrigin();
   bool HasValidBounds();
@@ -277,7 +277,7 @@ public:
   double Bounds[6]; //the bounds of the entire domain
 
   //-------------------------------------------------------------------------
-  // Auxillary information that be computed
+  // Auxiliary information that be computed
   //-------------------------------------------------------------------------
   vtkSmartPointer<vtkIntArray> Refinement; //refinement ratio between two adjacent levels
   vtkSmartPointer<vtkUnsignedIntArray> BlockLevel; //only necessary if need to call ComputeIndexPair

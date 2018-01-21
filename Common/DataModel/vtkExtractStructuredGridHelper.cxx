@@ -31,7 +31,7 @@
 #include <cassert>
 #include <vector>
 
-// Some usefull extent macros
+// Some useful extent macros
 #define EMIN(ext, dim) (ext[2*dim])
 #define EMAX(ext, dim) (ext[2*dim+1])
 #define IMIN(ext) (ext[0])
@@ -118,7 +118,7 @@ void vtkExtractStructuredGridHelper::Invalidate()
 void vtkExtractStructuredGridHelper::Initialize(
       int inVoi[6], int wholeExtent[6], int sampleRate[3], bool includeBoundary)
 {
-  assert("pre: NULL index map" && (this->IndexMap != NULL) );
+  assert("pre: nullptr index map" && (this->IndexMap != nullptr) );
 
   // Copy the VOI because we'll clamp it later:
   int voi[6];
@@ -333,11 +333,11 @@ void vtkExtractStructuredGridHelper::CopyPointsAndPointData(
           vtkPointData* pd, vtkPoints* inpnts,
           vtkPointData* outPD, vtkPoints* outpnts)
 {
-  assert("pre: NULL input point-data!" && (pd != NULL) );
-  assert("pre: NULL output point-data!" && (outPD != NULL) );
+  assert("pre: nullptr input point-data!" && (pd != nullptr) );
+  assert("pre: nullptr output point-data!" && (outPD != nullptr) );
 
   // short-circuit
-  if( (pd->GetNumberOfArrays()==0) && (inpnts==NULL) )
+  if( (pd->GetNumberOfArrays()==0) && (inpnts==nullptr) )
   {
     // nothing to copy
     return;
@@ -354,9 +354,9 @@ void vtkExtractStructuredGridHelper::CopyPointsAndPointData(
                       J(this->SampleRate) == 1 &&
                       K(this->SampleRate) == 1);
 
-  if( inpnts != NULL )
+  if( inpnts != nullptr )
   {
-    assert("pre: output points data-structure is NULL!" && (outpnts != NULL) );
+    assert("pre: output points data-structure is nullptr!" && (outpnts != nullptr) );
     outpnts->SetDataType( inpnts->GetDataType() );
     outpnts->SetNumberOfPoints( outSize );
   }
@@ -400,7 +400,7 @@ void vtkExtractStructuredGridHelper::CopyPointsAndPointData(
           assert( "pre: dstStart out of bounds" && (dstStart >= 0) &&
                   (dstStart < outSize) );
 
-        if (inpnts != NULL)
+        if (inpnts != nullptr)
         {
           outpnts->InsertPoints(dstStart, num, srcStart, inpnts);
         }
@@ -429,11 +429,11 @@ void vtkExtractStructuredGridHelper::CopyPointsAndPointData(
 
         } // END for all i
 
-        if( inpnts != NULL )
+        if( inpnts != nullptr )
         {
-          outpnts->InsertPoints(dstIds.GetPointer(), srcIds.GetPointer(), inpnts);
+          outpnts->InsertPoints(dstIds, srcIds, inpnts);
         } // END if
-        outPD->CopyData(pd, srcIds.GetPointer(), dstIds.GetPointer());
+        outPD->CopyData(pd, srcIds, dstIds);
         srcIds->Reset();
         dstIds->Reset();
 
@@ -450,8 +450,8 @@ void vtkExtractStructuredGridHelper::CopyCellData(int inExt[6], int outExt[6],
                                                   vtkCellData* cd,
                                                   vtkCellData* outCD)
 {
-  assert("pre: NULL input cell-data!" && (cd != NULL) );
-  assert("pre: NULL output cell-data!" && (outCD != NULL) );
+  assert("pre: nullptr input cell-data!" && (cd != nullptr) );
+  assert("pre: nullptr output cell-data!" && (outCD != nullptr) );
 
   // short-circuit
   if( cd->GetNumberOfArrays()==0 )
@@ -477,6 +477,14 @@ void vtkExtractStructuredGridHelper::CopyCellData(int inExt[6], int outExt[6],
 
   int outCellExt[6];
   vtkStructuredData::GetCellExtentFromPointExtent(outExt,outCellExt);
+
+  // clamp outCellExt using inpCellExt. This is needed for the case where outExt
+  // is the outer face of the dataset along any of the dimensions.
+  for (int dim = 0; dim < 3; ++dim)
+  {
+    EMIN(outCellExt, dim) = std::min(EMAX(inpCellExt, dim), EMIN(outCellExt, dim));
+    EMAX(outCellExt, dim) = std::min(EMAX(inpCellExt, dim), EMAX(outCellExt, dim));
+  }
 
   // Lists for batching copy operations:
   vtkNew<vtkIdList> srcIds;
@@ -554,7 +562,7 @@ void vtkExtractStructuredGridHelper::CopyCellData(int inExt[6], int outExt[6],
           dstIds->InsertNextId(targetIdx);
         } // END for all i
 
-        outCD->CopyData(cd, srcIds.GetPointer(), dstIds.GetPointer());
+        outCD->CopyData(cd, srcIds, dstIds);
         srcIds->Reset();
         dstIds->Reset();
 

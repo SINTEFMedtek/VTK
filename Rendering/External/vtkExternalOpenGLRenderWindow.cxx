@@ -74,12 +74,6 @@ void vtkExternalOpenGLRenderWindow::Start(void)
 }
 
 //----------------------------------------------------------------------------
-void vtkExternalOpenGLRenderWindow::Render()
-{
-  this->Superclass::Render();
-}
-
-//----------------------------------------------------------------------------
 bool vtkExternalOpenGLRenderWindow::IsCurrent(void)
 {
   return true;

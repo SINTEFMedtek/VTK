@@ -55,14 +55,14 @@ public:
   vtkTypeMacro(vtkUnstructuredGridLinearRayIntegrator,
                        vtkUnstructuredGridVolumeRayIntegrator);
   static vtkUnstructuredGridLinearRayIntegrator *New();
-  virtual void PrintSelf(ostream &os, vtkIndent indent);
+  void PrintSelf(ostream &os, vtkIndent indent) override;
 
-  virtual void Initialize(vtkVolume *volume, vtkDataArray *scalars);
+  void Initialize(vtkVolume *volume, vtkDataArray *scalars) override;
 
-  virtual void Integrate(vtkDoubleArray *intersectionLengths,
+  void Integrate(vtkDoubleArray *intersectionLengths,
                          vtkDataArray *nearIntersections,
                          vtkDataArray *farIntersections,
-                         float color[4]);
+                         float color[4]) override;
 
   //@{
   /**
@@ -90,7 +90,7 @@ public:
 
 protected:
   vtkUnstructuredGridLinearRayIntegrator();
-  ~vtkUnstructuredGridLinearRayIntegrator();
+  ~vtkUnstructuredGridLinearRayIntegrator() override;
 
   vtkVolumeProperty *Property;
 
@@ -99,8 +99,8 @@ protected:
   int NumIndependentComponents;
 
 private:
-  vtkUnstructuredGridLinearRayIntegrator(const vtkUnstructuredGridLinearRayIntegrator&) VTK_DELETE_FUNCTION;
-  void operator=(const vtkUnstructuredGridLinearRayIntegrator&) VTK_DELETE_FUNCTION;
+  vtkUnstructuredGridLinearRayIntegrator(const vtkUnstructuredGridLinearRayIntegrator&) = delete;
+  void operator=(const vtkUnstructuredGridLinearRayIntegrator&) = delete;
 };
 
 #endif //vtkUnstructuredGridLinearRayIntegrator_h

@@ -17,11 +17,6 @@
 #include "vtkContingencyStatistics.h"
 
 //=============================================================================
-// When changing this file, change the corresponding file in
-// StatisticsGnuR/Testing/Cxx as well.
-//=============================================================================
-
-//=============================================================================
 int TestContingencyStatistics( int, char *[] )
 {
   int testStatus = 0;
@@ -196,7 +191,7 @@ int TestContingencyStatistics( int, char *[] )
 
   cout << "\n";
 
-  cout << "## Calculated the following joint and conditional probabilities and mutual informations:\n";
+  cout << "## Calculated the following joint and conditional probabilities and mutual information:\n";
   testIntValue = 0;
 
   // Skip first row which contains data set cardinality

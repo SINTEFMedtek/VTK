@@ -1,11 +1,29 @@
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}")
+if(NOT VTK_SOURCE_DIR)
+  cmake_minimum_required(VERSION 3.3 FATAL_ERROR)
+  project(vtkRenderingOpenVR)
+  find_package(VTK REQUIRED)
+endif()
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${VTK_CMAKE_DIR}")
+if(NOT VTK_SOURCE_DIR)
+  include(vtkExternalModuleMacros)
+endif()
 
 find_package(OpenVR REQUIRED)
 
-find_package(SDL2 REQUIRED)
-
 set(Module_SRCS
   vtkOpenVRCamera.cxx
+  vtkOpenVRControlsHelper.cxx
+  vtkOpenVRDefaultOverlay.cxx
+  vtkOpenVRFollower.cxx
+  vtkOpenVRHardwarePicker.cxx
+  vtkOpenVRInteractorStyle.cxx
+  vtkOpenVRMenuRepresentation.cxx
+  vtkOpenVRMenuWidget.cxx
+  vtkOpenVRModel.cxx
+  vtkOpenVROverlay.cxx
+  vtkOpenVRPanelRepresentation.cxx
+  vtkOpenVRPanelWidget.cxx
+  vtkOpenVRPropPicker.cxx
   vtkOpenVRRenderer.cxx
   vtkOpenVRRenderWindow.cxx
   vtkOpenVRRenderWindowInteractor.cxx
@@ -13,6 +31,18 @@ set(Module_SRCS
 
 set_source_files_properties(
   vtkOpenVRCamera
+  vtkOpenVRControlsHelper
+  vtkOpenVRDefaultOverlay
+  vtkOpenVRFollower
+  vtkOpenVRHardwarePicker
+  vtkOpenVRInteractorStyle
+  vtkOpenVRMenuRepresentation
+  vtkOpenVRMenuWidget
+  vtkOpenVRModel
+  vtkOpenVROverlay
+  vtkOpenVRPanelRepresentation
+  vtkOpenVRPanelWidget
+  vtkOpenVRPropPicker
   vtkOpenVRRenderer
   vtkOpenVRRenderWindow
   vtkOpenVRRenderWindowInteractor
@@ -62,7 +92,8 @@ if (VTK_OPENVR_OBJECT_FACTORY)
     for (oic->InitTraversal(); oi = oic->GetNextItem(); )\n\
       {\n\
       oi->GetObjectFactory()->Disable(\"vtkRenderer\");\n\
-      }\n")
+      }\n\
+    oic->Delete();\n")
   vtk_object_factory_configure("${vtk_module_overrides}")
 
   set(Module_SRCS ${Module_SRCS}
@@ -70,11 +101,18 @@ if (VTK_OPENVR_OBJECT_FACTORY)
     )
 endif()
 
-list(APPEND ${vtk-module}_SYSTEM_INCLUDE_DIRS ${OPENVR_INCLUDE_DIRS} ${SDL2_INCLUDE_DIR})
+list(APPEND ${vtk-module}_SYSTEM_INCLUDE_DIRS ${OPENVR_INCLUDE_DIRS})
+
 
 vtk_module_library(${vtk-module} ${Module_SRCS})
+vtk_module_link_libraries(${vtk-module} LINK_PRIVATE ${OPENVR_LIBRARY})
 
-vtk_module_link_libraries(${vtk-module} LINK_PRIVATE ${OPENVR_LIBRARY} ${SDL2_LIBRARY})
 
 include(vtkOpenGL)
 vtk_opengl_link(${vtk-module})
+
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/OpenVRDashboard.jpg"
+  "${CMAKE_BINARY_DIR}/OpenVRDashboard.jpg"
+  COPYONLY
+  )
