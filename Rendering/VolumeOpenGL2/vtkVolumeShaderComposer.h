@@ -1834,13 +1834,13 @@ namespace vtkvolume
     if (!ren->GetActiveCamera()->GetParallelProjection())
     {
       shaderStr = std::string("\
-        vec4 temp = in_volumeMatrix * vec4(rayDir, 0.0);\
-        \n    if (temp.w != 0.0)\
+        vec4 tempClip = in_volumeMatrix * vec4(rayDir, 0.0);\
+        \n    if (tempClip.w != 0.0)\
         \n      {\
-        \n      temp = temp/temp.w;\
-        \n      temp.w = 1.0;\
+        \n      tempClip = tempClip/tempClip.w;\
+        \n      tempClip.w = 1.0;\
         \n      }\
-        vec3 objRayDir = temp.xyz;");
+        vec3 objRayDir = tempClip.xyz;");
     }
     else
     {
