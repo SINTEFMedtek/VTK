@@ -24,6 +24,7 @@ PURPOSE.  See the above copyright notice for more information.
 
 #include "vtkRenderingQtModule.h" // For export macro
 #include "vtkImageAlgorithm.h"
+#include <QPainterPath>
 
 class QImage;
 
